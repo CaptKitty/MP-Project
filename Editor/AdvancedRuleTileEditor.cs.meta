@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 69aa658034b6d2d498bb4ef0d53c4713
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - m_PreviewGrid: {instanceID: 0}
+  - SandTileIcon: {fileID: 2800000, guid: 9bd3a29ecaf4aab47b52b74507513b50, type: 3}
+  - WaterTile: {fileID: 2800000, guid: 098577d22623202499314e5305b80d47, type: 3}
+  - GrassTile: {fileID: 2800000, guid: e9bd7dc15c26d9744a5ba7da9df7c310, type: 3}
+  - RiverTile: {fileID: 2800000, guid: 6156512b45bd2f84d8771a411c210242, type: 3}
+  - MountainTile: {fileID: 2800000, guid: 738b2effbfac90f4ebad31f1efe351ed, type: 3}
+  - ForestTile: {fileID: 2800000, guid: 6054ed5a5782c3841a45fd25413447b9, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

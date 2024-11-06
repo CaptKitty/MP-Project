@@ -60,17 +60,17 @@ public class RpcTest : NetworkBehaviour
             Vector2 location = BattleManager1.Instance.enemylist[i].transform.position;
             string crittername = unit.name;
 
-            // SendYourCritterServerRpc(unit.name, (double)location.x, (double)location.y, unit.population);
-            // SendYourCritterClientRpc(unit.name, (double)location.x, (double)location.y, unit.population);
+            SendYourCritterServerRpc(crittername, (double)location.x, (double)location.y, unit.population);
+            SendYourCritterClientRpc(crittername, (double)location.x, (double)location.y, unit.population);
 
-            if (IsServer) 
-            {
-                SendYourCritterServerRpc(crittername, (double)location.x, (double)location.y, unit.population);
-            }
-            else
-            {
-                SendYourCritterClientRpc(crittername, (double)location.x, (double)location.y, unit.population);
-            }
+            // if (IsServer) 
+            // {
+            //     SendYourCritterServerRpc(crittername, (double)location.x, (double)location.y, unit.population);
+            // }
+            // else
+            // {
+            //     SendYourCritterClientRpc(crittername, (double)location.x, (double)location.y, unit.population);
+            // }
             //Manager2.Instance.objectlist[i].GetComponent<CritterHolder>().Checky();
         }
     }

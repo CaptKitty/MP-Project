@@ -33,25 +33,31 @@ public class basic_AI_Script : base_AI_Script
             }
             else
             {
-                //Vector3 vectory = new Vector3(1, 0.5f, 0);
                 var heading  = TargetEnemy.transform.position - critter.gameObject.transform.position;
                 var distance = heading.magnitude;
-                var direction = heading / distance;
-                critter.gameObject.transform.position += direction * Time.deltaTime * speed;
-                Attack(distance, critter);
+
+                if(distance < combatdistance)
+                {
+                    Attack(distance, critter);
+                }
+                else
+                {
+                    var direction = heading / distance;
+                    critter.gameObject.transform.position += direction * Time.deltaTime * speed;
+                }
             }
         }
     }
     void Attack(float distance, CritterHolder critter)
     {
-        if(distance < combatdistance)
+        
+        if(NextAvailableAttack < Time.time)
         {
-            if(NextAvailableAttack < Time.time)
-            {
-                NextAvailableAttack = Time.time + attacktime;
-                TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(attack);
-            }
+            NextAvailableAttack = Time.time + attacktime;
+            TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(attack);
+            critter.gameObject.GetComponent<Animator>().SetTrigger("Attack");
         }
+        
     }
     public void FindTarget(CritterHolder critter)
     {

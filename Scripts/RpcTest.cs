@@ -60,17 +60,17 @@ public class RpcTest : NetworkBehaviour
             Vector2 location = BattleManager1.Instance.enemylist[i].transform.position;
             string crittername = unit.name;
 
-            SendYourCritterServerRpc(crittername, (double)location.x, (double)location.y, unit.population);
-            SendYourCritterClientRpc(crittername, (double)location.x, (double)location.y, unit.population);
+            // SendYourCritterServerRpc(crittername, (double)location.x, (double)location.y, unit.population);
+            // SendYourCritterClientRpc(crittername, (double)location.x, (double)location.y, unit.population);
 
-            // if (IsServer) 
-            // {
-            //     SendYourCritterServerRpc(crittername, (double)location.x, (double)location.y, unit.population);
-            // }
-            // else
-            // {
-            //     SendYourCritterClientRpc(crittername, (double)location.x, (double)location.y, unit.population);
-            // }
+            if (IsServer) 
+            {
+                SendYourCritterServerRpc(i, crittername, (double)location.x, (double)location.y, unit.population);
+            }
+            else
+            {
+                SendYourCritterClientRpc(i, crittername, (double)location.x, (double)location.y, unit.population);
+            }
             //Manager2.Instance.objectlist[i].GetComponent<CritterHolder>().Checky();
         }
     }
@@ -84,17 +84,19 @@ public class RpcTest : NetworkBehaviour
 
         string futurename = RpcTest.Serverchecker.ServerCheck().ToString() + name + Random.Range(0,1000);
 
-        //Debug.LogError(name);
+        // //Debug.LogError(name);
         SendYourSpawnServerRpc(target.x, target.y, name, Faction:BattleManager1.Instance.Faction, AIorNot:ServerCheck(), futurename:futurename);
         SendYourSpawnClientRpc(target.x, target.y, name, Faction:BattleManager1.Instance.Faction, AIorNot:ServerCheck(), futurename:futurename);
 
         // if (IsServer) 
         // {
-        //     SendYourSpawnServerRpc(target.x, target.y, name, Faction:BattleManager1.Instance.Faction);
+        //     SendYourSpawnServerRpc(target.x, target.y, name, Faction:BattleManager1.Instance.Faction, AIorNot:ServerCheck(), futurename:futurename);
+        //     //SendYourSpawnServerRpc(target.x, target.y, name, Faction:BattleManager1.Instance.Faction);
         // }
         // else
         // {
-        //     SendYourSpawnClientRpc(target.x, target.y, name, Faction:BattleManager1.Instance.Faction);
+        //     SendYourSpawnClientRpc(target.x, target.y, name, Faction:BattleManager1.Instance.Faction, AIorNot:ServerCheck(), futurename:futurename);
+        //    // SendYourSpawnClientRpc(target.x, target.y, name, Faction:BattleManager1.Instance.Faction);
         // }
     }
 
@@ -102,7 +104,7 @@ public class RpcTest : NetworkBehaviour
     void SendYourSpawnServerRpc(float x, float y, string name, string Faction, bool AIorNot, string futurename)
     {
         BattleManager1.Instance.Spawn(new Vector3Int((int)x,(int)y,0), name:name, Faction:Faction, AIorNot:AIorNot, futurename:futurename);
-        SessionManager.Instance.SpawnToHost(new Vector3Int((int)x,(int)y,0), name:name, Faction:Faction, AIorNot:AIorNot, futurename:futurename);
+        //SessionManager.Instance.SpawnToHost(new Vector3Int((int)x,(int)y,0), name:name, Faction:Faction, AIorNot:AIorNot, futurename:futurename);
     }
     [Rpc(SendTo.Server)]
     void SendYourSpawnClientRpc(float x, float y, string name, string Faction, bool AIorNot, string futurename)
@@ -111,24 +113,45 @@ public class RpcTest : NetworkBehaviour
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    void SendYourCritterServerRpc(string name, double value, double value2, double value3)
+    void SendYourCritterServerRpc(int i, string name, double value, double value2, double value3)
     {
-        var a = BattleManager1.Instance.enemylist.Find(x => x.name == name);
+        //var a = BattleManager1.Instance.enemylist.Find(x => x.name == name);
+        var a = BattleManager1.Instance.enemylist[i];
         if(a != null)
         {
             a.transform.position = new Vector2((float)value, (float)value2);
-            a.GetComponent<CritterHolder>().population = (int)value3;
+            if(a.GetComponent<CritterHolder>().population != (int)value3)
+            {
+                //a.GetComponent<CritterHolder>().ReducePopulation(0);
+                a.GetComponent<CritterHolder>().population = (int)value3;
+                a.GetComponent<CritterHolder>().ReducePopulation(0);
+            }
+            if(a.GetComponent<CritterHolder>().population < 0)
+            {
+                a.SetActive(false);
+            }
         }
     }
 
     [Rpc(SendTo.Server)]
-    void SendYourCritterClientRpc(string name, double value, double value2, double value3)
+    void SendYourCritterClientRpc(int i, string name, double value, double value2, double value3)
     {
-        var a = BattleManager1.Instance.enemylist.Find(x => x.name == name);
+        //var a = BattleManager1.Instance.enemylist.Find(x => x.name == name);
+        var a = BattleManager1.Instance.enemylist[i];
         if(a != null)
         {
             a.transform.position = new Vector2((float)value, (float)value2);
-            a.GetComponent<CritterHolder>().population = (int)value3;
+            if(a.GetComponent<CritterHolder>().population != (int)value3)
+            {
+                
+                a.GetComponent<CritterHolder>().population = (int)value3;
+                a.GetComponent<CritterHolder>().ReducePopulation(0);
+            }
+            if(a.GetComponent<CritterHolder>().population < 0)
+            {
+                a.SetActive(false);
+            }
+            //a.GetComponent<CritterHolder>().population = (int)value3;
         }
     }
 

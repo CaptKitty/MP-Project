@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: -1170439232849311746}
   - component: {fileID: 1002579342033724375}
   - component: {fileID: 1002579342033724373}
-  - component: {fileID: -7521240757544311763}
   - component: {fileID: -8209825602014350543}
   - component: {fileID: -5787205392657145368}
   m_Layer: 0
@@ -53,14 +52,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3e23fbf27478ef41b34bb57076ad617, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: {r: 0.3813121, g: 0.6037736, b: 0.2306871, a: 1}
-  color2: {r: 0.6320754, g: 0.25342646, b: 0.36422265, a: 0}
-  color3: {r: 0, g: 0, b: 0, a: 0}
+  color: {r: 0.5471698, g: 0.5471698, b: 0.5471698, a: 1}
+  color2: {r: 0.25591847, g: 0.48086753, b: 0.6698113, a: 0}
+  color3: {r: 0.4245283, g: 0.26902112, b: 0.122152, a: 0}
   listy:
   - {fileID: 1002579343314764860}
   - {fileID: 1002579343139218209}
   - {fileID: 1002579343439947282}
   material: {fileID: 2100000, guid: 8ff3243eb11066e4d91c1ed91eb90631, type: 2}
+  DoesThisHaveSword: 0
 --- !u!114 &-1170439232849311746
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -94,7 +94,7 @@ MonoBehaviour:
   IsthisAI: 0
   IsThisAlive: 1
   online: 0
-  AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
+  AIScript: {fileID: 11400000, guid: 15c846fa5a71b51478fbeffc0c805451, type: 2}
   scriptlist: []
 --- !u!212 &1002579342033724375
 SpriteRenderer:
@@ -156,9 +156,9 @@ Animator:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1002579342033724372}
-  m_Enabled: 0
+  m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: fd64fceae4215db4ebd5433a3dff70a9, type: 2}
+  m_Controller: {fileID: 9100000, guid: 6a9bc9d4136468247bfce084c7c065f6, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -169,41 +169,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &-7521240757544311763
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1002579342033724372}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34f17edb22a4295449b6d1b6de4be4b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  spot: {x: 6, y: 3, z: 0}
-  name: Dude
-  nametype: []
-  cost:
-    name: 
-    amount: 100
-    sprite: {fileID: 0}
-  DoesThisgoOnTheCity: 0
-  ViablePlacingSpots:
-  - Grassland
-  targetlists: []
-  population: 100
-  AbilityList:
-  - {fileID: 0}
-  PrivateAbilityList:
-  - {fileID: 11400000, guid: 4086e341d1b08ca44bfa4ccff5f5ed43, type: 2}
-  SpriteList: []
-  CanBeOverwritten: 1
-  IsthisAI: 0
-  IsThisAlive: 1
-  online: 0
-  AIScript: {fileID: 11400000, guid: 74ef0af7efabbd8469d18b83ecf5a0b6, type: 2}
-  scriptlist: []
 --- !u!58 &-8209825602014350543
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -313,7 +278,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 20
   m_Sprite: {fileID: 21300000, guid: 16ba57bdaddde4a4d84a2e70a94b9dfb, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -397,7 +362,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 15
   m_Sprite: {fileID: 21300000, guid: 8fc34586aad3393449b60f6bf1b00eda, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -481,8 +446,8 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
-  m_Sprite: {fileID: 21300000, guid: 2a17cfdacd044a541970e4e76ba4245d, type: 3}
+  m_SortingOrder: 25
+  m_Sprite: {fileID: 21300000, guid: 3eae1bb9a168ca849b6f4b4d18dd2213, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

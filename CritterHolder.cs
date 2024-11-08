@@ -114,6 +114,7 @@ public class CritterHolder : MonoBehaviour
     // }
     public void ReducePopulation(int a)
     {
+        GetComponent<Animator>().SetTrigger("Hurt");
         population -= a;
         if(population < 1)
         {
@@ -132,6 +133,7 @@ public class CritterHolder : MonoBehaviour
             // }
             IsThisAlive = false;
             IsthisAI = false;
+            this.gameObject.SetActive(false);
             //Destroy(this.gameObject);
 
         }

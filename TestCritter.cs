@@ -26,9 +26,19 @@ public class TestCritter : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    void FixedUpdate()
-    {
+    // // Update is called once per frame
+    // void FixedUpdate()
+    // {
         
-    }
+    // }
+    // void Update()
+    // {
+    //     if(Input.GetKeyDown("space"))
+    //     {
+    //         if(Random.Range(0,10) == 1)
+    //         {
+    //             GetComponent<Animator>().SetTrigger("Hurt");
+    //         }
+    //     }
+    // }
 }

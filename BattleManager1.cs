@@ -16,6 +16,7 @@ public class BattleManager1 : BattleManager
     public int FriendlyCounter = 0;
     public string Faction = "Royal";
     public bool AIPlayer = false;
+    public GameObject a,b;
 
     public override void Awake()
     {
@@ -25,6 +26,14 @@ public class BattleManager1 : BattleManager
         foreach (Vector3Int position in ownermap.cellBounds.allPositionsWithin)
         {
             dicty.Add(position, null);
+        }
+        if(RpcTest.Serverchecker.ServerCheck())
+        {
+            a.SetActive(false);
+        }
+        else
+        {
+            b.SetActive(false);
         }
     }
     public void ResetBattleField()
@@ -45,6 +54,9 @@ public class BattleManager1 : BattleManager
                 
                 if(Input.GetKeyDown("space"))
                 {
+                    a.SetActive(false);
+                    b.SetActive(false);
+
                     foreach (var item in enemylist)
                     {
                         item.GetComponent<CritterHolder>().AIScript.FindTarget(item.GetComponent<CritterHolder>());

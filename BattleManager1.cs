@@ -27,20 +27,28 @@ public class BattleManager1 : BattleManager
             dicty.Add(position, null);
         }
     }
+    public void ResetBattleField()
+    {
+        SceneManager.LoadScene("FightScene 1");
+    }
     void Update()
     {
-        if(Input.GetKeyDown("escape"))
-        {
-            SceneManager.LoadScene("FightScene 1");
-        }
         try
         {
             if(RpcTest.Serverchecker.ServerCheck())
             {
+                if(Input.GetKeyDown("escape"))
+                {
+                    RpcTest.Serverchecker.ExecuteReset();
+                }
                 RpcTest.Serverchecker.UpdateCritters();
                 
                 if(Input.GetKeyDown("space"))
                 {
+                    foreach (var item in enemylist)
+                    {
+                        item.GetComponent<CritterHolder>().AIScript.FindTarget(item.GetComponent<CritterHolder>());
+                    }
                     MousePet.SetActive(false);
                     if(!FightIsOn)
                     {

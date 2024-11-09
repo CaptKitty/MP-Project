@@ -50,10 +50,21 @@ public class CritterHolder : MonoBehaviour
     }
     public void FixedUpdate()
     {
+        if(!RpcTest.Serverchecker.ServerCheck())
+        {
+            AIScript.Direction(this);
+        }
         if(online)
         {
             AIScript.Execute(this);
         }
+    }
+    public void Update()
+    {
+        // if(Input.GetKeyDown("1"))
+        // {
+        //     Debug.LogError(name);
+        // }
     }
     public bool IsThisViable(string potato)
     {
@@ -112,6 +123,18 @@ public class CritterHolder : MonoBehaviour
     //         Destroy(this.gameObject);
     //     }
     // }
+    public void Throw()
+    {
+        if(AIScript.GetType() == typeof(basic_Ranged_AI_script))
+        {
+            var a = (basic_Ranged_AI_script)AIScript;
+            a.Throw(this);
+        }
+    }
+    public void Attack()
+    {
+        GetComponent<Animator>().SetTrigger("Attack");
+    }
     public void ReducePopulation(int a)
     {
         GetComponent<Animator>().SetTrigger("Hurt");

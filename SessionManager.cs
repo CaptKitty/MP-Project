@@ -8,9 +8,10 @@ public class SessionManager : MonoBehaviour
     public List<CritterHolder> HostArmy = new List<CritterHolder>();
     public List<CritterHolder> ClientArmy = new List<CritterHolder>();
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         Instance = this;
+        //DontDestroyOnLoad(gameObject);
     }
 
     public void SpawnToHost(Vector3Int target, GameObject spawnee = null, string Faction = "Royal", string name = "null", bool AIorNot = false, string futurename = "null")

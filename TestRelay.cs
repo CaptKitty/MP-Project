@@ -45,7 +45,7 @@ public class TestRelay : MonoBehaviour
         {
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(3);
             string JoinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId); 
-            Debug.LogError(JoinCode);
+            //Debug.LogError(JoinCode);
             JoinCodeTextStuff = JoinCode;
             JoinCodeStuff.Instance.Texty.text = JoinCode;
 
@@ -88,7 +88,7 @@ public class TestRelay : MonoBehaviour
                 joinAllocation.HostConnectionData
             );
             //Debug.LogError("potato");
-            Debug.LogError(joinAllocation); 
+            //Debug.LogError(joinAllocation); 
 
             NetworkManager.Singleton.StartClient();
 

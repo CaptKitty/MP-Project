@@ -23,6 +23,29 @@ public class basic_AI_Script : base_AI_Script
         potato.NextAvailableAttack = NextAvailableAttack;
         return potato;
     }
+    public override void Direction(CritterHolder critter)
+    {
+        if(TargetEnemy == null || TargetEnemy.active == false)
+        {
+            FindTarget(critter);
+        }
+        else
+        {
+            //Vector3 vectory = new Vector3(1, 0.5f, 0);
+            var heading  = TargetEnemy.transform.position - critter.gameObject.transform.position;
+            var distance = heading.magnitude;
+            var direction = heading / distance;
+
+            if(direction.x > 0)
+            {
+                critter.gameObject.transform.LookAt( new Vector3(critter.gameObject.transform.position.x+1,critter.gameObject.transform.position.y,360), new Vector3(0,0,0));
+            }
+            else
+            {
+                critter.gameObject.transform.LookAt( new Vector3(critter.gameObject.transform.position.x-1,critter.gameObject.transform.position.y,-360), new Vector3(0,0,0));
+            }
+        }
+    }
     public override void Execute(CritterHolder critter)
     {
         if(critter.online == true)
@@ -58,17 +81,16 @@ public class basic_AI_Script : base_AI_Script
         }
     }
     void Attack(float distance, CritterHolder critter)
-    {
-        
+    {   
         if(NextAvailableAttack < Time.time)
         {
             NextAvailableAttack = Time.time + attacktime;
             TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(attack);
-            critter.gameObject.GetComponent<Animator>().SetTrigger("Attack");
+            RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");
         }
         
     }
-    public void FindTarget(CritterHolder critter)
+    public override void FindTarget(CritterHolder critter)
     {
         List<GameObject> enemylists = new List<GameObject>();
         foreach (var item in BattleManager1.Instance.enemylist)

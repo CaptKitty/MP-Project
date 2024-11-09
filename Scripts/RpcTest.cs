@@ -12,7 +12,13 @@ public class RpcTest : NetworkBehaviour
             ServerOnlyRpc(0, NetworkObjectId);
         }
         this.gameObject.name = NetworkObjectId.ToString();
-        this.transform.SetParent(TestRelay.Instance.gameObject.transform);
+        try
+        {
+            //this.transform.SetParent(TestRelay.Instance.gameObject.transform);
+            DontDestroyOnLoad(this.gameObject);
+        }
+        catch{}
+        
         if(NetworkObjectId == 1)
         {
             Serverchecker = this;
@@ -52,6 +58,28 @@ public class RpcTest : NetworkBehaviour
         }
     }
 
+    public void ExecuteReset()
+    {   if(IsServer){SendYourResetServerRpc();}
+        else{SendYourResetClientRpc();}}
+    [Rpc(SendTo.ClientsAndHost)]
+    void SendYourResetServerRpc()
+    {BattleManager1.Instance.ResetBattleField();}
+    [Rpc(SendTo.Server)]
+    void SendYourResetClientRpc()
+    {BattleManager1.Instance.ResetBattleField();}
+
+    public void ExecuteAnimation(CritterHolder critter, string WhatToExecute)
+    {   if(IsServer){SendYourCommandServerRpc(critter.name, WhatToExecute);}
+        else{SendYourCommandClientRpc(critter.name, WhatToExecute);}}
+    [Rpc(SendTo.ClientsAndHost)]
+    void SendYourCommandServerRpc(string name, string command)
+    {   var a = BattleManager1.Instance.enemylist.Find(x => x.name == name);
+        a.GetComponent<CritterHolder>().Invoke(command,0f);}
+    [Rpc(SendTo.Server)]
+    void SendYourCommandClientRpc(string name, string command)
+    {   var a = BattleManager1.Instance.enemylist.Find(x => x.name == name);
+        a.GetComponent<CritterHolder>().Invoke(command,0f);}
+
     public void UpdateCritters()
     {
         for (int i = 0; i < BattleManager1.Instance.enemylist.Count; i++)
@@ -59,10 +87,6 @@ public class RpcTest : NetworkBehaviour
             CritterHolder unit = BattleManager1.Instance.enemylist[i].GetComponent<CritterHolder>();
             Vector2 location = BattleManager1.Instance.enemylist[i].transform.position;
             string crittername = unit.name;
-
-            // SendYourCritterServerRpc(crittername, (double)location.x, (double)location.y, unit.population);
-            // SendYourCritterClientRpc(crittername, (double)location.x, (double)location.y, unit.population);
-
             if (IsServer) 
             {
                 SendYourCritterServerRpc(i, crittername, (double)location.x, (double)location.y, unit.population);
@@ -71,7 +95,6 @@ public class RpcTest : NetworkBehaviour
             {
                 SendYourCritterClientRpc(i, crittername, (double)location.x, (double)location.y, unit.population);
             }
-            //Manager2.Instance.objectlist[i].GetComponent<CritterHolder>().Checky();
         }
     }
     public void Spawn(Vector3Int target, GameObject spawnee = null, string name = "null")
@@ -115,8 +138,8 @@ public class RpcTest : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     void SendYourCritterServerRpc(int i, string name, double value, double value2, double value3)
     {
-        //var a = BattleManager1.Instance.enemylist.Find(x => x.name == name);
-        var a = BattleManager1.Instance.enemylist[i];
+        var a = BattleManager1.Instance.enemylist.Find(x => x.name == name);
+        //var a = BattleManager1.Instance.enemylist[i];
         if(a != null)
         {
             a.transform.position = new Vector2((float)value, (float)value2);
@@ -136,8 +159,8 @@ public class RpcTest : NetworkBehaviour
     [Rpc(SendTo.Server)]
     void SendYourCritterClientRpc(int i, string name, double value, double value2, double value3)
     {
-        //var a = BattleManager1.Instance.enemylist.Find(x => x.name == name);
-        var a = BattleManager1.Instance.enemylist[i];
+        var a = BattleManager1.Instance.enemylist.Find(x => x.name == name);
+        //var a = BattleManager1.Instance.enemylist[i];
         if(a != null)
         {
             a.transform.position = new Vector2((float)value, (float)value2);

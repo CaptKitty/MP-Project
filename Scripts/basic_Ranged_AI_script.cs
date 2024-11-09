@@ -12,6 +12,7 @@ public class basic_Ranged_AI_script : base_AI_Script
     public int attack = 1;
     public double attacktime = 1;
     public double NextAvailableAttack = 0;
+    public GameObject Throwable;
     public override base_AI_Script Init()
     {
         var potato = new basic_Ranged_AI_script();
@@ -21,7 +22,31 @@ public class basic_Ranged_AI_script : base_AI_Script
         potato.attack = attack;
         potato.attacktime = attacktime;
         potato.NextAvailableAttack = NextAvailableAttack;
+        potato.Throwable = Throwable;
         return potato;
+    }
+    public override void Direction(CritterHolder critter)
+    {
+        if(TargetEnemy == null || TargetEnemy.active == false)
+        {
+            FindTarget(critter);
+        }
+        else
+        {
+            //Vector3 vectory = new Vector3(1, 0.5f, 0);
+            var heading  = TargetEnemy.transform.position - critter.gameObject.transform.position;
+            var distance = heading.magnitude;
+            var direction = heading / distance;
+
+            if(direction.x > 0)
+            {
+                critter.gameObject.transform.LookAt( new Vector3(critter.gameObject.transform.position.x+1,critter.gameObject.transform.position.y,360), new Vector3(0,0,0));
+            }
+            else
+            {
+                critter.gameObject.transform.LookAt( new Vector3(critter.gameObject.transform.position.x-1,critter.gameObject.transform.position.y,-360), new Vector3(0,0,0));
+            }
+        }
     }
     public override void Execute(CritterHolder critter)
     {
@@ -66,12 +91,25 @@ public class basic_Ranged_AI_script : base_AI_Script
             {
                 NextAvailableAttack = Time.time + attacktime;
                 TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(attack);
-                critter.gameObject.GetComponent<Animator>().SetTrigger("Attack");
+                
+                //critter.gameObject.GetComponent<Animator>().SetTrigger("Attack");
+                RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");
+                RpcTest.Serverchecker.ExecuteAnimation(critter, "Throw"); //Throw(critter);
             }
-            
         }
     }
-    public void FindTarget(CritterHolder critter)
+    public void Throw(CritterHolder critter)
+    {
+        if(TargetEnemy == null)
+        {
+            FindTarget(critter);
+        }
+        var potato = Instantiate(Throwable);
+        potato.transform.position = critter.gameObject.transform.GetChild(2).position;
+        potato.transform.rotation = critter.gameObject.transform.GetChild(2).rotation;
+        potato.GetComponent<Projectile>().TargetEnemy = TargetEnemy;
+    }
+    public override void FindTarget(CritterHolder critter)
     {
         List<GameObject> enemylists = new List<GameObject>();
         foreach (var item in BattleManager1.Instance.enemylist)

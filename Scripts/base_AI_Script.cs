@@ -15,4 +15,12 @@ public class base_AI_Script : ScriptableObject
     {
 
     }
+    public virtual void Direction(CritterHolder critter)
+    {
+
+    }
+    public virtual void FindTarget(CritterHolder critter)
+    {
+
+    }
 }

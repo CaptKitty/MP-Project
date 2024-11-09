@@ -17,3 +17,4 @@ MonoBehaviour:
   attack: 25
   attacktime: 1
   NextAvailableAttack: 0
+  Throwable: {fileID: 8062874142913599219, guid: 0603e32d295d7154085c6c9224cdb6c5, type: 3}

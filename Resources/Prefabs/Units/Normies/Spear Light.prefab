@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: -8209825602014350543}
   - component: {fileID: -5787205392657145368}
   m_Layer: 0
-  m_Name: Infantry
+  m_Name: Spear Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -52,15 +52,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3e23fbf27478ef41b34bb57076ad617, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: {r: 0.5471698, g: 0.5471698, b: 0.5471698, a: 1}
-  color2: {r: 0.25591847, g: 0.48086753, b: 0.6698113, a: 0}
-  color3: {r: 0.4245283, g: 0.26902112, b: 0.122152, a: 0}
+  color: {r: 0.24705882, g: 0.43529412, b: 0.105882354, a: 1}
+  color2: {r: 0.5568628, g: 0.5568628, b: 0.5568628, a: 0}
+  color3: {r: 0.99215686, g: 0.80784315, b: 0.7411765, a: 0}
   listy:
   - {fileID: 1002579343314764860}
   - {fileID: 1002579343139218209}
   - {fileID: 1002579343439947282}
-  material: {fileID: 2100000, guid: 8ff3243eb11066e4d91c1ed91eb90631, type: 2}
+  material: {fileID: 2100000, guid: 8bc3e5084e1bf7e42bd906b624b10ea4, type: 2}
   DoesThisHaveSword: 0
+  DoesThisHaveSpear: 1
+  DoesThisHaveJavelin: 0
 --- !u!114 &-1170439232849311746
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -78,13 +80,13 @@ MonoBehaviour:
   nametype: []
   cost:
     name: 
-    amount: 100
+    amount: 50
     sprite: {fileID: 0}
   DoesThisgoOnTheCity: 0
   ViablePlacingSpots:
   - Grassland
   targetlists: []
-  population: 300
+  population: 100
   AbilityList:
   - {fileID: 0}
   PrivateAbilityList:
@@ -182,7 +184,7 @@ CircleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0.2}
+  m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.24
 --- !u!50 &-5787205392657145368
@@ -222,7 +224,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1002579343139218204
 Transform:
   m_ObjectHideFlags: 0
@@ -258,7 +260,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: 8bc3e5084e1bf7e42bd906b624b10ea4, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -342,7 +344,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: 8bc3e5084e1bf7e42bd906b624b10ea4, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -426,7 +428,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: 8bc3e5084e1bf7e42bd906b624b10ea4, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

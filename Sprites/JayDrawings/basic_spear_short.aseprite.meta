@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 8bff0719c157ccf4ca0394210fc4cf44
+guid: 4e2ef5062d4706847ae1571d850868ac
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -119,18 +119,18 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
   animatedSpriteImportData:
-  - name: basic_dude
+  - name: basic_spear_short
     originalName: 
-    pivot: {x: 0.48888892, y: -0.28070176}
+    pivot: {x: 0.33333334, y: -0.59574467}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
       serializedVersion: 2
       x: 4
       y: 4
-      width: 45
-      height: 57
-    spriteID: 0e1cabff464bf46428cd0fd6227f0410
+      width: 9
+      height: 47
+    spriteID: 764baba344d1f91478a8500c4fe7bab0
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -142,20 +142,20 @@ ScriptedImporter:
   spriteSheetImportData: []
   asepriteLayers:
   - layerIndex: 0
-    guid: 363438061
-    name: basic_dude
+    guid: 454247717
+    name: basic_spear_short
     layerFlags: 0
     layerType: 0
     blendMode: 0
     cells:
-    - name: basic_dude
+    - name: basic_spear_short
       frameIndex: 0
       cellRect:
-        x: 28
-        y: 16
-        width: 45
-        height: 57
-      spriteId: 0e1cabff464bf46428cd0fd6227f0410
+        x: 47
+        y: 28
+        width: 9
+        height: 47
+      spriteId: 764baba344d1f91478a8500c4fe7bab0
     linkedCells: []
     parentIndex: -1
   platformSettings: []

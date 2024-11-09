@@ -8,6 +8,8 @@ public class TestCritter : MonoBehaviour
     public List<GameObject> listy = new List<GameObject>();
     public Material material;
     public bool DoesThisHaveSword = false;
+    public bool DoesThisHaveSpear = false;
+    public bool DoesThisHaveJavelin = false;
     
     // Start is called before the first frame update
     void Start()
@@ -18,6 +20,8 @@ public class TestCritter : MonoBehaviour
         material.SetColor("_FactionColor3", color3);
         
         GetComponent<Animator>().SetBool("Sword", DoesThisHaveSword);
+        GetComponent<Animator>().SetBool("Spear", DoesThisHaveSpear);
+        GetComponent<Animator>().SetBool("Javelin", DoesThisHaveJavelin);
 
 
         foreach (var item in listy)
@@ -27,10 +31,13 @@ public class TestCritter : MonoBehaviour
     }
 
     // // Update is called once per frame
-    // void FixedUpdate()
-    // {
-        
-    // }
+    void FixedUpdate()
+    {
+        foreach (var item in listy)
+        {
+            item.GetComponent<SpriteRenderer>().material = material;
+        }
+    }
     // void Update()
     // {
     //     if(Input.GetKeyDown("space"))

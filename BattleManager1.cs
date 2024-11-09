@@ -20,7 +20,7 @@ public class BattleManager1 : BattleManager
     public override void Awake()
     {
         Instance = this;
-        Reserves = 1000;
+        Reserves = 500;
         texty.text = Reserves.ToString();
         foreach (Vector3Int position in ownermap.cellBounds.allPositionsWithin)
         {

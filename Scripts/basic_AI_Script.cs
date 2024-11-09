@@ -35,6 +35,16 @@ public class basic_AI_Script : base_AI_Script
             {
                 var heading  = TargetEnemy.transform.position - critter.gameObject.transform.position;
                 var distance = heading.magnitude;
+                var direction = heading / distance;
+
+                if(direction.x > 0)
+                {
+                    critter.gameObject.transform.LookAt( new Vector3(critter.gameObject.transform.position.x+1,critter.gameObject.transform.position.y,360));//, new Vector3(0,0,0));
+                }
+                else
+                {
+                    critter.gameObject.transform.LookAt( new Vector3(critter.gameObject.transform.position.x-1,critter.gameObject.transform.position.y,-360));//, new Vector3(0,0,0));
+                }
 
                 if(distance < combatdistance)
                 {
@@ -42,7 +52,6 @@ public class basic_AI_Script : base_AI_Script
                 }
                 else
                 {
-                    var direction = heading / distance;
                     critter.gameObject.transform.position += direction * Time.deltaTime * speed;
                 }
             }

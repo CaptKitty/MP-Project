@@ -29,20 +29,37 @@ public class BattleManager1 : BattleManager
         {
             dicty.Add(position, null);
         }
-        if(RpcTest.Serverchecker.ServerCheck())
-        {
-            a.SetActive(false);
-            Playerfaction = Resources.Load<Faction>("Prefabs/Factions/Roman");
+        
+    }
+    public void Start()
+    {
+        try
+        {   if(RpcTest.Serverchecker.ServerCheck())
+            {
+                a.SetActive(false);
+                Playerfaction = SessionManager.Instance.HostFaction;
+            }
+            else
+            {
+                b.SetActive(false);
+                Playerfaction = SessionManager.Instance.ClientFaction;
+            }
+            
         }
-        else
+        catch
         {
             b.SetActive(false);
-            Playerfaction = Resources.Load<Faction>("Prefabs/Factions/Carthage");
+            Playerfaction = SessionManager.Instance.ClientFaction;
         }
     }
     public void ResetBattleField()
     {
         SceneManager.LoadScene("FightScene 1");
+    }
+    public void StartFight()
+    {
+        a.SetActive(false);
+        b.SetActive(false);
     }
     void Update()
     {
@@ -58,13 +75,13 @@ public class BattleManager1 : BattleManager
                 
                 if(Input.GetKeyDown("space"))
                 {
-                    a.SetActive(false);
-                    b.SetActive(false);
-
                     foreach (var item in enemylist)
                     {
                         item.GetComponent<CritterHolder>().AIScript.FindTarget(item.GetComponent<CritterHolder>());
                     }
+                    
+                    RpcTest.Serverchecker.StartBattle();
+                    
                     MousePet.SetActive(false);
                     if(!FightIsOn)
                     {
@@ -287,12 +304,10 @@ public class BattleManager1 : BattleManager
     {
         Faction = newfaction;
     }
-    public void Spawn(Vector3Int target, GameObject spawnee = null, string Faction = "Royal", string name = "null", bool AIorNot = false, string futurename = "null")
+    public void Spawn(Vector3Int target, GameObject spawnee = null, string Faction = "Royal", string name = "null", bool AIorNot = false, string futurename = "null", string ClientOrHost = "Host")
     {
-        //Debug.LogError("Spawning a twat");
         if(dicty[target] == null)
         {
-            
             GameObject spawner = null;
             if(name != "null")
             {
@@ -304,24 +319,6 @@ public class BattleManager1 : BattleManager
             }
             GameObject trader = Instantiate(spawner, ownermap.transform);
 
-            // Reserves -= trader.GetComponent<CritterHolder>().cost.amount;
-
-            //ChangeReserves(trader.GetComponent<CritterHolder>().cost.amount);
-
-            if(trader.name != "AIDude")
-            {
-                if(1==1)//CityManager.Instance.ResourceList.Find(x => x.name == "Manpower").amount >= trader.GetComponent<CritterHolder>().cost.amount)
-                {
-                    //ChangeReserves(trader.GetComponent<CritterHolder>().cost.amount);
-                    FriendlyCounter++;
-                }
-                else
-                {
-                    Destroy(trader);
-                    return;
-                }
-            }
-
             
             trader.transform.position = new Vector3(ownermap.CellToWorld(target).x + 0.0f, ownermap.CellToWorld(target).y +0.25f, 0);
             trader.GetComponent<CritterHolder>().spot = target;
@@ -330,7 +327,14 @@ public class BattleManager1 : BattleManager
 
             trader.GetComponent<CritterHolder>().name = futurename;
 
-            trader.GetComponent<TestCritter>().faction = Playerfaction;
+            if(ClientOrHost == "Host")
+            {
+                trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction;
+            }
+            else
+            {
+                trader.GetComponent<TestCritter>().faction = SessionManager.Instance.ClientFaction;
+            }
 
             trader.name = futurename;
             

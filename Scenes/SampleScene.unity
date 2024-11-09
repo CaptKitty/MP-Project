@@ -935,7 +935,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HostArmy: []
+  HostFaction: {fileID: 11400000, guid: dcbee4453ff2def43ba4aa0f3d4f9d86, type: 2}
   ClientArmy: []
+  ClientFaction: {fileID: 11400000, guid: 47009c7e621a59349a826c3c4d238a6d, type: 2}
 --- !u!1 &868377242
 GameObject:
   m_ObjectHideFlags: 0

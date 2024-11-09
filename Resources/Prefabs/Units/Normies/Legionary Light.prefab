@@ -55,6 +55,7 @@ MonoBehaviour:
   color: {r: 0.53333336, g: 0, b: 0, a: 1}
   color2: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 0}
   color3: {r: 1, g: 0.5529412, b: 0.39607844, a: 0}
+  faction: {fileID: 11400000, guid: 47009c7e621a59349a826c3c4d238a6d, type: 2}
   listy:
   - {fileID: 1002579343314764860}
   - {fileID: 1002579343139218209}
@@ -63,6 +64,8 @@ MonoBehaviour:
   DoesThisHaveSword: 1
   DoesThisHaveSpear: 0
   DoesThisHaveJavelin: 0
+  Upgrade: {fileID: 1002579342033724372, guid: 7dedf55281311364cb7f2678c800e562, type: 3}
+  UpgradeButtons: {fileID: 8806944245139361706, guid: 36b886d4ea7b4564588b86d50d2ea887, type: 3}
 --- !u!114 &-1170439232849311746
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -86,7 +89,7 @@ MonoBehaviour:
   ViablePlacingSpots:
   - Grassland
   targetlists: []
-  population: 300
+  population: 200
   AbilityList:
   - {fileID: 0}
   PrivateAbilityList:

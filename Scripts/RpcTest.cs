@@ -68,6 +68,16 @@ public class RpcTest : NetworkBehaviour
     void SendYourResetClientRpc()
     {BattleManager1.Instance.ResetBattleField();}
 
+    public void StartBattle()
+    {   if(IsServer){SendYourStartBattleServerRpc();}
+        else{SendYourStartBattleClientRpc();}}
+    [Rpc(SendTo.ClientsAndHost)]
+    void SendYourStartBattleServerRpc()
+    {BattleManager1.Instance.StartFight();}
+    [Rpc(SendTo.Server)]
+    void SendYourStartBattleClientRpc()
+    {BattleManager1.Instance.StartFight();}
+
     public void ExecuteAnimation(CritterHolder critter, string WhatToExecute)
     {   if(IsServer){SendYourCommandServerRpc(critter.name, WhatToExecute);}
         else{SendYourCommandClientRpc(critter.name, WhatToExecute);}}
@@ -107,9 +117,15 @@ public class RpcTest : NetworkBehaviour
 
         string futurename = RpcTest.Serverchecker.ServerCheck().ToString() + name + Random.Range(0,1000);
 
+        string Host = "Client";
+        if(RpcTest.Serverchecker.ServerCheck())
+        {
+            Host = "Host";
+        }
+
         // //Debug.LogError(name);
-        SendYourSpawnServerRpc(target.x, target.y, name, Faction:BattleManager1.Instance.Faction, AIorNot:ServerCheck(), futurename:futurename);
-        SendYourSpawnClientRpc(target.x, target.y, name, Faction:BattleManager1.Instance.Faction, AIorNot:ServerCheck(), futurename:futurename);
+        SendYourSpawnServerRpc(target.x, target.y, name, Faction:BattleManager1.Instance.Faction, AIorNot:ServerCheck(), futurename:futurename, ClientOrHost:Host);
+        SendYourSpawnClientRpc(target.x, target.y, name, Faction:BattleManager1.Instance.Faction, AIorNot:ServerCheck(), futurename:futurename, ClientOrHost:Host);
 
         // if (IsServer) 
         // {
@@ -124,15 +140,15 @@ public class RpcTest : NetworkBehaviour
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    void SendYourSpawnServerRpc(float x, float y, string name, string Faction, bool AIorNot, string futurename)
+    void SendYourSpawnServerRpc(float x, float y, string name, string Faction, bool AIorNot, string futurename, string ClientOrHost = "Host")
     {
-        BattleManager1.Instance.Spawn(new Vector3Int((int)x,(int)y,0), name:name, Faction:Faction, AIorNot:AIorNot, futurename:futurename);
+        BattleManager1.Instance.Spawn(new Vector3Int((int)x,(int)y,0), name:name, Faction:Faction, AIorNot:AIorNot, futurename:futurename, ClientOrHost:ClientOrHost);
         //SessionManager.Instance.SpawnToHost(new Vector3Int((int)x,(int)y,0), name:name, Faction:Faction, AIorNot:AIorNot, futurename:futurename);
     }
     [Rpc(SendTo.Server)]
-    void SendYourSpawnClientRpc(float x, float y, string name, string Faction, bool AIorNot, string futurename)
+    void SendYourSpawnClientRpc(float x, float y, string name, string Faction, bool AIorNot, string futurename, string ClientOrHost = "Host")
     {
-        BattleManager1.Instance.Spawn(new Vector3Int((int)x,(int)y,0), name:name, Faction:Faction, AIorNot:AIorNot, futurename:futurename);
+        BattleManager1.Instance.Spawn(new Vector3Int((int)x,(int)y,0), name:name, Faction:Faction, AIorNot:AIorNot, futurename:futurename, ClientOrHost:ClientOrHost);
     }
 
     [Rpc(SendTo.ClientsAndHost)]

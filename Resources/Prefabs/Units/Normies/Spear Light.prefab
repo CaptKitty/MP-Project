@@ -55,6 +55,7 @@ MonoBehaviour:
   color: {r: 0.24705882, g: 0.43529412, b: 0.105882354, a: 1}
   color2: {r: 0.5568628, g: 0.5568628, b: 0.5568628, a: 0}
   color3: {r: 0.99215686, g: 0.80784315, b: 0.7411765, a: 0}
+  faction: {fileID: 11400000, guid: 47009c7e621a59349a826c3c4d238a6d, type: 2}
   listy:
   - {fileID: 1002579343314764860}
   - {fileID: 1002579343139218209}
@@ -63,6 +64,7 @@ MonoBehaviour:
   DoesThisHaveSword: 0
   DoesThisHaveSpear: 1
   DoesThisHaveJavelin: 0
+  Upgrade: {fileID: 0}
 --- !u!114 &-1170439232849311746
 MonoBehaviour:
   m_ObjectHideFlags: 0

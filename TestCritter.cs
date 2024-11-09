@@ -2,6 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using UnityEngine.UI;
+using UnityEngine.Tilemaps;
+using UnityEngine.SceneManagement;
+
+using Unity.Netcode;
+using UnityEngine;
+using Unity.Services.Authentication;
+
 public class TestCritter : MonoBehaviour
 {
     public Color color, color2, color3;
@@ -11,11 +19,13 @@ public class TestCritter : MonoBehaviour
     public bool DoesThisHaveSword = false;
     public bool DoesThisHaveSpear = false;
     public bool DoesThisHaveJavelin = false;
+    public GameObject Upgrade;
+    public GameObject UpgradeButtons;
     
     // Start is called before the first frame update
     void Start()
     {
-        faction = BattleManager1.Instance.Playerfaction;
+        // faction = BattleManager1.Instance.Playerfaction;
         material = Instantiate(this.GetComponent<SpriteRenderer>().material);
         material.SetColor("_FactionColor", faction.color);
         material.SetColor("_FactionColor2", faction.color2);
@@ -35,5 +45,32 @@ public class TestCritter : MonoBehaviour
         {
             item.GetComponent<SpriteRenderer>().material = material;
         }
+    }
+    public void OnMouseEnter()
+    {
+        if(UpgradeButtons != null && Upgrade != null)
+        {
+            var a = Instantiate(UpgradeButtons, position:new Vector3(transform.position.x, transform.position.y + 0.5f, 0),transform.rotation, BattleManager1.Instance.gameObject.transform);
+            a.GetComponent<UpgradeButton>().testy = this;
+        }
+        
+    }
+    public void OnMouseDown()
+    {
+        
+        if(Upgrade != null)
+        {
+            //UpgradeTroop(Upgrade);
+        }
+    }
+    public void UpgradeTroop(GameObject PickedUpgrade)
+    {
+        foreach (var RPC in TestRelay.Instance.PlayerObjects)
+        {
+            Vector3Int target =    BattleManager1.Instance.ownermap.WorldToCell(this.transform.position);//Camera.main.ScreenToWorldPoint(Input.mousePosition)
+            BattleManager1.Instance.dicty[target] = null;
+            RPC.GetComponent<RpcTest>().Spawn(target, PickedUpgrade);
+        }
+        gameObject.SetActive(false);
     }
 }

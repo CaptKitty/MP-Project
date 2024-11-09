@@ -6,7 +6,9 @@ public class SessionManager : MonoBehaviour
 {
     public static SessionManager Instance;
     public List<CritterHolder> HostArmy = new List<CritterHolder>();
+    public Faction HostFaction;
     public List<CritterHolder> ClientArmy = new List<CritterHolder>();
+    public Faction ClientFaction;
     // Start is called before the first frame update
     void Awake()
     {

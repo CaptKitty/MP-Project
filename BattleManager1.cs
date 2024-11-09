@@ -18,6 +18,8 @@ public class BattleManager1 : BattleManager
     public bool AIPlayer = false;
     public GameObject a,b;
 
+    public Faction Playerfaction;
+
     public override void Awake()
     {
         Instance = this;
@@ -27,6 +29,7 @@ public class BattleManager1 : BattleManager
         {
             dicty.Add(position, null);
         }
+<<<<<<< Updated upstream
         if(RpcTest.Serverchecker.ServerCheck())
         {
             a.SetActive(false);
@@ -34,6 +37,11 @@ public class BattleManager1 : BattleManager
         else
         {
             b.SetActive(false);
+=======
+        if(!RpcTest.Serverchecker.ServerCheck())
+        {
+            Playerfaction = Resources.Load<Faction>("Prefabs/Factions/Carthage");
+>>>>>>> Stashed changes
         }
     }
     public void ResetBattleField()
@@ -325,6 +333,9 @@ public class BattleManager1 : BattleManager
             trader.GetComponent<CritterHolder>().IsthisAI = AIorNot;
 
             trader.GetComponent<CritterHolder>().name = futurename;
+
+            trader.GetComponent<TestCritter>().faction = Playerfaction;
+
             trader.name = futurename;
             
             Destroy(dicty[target]);

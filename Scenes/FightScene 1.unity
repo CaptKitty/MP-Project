@@ -5144,12 +5144,9 @@ MonoBehaviour:
   FriendlyCounter: 0
   Faction: Normies
   AIPlayer: 0
-<<<<<<< Updated upstream
   a: {fileID: 848185930}
   b: {fileID: 706679872}
-=======
   Playerfaction: {fileID: 11400000, guid: dcbee4453ff2def43ba4aa0f3d4f9d86, type: 2}
->>>>>>> Stashed changes
 --- !u!1 &847587126
 GameObject:
   m_ObjectHideFlags: 0
@@ -9682,7 +9679,6 @@ Tilemap:
       m_AllTileFlags: 1073741825
   - first: {x: 5, y: 2, z: 0}
     second:
-<<<<<<< Updated upstream
       serializedVersion: 2
       m_TileIndex: 1
       m_TileSpriteIndex: 3
@@ -11482,7 +11478,6 @@ Tilemap:
       dummyAlignment: 0
       m_AllTileFlags: 1073741825
   m_AnimatedTiles: {}
-=======
       m_AnimatedSprites:
       - {fileID: 557124105, guid: f59454dfba126d649bb80574afdefd27, type: 3}
       - {fileID: 557124105, guid: f59454dfba126d649bb80574afdefd27, type: 3}
@@ -11663,7 +11658,6 @@ Tilemap:
       m_AnimationSpeed: 1.2063211
       m_AnimationTimeOffset: 0
       m_IsLooping: 1
->>>>>>> Stashed changes
   m_TileAssetArray:
   - m_RefCount: 0
     m_Data: {fileID: 0}

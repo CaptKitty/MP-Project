@@ -29,19 +29,15 @@ public class BattleManager1 : BattleManager
         {
             dicty.Add(position, null);
         }
-<<<<<<< Updated upstream
         if(RpcTest.Serverchecker.ServerCheck())
         {
             a.SetActive(false);
+            Playerfaction = Resources.Load<Faction>("Prefabs/Factions/Roman");
         }
         else
         {
             b.SetActive(false);
-=======
-        if(!RpcTest.Serverchecker.ServerCheck())
-        {
             Playerfaction = Resources.Load<Faction>("Prefabs/Factions/Carthage");
->>>>>>> Stashed changes
         }
     }
     public void ResetBattleField()

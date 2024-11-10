@@ -9,11 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c358963e38a4d7841a13ccdcfd2ff792, type: 3}
-  m_Name: BasicSwordScript
+  m_Script: {fileID: 11500000, guid: df48fa34943b08748904587f256e1273, type: 3}
+  m_Name: BasicCavalryChargeScript
   m_EditorClassIdentifier: 
   combatdistance: 0.75
-  speed: 1
+  speed: 2
   attack: 30
   attacktime: 0.5
   NextAvailableAttack: 0
+  FlankTime: 2
+  Timer: 0

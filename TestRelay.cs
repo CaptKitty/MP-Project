@@ -38,7 +38,6 @@ public class TestRelay : MonoBehaviour
             Instance = this;
         }
     }
-
     public async void CreateRelay()
     {
         try
@@ -58,20 +57,32 @@ public class TestRelay : MonoBehaviour
             );
 
             NetworkManager.Singleton.StartHost();
-
-            // if(BattleManager1.Instance == null)
-            // {
-            //     SceneManager.LoadScene("FightScene 1", LoadSceneMode.Additive);
-            //     // var opsss = SceneManager.LoadSceneAsync("FightScene 1", LoadSceneMode.Additive);
-            //     // opsss.completed += (x) => {
-            //     //     BattleManager1.Instance.AIPlayer = true;
-            //     // };
-            // }
         }
         catch{}
-        
-        
-        
+    }
+    public async void CreateLocal()
+    {
+        try
+        {
+            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(3);
+            string JoinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId); 
+            //Debug.LogError(JoinCode);
+            JoinCodeTextStuff = JoinCode;
+            JoinCodeStuff.Instance.Texty.text = JoinCode;
+
+            NetworkManager.Singleton.GetComponent<UnityTransport>().SetHostRelayData(
+                allocation.RelayServer.IpV4,
+                (ushort) allocation.RelayServer.Port,
+                allocation.AllocationIdBytes,
+                allocation.Key,
+                allocation.ConnectionData
+            );
+
+            NetworkManager.Singleton.StartHost();
+        }
+        catch{}
+        SessionManager.Instance.LoadCampaign();
+        GimmeBattlefield();
     }
     public async void JoinRelay(Text JoinCode)
     {
@@ -87,23 +98,9 @@ public class TestRelay : MonoBehaviour
                 joinAllocation.ConnectionData,
                 joinAllocation.HostConnectionData
             );
-            //Debug.LogError("potato");
-            //Debug.LogError(joinAllocation); 
-
             NetworkManager.Singleton.StartClient();
-
-            // if(BattleManager1.Instance == null)
-            // {
-            //     SceneManager.LoadScene("FightScene 1", LoadSceneMode.Additive);
-            //     //var opsss = SceneManager.LoadSceneAsync("FightScene 1", LoadSceneMode.Additive);
-            //     // opsss.completed += (x) => {
-            //     //     BattleManager1.Instance.AIPlayer = false;
-            //     // };
-            // }
         }
         catch{}
-
-        
     }
     public void GimmeBattlefield()
     {

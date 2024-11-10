@@ -51,10 +51,22 @@ public class BattleManager1 : BattleManager
             b.SetActive(false);
             Playerfaction = SessionManager.Instance.ClientFaction;
         }
+        SessionManager.Instance.SpawnArmy();
     }
-    public void ResetBattleField()
+    public void ResetBattleField(bool ResetSession = false)
     {
+        if(ResetSession == true)
+        {
+            SessionManager.Instance.HostArmy.Clear();
+            SessionManager.Instance.ClientArmy.Clear();
+            SessionManager.Instance.CampaignLevel = 1;
+        }
+        if(TestRelay.Instance.PlayerObjects.Count == 1)
+        {
+            SessionManager.Instance.LoadCampaign();
+        }
         SceneManager.LoadScene("FightScene 1");
+        
     }
     public void StartFight()
     {
@@ -69,7 +81,12 @@ public class BattleManager1 : BattleManager
             {
                 if(Input.GetKeyDown("escape"))
                 {
-                    RpcTest.Serverchecker.ExecuteReset();
+                    if(Input.GetKey("space"))
+                    {
+                        RpcTest.Serverchecker.ExecuteReset(true);
+                        return;
+                    }
+                    RpcTest.Serverchecker.ExecuteReset(false);
                 }
                 RpcTest.Serverchecker.UpdateCritters();
                 

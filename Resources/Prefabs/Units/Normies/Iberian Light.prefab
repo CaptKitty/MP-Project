@@ -65,6 +65,7 @@ MonoBehaviour:
   DoesThisHaveSpear: 0
   DoesThisHaveJavelin: 0
   Upgrade: {fileID: 0}
+  UpgradeButtons: {fileID: 0}
 --- !u!114 &-1170439232849311746
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -98,7 +99,7 @@ MonoBehaviour:
   IsthisAI: 0
   IsThisAlive: 1
   online: 0
-  AIScript: {fileID: 11400000, guid: 15c846fa5a71b51478fbeffc0c805451, type: 2}
+  AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
   scriptlist: []
 --- !u!212 &1002579342033724375
 SpriteRenderer:

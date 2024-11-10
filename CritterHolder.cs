@@ -29,7 +29,7 @@ public class CritterHolder : MonoBehaviour
         {
             Wakey();
         }
-        if(AIScript != null)
+        if(scriptlist.Count == 0)
         {
             scriptlist.Add(AIScript.Init());
             GrabNewScript();         
@@ -128,6 +128,11 @@ public class CritterHolder : MonoBehaviour
         if(AIScript.GetType() == typeof(basic_Ranged_AI_script))
         {
             var a = (basic_Ranged_AI_script)AIScript;
+            a.Throw(this);
+        }
+        if(AIScript.GetType() == typeof(basic_Ranged_AI_script_ammo))
+        {
+            var a = (basic_Ranged_AI_script_ammo)AIScript;
             a.Throw(this);
         }
     }

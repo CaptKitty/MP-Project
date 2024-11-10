@@ -12,8 +12,14 @@ public class Projectile : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
+        Debug.Log("potato");
         timer = Time.time + duration;
+        
     }
+    // void Start()
+    // {
+    //     transform.LookAt( TargetEnemy.transform.position, new Vector3(0,0,0));
+    // }
 
     // Update is called once per frame
     void Update()

@@ -22,7 +22,7 @@ public class basic_Ranged_AI_script_ammo : base_AI_Script
         potato.speed = speed;
         potato.attack = attack;
         potato.attacktime = attacktime;
-        potato.NextAvailableAttack = NextAvailableAttack;
+        potato.NextAvailableAttack = 0;
         potato.Throwable = Throwable;
         potato.ammo = ammo;
         return potato;
@@ -102,10 +102,8 @@ public class basic_Ranged_AI_script_ammo : base_AI_Script
                     return;
                 }
                 ammo -= 1;
-                if(ammo > 0)
-                {
-                    TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(attack);
-                }
+
+                TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(attack);
                 //critter.gameObject.GetComponent<Animator>().SetTrigger("Attack");
                 RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");
                 RpcTest.Serverchecker.ExecuteAnimation(critter, "Throw"); //Throw(critter);
@@ -121,7 +119,8 @@ public class basic_Ranged_AI_script_ammo : base_AI_Script
         }
         var potato = Instantiate(Throwable);
         potato.transform.position = critter.gameObject.transform.GetChild(2).position;
-        potato.transform.rotation = critter.gameObject.transform.GetChild(2).rotation;
+        //potato.transform.rotation = critter.gameObject.transform.GetChild(2).rotation;
+        potato.transform.LookAt(new Vector3(TargetEnemy.gameObject.transform.position.x,TargetEnemy.gameObject.transform.position.y,-90),Vector3.forward );
         potato.GetComponent<Projectile>().TargetEnemy = TargetEnemy;
         
 

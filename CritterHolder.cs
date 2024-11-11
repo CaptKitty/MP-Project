@@ -34,6 +34,7 @@ public class CritterHolder : MonoBehaviour
             scriptlist.Add(AIScript.Init());
             GrabNewScript();         
         }
+        AIScript = AIScript.Init();
     }
     public void GrabNewScript()
     {

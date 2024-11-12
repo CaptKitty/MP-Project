@@ -9,13 +9,29 @@ public class SelectMilitaryCritter : MonoBehaviour
     public GameObject heldcritter;
     public bool CanPlay = false;
     public int minpagans = -1;
-    public void Awake()
+    public void Start()
     {
         if(firsttime)
         {
             firsttime = false;
             heldcritter.GetComponent<CritterHolder>().Wakey();
             transform.GetComponent<Image>().color = new Color32(0,0,0,255);
+
+            UpdateSprite();
+        }
+    }
+    public void UpdateSprite()
+    {
+        transform.GetChild(0).GetComponent<TestCritter>().faction = BattleManager1.Instance.Playerfaction;
+        for (int i = 0; i < 5 ; i++)
+        {
+            try
+            {
+                transform.GetChild(0).GetChild(i).GetComponent<SpriteRenderer>().sprite = heldcritter.transform.GetChild(i).GetComponent<SpriteRenderer>().sprite;
+                transform.GetChild(0).GetChild(i).localPosition = heldcritter.transform.GetChild(i).position;
+                transform.GetChild(0).GetChild(i).rotation = heldcritter.transform.GetChild(i).rotation;
+            }
+            catch{}
         }
     }
     public void UpdateMinPagans(int a)
@@ -45,12 +61,12 @@ public class SelectMilitaryCritter : MonoBehaviour
         //     GeneralManager.Instance.delete = false;
         //     GeneralManager.Instance.SelectedCritter = heldcritter;
         // }
-        if(BattleManager1.Instance)
-        {
+        // if(BattleManager1.Instance)
+        // {
             BattleManager1.Instance.SelectedCritter = heldcritter;
-            //Debug.LogError(heldcritter.name);
-            BattleManager1.Instance.MousePet.GetComponent<SpriteRenderer>().sprite = this.transform.GetChild(0).gameObject.GetComponent<Image>().sprite;
-        }
+        //     //Debug.LogError(heldcritter.name);
+        //     BattleManager1.Instance.MousePet.GetComponent<SpriteRenderer>().sprite = this.transform.GetChild(0).gameObject.GetComponent<Image>().sprite;
+        // }
         //Debug.LogError(heldcritter.name);
     }
     public void OnMouseOver()

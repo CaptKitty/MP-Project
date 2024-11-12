@@ -7,4 +7,6 @@ using UnityEngine;
 public class Faction: ScriptableObject
 {
     public Color color, color2, color3;
+
+    public List<GameObject> UnitList = new List<GameObject>();
 }

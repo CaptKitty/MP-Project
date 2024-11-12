@@ -57,6 +57,30 @@ public class RpcTest : NetworkBehaviour
             ServerOnlyRpc(value + 1, sourceNetworkObjectId);
         }
     }
+    //ClientSendsThis
+    public void SendFaction()
+    {   
+        if(IsServer)
+        {
+            SendYourFactionServerRpc(SessionManager.Instance.HostFaction.name, SessionManager.Instance.ClientFaction.name);
+        }
+        else
+        {
+            SendYourFactionClientRpc(SessionManager.Instance.HostFaction.name, SessionManager.Instance.ClientFaction.name);
+        }
+    }
+    [Rpc(SendTo.ClientsAndHost)]
+    void SendYourFactionServerRpc(string host, string client)
+    {
+        SessionManager.Instance.ClientChangePlayerFaction(host);
+        SessionManager.Instance.ClientChangeEnemyFaction(client);
+    }
+    [Rpc(SendTo.Server)]
+    void SendYourFactionClientRpc(string host, string client)
+    {
+        SessionManager.Instance.ClientChangePlayerFaction(host);
+        SessionManager.Instance.ClientChangeEnemyFaction(client);   
+    }
 
     public void ExecuteReset(bool testy = false)
     {   if(IsServer){SendYourResetServerRpc(testy);}

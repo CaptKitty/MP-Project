@@ -99,6 +99,8 @@ public class TestRelay : MonoBehaviour
                 joinAllocation.HostConnectionData
             );
             NetworkManager.Singleton.StartClient();
+
+            
         }
         catch{}
     }

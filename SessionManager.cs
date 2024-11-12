@@ -7,9 +7,13 @@ public class SessionManager : MonoBehaviour
     public static SessionManager Instance;
     public List<SpawnBait> HostArmy = new List<SpawnBait>();
     public Faction HostFaction;
+    public Faction HostFaction_client;
     public List<SpawnBait> ClientArmy = new List<SpawnBait>();
     public Faction ClientFaction;
+    public Faction ClientFaction_client;
+    public bool Campaign = false;
     public int CampaignLevel = 1;
+    public int Escalation = 1;
     // Start is called before the first frame update
     void Awake()
     {
@@ -19,10 +23,22 @@ public class SessionManager : MonoBehaviour
     public void ChangePlayerFaction(string newfaction)
     {
         HostFaction = Resources.Load<Faction>("Prefabs/Factions/" + newfaction);
+        Debug.LogError("Host is " + HostFaction.name);
     }
     public void ChangeEnemyFaction(string newEnemy)
     {
         ClientFaction =  Resources.Load<Faction>("Prefabs/Factions/" + newEnemy);
+        Debug.LogError("Client is " + ClientFaction.name);
+    }
+    public void ClientChangePlayerFaction(string newfaction)
+    {
+        HostFaction_client = Resources.Load<Faction>("Prefabs/Factions/" + newfaction);
+        Debug.LogError("Host is " + HostFaction_client.name);
+    }
+    public void ClientChangeEnemyFaction(string newEnemy)
+    {
+        ClientFaction_client =  Resources.Load<Faction>("Prefabs/Factions/" + newEnemy);
+        Debug.LogError("Client is " + ClientFaction_client.name);
     }
 
     public void SpawnToSM(Vector3Int target, GameObject spawnee = null, string Faction = "Royal", string name = "null", bool AIorNot = false, string futurename = "null", string ClientOrHost = "Host")
@@ -71,6 +87,7 @@ public class SessionManager : MonoBehaviour
     }
     public void LoadCampaign()
     {
+        Campaign = true;
         int phase = CampaignLevel;
         if(phase == 1)
         {

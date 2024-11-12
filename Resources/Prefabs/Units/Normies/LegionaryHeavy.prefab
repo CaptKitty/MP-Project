@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: -8209825602014350543}
   - component: {fileID: -5787205392657145368}
   m_Layer: 0
-  m_Name: Spear Light
+  m_Name: LegionaryHeavy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -52,19 +52,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3e23fbf27478ef41b34bb57076ad617, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: {r: 0.24705882, g: 0.43529412, b: 0.105882354, a: 1}
-  color2: {r: 0.5568628, g: 0.5568628, b: 0.5568628, a: 0}
-  color3: {r: 0.99215686, g: 0.80784315, b: 0.7411765, a: 0}
+  color: {r: 0.53333336, g: 0, b: 0, a: 1}
+  color2: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 0}
+  color3: {r: 1, g: 0.5529412, b: 0.39607844, a: 0}
   faction: {fileID: 11400000, guid: 47009c7e621a59349a826c3c4d238a6d, type: 2}
   listy:
   - {fileID: 1002579343314764860}
   - {fileID: 1002579343139218209}
   - {fileID: 1002579343439947282}
   material: {fileID: 2100000, guid: 8bc3e5084e1bf7e42bd906b624b10ea4, type: 2}
-  DoesThisHaveSword: 0
-  DoesThisHaveSpear: 1
+  DoesThisHaveSword: 1
+  DoesThisHaveSpear: 0
   DoesThisHaveJavelin: 0
   Upgrade: {fileID: 0}
+  UpgradeButtons: {fileID: 0}
 --- !u!114 &-1170439232849311746
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -82,13 +83,13 @@ MonoBehaviour:
   nametype: []
   cost:
     name: 
-    amount: 50
+    amount: 100
     sprite: {fileID: 0}
   DoesThisgoOnTheCity: 0
   ViablePlacingSpots:
   - Grassland
   targetlists: []
-  population: 100
+  population: 300
   AbilityList:
   - {fileID: 0}
   PrivateAbilityList:
@@ -98,7 +99,7 @@ MonoBehaviour:
   IsthisAI: 0
   IsThisAlive: 1
   online: 0
-  AIScript: {fileID: 11400000, guid: 15c846fa5a71b51478fbeffc0c805451, type: 2}
+  AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
   scriptlist: []
 --- !u!212 &1002579342033724375
 SpriteRenderer:
@@ -226,7 +227,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1002579343139218204
 Transform:
   m_ObjectHideFlags: 0
@@ -367,7 +368,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 15
-  m_Sprite: {fileID: 21300000, guid: 29c9f91564cf63b48ad82f9f09b91552, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 8fc34586aad3393449b60f6bf1b00eda, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -451,7 +452,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 25
-  m_Sprite: {fileID: 21300000, guid: 3eae1bb9a168ca849b6f4b4d18dd2213, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 2a17cfdacd044a541970e4e76ba4245d, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

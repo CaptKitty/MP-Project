@@ -89,7 +89,7 @@ MonoBehaviour:
   ViablePlacingSpots:
   - Grassland
   targetlists: []
-  population: 200
+  population: 300
   AbilityList:
   - {fileID: 0}
   PrivateAbilityList:
@@ -102,6 +102,12 @@ MonoBehaviour:
   AIScript: {fileID: 11400000, guid: 2df76b2217014944690433f679a9aec0, type: 2}
   scriptlist:
   - {fileID: 11400000, guid: d53efe19b95251748a92cedd3666b19f, type: 2}
+  combatdistance: 1
+  speed: 1
+  attack: 25
+  attacktime: 0.5
+  NextAvailableAttack: 0
+  modifierlist: []
 --- !u!212 &5815002448955544716
 SpriteRenderer:
   m_ObjectHideFlags: 0

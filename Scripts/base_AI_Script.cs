@@ -11,16 +11,25 @@ public class base_AI_Script : ScriptableObject
         var potato = new base_AI_Script();
         return potato;
     }
+    
     public virtual void Execute(CritterHolder critter)
     {
 
     }
+
     public virtual void Direction(CritterHolder critter)
     {
 
     }
+
     public virtual void FindTarget(CritterHolder critter)
     {
 
     }
+
+    public virtual void OnDeath(CritterHolder critter)
+    {
+
+    }
+
 }

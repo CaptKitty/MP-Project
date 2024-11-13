@@ -25,4 +25,19 @@ public class Modifier : ScriptableObject
         }
         Instantiate(Aura, potato.transform);
     }
+    public void DestroyAura(GameObject potato)
+    {
+        for (int i = 0; i < 10; i++)
+        {
+            try
+            {
+                if(potato.transform.GetChild(i) == Aura)
+                {
+                    Destroy(potato.transform.GetChild(i));
+                    return;
+                }
+            }
+            catch{}
+        }
+    }
 }

@@ -248,6 +248,20 @@ public class CritterHolder : MonoBehaviour
             IsThisAlive = false;
             IsthisAI = false;
             this.gameObject.SetActive(false);
+            
+            if(AIScript.GetType() == typeof(basic_AI_Command_Script))
+            {
+                var b = (basic_AI_Command_Script)AIScript;
+                foreach (var item in b.subjects)
+                {
+                    b.modifier.DestroyAura(item);
+                    item.GetComponent<CritterHolder>().GrabNewScript();
+                    item.GetComponent<CritterHolder>().modifierlist.Remove(b.modifier);
+                    
+                    
+                }
+            }
+
             //Destroy(this.gameObject);
 
         }

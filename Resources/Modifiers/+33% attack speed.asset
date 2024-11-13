@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 72462179417ba77429912feffd038a61, type: 3}
-  m_Name: Attack 400% speed
+  m_Name: +33% attack speed
   m_EditorClassIdentifier: 
   base_combatdistance: 0
   base_speed: 0
@@ -19,5 +19,5 @@ MonoBehaviour:
   combatdistance_modifier: 1
   speed_modifier: 1
   attack_modifier: 1
-  attacktime_modifier: 0.5
+  attacktime_modifier: 0.75
   Aura: {fileID: 4400841706119225226, guid: 2afe8beac73c0b949bd14c1d556b10c6, type: 3}

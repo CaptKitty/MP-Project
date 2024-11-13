@@ -12,7 +12,7 @@ public class basic_AI_Command_Script : base_AI_Script
     public List<Vector3> subjectrelation = new List<Vector3>();
     public base_AI_Script subjectscript;
     public double CommandDistance = 1;
-    public Modifier modifier = new Modifier();
+    public Modifier modifier;
     public override base_AI_Script Init()
     {
         var potato = new basic_AI_Command_Script();
@@ -142,8 +142,11 @@ public class basic_AI_Command_Script : base_AI_Script
                     }
                     if(subject.GetComponent<CritterHolder>().AIScript.GetType() == typeof(basic_AI_Follower_Script))
                     {
-                        var a = (basic_AI_Follower_Script)subject.GetComponent<CritterHolder>().AIScript;
-                        a.ExecuteOrder(subject.GetComponent<CritterHolder>(), location);
+                        if(location != null)
+                        {
+                            var a = (basic_AI_Follower_Script)subject.GetComponent<CritterHolder>().AIScript;
+                            a.ExecuteOrder(subject.GetComponent<CritterHolder>(), location);
+                        }
                     }
                 }
             }

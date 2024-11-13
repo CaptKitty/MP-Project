@@ -19,36 +19,6 @@ MonoBehaviour:
     AIorNot: 0
     futurename: TrueIberian Light330
     ClientOrHost: Client
-  - target: {x: 4, y: -1, z: 0}
-    Faction: Normies
-    name: Iberian Light
-    AIorNot: 0
-    futurename: TrueIberian Light273
-    ClientOrHost: Client
-  - target: {x: 2, y: -3, z: 0}
-    Faction: Normies
-    name: Iberian Light
-    AIorNot: 0
-    futurename: TrueIberian Light646
-    ClientOrHost: Client
-  - target: {x: 5, y: 0, z: 0}
-    Faction: Normies
-    name: Iberian Light
-    AIorNot: 0
-    futurename: TrueIberian Light424
-    ClientOrHost: Client
-  - target: {x: 3, y: -2, z: 0}
-    Faction: Normies
-    name: Iberian Light
-    AIorNot: 0
-    futurename: TrueIberian Light48
-    ClientOrHost: Client
-  - target: {x: 3, y: 0, z: 0}
-    Faction: Normies
-    name: Iberian Light
-    AIorNot: 0
-    futurename: TrueIberian Light667
-    ClientOrHost: Client
   Layout2:
   - target: {x: 6, y: 1, z: 0}
     Faction: Normies
@@ -316,52 +286,4 @@ MonoBehaviour:
     name: Iberian Light
     AIorNot: 0
     futurename: TrueIberian Light667
-    ClientOrHost: Client
-  - target: {x: 7, y: 2, z: 0}
-    Faction: Normies
-    name: Iberian Light
-    AIorNot: 0
-    futurename: TrueIberian Light333
-    ClientOrHost: Client
-  - target: {x: 8, y: 3, z: 0}
-    Faction: Normies
-    name: Iberian Light
-    AIorNot: 0
-    futurename: TrueIberian Light845
-    ClientOrHost: Client
-  - target: {x: 1, y: -4, z: 0}
-    Faction: Normies
-    name: Iberian Light
-    AIorNot: 0
-    futurename: TrueIberian Light718
-    ClientOrHost: Client
-  - target: {x: 0, y: -5, z: 0}
-    Faction: Normies
-    name: Iberian Light
-    AIorNot: 0
-    futurename: TrueIberian Light533
-    ClientOrHost: Client
-  - target: {x: 6, y: 0, z: 0}
-    Faction: Normies
-    name: Phoenician Spear
-    AIorNot: 0
-    futurename: TruePhoenician Spear36
-    ClientOrHost: Client
-  - target: {x: 5, y: -1, z: 0}
-    Faction: Normies
-    name: Phoenician Spear
-    AIorNot: 0
-    futurename: TruePhoenician Spear368
-    ClientOrHost: Client
-  - target: {x: 4, y: -2, z: 0}
-    Faction: Normies
-    name: Phoenician Spear
-    AIorNot: 0
-    futurename: TruePhoenician Spear834
-    ClientOrHost: Client
-  - target: {x: 3, y: -3, z: 0}
-    Faction: Normies
-    name: Phoenician Spear
-    AIorNot: 0
-    futurename: TruePhoenician Spear138
     ClientOrHost: Client

@@ -101,6 +101,11 @@ MonoBehaviour:
   online: 0
   AIScript: {fileID: 11400000, guid: 9dc512510d7afb34f92756a31319a571, type: 2}
   scriptlist: []
+  combatdistance: 0.75
+  speed: 2
+  attack: 30
+  attacktime: 0.5
+  NextAvailableAttack: 0
 --- !u!212 &1002579342033724375
 SpriteRenderer:
   m_ObjectHideFlags: 0

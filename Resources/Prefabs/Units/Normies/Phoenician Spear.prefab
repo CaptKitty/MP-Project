@@ -65,6 +65,7 @@ MonoBehaviour:
   DoesThisHaveSpear: 1
   DoesThisHaveJavelin: 0
   Upgrade: {fileID: 0}
+  UpgradeButtons: {fileID: 0}
 --- !u!114 &-1170439232849311746
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -99,7 +100,13 @@ MonoBehaviour:
   IsThisAlive: 1
   online: 0
   AIScript: {fileID: 11400000, guid: 15c846fa5a71b51478fbeffc0c805451, type: 2}
-  scriptlist: []
+  scriptlist:
+  - {fileID: 11400000, guid: 15c846fa5a71b51478fbeffc0c805451, type: 2}
+  combatdistance: 1
+  speed: 1
+  attack: 50
+  attacktime: 1
+  NextAvailableAttack: 0
 --- !u!212 &1002579342033724375
 SpriteRenderer:
   m_ObjectHideFlags: 0

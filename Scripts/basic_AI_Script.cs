@@ -7,20 +7,11 @@ using UnityEngine;
 public class basic_AI_Script : base_AI_Script
 {
     GameObject TargetEnemy;
-    public float combatdistance = 1f;
-    public float speed = 1f;
-    public int attack = 1;
-    public double attacktime = 1;
-    public double NextAvailableAttack = 0;
+    
     public override base_AI_Script Init()
     {
         var potato = new basic_AI_Script();
         potato.TargetEnemy = TargetEnemy;
-        potato.combatdistance = combatdistance;
-        potato.speed = speed;
-        potato.attack = attack;
-        potato.attacktime = attacktime;
-        potato.NextAvailableAttack = NextAvailableAttack;
         return potato;
     }
     public override void Direction(CritterHolder critter)
@@ -69,23 +60,23 @@ public class basic_AI_Script : base_AI_Script
                     critter.gameObject.transform.LookAt( new Vector3(critter.gameObject.transform.position.x-1,critter.gameObject.transform.position.y,-360));//, new Vector3(0,0,0));
                 }
 
-                if(distance < combatdistance)
+                if(distance < critter.GrabCombatDistance())
                 {
                     Attack(distance, critter);
                 }
                 else
                 {
-                    critter.gameObject.transform.position += direction * Time.deltaTime * speed;
+                    critter.gameObject.transform.position += direction * Time.deltaTime * (float)critter.GrabSpeed();
                 }
             }
         }
     }
     void Attack(float distance, CritterHolder critter)
     {   
-        if(NextAvailableAttack < Time.time)
+        if(critter.NextAvailableAttack < Time.time)
         {
-            NextAvailableAttack = Time.time + attacktime;
-            TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(attack);
+            critter.NextAvailableAttack = Time.time + critter.GrabAttackTime();
+            TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(critter.GrabAttack());
             RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");
         }
         

@@ -23,22 +23,22 @@ public class SessionManager : MonoBehaviour
     public void ChangePlayerFaction(string newfaction)
     {
         HostFaction = Resources.Load<Faction>("Prefabs/Factions/" + newfaction);
-        Debug.LogError("Host is " + HostFaction.name);
+        //Debug.LogError("Host is " + HostFaction.name);
     }
     public void ChangeEnemyFaction(string newEnemy)
     {
         ClientFaction =  Resources.Load<Faction>("Prefabs/Factions/" + newEnemy);
-        Debug.LogError("Client is " + ClientFaction.name);
+        //Debug.LogError("Client is " + ClientFaction.name);
     }
     public void ClientChangePlayerFaction(string newfaction)
     {
         HostFaction_client = Resources.Load<Faction>("Prefabs/Factions/" + newfaction);
-        Debug.LogError("Host is " + HostFaction_client.name);
+        //Debug.LogError("Host is " + HostFaction_client.name);
     }
     public void ClientChangeEnemyFaction(string newEnemy)
     {
         ClientFaction_client =  Resources.Load<Faction>("Prefabs/Factions/" + newEnemy);
-        Debug.LogError("Client is " + ClientFaction_client.name);
+        //Debug.LogError("Client is " + ClientFaction_client.name);
     }
 
     public void SpawnToSM(Vector3Int target, GameObject spawnee = null, string Faction = "Royal", string name = "null", bool AIorNot = false, string futurename = "null", string ClientOrHost = "Host")

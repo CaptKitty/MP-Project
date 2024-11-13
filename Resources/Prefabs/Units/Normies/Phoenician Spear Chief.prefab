@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: -8209825602014350543}
   - component: {fileID: -5787205392657145368}
   m_Layer: 0
-  m_Name: Tribesman
+  m_Name: Phoenician Spear Chief
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -52,9 +52,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3e23fbf27478ef41b34bb57076ad617, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: {r: 0.24705882, g: 0.43529412, b: 0.105882354, a: 1}
-  color2: {r: 0.5568628, g: 0.5568628, b: 0.5568628, a: 0}
-  color3: {r: 0.99215686, g: 0.80784315, b: 0.7411765, a: 0}
+  color: {r: 0.5471698, g: 0.5471698, b: 0.5471698, a: 1}
+  color2: {r: 0.25591847, g: 0.48086753, b: 0.6698113, a: 0}
+  color3: {r: 0.4245283, g: 0.26902112, b: 0.122152, a: 0}
   faction: {fileID: 11400000, guid: 47009c7e621a59349a826c3c4d238a6d, type: 2}
   listy:
   - {fileID: 1002579343314764860}
@@ -83,13 +83,13 @@ MonoBehaviour:
   nametype: []
   cost:
     name: 
-    amount: 75
+    amount: 100
     sprite: {fileID: 0}
   DoesThisgoOnTheCity: 0
   ViablePlacingSpots:
   - Grassland
   targetlists: []
-  population: 100
+  population: 300
   AbilityList:
   - {fileID: 0}
   PrivateAbilityList:
@@ -99,14 +99,13 @@ MonoBehaviour:
   IsthisAI: 0
   IsThisAlive: 1
   online: 0
-  AIScript: {fileID: 11400000, guid: d53efe19b95251748a92cedd3666b19f, type: 2}
+  AIScript: {fileID: 11400000, guid: 87185f7009762f142b61bf25d31f4f2b, type: 2}
   scriptlist: []
   combatdistance: 1
   speed: 1
-  attack: 30
-  attacktime: 0.75
+  attack: 50
+  attacktime: 1
   NextAvailableAttack: 0
-  modifierlist: []
 --- !u!212 &1002579342033724375
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -241,14 +240,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1002579343139218209}
-  m_LocalRotation: {x: 0, y: 0, z: -0.010691223, w: 0.9999429}
-  m_LocalPosition: {x: -0.067, y: -0.206, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: 0.09415898, w: 0.9955572}
+  m_LocalPosition: {x: -0.101, y: -0.103, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1002579342033724368}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -1.225143}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 10.806}
 --- !u!212 &1002579343139218211
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -290,7 +289,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 20
-  m_Sprite: {fileID: 21300000, guid: fce9cd9c7a2aaac4d88d13c49a6ea115, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 5143fe6b405d58248a77f59992cc3552, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -374,7 +373,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 15
-  m_Sprite: {fileID: 21300000, guid: 578aa4cd40cc64b4380327009a5f0cbc, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 8fc34586aad3393449b60f6bf1b00eda, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -409,14 +408,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1002579343439947282}
-  m_LocalRotation: {x: -0, y: -0, z: 0.16207518, w: -0.9867784}
-  m_LocalPosition: {x: 0.156, y: -0.092, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.162, y: -0.095, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1002579342033724368}
   m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -18.655}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &1002579343439947276
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -458,7 +457,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 25
-  m_Sprite: {fileID: 21300000, guid: 9551fde8601a24e4bba887117b0717b1, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 3eae1bb9a168ca849b6f4b4d18dd2213, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

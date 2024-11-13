@@ -7,22 +7,12 @@ using UnityEngine;
 public class basic_Ranged_AI_script_ammo : base_AI_Script
 {
     GameObject TargetEnemy;
-    public float combatdistance = 1f;
-    public float speed = 1f;
-    public int attack = 1;
-    public double attacktime = 1;
-    public double NextAvailableAttack = 0;
     public GameObject Throwable;
     public int ammo;
     public override base_AI_Script Init()
     {
         var potato = new basic_Ranged_AI_script_ammo();
         potato.TargetEnemy = TargetEnemy;
-        potato.combatdistance = combatdistance;
-        potato.speed = speed;
-        potato.attack = attack;
-        potato.attacktime = attacktime;
-        potato.NextAvailableAttack = 0;
         potato.Throwable = Throwable;
         potato.ammo = ammo;
         return potato;
@@ -74,24 +64,24 @@ public class basic_Ranged_AI_script_ammo : base_AI_Script
                     critter.gameObject.transform.LookAt( new Vector3(critter.gameObject.transform.position.x-1,critter.gameObject.transform.position.y,-360), new Vector3(0,0,0));
                 }
 
-                if(distance < combatdistance)
+                if(distance < critter.GrabCombatDistance())
                 {
                     Attack(distance, critter);
                 }
                 else
                 {
-                    critter.gameObject.transform.position += direction * Time.deltaTime * speed;
+                    critter.gameObject.transform.position += direction * Time.deltaTime * (float)critter.GrabSpeed();
                 }
             }
         }
     }
     void Attack(float distance, CritterHolder critter)
     {
-        if(distance < combatdistance)
+        if(distance < critter.GrabCombatDistance())
         {
-            if(NextAvailableAttack < Time.time)
+            if(critter.NextAvailableAttack < Time.time)
             {
-                NextAvailableAttack = Time.time + attacktime;
+                critter.NextAvailableAttack = Time.time + critter.GrabAttackTime();
                 
                 
                 if(ammo < 1)
@@ -103,7 +93,7 @@ public class basic_Ranged_AI_script_ammo : base_AI_Script
                 }
                 ammo -= 1;
 
-                TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(attack);
+                TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(critter.GrabAttack());
                 //critter.gameObject.GetComponent<Animator>().SetTrigger("Attack");
                 RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");
                 RpcTest.Serverchecker.ExecuteAnimation(critter, "Throw"); //Throw(critter);

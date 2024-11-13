@@ -23,6 +23,91 @@ public class CritterHolder : MonoBehaviour
     public bool online = false;
     public base_AI_Script AIScript;
     public List<base_AI_Script> scriptlist = new List<base_AI_Script>();
+
+    public double combatdistance = 1f;
+    public double speed = 1f;
+    public int attack = 1;
+    public double attacktime = 1;
+    public double NextAvailableAttack = 0;
+    public List<Modifier> modifierlist = new List<Modifier>();
+
+    public double GrabCombatDistance()
+    {
+        double newvariable = combatdistance;
+        foreach (var item in modifierlist)
+        {
+            if(item.base_combatdistance != 0)
+            {
+                newvariable = item.base_combatdistance;
+            }
+        }
+        foreach (var item in modifierlist)
+        {
+            if(item.combatdistance_modifier != 1)
+            {
+                newvariable *= item.combatdistance_modifier;
+            }
+        }
+        return newvariable;
+    }
+    public int GrabAttack()
+    {
+        double newvariable = (double)attack;
+        foreach (var item in modifierlist)
+        {
+            if(item.base_attack != 0)
+            {
+                newvariable = item.base_attack;
+            }
+        }
+        foreach (var item in modifierlist)
+        {
+            if(item.attack_modifier != 1)
+            {
+                newvariable *= item.attack_modifier;
+            }
+        }
+        return (int)newvariable;
+    }
+    public double GrabSpeed()
+    {
+        double newvariable = speed;
+        foreach (var item in modifierlist)
+        {
+            if(item.base_speed != 0)
+            {
+                newvariable = item.base_speed;
+            }
+        }
+        foreach (var item in modifierlist)
+        {
+            if(item.speed_modifier != 1)
+            {
+                newvariable *= item.speed_modifier;
+            }
+        }
+        return newvariable;
+    }
+    public double GrabAttackTime()
+    {
+        double newvariable = attacktime;
+        foreach (var item in modifierlist)
+        {
+            if(item.base_attacktime != 0)
+            {
+                newvariable = item.base_attacktime;
+            }
+        }
+        foreach (var item in modifierlist)
+        {
+            if(item.attacktime_modifier != 1)
+            {
+                newvariable *= item.attacktime_modifier;
+            }
+        }
+        return newvariable;
+    }
+
     public void Awake()
     {
         if(AbilityList.Count == 0)

@@ -3,17 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-[CreateAssetMenu(menuName = "AIScript/Cav")]
-public class basic_AI_Cavalry_Script : base_AI_Script
+[CreateAssetMenu(menuName = "AIScript/Follower")]
+public class basic_AI_Follower_Script : base_AI_Script
 {
     GameObject TargetEnemy;
-    public double FlankTime;
-    public double Timer;
     public override base_AI_Script Init()
     {
-        var potato = new basic_AI_Cavalry_Script();
+        var potato = new basic_AI_Follower_Script();
         potato.TargetEnemy = TargetEnemy;
-        potato.FlankTime = FlankTime;
         return potato;
     }
     public override void Direction(CritterHolder critter)
@@ -41,50 +38,62 @@ public class basic_AI_Cavalry_Script : base_AI_Script
     }
     public override void Execute(CritterHolder critter)
     {
-        if(critter.online == true)
+        FindTarget(critter);
+        if(TargetEnemy != null)
         {
-            if(Timer == 0)
+            var heading  = TargetEnemy.transform.position - critter.gameObject.transform.position;
+            var distance = heading.magnitude;
+            var direction = heading / distance;
+
+            if(direction.x > 0)
             {
-                Timer = Time.time + FlankTime;
-                FindFlank(critter);
-            }
-            if(TargetEnemy == null || TargetEnemy.active == false)
-            {
-                FindTarget(critter);
+                critter.gameObject.transform.LookAt( new Vector3(critter.gameObject.transform.position.x+1,critter.gameObject.transform.position.y,360), new Vector3(0,0,0));
             }
             else
             {
-                var heading  = TargetEnemy.transform.position - critter.gameObject.transform.position;
+                critter.gameObject.transform.LookAt( new Vector3(critter.gameObject.transform.position.x-1,critter.gameObject.transform.position.y,-360), new Vector3(0,0,0));
+            }
+
+            var disty = Vector3.Distance(TargetEnemy.transform.position, critter.gameObject.transform.position);
+            if(disty < critter.GrabCombatDistance())
+            {
+                Attack(disty, critter);
+            }
+        }
+    }
+    public void ExecuteOrder(CritterHolder critter, Vector3 position)
+    {
+        if(critter.online == true)
+        {
+            // if(TargetEnemy == null || TargetEnemy.active == false)
+            // {
+                FindTarget(critter);
+            // }
+            // else
+            // {
+                var disty = Vector3.Distance(TargetEnemy.transform.position, critter.gameObject.transform.position);
+                var heading  = position - critter.gameObject.transform.position; //TargetEnemy.transform.position
                 var distance = heading.magnitude;
                 var direction = heading / distance;
 
-                if(direction.x > 0)
+                // if(direction.x > 0)
+                // {
+                //     critter.gameObject.transform.LookAt( new Vector3(critter.gameObject.transform.position.x+1,critter.gameObject.transform.position.y,360));//, new Vector3(0,0,0));
+                // }
+                // else
+                // {
+                //     critter.gameObject.transform.LookAt( new Vector3(critter.gameObject.transform.position.x-1,critter.gameObject.transform.position.y,-360));//, new Vector3(0,0,0));
+                // }
+
+                if(disty < critter.GrabCombatDistance())
                 {
-                    critter.gameObject.transform.LookAt( new Vector3(critter.gameObject.transform.position.x+1,critter.gameObject.transform.position.y,360));//, new Vector3(0,0,0));
+                    //Attack(disty, critter);
                 }
                 else
                 {
-                    critter.gameObject.transform.LookAt( new Vector3(critter.gameObject.transform.position.x-1,critter.gameObject.transform.position.y,-360));//, new Vector3(0,0,0));
+                    critter.gameObject.transform.position += direction * Time.deltaTime * (float)critter.GrabSpeed();
                 }
-                if(Timer > Time.time)
-                {
-                    direction.y = 0;
-                    TargetEnemy = null;
-                    FindTarget(critter);
-                }
-                
-
-
-                critter.gameObject.transform.position += direction * Time.deltaTime * (float)critter.GrabSpeed();
-                if(distance < critter.GrabCombatDistance())
-                {
-                    Attack(distance, critter);
-                }
-                //else
-                //{
-                    
-                //}
-            }
+            //}
         }
     }
     void Attack(float distance, CritterHolder critter)
@@ -123,38 +132,6 @@ public class basic_AI_Cavalry_Script : base_AI_Script
                 var distance2 = heading2.magnitude;
                 
                 if(distance < distance2)
-                {
-                    TargetEnemy = item;
-                }
-            }
-        }
-    }
-    public void FindFlank(CritterHolder critter)
-    {
-        List<GameObject> enemylists = new List<GameObject>();
-        foreach (var item in BattleManager1.Instance.enemylist)
-        {
-            if(item == null)
-            {
-                continue;
-            }
-            if(item.GetComponent<CritterHolder>().IsthisAI != critter.IsthisAI)
-            {
-                enemylists.Add(item);
-            }
-        }
-        if(enemylists.Count > 0)
-        {
-            TargetEnemy = enemylists[0];
-            foreach (var item in enemylists)
-            {
-                var heading  = item.transform.position - critter.gameObject.transform.position;
-                var distance = heading.magnitude;
-
-                var heading2  = TargetEnemy.transform.position - critter.gameObject.transform.position;
-                var distance2 = heading2.magnitude;
-                
-                if(distance > distance2)
                 {
                     TargetEnemy = item;
                 }

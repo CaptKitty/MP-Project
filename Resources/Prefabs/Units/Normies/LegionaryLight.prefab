@@ -66,6 +66,7 @@ MonoBehaviour:
   DoesThisHaveJavelin: 0
   Upgrade: {fileID: 0}
   UpgradeButtons: {fileID: 8806944245139361706, guid: 36b886d4ea7b4564588b86d50d2ea887, type: 3}
+  Mercenary: 0
 --- !u!114 &-1170439232849311746
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -99,7 +100,7 @@ MonoBehaviour:
   IsthisAI: 0
   IsThisAlive: 1
   online: 0
-  AIScript: {fileID: 11400000, guid: 87562bdbc12fbf54f8753b27137ba9aa, type: 2}
+  AIScript: {fileID: 11400000, guid: 2d7ce668646ce0147a880409da096a1d, type: 2}
   scriptlist:
   - {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
   combatdistance: 0.75

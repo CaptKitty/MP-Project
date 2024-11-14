@@ -14,8 +14,15 @@ public class Modifier : ScriptableObject
     public double speed_modifier = 1;
     public double attack_modifier = 1;
     public double attacktime_modifier = 1;
-
+    public double duration;
+    public double EndDuration;
     public GameObject Aura;
+    public bool StunEffect = false;
+
+    public void SetTimer()
+    {
+        EndDuration = Time.time + duration;
+    }
 
     public void LoadAura(GameObject potato)
     {

@@ -21,15 +21,21 @@ public class TestCritter : MonoBehaviour
     public bool DoesThisHaveJavelin = false;
     public GameObject Upgrade;
     public GameObject UpgradeButtons;
+    public bool Mercenary = false;
     
     // Start is called before the first frame update
-    void Start()
+    public void Start()
     {
         // faction = BattleManager1.Instance.Playerfaction;
         material = Instantiate(this.GetComponent<SpriteRenderer>().material);
         material.SetColor("_FactionColor", faction.color);
         material.SetColor("_FactionColor2", faction.color2);
         material.SetColor("_FactionColor3", faction.color3);
+        if(Mercenary == true)
+        {
+            material.SetColor("_FactionColor3", color3);
+        }
+        
         
         GetComponent<Animator>().SetBool("Sword", DoesThisHaveSword);
         GetComponent<Animator>().SetBool("Spear", DoesThisHaveSpear);

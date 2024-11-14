@@ -1137,7 +1137,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   HostArmy: []
   HostFaction: {fileID: 11400000, guid: 985566123e0662b44ad1cd7852a4767d, type: 2}
-  HostFaction_client: {fileID: 11400000, guid: 47009c7e621a59349a826c3c4d238a6d, type: 2}
+  HostFaction_client: {fileID: 11400000, guid: dcbee4453ff2def43ba4aa0f3d4f9d86, type: 2}
   ClientArmy: []
   ClientFaction: {fileID: 11400000, guid: 47009c7e621a59349a826c3c4d238a6d, type: 2}
   ClientFaction_client: {fileID: 0}

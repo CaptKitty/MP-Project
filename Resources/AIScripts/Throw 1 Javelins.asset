@@ -10,12 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ab35ac9aede7e964fad111f610145f83, type: 3}
-  m_Name: ThrowSingleJavelin
+  m_Name: Throw 1 Javelins
   m_EditorClassIdentifier: 
-  combatdistance: 2.5
-  speed: 1
-  attack: 50
-  attacktime: 1
-  NextAvailableAttack: 0
   Throwable: {fileID: 8062874142913599219, guid: 0603e32d295d7154085c6c9224cdb6c5, type: 3}
   ammo: 1
+  modifier: {fileID: 11400000, guid: 9f0ea96ad35f274408602d9b2954daac, type: 2}

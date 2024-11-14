@@ -142,7 +142,11 @@ public class CritterHolder : MonoBehaviour
         }
         if(online)
         {
-            AIScript.Execute(this);
+            if(CanIAct())
+            {
+                AIScript.Execute(this);
+            }
+            HandleModifiers();
         }
     }
     public void Update()
@@ -195,20 +199,44 @@ public class CritterHolder : MonoBehaviour
     {
         foreach(var Abilitie in AbilityList)
         {
-            Abilitie.Execute(this);
+            if(CanIAct())
+            {
+                Abilitie.Execute(this);
+            }
+            
+        }
+        //HandleModifiers();
+    }
+    public bool CanIAct()
+    {
+        foreach (var item in modifierlist)
+        {
+            if(item.StunEffect == true)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    public void HandleModifiers()
+    {
+        List<Modifier> listy = new List<Modifier>();
+        foreach (var item in modifierlist)
+        {
+            if(item.duration != null)
+            {
+                if(item.EndDuration < Time.time)
+                {
+                    item.DestroyAura(this.gameObject);
+                    listy.Add(item);
+                }
+            }
+        }
+        foreach (var item in listy)
+        {
+            modifierlist.Remove(item);
         }
     }
-    // public void EndOfTurn()
-    // {
-    //     if(population < 1)
-    //     {
-    //         foreach(var Abilitie in AbilityList)
-    //         {
-    //             Abilitie.OnDeath(this);
-    //         }
-    //         Destroy(this.gameObject);
-    //     }
-    // }
     public void Throw()
     {
         if(AIScript.GetType() == typeof(basic_Ranged_AI_script))
@@ -219,6 +247,11 @@ public class CritterHolder : MonoBehaviour
         if(AIScript.GetType() == typeof(basic_Ranged_AI_script_ammo))
         {
             var a = (basic_Ranged_AI_script_ammo)AIScript;
+            a.Throw(this);
+        }
+        if(AIScript.GetType() == typeof(basic_Skirmish_Ranged_AI_script_ammo))
+        {
+            var a = (basic_Skirmish_Ranged_AI_script_ammo)AIScript;
             a.Throw(this);
         }
     }
@@ -257,8 +290,6 @@ public class CritterHolder : MonoBehaviour
                     b.modifier.DestroyAura(item);
                     item.GetComponent<CritterHolder>().GrabNewScript();
                     item.GetComponent<CritterHolder>().modifierlist.Remove(b.modifier);
-                    
-                    
                 }
             }
 

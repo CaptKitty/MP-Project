@@ -66,6 +66,7 @@ MonoBehaviour:
   DoesThisHaveJavelin: 0
   Upgrade: {fileID: 0}
   UpgradeButtons: {fileID: 0}
+  Mercenary: 0
 --- !u!114 &-1170439232849311746
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -291,7 +292,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 20
-  m_Sprite: {fileID: 21300000, guid: 16ba57bdaddde4a4d84a2e70a94b9dfb, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 012308622e6cfaa4f9cedb7452e0c332, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: -8209825602014350543}
   - component: {fileID: -5787205392657145368}
   m_Layer: 0
-  m_Name: Velite
+  m_Name: Illyrian
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -84,13 +84,13 @@ MonoBehaviour:
   nametype: []
   cost:
     name: 
-    amount: 50
+    amount: 100
     sprite: {fileID: 0}
   DoesThisgoOnTheCity: 0
   ViablePlacingSpots:
   - Grassland
   targetlists: []
-  population: 200
+  population: 300
   AbilityList:
   - {fileID: 0}
   PrivateAbilityList:
@@ -100,12 +100,13 @@ MonoBehaviour:
   IsthisAI: 0
   IsThisAlive: 1
   online: 0
-  AIScript: {fileID: 11400000, guid: 74ef0af7efabbd8469d18b83ecf5a0b6, type: 2}
-  scriptlist: []
-  combatdistance: 3
+  AIScript: {fileID: 11400000, guid: 7804c3a458ece1e4b82148a24e3edb1a, type: 2}
+  scriptlist:
+  - {fileID: 11400000, guid: d53efe19b95251748a92cedd3666b19f, type: 2}
+  combatdistance: 1
   speed: 1
-  attack: 15
-  attacktime: 1
+  attack: 20
+  attacktime: 0.75
   NextAvailableAttack: 0
   modifierlist: []
 --- !u!212 &1002579342033724375
@@ -234,7 +235,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1002579343139218204
 Transform:
   m_ObjectHideFlags: 0
@@ -291,7 +292,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 20
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: fce9cd9c7a2aaac4d88d13c49a6ea115, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -299,7 +300,7 @@ SpriteRenderer:
   m_Size: {x: 1, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 0
+  m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &1002579343314764860
@@ -375,7 +376,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 15
-  m_Sprite: {fileID: 21300000, guid: 29c9f91564cf63b48ad82f9f09b91552, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 0549e244f59c8b741a235ce5499153c0, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

@@ -33,6 +33,8 @@ public class SelectMilitaryCritter : MonoBehaviour
             }
             catch{}
         }
+        transform.GetChild(0).GetComponent<TestCritter>().Mercenary = heldcritter.GetComponent<TestCritter>().Mercenary;
+        transform.GetChild(0).GetComponent<TestCritter>().Start();
     }
     public void UpdateMinPagans(int a)
     {

@@ -3,20 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-[CreateAssetMenu(menuName = "AIScript/RangedAmmo")]
-public class basic_Ranged_AI_script_ammo : base_AI_Script
+[CreateAssetMenu(menuName = "AIScript/SkirmishRangedAmmo")]
+public class basic_Skirmish_Ranged_AI_script_ammo : basic_Ranged_AI_script_ammo
 {
     GameObject TargetEnemy;
-    public GameObject Throwable;
-    public int ammo;
-    public Modifier modifier;
     private bool HasGained = false;
     public override base_AI_Script Init()
     {
-        var potato = new basic_Ranged_AI_script_ammo();
+        var potato = new basic_Skirmish_Ranged_AI_script_ammo();
         potato.TargetEnemy = TargetEnemy;
-        potato.Throwable = Throwable;
         potato.HasGained = false;
+        potato.Throwable = Throwable;
         potato.ammo = ammo;
         potato.modifier = Instantiate(modifier);
         return potato;
@@ -62,7 +59,7 @@ public class basic_Ranged_AI_script_ammo : base_AI_Script
                 //Vector3 vectory = new Vector3(1, 0.5f, 0);
                 var heading  = TargetEnemy.transform.position - critter.gameObject.transform.position;
                 var distance = heading.magnitude;
-                var direction = heading / distance;
+                Vector3 direction = heading / distance;
 
                 if(direction.x > 0)
                 {
@@ -76,6 +73,10 @@ public class basic_Ranged_AI_script_ammo : base_AI_Script
                 if(distance < critter.GrabCombatDistance())
                 {
                     Attack(distance, critter);
+                    if(distance < critter.GrabCombatDistance()/2)
+                    {
+                        critter.gameObject.transform.position += new Vector3(-direction.x, -direction.y,-direction.z) * Time.deltaTime * (float)critter.GrabSpeed();
+                    }
                 }
                 else
                 {

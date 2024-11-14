@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: -8209825602014350543}
   - component: {fileID: -5787205392657145368}
   m_Layer: 0
-  m_Name: Velite
+  m_Name: Iberian Bull
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -52,8 +52,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3e23fbf27478ef41b34bb57076ad617, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: {r: 0.53333336, g: 0, b: 0, a: 1}
-  color2: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 0}
+  color: {r: 0.42352942, g: 0.27058825, b: 0.12156863, a: 0}
+  color2: {r: 0.2924528, g: 0.25170386, b: 0.22761658, a: 0}
   color3: {r: 1, g: 0.5529412, b: 0.39607844, a: 0}
   faction: {fileID: 11400000, guid: 47009c7e621a59349a826c3c4d238a6d, type: 2}
   listy:
@@ -61,9 +61,9 @@ MonoBehaviour:
   - {fileID: 1002579343139218209}
   - {fileID: 1002579343439947282}
   material: {fileID: 2100000, guid: 8bc3e5084e1bf7e42bd906b624b10ea4, type: 2}
-  DoesThisHaveSword: 0
+  DoesThisHaveSword: 1
   DoesThisHaveSpear: 0
-  DoesThisHaveJavelin: 1
+  DoesThisHaveJavelin: 0
   Upgrade: {fileID: 0}
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
@@ -84,13 +84,13 @@ MonoBehaviour:
   nametype: []
   cost:
     name: 
-    amount: 50
+    amount: 150
     sprite: {fileID: 0}
   DoesThisgoOnTheCity: 0
   ViablePlacingSpots:
   - Grassland
   targetlists: []
-  population: 200
+  population: 300
   AbilityList:
   - {fileID: 0}
   PrivateAbilityList:
@@ -100,12 +100,12 @@ MonoBehaviour:
   IsthisAI: 0
   IsThisAlive: 1
   online: 0
-  AIScript: {fileID: 11400000, guid: 74ef0af7efabbd8469d18b83ecf5a0b6, type: 2}
+  AIScript: {fileID: 11400000, guid: 07f423a66fa057f4ab28200c87a9b0f7, type: 2}
   scriptlist: []
-  combatdistance: 3
+  combatdistance: 0.75
   speed: 1
-  attack: 15
-  attacktime: 1
+  attack: 25
+  attacktime: 0.5
   NextAvailableAttack: 0
   modifierlist: []
 --- !u!212 &1002579342033724375
@@ -234,7 +234,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1002579343139218204
 Transform:
   m_ObjectHideFlags: 0
@@ -291,7 +291,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 20
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: fce9cd9c7a2aaac4d88d13c49a6ea115, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -299,7 +299,7 @@ SpriteRenderer:
   m_Size: {x: 1, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 0
+  m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &1002579343314764860
@@ -375,7 +375,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 15
-  m_Sprite: {fileID: 21300000, guid: 29c9f91564cf63b48ad82f9f09b91552, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 79eb0efc79bb288418846be652e47dd1, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -410,14 +410,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1002579343439947282}
-  m_LocalRotation: {x: -0, y: -0, z: 0.50792354, w: -0.86140215}
-  m_LocalPosition: {x: -0.158, y: 0.221, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.162, y: -0.095, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1002579342033724368}
   m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -61.051}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &1002579343439947276
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -459,7 +459,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 25
-  m_Sprite: {fileID: 21300000, guid: c39e58dd4099339488241d669844361c, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 2a17cfdacd044a541970e4e76ba4245d, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

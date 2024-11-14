@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 140cffa049350d14fa1773b31d78265f, type: 3}
+  m_Name: Throw5JavelinsSkirmisher
+  m_EditorClassIdentifier: 
+  Throwable: {fileID: 8062874142913599219, guid: 0603e32d295d7154085c6c9224cdb6c5, type: 3}
+  ammo: 5
+  modifier: {fileID: 11400000, guid: b4a7738b6cb716e4ab307f17ccaa97f9, type: 2}

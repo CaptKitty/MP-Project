@@ -3,22 +3,23 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-[CreateAssetMenu(menuName = "AIScript/RangedAmmo")]
-public class basic_Ranged_AI_script_ammo : base_AI_Script
+[CreateAssetMenu(menuName = "AIScript/Bull")]
+public class basic_AI_Bull_Script : base_AI_Script
 {
     GameObject TargetEnemy;
-    public GameObject Throwable;
-    public int ammo;
+    
     public Modifier modifier;
-    private bool HasGained = false;
+    public double StunTimer;
+    private double TimeSinceStun = 0;
+
     public override base_AI_Script Init()
     {
-        var potato = new basic_Ranged_AI_script_ammo();
+        var potato = new basic_AI_Bull_Script();
+        potato.StunTimer = StunTimer;
+        potato.TimeSinceStun = 0;
         potato.TargetEnemy = TargetEnemy;
-        potato.Throwable = Throwable;
-        potato.HasGained = false;
-        potato.ammo = ammo;
         potato.modifier = Instantiate(modifier);
+        
         return potato;
     }
     public override void Direction(CritterHolder critter)
@@ -48,29 +49,23 @@ public class basic_Ranged_AI_script_ammo : base_AI_Script
     {
         if(critter.online == true)
         {
-            if(HasGained == false)
-            {
-                critter.modifierlist.Add(modifier);
-                HasGained = true;
-            }
             if(TargetEnemy == null || TargetEnemy.active == false)
             {
                 FindTarget(critter);
             }
             else
             {
-                //Vector3 vectory = new Vector3(1, 0.5f, 0);
                 var heading  = TargetEnemy.transform.position - critter.gameObject.transform.position;
                 var distance = heading.magnitude;
                 var direction = heading / distance;
 
                 if(direction.x > 0)
                 {
-                    critter.gameObject.transform.LookAt( new Vector3(critter.gameObject.transform.position.x+1,critter.gameObject.transform.position.y,360), new Vector3(0,0,0));
+                    critter.gameObject.transform.LookAt( new Vector3(critter.gameObject.transform.position.x+1,critter.gameObject.transform.position.y,360));//, new Vector3(0,0,0));
                 }
                 else
                 {
-                    critter.gameObject.transform.LookAt( new Vector3(critter.gameObject.transform.position.x-1,critter.gameObject.transform.position.y,-360), new Vector3(0,0,0));
+                    critter.gameObject.transform.LookAt( new Vector3(critter.gameObject.transform.position.x-1,critter.gameObject.transform.position.y,-360));//, new Vector3(0,0,0));
                 }
 
                 if(distance < critter.GrabCombatDistance())
@@ -85,45 +80,27 @@ public class basic_Ranged_AI_script_ammo : base_AI_Script
         }
     }
     void Attack(float distance, CritterHolder critter)
-    {
-        if(distance < critter.GrabCombatDistance())
+    {   
+        if(critter.NextAvailableAttack < Time.time)
         {
-            if(critter.NextAvailableAttack < Time.time)
+            if(TimeSinceStun < Time.time)
             {
-                critter.NextAvailableAttack = Time.time + critter.GrabAttackTime();
-                
-                
-                if(ammo < 1)
+                TimeSinceStun = Time.time + StunTimer;
+                var moddy = Instantiate(modifier);
+                moddy.SetTimer();
+                TargetEnemy.GetComponent<CritterHolder>().modifierlist.Add(moddy);
+                foreach (var items in TargetEnemy.GetComponent<CritterHolder>().modifierlist)
                 {
-                    critter.gameObject.GetComponent<TestCritter>().DoesThisHaveSword = true;
-                    critter.gameObject.GetComponent<TestCritter>().DoesThisHaveJavelin = false;
-                    critter.modifierlist.Remove(modifier);
-                    critter.GrabNewScript();
-                    return;
+                    items.DestroyAura(TargetEnemy);
+                    items.LoadAura(TargetEnemy);
                 }
-                ammo -= 1;
-
-                TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(critter.GrabAttack());
-                //critter.gameObject.GetComponent<Animator>().SetTrigger("Attack");
-                RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");
-                RpcTest.Serverchecker.ExecuteAnimation(critter, "Throw"); //Throw(critter);
-                
             }
+            
+            critter.NextAvailableAttack = Time.time + critter.GrabAttackTime();
+            TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(critter.GrabAttack());
+            RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");
         }
-    }
-    public void Throw(CritterHolder critter)
-    {
-        if(TargetEnemy == null)
-        {
-            FindTarget(critter);
-        }
-        var potato = Instantiate(Throwable);
-        potato.transform.position = critter.gameObject.transform.GetChild(2).position;
-        //potato.transform.rotation = critter.gameObject.transform.GetChild(2).rotation;
-        potato.transform.LookAt(new Vector3(TargetEnemy.gameObject.transform.position.x,TargetEnemy.gameObject.transform.position.y,-90),Vector3.forward );
-        potato.GetComponent<Projectile>().TargetEnemy = TargetEnemy;
         
-
     }
     public override void FindTarget(CritterHolder critter)
     {

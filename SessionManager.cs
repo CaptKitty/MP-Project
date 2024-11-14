@@ -18,26 +18,36 @@ public class SessionManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
+        HostFaction.Set();
+        HostFaction_client.Set();
         //DontDestroyOnLoad(gameObject);
     }
     public void ChangePlayerFaction(string newfaction)
     {
         HostFaction = Resources.Load<Faction>("Prefabs/Factions/" + newfaction);
+        HostFaction = HostFaction.Init();
+        HostFaction.Set();
         //Debug.LogError("Host is " + HostFaction.name);
     }
     public void ChangeEnemyFaction(string newEnemy)
     {
         ClientFaction =  Resources.Load<Faction>("Prefabs/Factions/" + newEnemy);
+        ClientFaction = ClientFaction.Init();
+        ClientFaction.Set();
         //Debug.LogError("Client is " + ClientFaction.name);
     }
     public void ClientChangePlayerFaction(string newfaction)
     {
         HostFaction_client = Resources.Load<Faction>("Prefabs/Factions/" + newfaction);
+        HostFaction_client = HostFaction_client.Init();
+        HostFaction_client.Set();
         //Debug.LogError("Host is " + HostFaction_client.name);
     }
     public void ClientChangeEnemyFaction(string newEnemy)
     {
         ClientFaction_client =  Resources.Load<Faction>("Prefabs/Factions/" + newEnemy);
+        ClientFaction_client = ClientFaction_client.Init();
+        ClientFaction_client.Set();
         //Debug.LogError("Client is " + ClientFaction_client.name);
     }
 

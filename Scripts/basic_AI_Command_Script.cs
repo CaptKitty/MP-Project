@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,6 +14,7 @@ public class basic_AI_Command_Script : base_AI_Script
     public base_AI_Script subjectscript;
     public double CommandDistance = 1;
     public Modifier modifier;
+
     public override base_AI_Script Init()
     {
         var potato = new basic_AI_Command_Script();
@@ -20,9 +22,9 @@ public class basic_AI_Command_Script : base_AI_Script
         potato.HasCommanded = false;
         potato.subjects = new List<GameObject>();
         potato.subjectrelation = new List<Vector3>();
-        potato.subjectscript = subjectscript.Init();
+        potato.subjectscript = Instantiate(subjectscript);
         potato.CommandDistance = CommandDistance;
-        potato.modifier = modifier;
+        potato.modifier = Instantiate(modifier);
         return potato;
     }
     public override void Direction(CritterHolder critter)
@@ -62,7 +64,9 @@ public class basic_AI_Command_Script : base_AI_Script
                 item.GetComponent<CritterHolder>().modifierlist.Add(modifier);
                 foreach (var items in item.GetComponent<CritterHolder>().modifierlist)
                 {
-                    items.LoadAura(item);
+                    items.potato = item;
+                    items.LoadAura();
+                    //critter.onDeath += items.DestroyAura;
                 }
                 continue;
             }
@@ -82,18 +86,29 @@ public class basic_AI_Command_Script : base_AI_Script
                 {
                     subjects.Add(item);
                     item.GetComponent<CritterHolder>().AIScript = subjectscript;
-                    item.GetComponent<CritterHolder>().modifierlist.Add(modifier);
-                    subjectrelation.Add(heading);
+                    var moddy = Instantiate(modifier);
+                    item.GetComponent<CritterHolder>().modifierlist.Add(moddy);
                     
+                    moddy.potato = item;
+                    moddy.LoadAura();
+
+                    critter.onDeath += item.GetComponent<CritterHolder>().GrabNewScript;
+                    critter.onDeath += moddy.DestroyAura;
+                    critter.onDeath += moddy.DestroyThis;
+                    //item.GetComponent<CritterHolder>().modifierlist.Remove(b.modifier);
+
+                    subjectrelation.Add(heading);
                 }
             }
-            foreach (var item in frenlists)
-            {
-                foreach (var items in item.GetComponent<CritterHolder>().modifierlist)
-                {
-                    items.LoadAura(item);
-                }
-            }
+            // foreach (var item in frenlists)
+            // {
+            //     foreach (var items in item.GetComponent<CritterHolder>().modifierlist)
+            //     {
+            //         items.potato = item;
+            //         items.LoadAura();
+                    
+            //     }
+            // }
         }
     }
     public override void Execute(CritterHolder critter)

@@ -91,8 +91,10 @@ public class basic_AI_Bull_Script : base_AI_Script
                 TargetEnemy.GetComponent<CritterHolder>().modifierlist.Add(moddy);
                 foreach (var items in TargetEnemy.GetComponent<CritterHolder>().modifierlist)
                 {
-                    items.DestroyAura(TargetEnemy);
-                    items.LoadAura(TargetEnemy);
+                    items.potato = TargetEnemy;
+                    items.DestroyAura();
+                    items.LoadAura();
+                    critter.onDeath += items.DestroyAura;
                 }
             }
             

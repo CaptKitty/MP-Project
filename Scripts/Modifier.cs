@@ -18,33 +18,37 @@ public class Modifier : ScriptableObject
     public double EndDuration;
     public GameObject Aura;
     public bool StunEffect = false;
+    public GameObject potato;
+    private GameObject thisObject;
 
     public void SetTimer()
     {
         EndDuration = Time.time + duration;
     }
 
-    public void LoadAura(GameObject potato)
+    public void LoadAura()
     {
         if(Aura == null)
         {
             return;
         }
-        Instantiate(Aura, potato.transform);
+        thisObject = Instantiate(Aura, potato.transform);
     }
-    public void DestroyAura(GameObject potato)
+    public void DestroyAura()
     {
         for (int i = 0; i < 10; i++)
         {
-            try
+            if(potato.transform.GetChild(i).GetComponent<SpriteRenderer>().sprite == Aura.GetComponent<SpriteRenderer>().sprite)
             {
-                if(potato.transform.GetChild(i) == Aura)
-                {
-                    Destroy(potato.transform.GetChild(i));
-                    return;
-                }
+                Destroy(potato.transform.GetChild(i).gameObject);
+                return;
             }
-            catch{}
         }
+        Destroy(thisObject);
+    }
+    public void DestroyThis()
+    {
+        DestroyAura();
+        Destroy(this);
     }
 }

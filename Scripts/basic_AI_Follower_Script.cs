@@ -91,7 +91,11 @@ public class basic_AI_Follower_Script : base_AI_Script
                 }
                 else
                 {
-                    critter.gameObject.transform.position += direction * Time.deltaTime * (float)critter.GrabSpeed();
+                    if(distance != 0)
+                    {
+                        critter.gameObject.transform.position += direction * Time.deltaTime * (float)critter.GrabSpeed();
+                    }
+                    
                 }
             //}
         }

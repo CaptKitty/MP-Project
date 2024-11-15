@@ -31,6 +31,10 @@ public class CritterHolder : MonoBehaviour
     public double NextAvailableAttack = 0;
     public List<Modifier> modifierlist = new List<Modifier>();
 
+    
+    public delegate void OnDeath();
+    public OnDeath onDeath;
+
     public double GrabCombatDistance()
     {
         double newvariable = combatdistance;
@@ -118,7 +122,7 @@ public class CritterHolder : MonoBehaviour
             scriptlist.Add(AIScript.Init());
             GrabNewScript();         
         }
-        AIScript = AIScript.Init();
+        AIScript = Instantiate(AIScript);
         BattleManager1.OnVictory += Cheer;
         Cheer();
     }
@@ -225,11 +229,16 @@ public class CritterHolder : MonoBehaviour
         List<Modifier> listy = new List<Modifier>();
         foreach (var item in modifierlist)
         {
-            if(item.duration != null)
+            if(item.duration != 0)
             {
                 if(item.EndDuration < Time.time)
                 {
-                    item.DestroyAura(this.gameObject);
+                    item.DestroyAura();
+                    item.DestroyThis();
+                    listy.Add(item);
+                }
+                if(item == null)
+                {
                     listy.Add(item);
                 }
             }
@@ -271,35 +280,25 @@ public class CritterHolder : MonoBehaviour
         population -= a;
         if(population < 1)
         {
-            // foreach(var Abilitie in AbilityList)
-            // {
-            //     Abilitie.OnDeath(this);
-            // }
-            // if(BattleManager1.Instance && IsThisAlive && IsthisAI)
-            // {
-            //     BattleManager1.Instance.ChangeScore(1);
-            // }
-            // if(BattleManager1.Instance && IsThisAlive && !IsthisAI)
-            // {
-            //     BattleManager1.Instance.FriendlyCounter -= 1;
-            //     BattleManager1.Instance.ChangeReserves(0);
-            // }
             IsThisAlive = false;
             IsthisAI = false;
+            
+            onDeath?.Invoke();
+            
+
             this.gameObject.SetActive(false);
             
-            if(AIScript.GetType() == typeof(basic_AI_Command_Script))
-            {
-                var b = (basic_AI_Command_Script)AIScript;
-                foreach (var item in b.subjects)
-                {
-                    b.modifier.DestroyAura(item);
-                    item.GetComponent<CritterHolder>().GrabNewScript();
-                    item.GetComponent<CritterHolder>().modifierlist.Remove(b.modifier);
-                }
-            }
-
-            //Destroy(this.gameObject);
+            // if(AIScript.GetType() == typeof(basic_AI_Command_Script))
+            // {
+            //     var b = (basic_AI_Command_Script)AIScript;
+            //     foreach (var item in b.subjects)
+            //     {
+            //         b.modifier.DestroyAura(item);
+            //         item.GetComponent<CritterHolder>().GrabNewScript();
+            //         item.GetComponent<CritterHolder>().modifierlist.Remove(b.modifier);
+            //     }
+            // }
+            
 
         }
 

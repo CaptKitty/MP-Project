@@ -107,7 +107,6 @@ public class CritterHolder : MonoBehaviour
         }
         return newvariable;
     }
-
     public void Awake()
     {
         if(AbilityList.Count == 0)
@@ -120,7 +119,10 @@ public class CritterHolder : MonoBehaviour
             GrabNewScript();         
         }
         AIScript = AIScript.Init();
+        BattleManager1.OnVictory += Cheer;
+        Cheer();
     }
+
     public void GrabNewScript()
     {
         AIScript = scriptlist[Random.Range(0,scriptlist.Count)].Init();
@@ -192,8 +194,8 @@ public class CritterHolder : MonoBehaviour
         {
             GeneralManager.Instance.highlight = false;
         }
-        
         gameObject.name = name;
+        
     }
     public void Turn()
     {
@@ -258,6 +260,10 @@ public class CritterHolder : MonoBehaviour
     public void Attack()
     {
         GetComponent<Animator>().SetTrigger("Attack");
+    }
+    public void Cheer()
+    {
+        GetComponent<Animator>().SetTrigger("Cheer");
     }
     public void ReducePopulation(int a)
     {

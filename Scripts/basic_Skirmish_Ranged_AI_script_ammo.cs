@@ -6,8 +6,8 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "AIScript/SkirmishRangedAmmo")]
 public class basic_Skirmish_Ranged_AI_script_ammo : basic_Ranged_AI_script_ammo
 {
-    GameObject TargetEnemy;
-    private bool HasGained = false;
+    //GameObject TargetEnemy;
+    //private bool HasGained = false; 
     public override base_AI_Script Init()
     {
         var potato = new basic_Skirmish_Ranged_AI_script_ammo();

@@ -19,6 +19,11 @@ public class Faction: ScriptableObject
     public Faction Init()
     {
         var a = Instantiate(this);
+        a.MercenaryUnits.Clear();
+        foreach (var item in MercenaryUnits)
+        {
+            a.MercenaryUnits.Add(item);
+        }
         return a;
     }
     public void UpgradeBarracks()

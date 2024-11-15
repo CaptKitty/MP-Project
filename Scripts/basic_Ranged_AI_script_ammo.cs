@@ -6,11 +6,11 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "AIScript/RangedAmmo")]
 public class basic_Ranged_AI_script_ammo : base_AI_Script
 {
-    GameObject TargetEnemy;
+    public GameObject TargetEnemy;
     public GameObject Throwable;
     public int ammo;
     public Modifier modifier;
-    private bool HasGained = false;
+    public bool HasGained = false;
     public override base_AI_Script Init()
     {
         var potato = new basic_Ranged_AI_script_ammo();

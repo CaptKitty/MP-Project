@@ -21,10 +21,12 @@ public class BattleManager1 : BattleManager
 
     public Faction Playerfaction;
 
+    public delegate void DoSomething();
+    public static event DoSomething OnVictory;
+
+
     public override void Awake()
     {
-        
-
         Instance = this;
         Reserves = 500;
         texty.text = Reserves.ToString();
@@ -32,21 +34,9 @@ public class BattleManager1 : BattleManager
         {
             dicty.Add(position, null);
         }
-        
     }
     public void Start()
     {
-        //try
-        //{  
-            
-            
-            
-        // }
-        // catch
-        // {
-            // b.SetActive(false);
-            // Playerfaction = SessionManager.Instance.ClientFaction;
-        //  }
         SessionManager.Instance.SpawnArmy();
     }
     public void ResetBattleField(bool ResetSession = false)
@@ -73,6 +63,10 @@ public class BattleManager1 : BattleManager
     }
     void Update()
     {
+        if(Input.GetKeyDown("5"))
+        {
+            OnVictory?.Invoke();
+        }
         if(Starter)
         {   
             try

@@ -18,6 +18,8 @@ public class SessionManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
+        HostFaction = HostFaction.Init();
+        HostFaction_client = HostFaction_client.Init();
         HostFaction.Set();
         HostFaction_client.Set();
         //DontDestroyOnLoad(gameObject);

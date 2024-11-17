@@ -1,0 +1,22 @@
+Province ={
+Name ={
+_18
+}
+Color ={
+72
+0
+255
+}
+Location ={
+517
+259
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Rome
+}
+}

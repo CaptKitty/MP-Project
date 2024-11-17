@@ -1,0 +1,22 @@
+Province ={
+Name ={
+_9
+}
+Color ={
+38
+127
+0
+}
+Location ={
+303
+329
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Gaul
+}
+}

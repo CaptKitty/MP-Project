@@ -28,7 +28,7 @@ public class BattleManager1 : BattleManager
     public override void Awake()
     {
         Instance = this;
-        Reserves = 500;
+        Reserves = SessionManager.Instance.HostFaction.GrabIncome();
         texty.text = Reserves.ToString();
         foreach (Vector3Int position in ownermap.cellBounds.allPositionsWithin)
         {
@@ -87,6 +87,7 @@ public class BattleManager1 : BattleManager
                         RPC.GetComponent<RpcTest>().SendFaction();
                     }
                     Playerfaction = SessionManager.Instance.HostFaction;
+                    Reserves = SessionManager.Instance.HostFaction.GrabIncome();
                     // if(RpcTest.Serverchecker.ServerCheck())
                     // {
                     //     Playerfaction = SessionManager.Instance.HostFaction;
@@ -107,6 +108,7 @@ public class BattleManager1 : BattleManager
                     //     RPC.GetComponent<RpcTest>().SendFaction();
                     // }
                     Playerfaction = SessionManager.Instance.HostFaction;
+                    Reserves = SessionManager.Instance.HostFaction.GrabIncome();
                     // if(RpcTest.Serverchecker.ServerCheck())
                     // {
                     //     Playerfaction = SessionManager.Instance.HostFaction;
@@ -232,16 +234,37 @@ public class BattleManager1 : BattleManager
         }
         else
         {
-            int alive = 0;
+            int friendlyalive = 0;
+            int enemyalive = 0;
             foreach (var item in enemylist)
             {
-                if(item.GetComponent<CritterHolder>().IsthisAI && item.GetComponent<CritterHolder>().IsThisAlive == true)
+                if(item.GetComponent<CritterHolder>().IsthisAI && item.active)
                 {
-                    alive++;
+                    friendlyalive++;
+                }
+                if(!item.GetComponent<CritterHolder>().IsthisAI && item.active)
+                {
+                    enemyalive++;
                 }
             }
-            if(alive < 1)
+            if(friendlyalive < 1 || enemyalive < 1)
             {
+                if(friendlyalive < 1)
+                {
+                    //SessionManager.Instance.BattleStatus = "Defeat";
+                    
+                }
+                if(enemyalive < 1)
+                {
+                    //SessionManager.Instance.BattleStatus = "Victorious";
+                    SessionManager.Instance.savedProvince.nation = Owners.Instance.CallPlayer();
+                    SessionManager.Instance.CampaignLevel++;
+                    SessionManager.Instance.HostFaction.FarmLevel++;
+                    FactionUpgrade.Instance.gameObject.SetActive(true);
+                }
+                SessionManager.Instance.HostArmy.Clear();
+                SessionManager.Instance.ClientArmy.Clear();
+
                 Mapshower.Instance.gameObject.SetActive(true);
                 SceneManager.UnloadScene("FightScene 1");
                 return;

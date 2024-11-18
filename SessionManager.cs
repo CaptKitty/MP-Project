@@ -11,6 +11,8 @@ public class SessionManager : MonoBehaviour
     public List<SpawnBait> ClientArmy = new List<SpawnBait>();
     public Faction ClientFaction;
     public Faction ClientFaction_client;
+    public Province savedProvince;
+    public string BattleStatus = "None";
     public bool Campaign = false;
     public int CampaignLevel = 1;
     public int Escalation = 1;
@@ -97,31 +99,46 @@ public class SessionManager : MonoBehaviour
             }
         }
     }
-    public void LoadCampaign()
+    public void LoadCampaign(string enemy = "Carthage")
     {
+        string Campaignstring = "CarthageCampaign";
+        if(enemy.Contains("Rome"))
+        {
+            Campaignstring = "RomeCampaign";
+        }
+        if(enemy.Contains("Spain"))
+        {
+            Campaignstring = "SpainCampaign";
+        }
+        if(enemy.Contains("Gaul"))
+        {
+            Campaignstring = "GaulCampaign";
+        }
+        
         Campaign = true;
         int phase = CampaignLevel;
+        var a = Instantiate(Resources.Load<Campaign>(Campaignstring));
         if(phase == 1)
         {
-            ClientArmy = Resources.Load<Campaign>("Campaign").Layout1;
+            ClientArmy = a.Layout1;
         }
         if(phase == 2)
         {
-            ClientArmy = Resources.Load<Campaign>("Campaign").Layout2;
+            ClientArmy = a.Layout2;
         }
         if(phase == 3)
         {
-            ClientArmy = Resources.Load<Campaign>("Campaign").Layout3;
+            ClientArmy = a.Layout3;
         }
         if(phase == 4)
         {
-            ClientArmy = Resources.Load<Campaign>("Campaign").Layout4;
+            ClientArmy = a.Layout4;
         }
         if(phase >= 5)
         {
-            ClientArmy = Resources.Load<Campaign>("Campaign").Layout5;
+            ClientArmy = a.Layout5;
         }
-        CampaignLevel++;
+        //CampaignLevel++;
     }
 }
 

@@ -94,7 +94,11 @@ public class basic_Ranged_AI_script : base_AI_Script
         {
             FindTarget(critter);
         }
-        var potato = Instantiate(Throwable);
+        if(BattleManager1.Instance == null)
+        {
+            return;
+        }
+        var potato = Instantiate(Throwable, BattleManager1.Instance.transform);
         potato.transform.position = critter.gameObject.transform.GetChild(2).position;
         potato.transform.rotation = critter.gameObject.transform.GetChild(2).rotation;
         potato.GetComponent<Projectile>().TargetEnemy = TargetEnemy;

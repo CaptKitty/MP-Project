@@ -36,15 +36,19 @@ public class Modifier : ScriptableObject
     }
     public void DestroyAura()
     {
-        for (int i = 0; i < 10; i++)
+        try
         {
-            if(potato.transform.GetChild(i).GetComponent<SpriteRenderer>().sprite == Aura.GetComponent<SpriteRenderer>().sprite)
+            for (int i = 0; i < 10; i++)
             {
-                Destroy(potato.transform.GetChild(i).gameObject);
-                return;
+                if(potato.transform.GetChild(i).GetComponent<SpriteRenderer>().sprite == Aura.GetComponent<SpriteRenderer>().sprite)
+                {
+                    Destroy(potato.transform.GetChild(i).gameObject);
+                    return;
+                }
             }
+            Destroy(thisObject);
         }
-        Destroy(thisObject);
+        catch{}
     }
     public void DestroyThis()
     {

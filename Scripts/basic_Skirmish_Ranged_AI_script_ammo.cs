@@ -118,7 +118,11 @@ public class basic_Skirmish_Ranged_AI_script_ammo : basic_Ranged_AI_script_ammo
         {
             FindTarget(critter);
         }
-        var potato = Instantiate(Throwable);
+        if(BattleManager1.Instance == null)
+        {
+            return;
+        }
+        var potato = Instantiate(Throwable, BattleManager1.Instance.transform);
         potato.transform.position = critter.gameObject.transform.GetChild(2).position;
         //potato.transform.rotation = critter.gameObject.transform.GetChild(2).rotation;
         potato.transform.LookAt(new Vector3(TargetEnemy.gameObject.transform.position.x,TargetEnemy.gameObject.transform.position.y,-90),Vector3.forward );

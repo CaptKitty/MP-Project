@@ -36,6 +36,11 @@ public class Owners : MonoBehaviour
         foreach (Nation nation in nationlist)
         {
             nationdict.Add(nation.name, nation);
+            nation.IsPlayer = false;
+            if(SessionManager.Instance.HostFaction.name.Contains(nation.name))
+            {
+                nation.IsPlayer = true;
+            }
         }
         
         provincedict = new Dictionary<string, Province>();

@@ -1136,11 +1136,40 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HostArmy: []
-  HostFaction: {fileID: 11400000, guid: dcbee4453ff2def43ba4aa0f3d4f9d86, type: 2}
+  HostFaction: {fileID: 11400000, guid: 8172582e8a1748042a6292864965eecf, type: 2}
   HostFaction_client: {fileID: 11400000, guid: 47009c7e621a59349a826c3c4d238a6d, type: 2}
   ClientArmy: []
   ClientFaction: {fileID: 11400000, guid: 47009c7e621a59349a826c3c4d238a6d, type: 2}
   ClientFaction_client: {fileID: 11400000, guid: 47009c7e621a59349a826c3c4d238a6d, type: 2}
+  savedProvince:
+    name: 
+    identity:
+      serializedVersion: 2
+      rgba: 0
+    nation:
+      name: 
+      ownerIdentity:
+        serializedVersion: 2
+        rgba: 0
+      IsPlayer: 0
+      manpower: 0
+      treasury: 0
+      unlockedweapons: []
+      unlockedarmor: []
+      regimentdesigns: []
+      armies: []
+      Enemies: []
+      faction: {fileID: 0}
+    state: 
+    position: {x: 0, y: 0}
+    population: 1000
+    cultures: []
+    taxincome: 0
+    taxpercentage: 0
+    levyincome: 0
+    levypercentage: 0
+    unrest: 0
+  BattleStatus: None
   Campaign: 0
   CampaignLevel: 1
   Escalation: 1
@@ -1842,9 +1871,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Rome
-
-    (Default)'
+  m_Text: Rome
 --- !u!222 &1166694217
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2856,7 +2883,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1526769781
 RectTransform:
   m_ObjectHideFlags: 0

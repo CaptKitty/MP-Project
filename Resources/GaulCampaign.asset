@@ -10,310 +10,358 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4f895811404e2994a8fd19795f6ffc20, type: 3}
-  m_Name: Campaign
+  m_Name: GaulCampaign
   m_EditorClassIdentifier: 
   Layout1:
   - target: {x: 6, y: 1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light330
+    futurename: TrueTribesman330
     ClientOrHost: Client
   - target: {x: 4, y: -1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light273
+    futurename: TrueTribesman273
     ClientOrHost: Client
   - target: {x: 2, y: -3, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light646
+    futurename: TrueTribesman646
     ClientOrHost: Client
   - target: {x: 5, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light424
+    futurename: TrueTribesman424
     ClientOrHost: Client
   - target: {x: 3, y: -2, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light48
+    futurename: TrueTribesman48
     ClientOrHost: Client
   - target: {x: 3, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light667
+    futurename: TrueTribesman667
     ClientOrHost: Client
   Layout2:
   - target: {x: 6, y: 1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light330
+    futurename: TrueTribesman330
     ClientOrHost: Client
   - target: {x: 4, y: -1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light273
+    futurename: TrueTribesman273
     ClientOrHost: Client
   - target: {x: 2, y: -3, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light646
+    futurename: TrueTribesman646
     ClientOrHost: Client
   - target: {x: 5, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light424
+    futurename: TrueTribesman424
     ClientOrHost: Client
   - target: {x: 3, y: -2, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light48
+    futurename: TrueTribesman48
     ClientOrHost: Client
   - target: {x: 3, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light667
+    futurename: TrueTribesman667
     ClientOrHost: Client
   - target: {x: 7, y: 2, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light333
+    futurename: TrueTribesman333
     ClientOrHost: Client
   - target: {x: 8, y: 3, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light845
+    futurename: TrueTribesman845
     ClientOrHost: Client
   - target: {x: 1, y: -4, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light718
+    futurename: TrueTribesman718
     ClientOrHost: Client
   - target: {x: 0, y: -5, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light533
+    futurename: TrueTribesman533
     ClientOrHost: Client
   Layout3:
   - target: {x: 6, y: 1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light330
+    futurename: TrueTribesman330
     ClientOrHost: Client
   - target: {x: 4, y: -1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light273
+    futurename: TrueTribesman273
     ClientOrHost: Client
   - target: {x: 2, y: -3, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light646
+    futurename: TrueTribesman646
     ClientOrHost: Client
   - target: {x: 5, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light424
+    futurename: TrueTribesman424
     ClientOrHost: Client
   - target: {x: 3, y: -2, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light48
+    futurename: TrueTribesman48
     ClientOrHost: Client
   - target: {x: 3, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light667
+    futurename: TrueTribesman667
     ClientOrHost: Client
   - target: {x: 7, y: 2, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light333
+    futurename: TrueTribesman333
     ClientOrHost: Client
   - target: {x: 8, y: 3, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light845
+    futurename: TrueTribesman845
     ClientOrHost: Client
   - target: {x: 1, y: -4, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light718
+    futurename: TrueTribesman718
     ClientOrHost: Client
   - target: {x: 0, y: -5, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light533
+    futurename: TrueTribesman533
     ClientOrHost: Client
   - target: {x: 6, y: 0, z: 0}
     Faction: Normies
-    name: Phoenician Spear
+    name: Chief
     AIorNot: 0
-    futurename: TruePhoenician Spear36
+    futurename: TrueChief36
     ClientOrHost: Client
   - target: {x: 5, y: -1, z: 0}
     Faction: Normies
-    name: Phoenician Spear
+    name: Chief
     AIorNot: 0
-    futurename: TruePhoenician Spear368
+    futurename: TrueChief368
     ClientOrHost: Client
   - target: {x: 4, y: -2, z: 0}
     Faction: Normies
-    name: Phoenician Spear
+    name: Chief
     AIorNot: 0
-    futurename: TruePhoenician Spear834
+    futurename: TrueChief834
     ClientOrHost: Client
   - target: {x: 3, y: -3, z: 0}
     Faction: Normies
-    name: Phoenician Spear
+    name: Chief
     AIorNot: 0
-    futurename: TruePhoenician Spear138
+    futurename: TrueChief138
     ClientOrHost: Client
   Layout4:
   - target: {x: 6, y: 1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light330
+    futurename: TrueTribesman330
     ClientOrHost: Client
   - target: {x: 4, y: -1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light273
+    futurename: TrueTribesman273
     ClientOrHost: Client
   - target: {x: 2, y: -3, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light646
+    futurename: TrueTribesman646
     ClientOrHost: Client
   - target: {x: 5, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light424
+    futurename: TrueTribesman424
     ClientOrHost: Client
   - target: {x: 3, y: -2, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light48
+    futurename: TrueTribesman48
     ClientOrHost: Client
   - target: {x: 3, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light667
+    futurename: TrueTribesman667
     ClientOrHost: Client
   - target: {x: 7, y: 2, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light333
+    futurename: TrueTribesman333
     ClientOrHost: Client
   - target: {x: 8, y: 3, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light845
+    futurename: TrueTribesman845
     ClientOrHost: Client
   - target: {x: 1, y: -4, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light718
+    futurename: TrueTribesman718
     ClientOrHost: Client
   - target: {x: 0, y: -5, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light533
+    futurename: TrueTribesman533
     ClientOrHost: Client
   - target: {x: 6, y: 0, z: 0}
     Faction: Normies
-    name: Phoenician Spear
+    name: Chief
     AIorNot: 0
-    futurename: TruePhoenician Spear36
+    futurename: TrueChief36
     ClientOrHost: Client
   - target: {x: 5, y: -1, z: 0}
     Faction: Normies
-    name: Phoenician Spear
+    name: Chief
     AIorNot: 0
-    futurename: TruePhoenician Spear368
+    futurename: TrueChief368
     ClientOrHost: Client
   - target: {x: 4, y: -2, z: 0}
     Faction: Normies
-    name: Phoenician Spear
+    name: Chief
     AIorNot: 0
-    futurename: TruePhoenician Spear834
+    futurename: TrueChief834
     ClientOrHost: Client
   - target: {x: 3, y: -3, z: 0}
     Faction: Normies
-    name: Phoenician Spear
+    name: Chief
     AIorNot: 0
-    futurename: TruePhoenician Spear138
+    futurename: TrueChief138
     ClientOrHost: Client
   Layout5:
   - target: {x: 6, y: 1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light330
+    futurename: TrueTribesman330
     ClientOrHost: Client
   - target: {x: 4, y: -1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light273
+    futurename: TrueTribesman273
     ClientOrHost: Client
   - target: {x: 2, y: -3, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light646
+    futurename: TrueTribesman646
     ClientOrHost: Client
   - target: {x: 5, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light424
+    futurename: TrueTribesman424
     ClientOrHost: Client
   - target: {x: 3, y: -2, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light48
+    futurename: TrueTribesman48
     ClientOrHost: Client
   - target: {x: 3, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Tribesman
     AIorNot: 0
-    futurename: TrueIberian Light667
+    futurename: TrueTribesman667
+    ClientOrHost: Client
+  - target: {x: 7, y: 2, z: 0}
+    Faction: Normies
+    name: Tribesman
+    AIorNot: 0
+    futurename: TrueTribesman333
+    ClientOrHost: Client
+  - target: {x: 8, y: 3, z: 0}
+    Faction: Normies
+    name: Tribesman
+    AIorNot: 0
+    futurename: TrueTribesman845
+    ClientOrHost: Client
+  - target: {x: 1, y: -4, z: 0}
+    Faction: Normies
+    name: Tribesman
+    AIorNot: 0
+    futurename: TrueTribesman718
+    ClientOrHost: Client
+  - target: {x: 0, y: -5, z: 0}
+    Faction: Normies
+    name: Tribesman
+    AIorNot: 0
+    futurename: TrueTribesman533
+    ClientOrHost: Client
+  - target: {x: 6, y: 0, z: 0}
+    Faction: Normies
+    name: Chief
+    AIorNot: 0
+    futurename: TrueChief36
+    ClientOrHost: Client
+  - target: {x: 5, y: -1, z: 0}
+    Faction: Normies
+    name: Chief
+    AIorNot: 0
+    futurename: TrueChief368
+    ClientOrHost: Client
+  - target: {x: 4, y: -2, z: 0}
+    Faction: Normies
+    name: Chief
+    AIorNot: 0
+    futurename: TrueChief834
+    ClientOrHost: Client
+  - target: {x: 3, y: -3, z: 0}
+    Faction: Normies
+    name: Chief
+    AIorNot: 0
+    futurename: TrueChief138
     ClientOrHost: Client

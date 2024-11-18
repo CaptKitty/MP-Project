@@ -39,7 +39,11 @@ public class Mapshower : MonoBehaviour
     {
         Instance = this;
     }
-
+    void OnEnable()
+    {
+        //Paint();
+        RePaint();
+    }
     // Start is called before the first frame update
     void Start()
     {
@@ -237,13 +241,13 @@ public class Mapshower : MonoBehaviour
                 
                 if(!province.nation.IsPlayer)
                 {
-                    PrepBattle(province.nation);
+                    PrepBattle(province);
                 }
                 
                 
                 // UIManager.Instance.ChangeText(province);
                 // print(Owners.Instance.CallProvinceByString(province.name).identity);
-                print(province.name);
+                //print(province.name);
                 // if(banana != null)
                 // {
                 //     //UIManager.Instance.gameObject.transform.GetChild(1).gameObject.SetActive(true);
@@ -266,10 +270,12 @@ public class Mapshower : MonoBehaviour
         }
 
     }
-    void PrepBattle(Nation owner)
+    void PrepBattle(Province province)
     {
-        SessionManager.Instance.ChangeEnemyFaction(owner.name);
-        SessionManager.Instance.LoadCampaign();
+        SessionManager.Instance.ChangeEnemyFaction(province.nation.name);
+        SessionManager.Instance.ClientChangePlayerFaction(province.nation.name);
+        SessionManager.Instance.savedProvince = province;
+        SessionManager.Instance.LoadCampaign(province.nation.name);
         this.gameObject.SetActive(false);
         SceneManager.LoadScene("FightScene 1", LoadSceneMode.Additive);
     }

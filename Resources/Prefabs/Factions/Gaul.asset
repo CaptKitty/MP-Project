@@ -15,19 +15,16 @@ MonoBehaviour:
   color: {r: 0.13333334, g: 0.24705882, b: 0.05490196, a: 0}
   color2: {r: 0.3422969, g: 0.3735848, b: 0.32071903, a: 0}
   color3: {r: 1, g: 0.6829454, b: 0.57169807, a: 0}
-  UnitList:
-  - {fileID: 1002579342033724372, guid: f7018d30c84785d4ab6c433a0b272cac, type: 3}
-  - {fileID: 1002579342033724372, guid: 5b059ef4b6a7449469828fd73a7c0976, type: 3}
-  - {fileID: 5815002448955544719, guid: ee2a0342b3d10a849bea2717893c1cb1, type: 3}
-  - {fileID: 1002579342033724372, guid: a9d37f12ece01bd46843b4aa7c7f959e, type: 3}
-  - {fileID: 1002579342033724372, guid: c4768673248ce4e49babf3295139292b, type: 3}
-  BarracksLevel: 4
-  MercLevel: 1
+  UnitList: []
+  BarracksLevel: 5
+  MercLevel: 0
   FarmLevel: 0
   BarracksUnits:
-  - {fileID: 1002579342033724372, guid: f7018d30c84785d4ab6c433a0b272cac, type: 3}
   - {fileID: 1002579342033724372, guid: 5b059ef4b6a7449469828fd73a7c0976, type: 3}
+  - {fileID: 1002579342033724372, guid: c4768673248ce4e49babf3295139292b, type: 3}
+  - {fileID: 1002579342033724372, guid: f7018d30c84785d4ab6c433a0b272cac, type: 3}
   - {fileID: 5815002448955544719, guid: ee2a0342b3d10a849bea2717893c1cb1, type: 3}
+  - {fileID: 1002579342033724372, guid: 29665083b747bd54aa900a8285ed01a6, type: 3}
   - {fileID: 1002579342033724372, guid: a9d37f12ece01bd46843b4aa7c7f959e, type: 3}
   MercenaryUnits:
   - {fileID: 1002579342033724372, guid: c4768673248ce4e49babf3295139292b, type: 3}

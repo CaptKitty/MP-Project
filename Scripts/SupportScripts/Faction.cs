@@ -9,7 +9,7 @@ public class Faction: ScriptableObject
     public Color color, color2, color3;
 
     public List<GameObject> UnitList = new List<GameObject>();
-    public int BarracksLevel = 2;
+    public int BarracksLevel = 1;
     public int MercLevel = 0;
     public int FarmLevel = 0;
     public List<GameObject> BarracksUnits = new List<GameObject>();
@@ -29,6 +29,7 @@ public class Faction: ScriptableObject
     public void UpgradeBarracks()
     {
         UnitList.Add(BarracksUnits[BarracksLevel]);
+        BarracksLevel++;
     }
     public void UpgradeMercenaries()
     {
@@ -37,9 +38,9 @@ public class Faction: ScriptableObject
         UnitList.Add(potato);
         MercenaryUnits.Remove(potato);
     }
-    public void UpgradeIncome()
+    public int GrabIncome()
     {
-        Income = 500 + FarmLevel * 100;
+        return Income = 500 + FarmLevel * 100;
     }
     public void Set()
     {

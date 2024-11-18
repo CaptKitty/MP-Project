@@ -10,20 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: feeb2f63c62761344bf2889db73c56d4, type: 3}
-  m_Name: Rome
+  m_Name: Spain
   m_EditorClassIdentifier: 
-  color: {r: 0.53333336, g: 0, b: 0, a: 1}
-  color2: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 0}
-  color3: {r: 1, g: 0.5529412, b: 0.39607844, a: 0}
+  color: {r: 0.8113208, g: 0.5568972, b: 0.09031678, a: 0}
+  color2: {r: 0.3207547, g: 0.3115213, b: 0.21484514, a: 0}
+  color3: {r: 1, g: 0.6829454, b: 0.57169807, a: 0}
   UnitList: []
   BarracksLevel: 1
   MercLevel: 0
   FarmLevel: 0
   BarracksUnits:
-  - {fileID: 1002579342033724372, guid: 7dd13ec852e6dd14985d4d7b2b14348f, type: 3}
-  - {fileID: 1002579342033724372, guid: c373d7a5ff883a544b2de2546327f11a, type: 3}
-  - {fileID: 1002579342033724372, guid: 217317507daa4c844a36b65fe44e647b, type: 3}
-  - {fileID: 1002579342033724372, guid: 7dedf55281311364cb7f2678c800e562, type: 3}
+  - {fileID: 1002579342033724372, guid: c4768673248ce4e49babf3295139292b, type: 3}
+  - {fileID: 5815002448955544719, guid: ee2a0342b3d10a849bea2717893c1cb1, type: 3}
+  - {fileID: 1002579342033724372, guid: 29665083b747bd54aa900a8285ed01a6, type: 3}
   MercenaryUnits:
   - {fileID: 1002579342033724372, guid: c4768673248ce4e49babf3295139292b, type: 3}
   - {fileID: 1002579342033724372, guid: 29665083b747bd54aa900a8285ed01a6, type: 3}

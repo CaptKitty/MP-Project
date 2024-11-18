@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: feeb2f63c62761344bf2889db73c56d4, type: 3}
   m_Name: Carthage
   m_EditorClassIdentifier: 
-  color: {r: 0.54901963, g: 0.54901963, b: 0.54901963, a: 1}
-  color2: {r: 0.25490198, g: 0.48235294, b: 0.67058825, a: 0}
+  color: {r: 0.690566, g: 0.690566, b: 0.690566, a: 1}
+  color2: {r: 0.1764706, g: 0.5496015, b: 0.7607843, a: 0}
   color3: {r: 0.42352942, g: 0.27058825, b: 0.12156863, a: 0}
   UnitList: []
-  BarracksLevel: 3
-  MercLevel: 2
+  BarracksLevel: 1
+  MercLevel: 0
   FarmLevel: 0
   BarracksUnits:
   - {fileID: 1002579342033724372, guid: 5333515deaf5683439d613c37b184ef1, type: 3}

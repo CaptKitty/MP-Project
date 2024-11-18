@@ -5,6 +5,7 @@ using System.IO;
 using System;
 using System.Diagnostics;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class Mapshower : MonoBehaviour
 {
@@ -185,9 +186,9 @@ public class Mapshower : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(1))
         {
-            banana = null;
-            UIManager.Instance.gameObject.transform.GetChild(1).gameObject.SetActive(false);
-            UIManager.Instance.gameObject.transform.GetChild(0).gameObject.SetActive(false);
+            // banana = null;
+            // UIManager.Instance.gameObject.transform.GetChild(1).gameObject.SetActive(false);
+            // UIManager.Instance.gameObject.transform.GetChild(0).gameObject.SetActive(false);
             return;
         }
         if(Input.GetMouseButtonDown(0))
@@ -233,6 +234,13 @@ public class Mapshower : MonoBehaviour
                 //print(mousePos + " " + mainTex.GetPixel(x,y));
                 
                 Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
+                
+                if(!province.nation.IsPlayer)
+                {
+                    PrepBattle(province.nation);
+                }
+                
+                
                 // UIManager.Instance.ChangeText(province);
                 // print(Owners.Instance.CallProvinceByString(province.name).identity);
                 print(province.name);
@@ -243,7 +251,7 @@ public class Mapshower : MonoBehaviour
                 //     if(banana.GetComponent<CampaignArmyController>().general.nation.IsPlayer)
                 //     {
                 //         banana.GetComponent<CampaignArmyController>().TryToMove(province);
-                //         RePaint();
+                        RePaint();
                 //     }
                 // }
                 // else
@@ -257,6 +265,13 @@ public class Mapshower : MonoBehaviour
             
         }
 
+    }
+    void PrepBattle(Nation owner)
+    {
+        SessionManager.Instance.ChangeEnemyFaction(owner.name);
+        SessionManager.Instance.LoadCampaign();
+        this.gameObject.SetActive(false);
+        SceneManager.LoadScene("FightScene 1", LoadSceneMode.Additive);
     }
 
     void AddFileOfPower(Vector2 position, Color32 color)

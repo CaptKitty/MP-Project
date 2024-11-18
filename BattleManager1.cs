@@ -230,6 +230,23 @@ public class BattleManager1 : BattleManager
                 
             }
         }
+        else
+        {
+            int alive = 0;
+            foreach (var item in enemylist)
+            {
+                if(item.GetComponent<CritterHolder>().IsthisAI && item.GetComponent<CritterHolder>().IsThisAlive == true)
+                {
+                    alive++;
+                }
+            }
+            if(alive < 1)
+            {
+                Mapshower.Instance.gameObject.SetActive(true);
+                SceneManager.UnloadScene("FightScene 1");
+                return;
+            }
+        }
         // foreach (Vector3Int position in highlightmap.cellBounds.allPositionsWithin)
         // {
         //     highlightmap.SetTile(position, GeneralManager.Instance.tilea);

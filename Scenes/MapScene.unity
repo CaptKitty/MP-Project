@@ -183,13 +183,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 85247142}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.0013717421, y: 0.0021978023, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_Father: {fileID: 1974663638}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1803615290
 GameObject:
@@ -216,7 +216,7 @@ AudioListener:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1803615290}
-  m_Enabled: 1
+  m_Enabled: 0
 --- !u!20 &1803615292
 Camera:
   m_ObjectHideFlags: 0
@@ -267,12 +267,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1803615290}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -10}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.0013717421, y: 0.0021978023, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1974663638}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1974663632
@@ -381,9 +381,11 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 729, y: 455, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1803615293}
+  - {fileID: 85247145}
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -445,7 +447,7 @@ MonoBehaviour:
     ownerIdentity:
       serializedVersion: 2
       rgba: 115668
-    IsPlayer: 0
+    IsPlayer: 1
     manpower: 0
     treasury: 0
     unlockedweapons: []
@@ -453,6 +455,7 @@ MonoBehaviour:
     regimentdesigns: []
     armies: []
     Enemies: []
+    faction: {fileID: 11400000, guid: 47009c7e621a59349a826c3c4d238a6d, type: 2}
   - name: Rome
     ownerIdentity:
       serializedVersion: 2
@@ -465,6 +468,7 @@ MonoBehaviour:
     regimentdesigns: []
     armies: []
     Enemies: []
+    faction: {fileID: 11400000, guid: dcbee4453ff2def43ba4aa0f3d4f9d86, type: 2}
   - name: Gaul
     ownerIdentity:
       serializedVersion: 2
@@ -477,6 +481,20 @@ MonoBehaviour:
     regimentdesigns: []
     armies: []
     Enemies: []
+    faction: {fileID: 11400000, guid: 985566123e0662b44ad1cd7852a4767d, type: 2}
+  - name: Spain
+    ownerIdentity:
+      serializedVersion: 2
+      rgba: 23220
+    IsPlayer: 0
+    manpower: 0
+    treasury: 0
+    unlockedweapons: []
+    unlockedarmor: []
+    regimentdesigns: []
+    armies: []
+    Enemies: []
+    faction: {fileID: 11400000, guid: 985566123e0662b44ad1cd7852a4767d, type: 2}
   statelist: []
   culturelist:
   - name: 

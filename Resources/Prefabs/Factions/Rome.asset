@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: feeb2f63c62761344bf2889db73c56d4, type: 3}
-  m_Name: Roman
+  m_Name: Rome
   m_EditorClassIdentifier: 
   color: {r: 0.53333336, g: 0, b: 0, a: 1}
   color2: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 0}

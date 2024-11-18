@@ -52,6 +52,7 @@ public class Owners : MonoBehaviour
                 print(province.name);
             }
         }
+        Mapshower.Instance.Paint();
         // Debug.Log(nationdict["Netherlands"].manpower);
     }
     public Nation CallPlayer()
@@ -135,6 +136,7 @@ public class Nation
     public List<Regiment> regimentdesigns;
     public List<GameObject> armies;
     public List<Nation> Enemies;
+    public Faction faction;
 
     public void AddManpower(int Manpower)
     {

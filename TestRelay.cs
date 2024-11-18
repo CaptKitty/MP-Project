@@ -81,8 +81,8 @@ public class TestRelay : MonoBehaviour
             NetworkManager.Singleton.StartHost();
         }
         catch{}
-        SessionManager.Instance.LoadCampaign();
-        GimmeBattlefield();
+        
+        GimmeMap();
     }
     public async void JoinRelay(Text JoinCode)
     {
@@ -103,6 +103,15 @@ public class TestRelay : MonoBehaviour
             
         }
         catch{}
+    }
+    public void GimmeMap()
+    {
+        SceneManager.LoadScene("MapScene");
+        // if(BattleManager1.Instance == null && CanThisSpawn)
+        // {
+        //     CanThisSpawn = false;
+        //     SceneManager.LoadScene("FightScene 1");//, LoadSceneMode.Additive);
+        // }
     }
     public void GimmeBattlefield()
     {

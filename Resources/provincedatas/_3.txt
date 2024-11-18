@@ -1,0 +1,22 @@
+Province ={
+Name ={
+_3
+}
+Color ={
+76
+255
+0
+}
+Location ={
+477
+19
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Carthage
+}
+}

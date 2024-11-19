@@ -20,4 +20,8 @@ MonoBehaviour:
   speed_modifier: 0.5
   attack_modifier: 1.5
   attacktime_modifier: 1
+  duration: 0
+  EndDuration: 0
   Aura: {fileID: 4400841706119225226, guid: 52278b1b011b0a640b8b03d2ed1e50db, type: 3}
+  StunEffect: 0
+  potato: {fileID: 0}

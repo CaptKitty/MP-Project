@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 6001678096717300842}
   - component: {fileID: 8283630623955293875}
   m_Layer: 0
-  m_Name: Chief
+  m_Name: Tribesman_Chief
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

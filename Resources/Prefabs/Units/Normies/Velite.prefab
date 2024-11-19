@@ -64,6 +64,7 @@ MonoBehaviour:
   DoesThisHaveSword: 0
   DoesThisHaveSpear: 0
   DoesThisHaveJavelin: 1
+  DoesThisHaveSlinger: 0
   Upgrade: {fileID: 0}
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
@@ -104,7 +105,7 @@ MonoBehaviour:
   scriptlist: []
   combatdistance: 3
   speed: 1
-  attack: 15
+  attack: 25
   attacktime: 1
   NextAvailableAttack: 0
   modifierlist: []

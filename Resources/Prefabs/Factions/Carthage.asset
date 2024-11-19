@@ -16,7 +16,7 @@ MonoBehaviour:
   color2: {r: 0.1764706, g: 0.5496015, b: 0.7607843, a: 0}
   color3: {r: 0.42352942, g: 0.27058825, b: 0.12156863, a: 0}
   UnitList: []
-  BarracksLevel: 1
+  BarracksLevel: 3
   MercLevel: 0
   FarmLevel: 0
   BarracksUnits:
@@ -28,4 +28,5 @@ MonoBehaviour:
   - {fileID: 1002579342033724372, guid: 29665083b747bd54aa900a8285ed01a6, type: 3}
   - {fileID: 1002579342033724372, guid: dc0ec296db2ed5543b6f4b990fb0f74d, type: 3}
   - {fileID: 1002579342033724372, guid: d71592f662aacdd478c8937d36798e52, type: 3}
+  - {fileID: 1002579342033724372, guid: dce30088f80515b49bc5661b6f2e9c00, type: 3}
   Income: 500

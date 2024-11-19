@@ -28,7 +28,10 @@ public class Faction: ScriptableObject
     }
     public void UpgradeBarracks()
     {
-        UnitList.Add(BarracksUnits[BarracksLevel]);
+        var potato = BarracksUnits[BarracksLevel];
+        potato.GetComponent<TestCritter>().Mercenary = false;
+        UnitList.Add(potato);
+        
         BarracksLevel++;
     }
     public void UpgradeMercenaries()

@@ -37,15 +37,24 @@ public class CritterHolder : MonoBehaviour
 
     public double GrabCombatDistance()
     {
-        double newvariable = combatdistance;
+        List<Modifier> _modifierlist = new List<Modifier>();
         foreach (var item in modifierlist)
+        {
+            if(_modifierlist.Find(x => x.name == item.name))
+            {
+                continue;
+            }
+            _modifierlist.Add(item);
+        }
+        double newvariable = combatdistance;
+        foreach (var item in _modifierlist)
         {
             if(item.base_combatdistance != 0)
             {
                 newvariable = item.base_combatdistance;
             }
         }
-        foreach (var item in modifierlist)
+        foreach (var item in _modifierlist)
         {
             if(item.combatdistance_modifier != 1)
             {
@@ -56,15 +65,24 @@ public class CritterHolder : MonoBehaviour
     }
     public int GrabAttack()
     {
-        double newvariable = (double)attack;
+        List<Modifier> _modifierlist = new List<Modifier>();
         foreach (var item in modifierlist)
+        {
+            if(_modifierlist.Find(x => x.name == item.name))
+            {
+                continue;
+            }
+            _modifierlist.Add(item);
+        }
+        double newvariable = (double)attack;
+        foreach (var item in _modifierlist)
         {
             if(item.base_attack != 0)
             {
                 newvariable = item.base_attack;
             }
         }
-        foreach (var item in modifierlist)
+        foreach (var item in _modifierlist)
         {
             if(item.attack_modifier != 1)
             {
@@ -75,15 +93,24 @@ public class CritterHolder : MonoBehaviour
     }
     public double GrabSpeed()
     {
-        double newvariable = speed;
+        List<Modifier> _modifierlist = new List<Modifier>();
         foreach (var item in modifierlist)
+        {
+            if(_modifierlist.Find(x => x.name == item.name))
+            {
+                continue;
+            }
+            _modifierlist.Add(item);
+        }
+        double newvariable = speed;
+        foreach (var item in _modifierlist)
         {
             if(item.base_speed != 0)
             {
                 newvariable = item.base_speed;
             }
         }
-        foreach (var item in modifierlist)
+        foreach (var item in _modifierlist)
         {
             if(item.speed_modifier != 1)
             {
@@ -94,15 +121,24 @@ public class CritterHolder : MonoBehaviour
     }
     public double GrabAttackTime()
     {
-        double newvariable = attacktime;
+        List<Modifier> _modifierlist = new List<Modifier>();
         foreach (var item in modifierlist)
+        {
+            if(_modifierlist.Find(x => x.name == item.name))
+            {
+                continue;
+            }
+            _modifierlist.Add(item);
+        }
+        double newvariable = attacktime;
+        foreach (var item in _modifierlist)
         {
             if(item.base_attacktime != 0)
             {
                 newvariable = item.base_attacktime;
             }
         }
-        foreach (var item in modifierlist)
+        foreach (var item in _modifierlist)
         {
             if(item.attacktime_modifier != 1)
             {

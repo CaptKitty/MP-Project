@@ -35,6 +35,10 @@ public class SelectMilitaryCritter : MonoBehaviour
             catch{}
         }
         transform.GetChild(0).GetComponent<TestCritter>().Mercenary = heldcritter.GetComponent<TestCritter>().Mercenary;
+        transform.GetChild(0).GetComponent<TestCritter>().color  = heldcritter.GetComponent<TestCritter>().color;
+        transform.GetChild(0).GetComponent<TestCritter>().color2 = heldcritter.GetComponent<TestCritter>().color2;
+        transform.GetChild(0).GetComponent<TestCritter>().color3 = heldcritter.GetComponent<TestCritter>().color3;
+        
         transform.GetChild(0).GetComponent<TestCritter>().Start();
         transform.GetChild(1).GetComponent<Text>().text = heldcritter.name + "    " + heldcritter.GetComponent<CritterHolder>().cost.amount + " cost";
         transform.GetChild(2).GetComponent<Text>().text = heldcritter.GetComponent<CritterHolder>().population.ToString() + " Health";
@@ -56,7 +60,6 @@ public class SelectMilitaryCritter : MonoBehaviour
             var b = (basic_Skirmish_Ranged_AI_script_ammo)a;
             transform.GetChild(3).GetComponent<Text>().text += "    " + b.ammo + "x " + b.modifier.base_attack + " Damage";
         }
-        
     }
     public void UpdateMinPagans(int a)
     {

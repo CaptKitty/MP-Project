@@ -84,7 +84,7 @@ MonoBehaviour:
   nametype: []
   cost:
     name: 
-    amount: 100
+    amount: 150
     sprite: {fileID: 0}
   DoesThisgoOnTheCity: 0
   ViablePlacingSpots:

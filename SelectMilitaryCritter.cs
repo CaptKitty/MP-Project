@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,7 +16,7 @@ public class SelectMilitaryCritter : MonoBehaviour
         {
             firsttime = false;
             heldcritter.GetComponent<CritterHolder>().Wakey();
-            transform.GetComponent<Image>().color = new Color32(0,0,0,255);
+            transform.GetComponent<Image>().color = new Color32(255,255,255,255);//new Color32(0,0,0,255);
 
             UpdateSprite();
         }
@@ -35,6 +36,27 @@ public class SelectMilitaryCritter : MonoBehaviour
         }
         transform.GetChild(0).GetComponent<TestCritter>().Mercenary = heldcritter.GetComponent<TestCritter>().Mercenary;
         transform.GetChild(0).GetComponent<TestCritter>().Start();
+        transform.GetChild(1).GetComponent<Text>().text = heldcritter.name + "    " + heldcritter.GetComponent<CritterHolder>().cost.amount + " cost";
+        transform.GetChild(2).GetComponent<Text>().text = heldcritter.GetComponent<CritterHolder>().population.ToString() + " Health";
+        var f = Math.Round((heldcritter.GetComponent<CritterHolder>().GrabAttack() / heldcritter.GetComponent<CritterHolder>().GrabAttackTime()));
+        transform.GetChild(3).GetComponent<Text>().text = f.ToString() + " DPS";
+        var a = heldcritter.GetComponent<CritterHolder>().AIScript;
+        // if(a.GetType() == typeof(basic_Ranged_AI_script))
+        // {
+        //     var b = (basic_Ranged_AI_script)a;
+        //     transform.GetChild(3).GetComponent<Text>().text += "    " + b.ammo + "x " + b.modifier.base_attack * b.modifier.base_attacktime + " DPS";
+        // }
+        if(a.GetType() == typeof(basic_Ranged_AI_script_ammo))
+        {
+            var b = (basic_Ranged_AI_script_ammo)a;
+            transform.GetChild(3).GetComponent<Text>().text += "    " + b.ammo + "x " + b.modifier.base_attack + " Damage";
+        }
+        if(a.GetType() == typeof(basic_Skirmish_Ranged_AI_script_ammo))
+        {
+            var b = (basic_Skirmish_Ranged_AI_script_ammo)a;
+            transform.GetChild(3).GetComponent<Text>().text += "    " + b.ammo + "x " + b.modifier.base_attack + " Damage";
+        }
+        
     }
     public void UpdateMinPagans(int a)
     {

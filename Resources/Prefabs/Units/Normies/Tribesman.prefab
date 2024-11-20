@@ -65,7 +65,7 @@ MonoBehaviour:
   DoesThisHaveSpear: 1
   DoesThisHaveJavelin: 0
   DoesThisHaveSlinger: 0
-  Upgrade: {fileID: 0}
+  Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!114 &-1170439232849311746
@@ -102,7 +102,8 @@ MonoBehaviour:
   IsThisAlive: 1
   online: 0
   AIScript: {fileID: 11400000, guid: d53efe19b95251748a92cedd3666b19f, type: 2}
-  scriptlist: []
+  scriptlist:
+  - {fileID: 11400000, guid: d53efe19b95251748a92cedd3666b19f, type: 2}
   combatdistance: 1
   speed: 1
   attack: 25

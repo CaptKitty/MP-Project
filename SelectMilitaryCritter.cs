@@ -41,7 +41,7 @@ public class SelectMilitaryCritter : MonoBehaviour
         
         transform.GetChild(0).GetComponent<TestCritter>().Start();
         transform.GetChild(1).GetComponent<Text>().text = heldcritter.name + "    " + heldcritter.GetComponent<CritterHolder>().cost.amount + " cost";
-        transform.GetChild(2).GetComponent<Text>().text = heldcritter.GetComponent<CritterHolder>().population.ToString() + " Health";
+        transform.GetChild(2).GetComponent<Text>().text = heldcritter.GetComponent<CritterHolder>().GrabHealth().ToString() + " Health";
         var f = Math.Round((heldcritter.GetComponent<CritterHolder>().GrabAttack() / heldcritter.GetComponent<CritterHolder>().GrabAttackTime()));
         transform.GetChild(3).GetComponent<Text>().text = f.ToString() + " DPS";
         var a = heldcritter.GetComponent<CritterHolder>().AIScript;

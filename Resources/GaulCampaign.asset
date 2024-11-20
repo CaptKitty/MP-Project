@@ -173,27 +173,27 @@ MonoBehaviour:
     ClientOrHost: Client
   - target: {x: 6, y: 0, z: 0}
     Faction: Normies
-    name: Chief
+    name: Tribesman_Chief
     AIorNot: 0
-    futurename: TrueChief36
+    futurename: TrueTribesman_Chief36
     ClientOrHost: Client
   - target: {x: 5, y: -1, z: 0}
     Faction: Normies
-    name: Chief
+    name: Tribesman_Chief
     AIorNot: 0
-    futurename: TrueChief368
+    futurename: TrueTribesman_Chief368
     ClientOrHost: Client
   - target: {x: 4, y: -2, z: 0}
     Faction: Normies
-    name: Chief
+    name: Tribesman_Chief
     AIorNot: 0
-    futurename: TrueChief834
+    futurename: TrueTribesman_Chief834
     ClientOrHost: Client
   - target: {x: 3, y: -3, z: 0}
     Faction: Normies
-    name: Chief
+    name: Tribesman_Chief
     AIorNot: 0
-    futurename: TrueChief138
+    futurename: TrueTribesman_Chief138
     ClientOrHost: Client
   Layout4:
   - target: {x: 6, y: 1, z: 0}
@@ -258,27 +258,27 @@ MonoBehaviour:
     ClientOrHost: Client
   - target: {x: 6, y: 0, z: 0}
     Faction: Normies
-    name: Chief
+    name: Tribesman_Chief
     AIorNot: 0
-    futurename: TrueChief36
+    futurename: TrueTribesman_Chief36
     ClientOrHost: Client
   - target: {x: 5, y: -1, z: 0}
     Faction: Normies
-    name: Chief
+    name: Tribesman_Chief
     AIorNot: 0
-    futurename: TrueChief368
+    futurename: TrueTribesman_Chief368
     ClientOrHost: Client
   - target: {x: 4, y: -2, z: 0}
     Faction: Normies
-    name: Chief
+    name: Tribesman_Chief
     AIorNot: 0
-    futurename: TrueChief834
+    futurename: TrueTribesman_Chief834
     ClientOrHost: Client
   - target: {x: 3, y: -3, z: 0}
     Faction: Normies
-    name: Chief
+    name: Tribesman_Chief
     AIorNot: 0
-    futurename: TrueChief138
+    futurename: TrueTribesman_Chief138
     ClientOrHost: Client
   Layout5:
   - target: {x: 6, y: 1, z: 0}
@@ -343,25 +343,25 @@ MonoBehaviour:
     ClientOrHost: Client
   - target: {x: 6, y: 0, z: 0}
     Faction: Normies
-    name: Chief
+    name: Tribesman_Chief
     AIorNot: 0
-    futurename: TrueChief36
+    futurename: TrueTribesman_Chief36
     ClientOrHost: Client
   - target: {x: 5, y: -1, z: 0}
     Faction: Normies
-    name: Chief
+    name: Tribesman_Chief
     AIorNot: 0
-    futurename: TrueChief368
+    futurename: TrueTribesman_Chief368
     ClientOrHost: Client
   - target: {x: 4, y: -2, z: 0}
     Faction: Normies
-    name: Chief
+    name: Tribesman_Chief
     AIorNot: 0
-    futurename: TrueChief834
+    futurename: TrueTribesman_Chief834
     ClientOrHost: Client
   - target: {x: 3, y: -3, z: 0}
     Faction: Normies
-    name: Chief
+    name: Tribesman_Chief
     AIorNot: 0
-    futurename: TrueChief138
+    futurename: TrueTribesman_Chief138
     ClientOrHost: Client

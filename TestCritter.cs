@@ -20,7 +20,7 @@ public class TestCritter : MonoBehaviour
     public bool DoesThisHaveSpear = false;
     public bool DoesThisHaveJavelin = false;
     public bool DoesThisHaveSlinger = false;
-    public GameObject Upgrade;
+    public Modifier Upgrade;
     public GameObject UpgradeButtons;
     public bool Mercenary = false;
     
@@ -54,31 +54,31 @@ public class TestCritter : MonoBehaviour
             item.GetComponent<SpriteRenderer>().material = material;
         }
     }
-    public void OnMouseEnter()
-    {
-        if(UpgradeButtons != null && Upgrade != null)
-        {
-            var a = Instantiate(UpgradeButtons, position:new Vector3(transform.position.x, transform.position.y + 0.5f, 0),transform.rotation, BattleManager1.Instance.gameObject.transform);
-            a.GetComponent<UpgradeButton>().testy = this;
-        }
+    // public void OnMouseEnter()
+    // {
+    //     if(UpgradeButtons != null && Upgrade != null)
+    //     {
+    //         var a = Instantiate(UpgradeButtons, position:new Vector3(transform.position.x, transform.position.y + 0.5f, 0),transform.rotation, BattleManager1.Instance.gameObject.transform);
+    //         a.GetComponent<UpgradeButton>().testy = this;
+    //     }
         
-    }
-    public void OnMouseDown()
-    {
+    // }
+    // public void OnMouseDown()
+    // {
         
-        if(Upgrade != null)
-        {
-            //UpgradeTroop(Upgrade);
-        }
-    }
-    public void UpgradeTroop(GameObject PickedUpgrade)
-    {
-        foreach (var RPC in TestRelay.Instance.PlayerObjects)
-        {
-            Vector3Int target =    BattleManager1.Instance.ownermap.WorldToCell(this.transform.position);//Camera.main.ScreenToWorldPoint(Input.mousePosition)
-            BattleManager1.Instance.dicty[target] = null;
-            RPC.GetComponent<RpcTest>().Spawn(target, PickedUpgrade);
-        }
-        gameObject.SetActive(false);
-    }
+    //     if(Upgrade != null)
+    //     {
+    //         //UpgradeTroop(Upgrade);
+    //     }
+    // }
+    // public void UpgradeTroop(GameObject PickedUpgrade)
+    // {
+    //     foreach (var RPC in TestRelay.Instance.PlayerObjects)
+    //     {
+    //         Vector3Int target =    BattleManager1.Instance.ownermap.WorldToCell(this.transform.position);//Camera.main.ScreenToWorldPoint(Input.mousePosition)
+    //         BattleManager1.Instance.dicty[target] = null;
+    //         RPC.GetComponent<RpcTest>().Spawn(target, PickedUpgrade);
+    //     }
+    //     gameObject.SetActive(false);
+    // }
 }

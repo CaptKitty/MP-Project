@@ -35,11 +35,50 @@ public class CritterHolder : MonoBehaviour
     public delegate void OnDeath();
     public OnDeath onDeath;
 
+    public int GrabHealth()
+    {
+        List<Modifier> _modifierlist = new List<Modifier>();
+        foreach (var item in modifierlist)
+        {
+            if(_modifierlist.Find(x => x.name == item.name))
+            {
+                continue;
+            }
+            _modifierlist.Add(item);
+        }
+        int newvariable = population;
+        foreach (var item in _modifierlist)
+        {
+            if(item.base_combatdistance != 0)
+            {
+                newvariable = item.base_health;
+            }
+        }
+        foreach (var item in _modifierlist)
+        {
+            if(item.bonus_health != 0)
+            {
+                newvariable += item.bonus_health;
+            }
+        }
+        foreach (var item in _modifierlist)
+        {
+            if(item.combatdistance_modifier != 1)
+            {
+                newvariable = (int)(newvariable * item.health_modifier);
+            }
+        }
+        return newvariable;
+    }
     public double GrabCombatDistance()
     {
         List<Modifier> _modifierlist = new List<Modifier>();
         foreach (var item in modifierlist)
         {
+            if(item == null)
+            {
+                continue;
+            }
             if(_modifierlist.Find(x => x.name == item.name))
             {
                 continue;
@@ -52,6 +91,13 @@ public class CritterHolder : MonoBehaviour
             if(item.base_combatdistance != 0)
             {
                 newvariable = item.base_combatdistance;
+            }
+        }
+        foreach (var item in _modifierlist)
+        {
+            if(item.bonus_combatdistance != 0)
+            {
+                newvariable += item.bonus_combatdistance;
             }
         }
         foreach (var item in _modifierlist)
@@ -80,6 +126,13 @@ public class CritterHolder : MonoBehaviour
             if(item.base_attack != 0)
             {
                 newvariable = item.base_attack;
+            }
+        }
+        foreach (var item in _modifierlist)
+        {
+            if(item.bonus_attack != 0)
+            {
+                newvariable += item.bonus_attack;
             }
         }
         foreach (var item in _modifierlist)
@@ -147,6 +200,18 @@ public class CritterHolder : MonoBehaviour
         }
         return newvariable;
     }
+    public void GrabAIScripts()
+    {
+        foreach (var item in modifierlist)
+        {
+            if(item.aiscripts != null)
+            {
+                var a = item.aiscripts.Init();
+                AIScript = a;
+            }
+        }
+    }
+
     public void Awake()
     {
         if(AbilityList.Count == 0)
@@ -160,6 +225,8 @@ public class CritterHolder : MonoBehaviour
         }
         AIScript = Instantiate(AIScript);
         BattleManager1.OnVictory += Cheer;
+        population = GrabHealth();
+        GrabAIScripts();
         Cheer();
     }
 

@@ -6,14 +6,23 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Modifier")]
 public class Modifier : ScriptableObject
 {
+    public int base_health = 0;
     public double base_combatdistance = 0;
     public double base_speed = 0;
     public int base_attack = 0;
     public double base_attacktime = 0;
+
+    public int bonus_health = 0;
+    public int bonus_attack = 0;
+    public int bonus_combatdistance = 0;
+    public base_AI_Script aiscripts;
+
+    public double health_modifier = 1;
     public double combatdistance_modifier = 1;
     public double speed_modifier = 1;
     public double attack_modifier = 1;
     public double attacktime_modifier = 1;
+
     public double duration;
     public double EndDuration;
     public GameObject Aura;

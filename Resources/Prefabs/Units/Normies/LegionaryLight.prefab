@@ -64,7 +64,8 @@ MonoBehaviour:
   DoesThisHaveSword: 1
   DoesThisHaveSpear: 0
   DoesThisHaveJavelin: 0
-  Upgrade: {fileID: 0}
+  DoesThisHaveSlinger: 0
+  Upgrade: {fileID: 11400000, guid: 30264ee2eeeaac547959aa1d5920153f, type: 2}
   UpgradeButtons: {fileID: 8806944245139361706, guid: 36b886d4ea7b4564588b86d50d2ea887, type: 3}
   Mercenary: 0
 --- !u!114 &-1170439232849311746

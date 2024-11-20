@@ -24,14 +24,28 @@ public class SessionManager : MonoBehaviour
         HostFaction_client = HostFaction_client.Init();
         HostFaction.Set();
         HostFaction_client.Set();
-        //DontDestroyOnLoad(gameObject);
+        foreach (var item in HostFaction.UnitList)
+        {
+            item.GetComponent<CritterHolder>().modifierlist.Clear();
+        }
     }
     public void ChangePlayerFaction(string newfaction)
     {
         HostFaction = Resources.Load<Faction>("Prefabs/Factions/" + newfaction);
         HostFaction = HostFaction.Init();
         HostFaction.Set();
-        //Debug.LogError("Host is " + HostFaction.name);
+        foreach (var item in HostFaction.UnitList)
+        {
+            item.GetComponent<CritterHolder>().modifierlist.Clear();
+        }
+        foreach (var item in HostFaction.BarracksUnits)
+        {
+            item.GetComponent<CritterHolder>().modifierlist.Clear();
+        }
+        foreach (var item in HostFaction.MercenaryUnits)
+        {
+            item.GetComponent<CritterHolder>().modifierlist.Clear();
+        }
     }
     public void ChangeEnemyFaction(string newEnemy)
     {

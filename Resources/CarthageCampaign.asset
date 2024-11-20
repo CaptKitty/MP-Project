@@ -15,161 +15,161 @@ MonoBehaviour:
   Layout1:
   - target: {x: 6, y: 1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light330
+    futurename: TrueIberian Mercenary330
     ClientOrHost: Client
   - target: {x: 4, y: -1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light273
+    futurename: TrueIberian Mercenary273
     ClientOrHost: Client
   - target: {x: 2, y: -3, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light646
+    futurename: TrueIberian Mercenary646
     ClientOrHost: Client
   - target: {x: 5, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light424
+    futurename: TrueIberian Mercenary424
     ClientOrHost: Client
   - target: {x: 3, y: -2, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light48
+    futurename: TrueIberian Mercenary48
     ClientOrHost: Client
   - target: {x: 3, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light667
+    futurename: TrueIberian Mercenary667
     ClientOrHost: Client
   Layout2:
   - target: {x: 6, y: 1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light330
+    futurename: TrueIberian Mercenary330
     ClientOrHost: Client
   - target: {x: 4, y: -1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light273
+    futurename: TrueIberian Mercenary273
     ClientOrHost: Client
   - target: {x: 2, y: -3, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light646
+    futurename: TrueIberian Mercenary646
     ClientOrHost: Client
   - target: {x: 5, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light424
+    futurename: TrueIberian Mercenary424
     ClientOrHost: Client
   - target: {x: 3, y: -2, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light48
+    futurename: TrueIberian Mercenary48
     ClientOrHost: Client
   - target: {x: 3, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light667
+    futurename: TrueIberian Mercenary667
     ClientOrHost: Client
   - target: {x: 7, y: 2, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light333
+    futurename: TrueIberian Mercenary333
     ClientOrHost: Client
   - target: {x: 8, y: 3, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light845
+    futurename: TrueIberian Mercenary845
     ClientOrHost: Client
   - target: {x: 1, y: -4, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light718
+    futurename: TrueIberian Mercenary718
     ClientOrHost: Client
   - target: {x: 0, y: -5, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light533
+    futurename: TrueIberian Mercenary533
     ClientOrHost: Client
   Layout3:
   - target: {x: 6, y: 1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light330
+    futurename: TrueIberian Mercenary330
     ClientOrHost: Client
   - target: {x: 4, y: -1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light273
+    futurename: TrueIberian Mercenary273
     ClientOrHost: Client
   - target: {x: 2, y: -3, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light646
+    futurename: TrueIberian Mercenary646
     ClientOrHost: Client
   - target: {x: 5, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light424
+    futurename: TrueIberian Mercenary424
     ClientOrHost: Client
   - target: {x: 3, y: -2, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light48
+    futurename: TrueIberian Mercenary48
     ClientOrHost: Client
   - target: {x: 3, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light667
+    futurename: TrueIberian Mercenary667
     ClientOrHost: Client
   - target: {x: 7, y: 2, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light333
+    futurename: TrueIberian Mercenary333
     ClientOrHost: Client
   - target: {x: 8, y: 3, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light845
+    futurename: TrueIberian Mercenary845
     ClientOrHost: Client
   - target: {x: 1, y: -4, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light718
+    futurename: TrueIberian Mercenary718
     ClientOrHost: Client
   - target: {x: 0, y: -5, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light533
+    futurename: TrueIberian Mercenary533
     ClientOrHost: Client
   - target: {x: 6, y: 0, z: 0}
     Faction: Normies
@@ -198,63 +198,63 @@ MonoBehaviour:
   Layout4:
   - target: {x: 6, y: 1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light330
+    futurename: TrueIberian Mercenary330
     ClientOrHost: Client
   - target: {x: 4, y: -1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light273
+    futurename: TrueIberian Mercenary273
     ClientOrHost: Client
   - target: {x: 2, y: -3, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light646
+    futurename: TrueIberian Mercenary646
     ClientOrHost: Client
   - target: {x: 5, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light424
+    futurename: TrueIberian Mercenary424
     ClientOrHost: Client
   - target: {x: 3, y: -2, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light48
+    futurename: TrueIberian Mercenary48
     ClientOrHost: Client
   - target: {x: 3, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light667
+    futurename: TrueIberian Mercenary667
     ClientOrHost: Client
   - target: {x: 7, y: 2, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light333
+    futurename: TrueIberian Mercenary333
     ClientOrHost: Client
   - target: {x: 8, y: 3, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light845
+    futurename: TrueIberian Mercenary845
     ClientOrHost: Client
   - target: {x: 1, y: -4, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light718
+    futurename: TrueIberian Mercenary718
     ClientOrHost: Client
   - target: {x: 0, y: -5, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light533
+    futurename: TrueIberian Mercenary533
     ClientOrHost: Client
   - target: {x: 6, y: 0, z: 0}
     Faction: Normies
@@ -283,63 +283,63 @@ MonoBehaviour:
   Layout5:
   - target: {x: 6, y: 1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light330
+    futurename: TrueIberian Mercenary330
     ClientOrHost: Client
   - target: {x: 4, y: -1, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light273
+    futurename: TrueIberian Mercenary273
     ClientOrHost: Client
   - target: {x: 2, y: -3, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light646
+    futurename: TrueIberian Mercenary646
     ClientOrHost: Client
   - target: {x: 5, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light424
+    futurename: TrueIberian Mercenary424
     ClientOrHost: Client
   - target: {x: 3, y: -2, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light48
+    futurename: TrueIberian Mercenary48
     ClientOrHost: Client
   - target: {x: 3, y: 0, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light667
+    futurename: TrueIberian Mercenary667
     ClientOrHost: Client
   - target: {x: 7, y: 2, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light333
+    futurename: TrueIberian Mercenary333
     ClientOrHost: Client
   - target: {x: 8, y: 3, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light845
+    futurename: TrueIberian Mercenary845
     ClientOrHost: Client
   - target: {x: 1, y: -4, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light718
+    futurename: TrueIberian Mercenary718
     ClientOrHost: Client
   - target: {x: 0, y: -5, z: 0}
     Faction: Normies
-    name: Iberian Light
+    name: Iberian Mercenary
     AIorNot: 0
-    futurename: TrueIberian Light533
+    futurename: TrueIberian Mercenary533
     ClientOrHost: Client
   - target: {x: 6, y: 0, z: 0}
     Faction: Normies

@@ -16,7 +16,7 @@ public class UpgradeButton : MonoBehaviour
     }
     public void OnMouseDown()
     {
-        testy.UpgradeTroop(testy.Upgrade);
+        //testy.UpgradeTroop(testy.Upgrade);
         Destroy(this.gameObject);
     }
     public void OnMouseExit()

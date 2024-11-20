@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72462179417ba77429912feffd038a61, type: 3}
+  m_Name: Add_Javelin
+  m_EditorClassIdentifier: 
+  base_health: 0
+  base_combatdistance: 0
+  base_speed: 0
+  base_attack: 0
+  base_attacktime: 0
+  bonus_health: 0
+  bonus_attack: 0
+  bonus_combatdistance: 0
+  aiscripts: {fileID: 11400000, guid: 2d7ce668646ce0147a880409da096a1d, type: 2}
+  health_modifier: 1
+  combatdistance_modifier: 1
+  speed_modifier: 1
+  attack_modifier: 1
+  attacktime_modifier: 1
+  duration: 0
+  EndDuration: 0
+  Aura: {fileID: 0}
+  StunEffect: 0
+  potato: {fileID: 0}

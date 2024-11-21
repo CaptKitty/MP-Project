@@ -40,6 +40,10 @@ public class CritterHolder : MonoBehaviour
         List<Modifier> _modifierlist = new List<Modifier>();
         foreach (var item in modifierlist)
         {
+            if(item == null)
+            {
+                continue;
+            }
             if(_modifierlist.Find(x => x.name == item.name))
             {
                 continue;
@@ -114,6 +118,10 @@ public class CritterHolder : MonoBehaviour
         List<Modifier> _modifierlist = new List<Modifier>();
         foreach (var item in modifierlist)
         {
+            if(item == null)
+            {
+                continue;
+            }
             if(_modifierlist.Find(x => x.name == item.name))
             {
                 continue;
@@ -149,6 +157,10 @@ public class CritterHolder : MonoBehaviour
         List<Modifier> _modifierlist = new List<Modifier>();
         foreach (var item in modifierlist)
         {
+            if(item == null)
+            {
+                continue;
+            }
             if(_modifierlist.Find(x => x.name == item.name))
             {
                 continue;
@@ -177,6 +189,10 @@ public class CritterHolder : MonoBehaviour
         List<Modifier> _modifierlist = new List<Modifier>();
         foreach (var item in modifierlist)
         {
+            if(item == null)
+            {
+                continue;
+            }
             if(_modifierlist.Find(x => x.name == item.name))
             {
                 continue;
@@ -204,6 +220,10 @@ public class CritterHolder : MonoBehaviour
     {
         foreach (var item in modifierlist)
         {
+            if(item == null)
+            {
+
+            }
             if(item.aiscripts != null)
             {
                 var a = item.aiscripts.Init();
@@ -214,6 +234,19 @@ public class CritterHolder : MonoBehaviour
 
     public void Awake()
     {
+        List<Modifier> deletelist = new List<Modifier>();
+        foreach (var item in modifierlist)
+        {
+            if(item == null)
+            {
+                deletelist.Add(item);
+            }
+        }
+        foreach (var item in deletelist)
+        {
+            modifierlist.Remove(item);
+        }
+
         if(AbilityList.Count == 0)
         {
             Wakey();

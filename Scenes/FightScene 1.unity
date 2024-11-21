@@ -437,6 +437,12 @@ MonoBehaviour:
   online: 0
   AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
   scriptlist: []
+  combatdistance: 1
+  speed: 1
+  attack: 1
+  attacktime: 1
+  NextAvailableAttack: 0
+  modifierlist: []
 --- !u!114 &197566477
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -461,8 +467,10 @@ MonoBehaviour:
   DoesThisHaveSword: 1
   DoesThisHaveSpear: 0
   DoesThisHaveJavelin: 0
+  DoesThisHaveSlinger: 0
   Upgrade: {fileID: 0}
   UpgradeButtons: {fileID: 0}
+  Mercenary: 0
 --- !u!95 &197566478
 Animator:
   serializedVersion: 5
@@ -2991,7 +2999,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e27effc53248f9499a5218ad9f15712, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SelectedCritter: {fileID: 3054758421460361798, guid: e62bc435d63d96a49a8755e3730beb55, type: 3}
+  SelectedCritter: {fileID: 0}
   ownermap: {fileID: 1277862625}
   highlightmap: {fileID: 512504182}
   enemylist: []
@@ -3004,6 +3012,7 @@ MonoBehaviour:
   FriendlyCounter: 0
   Faction: Normies
   AIPlayer: 0
+  Starter: 1
   a: {fileID: 848185930}
   b: {fileID: 706679872}
   Playerfaction: {fileID: 11400000, guid: dcbee4453ff2def43ba4aa0f3d4f9d86, type: 2}
@@ -8945,6 +8954,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefab: {fileID: 3679940166520971811, guid: b6fe905b45e7a24479840689eec80c26, type: 3}
+  objectList: []
 --- !u!1 &1426654684
 GameObject:
   m_ObjectHideFlags: 0
@@ -9246,6 +9256,12 @@ MonoBehaviour:
   online: 0
   AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
   scriptlist: []
+  combatdistance: 1
+  speed: 1
+  attack: 1
+  attacktime: 1
+  NextAvailableAttack: 0
+  modifierlist: []
 --- !u!114 &1573187126
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9270,8 +9286,10 @@ MonoBehaviour:
   DoesThisHaveSword: 0
   DoesThisHaveSpear: 0
   DoesThisHaveJavelin: 0
+  DoesThisHaveSlinger: 0
   Upgrade: {fileID: 0}
   UpgradeButtons: {fileID: 0}
+  Mercenary: 0
 --- !u!95 &1573187127
 Animator:
   serializedVersion: 5
@@ -9774,6 +9792,12 @@ MonoBehaviour:
   online: 0
   AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
   scriptlist: []
+  combatdistance: 1
+  speed: 1
+  attack: 1
+  attacktime: 1
+  NextAvailableAttack: 0
+  modifierlist: []
 --- !u!114 &1804922208
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9798,8 +9822,10 @@ MonoBehaviour:
   DoesThisHaveSword: 1
   DoesThisHaveSpear: 0
   DoesThisHaveJavelin: 0
+  DoesThisHaveSlinger: 0
   Upgrade: {fileID: 0}
   UpgradeButtons: {fileID: 0}
+  Mercenary: 0
 --- !u!95 &1804922209
 Animator:
   serializedVersion: 5
@@ -10430,6 +10456,12 @@ MonoBehaviour:
   online: 0
   AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
   scriptlist: []
+  combatdistance: 1
+  speed: 1
+  attack: 1
+  attacktime: 1
+  NextAvailableAttack: 0
+  modifierlist: []
 --- !u!114 &2046903840
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10454,8 +10486,10 @@ MonoBehaviour:
   DoesThisHaveSword: 1
   DoesThisHaveSpear: 0
   DoesThisHaveJavelin: 0
+  DoesThisHaveSlinger: 0
   Upgrade: {fileID: 0}
   UpgradeButtons: {fileID: 0}
+  Mercenary: 0
 --- !u!95 &2046903841
 Animator:
   serializedVersion: 5
@@ -11040,8 +11074,10 @@ MonoBehaviour:
   DoesThisHaveSword: 1
   DoesThisHaveSpear: 0
   DoesThisHaveJavelin: 0
+  DoesThisHaveSlinger: 0
   Upgrade: {fileID: 0}
   UpgradeButtons: {fileID: 0}
+  Mercenary: 0
 --- !u!95 &1075589751928496135
 Animator:
   serializedVersion: 5
@@ -11352,6 +11388,12 @@ MonoBehaviour:
   online: 0
   AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
   scriptlist: []
+  combatdistance: 1
+  speed: 1
+  attack: 1
+  attacktime: 1
+  NextAvailableAttack: 0
+  modifierlist: []
 --- !u!50 &9007695692599228896
 Rigidbody2D:
   serializedVersion: 4

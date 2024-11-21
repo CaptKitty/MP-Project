@@ -127,7 +127,7 @@ public class BattleManager1 : BattleManager
         {
             if(RpcTest.Serverchecker.ServerCheck())
             {
-                if(Input.GetKeyDown("escape"))
+                if(Input.GetKeyDown("escape") && SessionManager.Instance.Campaign == false)
                 {
                     if(Input.GetKey("space"))
                     {
@@ -213,21 +213,24 @@ public class BattleManager1 : BattleManager
         {
             if (Input.GetMouseButtonDown(1))
             {
-                
-
-                if(dicty[target] == null)
+                if(SelectedCritter != null)
                 {
-                    if(SelectedCritter.GetComponent<CritterHolder>().cost.amount <= Reserves)
+                    if(dicty[target] == null)
                     {
-                        foreach (var RPC in TestRelay.Instance.PlayerObjects)
+                        if(SelectedCritter.GetComponent<CritterHolder>().cost.amount <= Reserves)
                         {
-                            //RPC.GetComponent<RpcTest>().SendFaction();
-                            RPC.GetComponent<RpcTest>().Spawn(target, SelectedCritter);
+                            foreach (var RPC in TestRelay.Instance.PlayerObjects)
+                            {
+                                //RPC.GetComponent<RpcTest>().SendFaction();
+                                RPC.GetComponent<RpcTest>().Spawn(target, SelectedCritter);
+                            }
+                            Reserves -= SelectedCritter.GetComponent<CritterHolder>().cost.amount;
+                            texty.text = Reserves.ToString();
                         }
-                        Reserves -= SelectedCritter.GetComponent<CritterHolder>().cost.amount;
-                        texty.text = Reserves.ToString();
                     }
                 }
+
+                
                 //Spawn(target, SelectedCritter);
                 
             }

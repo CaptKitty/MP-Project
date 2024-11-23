@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Cordoba_3
+}
+Color ={
+188
+117
+255
+}
+Location ={
+138
+143
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Spain
+}
+}

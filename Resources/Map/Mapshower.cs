@@ -193,9 +193,9 @@ public class Mapshower : MonoBehaviour
             // banana = null;
             // UIManager.Instance.gameObject.transform.GetChild(1).gameObject.SetActive(false);
             // UIManager.Instance.gameObject.transform.GetChild(0).gameObject.SetActive(false);
-            return;
+            //return;
         }
-        if(Input.GetMouseButtonDown(0))
+        if(1==1)
         {
             if (EventSystem.current.IsPointerOverGameObject())
             {
@@ -237,11 +237,15 @@ public class Mapshower : MonoBehaviour
                 paletteTex.Apply(true);
                 //print(mousePos + " " + mainTex.GetPixel(x,y));
                 
-                Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
                 
-                if(!province.nation.IsPlayer)
+                
+                if(Input.GetMouseButtonDown(0))
                 {
-                    PrepBattle(province);
+                    Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
+                    if(!province.nation.IsPlayer)
+                    {
+                        PrepBattle(province);
+                    }
                 }
                 
                 
@@ -255,7 +259,7 @@ public class Mapshower : MonoBehaviour
                 //     if(banana.GetComponent<CampaignArmyController>().general.nation.IsPlayer)
                 //     {
                 //         banana.GetComponent<CampaignArmyController>().TryToMove(province);
-                        RePaint();
+                        // RePaint();
                 //     }
                 // }
                 // else
@@ -263,8 +267,11 @@ public class Mapshower : MonoBehaviour
                 //     UIManager.Instance.gameObject.transform.GetChild(1).gameObject.SetActive(false);
                 //     UIManager.Instance.gameObject.transform.GetChild(0).gameObject.SetActive(true);
                 // }
-
-                // AddFileOfPower(new Vector2(x,y),mainTex.GetPixel(x,y));
+                if(Input.GetMouseButtonDown(1))
+                {
+                    AddFileOfPower(new Vector2(x,y),mainTex.GetPixel(x,y));
+                }
+                // 
             }
             
         }

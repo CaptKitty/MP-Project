@@ -74,27 +74,23 @@ Shader "Unlit/MapShower"
                 fixed4 yes = tex2D(_PaletteTex,  index.xy * 255.0 / 256.0 + float2(0.001953125, 0.001953125) );
                 fixed4 owner = tex2D(_OwnerTex,  index.xy * 255.0 / 256.0 + float2(0.001953125, 0.001953125) );
                 fixed4 ok = pow(tex2D(_TerrainTex,  i.uv), yes.r   );
-                fixed4 potatos = lerp(yes,tex2D(_TerrainTex,  i.uv ), 0.75 ) ;
-                fixed4 potato = lerp(yes,pow(tex2D(_TerrainTex,  i.uv),yes.r), 0.75) ;
-                fixed4 tomato = lerp(potatos,tex2D(_OwnerTex,  index.xy * 255.0 / 256.0 + float2(0.001953125, 0.001953125) ), 0.25);
+                // fixed4 potatos = lerp(yes,tex2D(_TerrainTex,  i.uv ), 0.75 ) ;
+                // fixed4 potato = lerp(yes,pow(tex2D(_TerrainTex,  i.uv),yes.r), 0.75) ;
+                // fixed4 tomato = lerp(potatos,tex2D(_OwnerTex,  index.xy * 255.0 / 256.0 + float2(0.001953125, 0.001953125) ), 0.25);
 
                 fixed4 oki = pow(yes, 4);
                 fixed4 okies = pow(ok, 4);
                 fixed4 okie = lerp(okies, oki,0.5) ;
 
-                fixed4 include_clicker = lerp(yes,okie, 0.5 ) ;
-                fixed4 include_clickers = lerp(owner,include_clicker, 1.25 ) ;
+                fixed4 include_clicker = lerp(yes,okies, 0.5 ) ;
+                fixed4 include_clickers = lerp(owner,include_clicker, 2 ) ;
 
                 // fixed4 potatoss = lerp( tex2D(_OwnerTex,  index.xy * 255.0 / 256.0 + float2(0.001953125, 0.001953125)),tex2D(_TerrainTex,  i.uv ), 0.75 ) ;
                 // fixed4 tomatos = pow(potatoss, yes.r   );//lerp(potatos,tex2D(_PaletteTex,  index.xy * 255.0 / 256.0 + float2(0.001953125, 0.001953125)), 0.25);
                 
+                //return okies;
+
                 return include_clickers;
-
-                // return okie;
-
-                // return potato;
-
-                return tomato;
                 
 
                 UNITY_APPLY_FOG(i.fogCoord, col);

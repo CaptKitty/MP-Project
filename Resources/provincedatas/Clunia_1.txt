@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Clunia_1
+}
+Color ={
+124
+92
+86
+}
+Location ={
+167
+249
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Spain
+}
+}

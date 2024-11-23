@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Toletum_2
+}
+Color ={
+127
+106
+0
+}
+Location ={
+154
+195
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Spain
+}
+}

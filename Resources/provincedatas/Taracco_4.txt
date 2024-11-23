@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Taracco_4
+}
+Color ={
+0
+127
+250
+}
+Location ={
+266
+234
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Spain
+}
+}

@@ -101,7 +101,8 @@ public class Mapshower : MonoBehaviour
     {
         if (Input.GetKeyDown("escape"))
         {
-            Application.Quit();
+            Paint();
+            //Application.Quit();
         }
     }
     public void Paint()

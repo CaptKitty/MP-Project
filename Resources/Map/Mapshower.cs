@@ -38,11 +38,58 @@ public class Mapshower : MonoBehaviour
     void Awake()
     {
         Instance = this;
+        
+        var material = GetComponent<Renderer>().material;
+        
+        //return;
+
+        WWW www = new WWW(Application.streamingAssetsPath + "/TerrainMap.png");
+        if(www != null)
+        {
+            Texture2D texTmp = new Texture2D(728, 456, TextureFormat.DXT5, false);
+            //LoadImageIntoTexture compresses JPGs by DXT1 and PNGs by DXT5     
+            www.LoadImageIntoTexture(texTmp);
+            
+            material.SetTexture("_TerrainTex", texTmp);
+        }
+        WWW wwws = new WWW(Application.streamingAssetsPath + "/Basemap_RiversAndCities.png");
+        if(wwws != null)
+        {
+            Texture2D texTmp = new Texture2D(728, 456, TextureFormat.DXT5, false);
+            //LoadImageIntoTexture compresses JPGs by DXT1 and PNGs by DXT5     
+            wwws.LoadImageIntoTexture(texTmp);
+            material.SetTexture("_RiverTex", texTmp);
+        }
+        
+        WWW wwwss = new WWW(Application.streamingAssetsPath + "/Basemap.png");
+        if(wwwss != null)
+        {
+            // Texture2D 
+            Texture2D texTmp = new Texture2D(728, 456);//, TextureFormat.DXT5, false);
+            //texTmpss = material.GetTexture("_MainTex") as Texture2D;
+            //LoadImageIntoTexture compresses JPGs by DXT1 and PNGs by DXT5     
+            wwwss.LoadImageIntoTexture(texTmp);
+            //texTmpss = material.GetTexture("_MainTex") as Texture2D;
+            texTmp.filterMode = FilterMode.Point;
+            material.SetTexture("_MainTex", texTmp);
+        }
+
+
+        // GetComponent<Renderer>().
+
+        
+        // var TerrainTex = material.GetTexture("_TerrainTex") as Texture2D;
+
+        // TerrainTex = texTmp;
+
+        // UnityEngine.Debug.LogError("Potato2");
+
+        
     }
     void OnEnable()
     {
         //Paint();
-        RePaint();
+        //RePaint();
     }
     // Start is called before the first frame update
     void Start()
@@ -51,8 +98,8 @@ public class Mapshower : MonoBehaviour
         var mainTex = material.GetTexture("_MainTex") as Texture2D;
         var mainArr = mainTex.GetPixels32();
 
-        width = mainTex.width;
-        height = mainTex.height;
+        width = mainTex.width;//1460;//mainTex.width;//729;
+        height = mainTex.height;//912;//mainTex.height;//455;
 
         var main2remap = new Dictionary<Color32, Color32>();
         remapArr = new Color32[mainArr.Length];
@@ -101,7 +148,7 @@ public class Mapshower : MonoBehaviour
     {
         if (Input.GetKeyDown("escape"))
         {
-            Paint();
+            RePaint();
             //Application.Quit();
         }
     }
@@ -295,6 +342,7 @@ public class Mapshower : MonoBehaviour
         print(Application.persistentDataPath + "/" + regionname + "_" + regionnumber + ".txt");
         regionnumber++;
         StreamWriter sw = new StreamWriter(Application.persistentDataPath + "/" + regionname + "_" + regionnumber + ".txt");
+        UnityEngine.Debug.LogError(Application.persistentDataPath + "/" + regionname + "_" + regionnumber + ".txt");
         sw.WriteLine("Province ={");
         sw.WriteLine("Name ={");
         sw.WriteLine(regionname + "_" + regionnumber);

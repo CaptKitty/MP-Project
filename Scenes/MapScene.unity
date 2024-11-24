@@ -1385,7 +1385,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4dc3a9af98ef8b448baf786262359de1, type: 2}
+  - {fileID: 2100000, guid: a98ee70b634071848a32a9652409df26, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1432,7 +1432,7 @@ RectTransform:
   m_GameObject: {fileID: 1974663632}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 729, y: 455, z: 1}
+  m_LocalScale: {x: 728, y: 456, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1803615293}
@@ -1507,7 +1507,6 @@ MonoBehaviour:
     unlockedarmor: []
     regimentdesigns: []
     armies: []
-    Enemies: []
     faction: {fileID: 11400000, guid: dcbee4453ff2def43ba4aa0f3d4f9d86, type: 2}
   - name: Carthage
     ownerIdentity:
@@ -1520,7 +1519,6 @@ MonoBehaviour:
     unlockedarmor: []
     regimentdesigns: []
     armies: []
-    Enemies: []
     faction: {fileID: 11400000, guid: 47009c7e621a59349a826c3c4d238a6d, type: 2}
   - name: Gaul
     ownerIdentity:
@@ -1533,7 +1531,6 @@ MonoBehaviour:
     unlockedarmor: []
     regimentdesigns: []
     armies: []
-    Enemies: []
     faction: {fileID: 11400000, guid: 985566123e0662b44ad1cd7852a4767d, type: 2}
   - name: Spain
     ownerIdentity:
@@ -1546,7 +1543,6 @@ MonoBehaviour:
     unlockedarmor: []
     regimentdesigns: []
     armies: []
-    Enemies: []
     faction: {fileID: 11400000, guid: 985566123e0662b44ad1cd7852a4767d, type: 2}
   statelist: []
   culturelist:

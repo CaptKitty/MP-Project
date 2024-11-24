@@ -2,8 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 public class LoadProvinces : MonoBehaviour
 {
@@ -11,8 +13,9 @@ public class LoadProvinces : MonoBehaviour
     
     public void LoadStuff()
     {
-        // provincelist = Owners.Instance.provincelist;
-        // LoadinCultures();
+
+
+
         LoadinProvinces();
         Owners.Instance.provincelist.Clear();
         Owners.Instance.provincelist = provincelist;
@@ -59,8 +62,25 @@ public class LoadProvinces : MonoBehaviour
 
     void LoadinProvinces()
     {
-        TextAsset txt = (TextAsset)Resources.Load("provincedata/Amsterdam", typeof(TextAsset));
-        var txtarray = Resources.LoadAll("provincedatas", typeof(TextAsset));
+        //TextAsset txt = (TextAsset)Resources.Load("provincedata/Amsterdam", typeof(TextAsset));
+        //var txtarray = Resources.LoadAll("provincedatas", typeof(TextAsset));
+        var txtarray = new List<TextAsset>();
+
+        var info = new DirectoryInfo(Application.streamingAssetsPath+ "/provincedatas");
+        var fileInfo = info.GetFiles();
+        foreach(FileInfo item in fileInfo)
+        {
+            if (item.Exists)
+            {
+                // Read the file contents
+                string fileContent = File.ReadAllText(item.FullName);
+
+                // Create a new TextAsset from the file contents
+                TextAsset textAsset = new TextAsset(fileContent);
+                txtarray.Add(textAsset);
+            }   
+        }
+        
         
         // using var sr = new StringReader(txt.text);
         int count = 0;  

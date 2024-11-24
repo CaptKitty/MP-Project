@@ -54,7 +54,7 @@ public class Owners : MonoBehaviour
             }
             catch
             {
-                print(province.name);
+                Debug.LogError(province.name);
             }
         }
         Mapshower.Instance.Paint();
@@ -140,7 +140,7 @@ public class Nation
     public List<Armor> unlockedarmor;
     public List<Regiment> regimentdesigns;
     public List<GameObject> armies;
-    public List<Nation> Enemies;
+    // public List<Nation> Enemies;
     public Faction faction;
 
     public void AddManpower(int Manpower)

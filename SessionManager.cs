@@ -105,11 +105,17 @@ public class SessionManager : MonoBehaviour
                 RPC.GetComponent<RpcTest>().Spawn(unit.target, unit.name, unit.AIorNot, unit.futurename, unit.ClientOrHost);
             }
         }
+        List<SpawnBait> _ClientArmy = new List<SpawnBait>();
         foreach(var unit in ClientArmy)
         {
+            _ClientArmy.Add(unit);
+        }
+        for (int i = 0; i < _ClientArmy.Count; i++)
+        {
+            var unit = _ClientArmy[i];
             foreach (var RPC in TestRelay.Instance.PlayerObjects)
             {
-                RPC.GetComponent<RpcTest>().Spawn(unit.target, unit.name, unit.AIorNot, unit.futurename, unit.ClientOrHost);
+                RPC.GetComponent<RpcTest>().Spawn(unit.target, unit.name, unit.AIorNot, unit.name+""+i.ToString(), unit.ClientOrHost);
             }
         }
     }

@@ -139,7 +139,7 @@ public class RpcTest : NetworkBehaviour
             name = spawnee.name;
         }
 
-        string futurename = RpcTest.Serverchecker.ServerCheck().ToString() + name + Random.Range(0,1000);
+        string futurename = RpcTest.Serverchecker.ServerCheck().ToString() + name + BattleManager1.Instance.enemylist.Count;//Random.Range(0,1000);
 
         string Host = "Client";
         if(RpcTest.Serverchecker.ServerCheck())

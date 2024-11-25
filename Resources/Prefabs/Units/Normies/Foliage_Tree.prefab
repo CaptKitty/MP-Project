@@ -9,15 +9,12 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1002579342033724368}
-  - component: {fileID: 1002579342033724369}
-  - component: {fileID: -1170439232849311746}
   - component: {fileID: 1002579342033724375}
   - component: {fileID: 1002579342033724373}
   - component: {fileID: -8209825602014350543}
   - component: {fileID: -5787205392657145368}
-  - component: {fileID: 3554502513061175956}
   m_Layer: 0
-  m_Name: LegionaryLight
+  m_Name: Foliage_Tree
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -41,76 +38,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1002579342033724369
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1002579342033724372}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a3e23fbf27478ef41b34bb57076ad617, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  color: {r: 0.53333336, g: 0, b: 0, a: 1}
-  color2: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 0}
-  color3: {r: 1, g: 0.5529412, b: 0.39607844, a: 0}
-  faction: {fileID: 11400000, guid: 47009c7e621a59349a826c3c4d238a6d, type: 2}
-  listy:
-  - {fileID: 1002579343314764860}
-  - {fileID: 1002579343139218209}
-  - {fileID: 1002579343439947282}
-  material: {fileID: 2100000, guid: 8bc3e5084e1bf7e42bd906b624b10ea4, type: 2}
-  DoesThisHaveSword: 1
-  DoesThisHaveSpear: 0
-  DoesThisHaveJavelin: 0
-  DoesThisHaveSlinger: 0
-  Upgrade: {fileID: 11400000, guid: 30264ee2eeeaac547959aa1d5920153f, type: 2}
-  UpgradeButtons: {fileID: 8806944245139361706, guid: 36b886d4ea7b4564588b86d50d2ea887, type: 3}
-  Mercenary: 0
---- !u!114 &-1170439232849311746
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1002579342033724372}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34f17edb22a4295449b6d1b6de4be4b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  spot: {x: 6, y: 3, z: 0}
-  name: Stabby
-  nametype: []
-  cost:
-    name: 
-    amount: 100
-    sprite: {fileID: 0}
-  DoesThisgoOnTheCity: 0
-  ViablePlacingSpots:
-  - Grassland
-  targetlists: []
-  population: 400
-  AbilityList:
-  - {fileID: 0}
-  PrivateAbilityList:
-  - {fileID: 11400000, guid: ea02a12d35a71c341849a2830f8423aa, type: 2}
-  SpriteList: []
-  CanBeOverwritten: 1
-  IsthisAI: 0
-  IsThisAlive: 1
-  online: 0
-  AIScript: {fileID: 11400000, guid: 2d7ce668646ce0147a880409da096a1d, type: 2}
-  scriptlist:
-  - {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
-  combatdistance: 0.75
-  speed: 1
-  attack: 25
-  attacktime: 0.5
-  NextAvailableAttack: 0
-  modifierlist: []
 --- !u!212 &1002579342033724375
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -118,7 +45,7 @@ SpriteRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1002579342033724372}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
   m_DynamicOccludee: 1
@@ -220,23 +147,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 4
---- !u!58 &3554502513061175956
-CircleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1002579342033724372}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  serializedVersion: 2
-  m_Radius: 0.5
+  m_Constraints: 7
 --- !u!1 &1002579343139218209
 GameObject:
   m_ObjectHideFlags: 0
@@ -253,7 +164,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1002579343139218204
 Transform:
   m_ObjectHideFlags: 0
@@ -310,7 +221,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 20
-  m_Sprite: {fileID: 21300000, guid: 16ba57bdaddde4a4d84a2e70a94b9dfb, type: 3}
+  m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -318,7 +229,7 @@ SpriteRenderer:
   m_Size: {x: 1, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &1002579343314764860
@@ -394,7 +305,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 15
-  m_Sprite: {fileID: 21300000, guid: b0f6d172f4b245b47b49a0ef856267d1, type: 3}
+  m_Sprite: {fileID: 21300000, guid: aa7a700dbbd86414686452b09783e458, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -421,7 +332,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1002579343439947283
 Transform:
   m_ObjectHideFlags: 0
@@ -429,14 +340,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1002579343439947282}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.162, y: -0.095, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0.9754561, w: -0.22019409}
+  m_LocalPosition: {x: 0.047, y: -0.27, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1002579342033724368}
   m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -205.441}
 --- !u!212 &1002579343439947276
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -478,7 +389,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 25
-  m_Sprite: {fileID: 21300000, guid: 2a17cfdacd044a541970e4e76ba4245d, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 043797a523bafd84783672765d527679, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 5815002448955544718}
   - component: {fileID: 6001678096717300842}
   - component: {fileID: 8283630623955293875}
+  - component: {fileID: 6402409857161899302}
   m_Layer: 0
   m_Name: Tribesman_Chief
   m_TagString: Untagged
@@ -101,9 +102,9 @@ MonoBehaviour:
   IsthisAI: 0
   IsThisAlive: 1
   online: 0
-  AIScript: {fileID: 11400000, guid: 2df76b2217014944690433f679a9aec0, type: 2}
+  AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
   scriptlist:
-  - {fileID: 11400000, guid: 2df76b2217014944690433f679a9aec0, type: 2}
+  - {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
   combatdistance: 1
   speed: 1
   attack: 25
@@ -220,6 +221,19 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
+--- !u!114 &6402409857161899302
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5815002448955544719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7075162de5f96984eb3771b71779629c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  auratoadd: {fileID: 11400000, guid: c9a8f21d028a396449bfe1ff414c71b5, type: 2}
 --- !u!1 &5815002450026828922
 GameObject:
   m_ObjectHideFlags: 0

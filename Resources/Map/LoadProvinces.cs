@@ -62,24 +62,26 @@ public class LoadProvinces : MonoBehaviour
 
     void LoadinProvinces()
     {
-        //TextAsset txt = (TextAsset)Resources.Load("provincedata/Amsterdam", typeof(TextAsset));
-        //var txtarray = Resources.LoadAll("provincedatas", typeof(TextAsset));
-        var txtarray = new List<TextAsset>();
+        TextAsset txt = (TextAsset)Resources.Load("provincedata/Amsterdam", typeof(TextAsset));
+        var txtarray = Resources.LoadAll("provincedatas", typeof(TextAsset));
+        
+        // if(1==2)
+        //     txtarray.Clear();
+        //     var info = new DirectoryInfo(Application.streamingAssetsPath+ "/provincedatas");
+        //     var fileInfo = info.GetFiles();
+        //     foreach(FileInfo item in fileInfo)
+        //     {
+        //         if (item.Exists)
+        //         {
+        //             // Read the file contents
+        //             string fileContent = File.ReadAllText(item.FullName);
 
-        var info = new DirectoryInfo(Application.streamingAssetsPath+ "/provincedatas");
-        var fileInfo = info.GetFiles();
-        foreach(FileInfo item in fileInfo)
-        {
-            if (item.Exists)
-            {
-                // Read the file contents
-                string fileContent = File.ReadAllText(item.FullName);
-
-                // Create a new TextAsset from the file contents
-                TextAsset textAsset = new TextAsset(fileContent);
-                txtarray.Add(textAsset);
-            }   
-        }
+        //             // Create a new TextAsset from the file contents
+        //             TextAsset textAsset = new TextAsset(fileContent);
+        //             txtarray.Add(textAsset);
+        //         }   
+        //     }
+        // }
         
         
         // using var sr = new StringReader(txt.text);

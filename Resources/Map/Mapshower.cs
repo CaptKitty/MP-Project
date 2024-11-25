@@ -41,7 +41,7 @@ public class Mapshower : MonoBehaviour
         
         var material = GetComponent<Renderer>().material;
         
-        //return;
+        return;
 
         WWW www = new WWW(Application.streamingAssetsPath + "/TerrainMap.png");
         if(www != null)
@@ -89,7 +89,7 @@ public class Mapshower : MonoBehaviour
     void OnEnable()
     {
         //Paint();
-        //RePaint();
+        RePaint();
     }
     // Start is called before the first frame update
     void Start()

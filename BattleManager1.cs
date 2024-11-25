@@ -38,6 +38,37 @@ public class BattleManager1 : BattleManager
     public void Start()
     {
         SessionManager.Instance.SpawnArmy();
+        
+        TerrainTime();
+    }
+    public void TerrainTime()
+    {
+        bool hasriver = false;
+        foreach (Vector3Int position in ownermap.cellBounds.allPositionsWithin)
+        {
+            if(ownermap.GetTile(position) == null)
+            {
+                continue;
+            }
+            if(ownermap.GetTile(position).name == "Grassland")
+            {
+                int a = Random.Range(0,15);
+                if(a == 0)
+                {
+                    foreach (var RPC in TestRelay.Instance.PlayerObjects)
+                    {
+                        RPC.GetComponent<RpcTest>().Spawn(position, "Foliage_Brush");
+                    }
+                }
+                if(a == 1)
+                {
+                    foreach (var RPC in TestRelay.Instance.PlayerObjects)
+                    {
+                        RPC.GetComponent<RpcTest>().Spawn(position, "Foliage_Tree");
+                    }
+                }
+            }
+        }
     }
     public void ResetBattleField(bool ResetSession = false)
     {
@@ -217,16 +248,33 @@ public class BattleManager1 : BattleManager
                 {
                     if(dicty[target] == null)
                     {
-                        if(SelectedCritter.GetComponent<CritterHolder>().cost.amount <= Reserves)
+                        if(RpcTest.Serverchecker.ServerCheck() && ownermap.GetTile(target).name == "Grassland 2")
                         {
-                            foreach (var RPC in TestRelay.Instance.PlayerObjects)
+                            if(SelectedCritter.GetComponent<CritterHolder>().cost.amount <= Reserves)
                             {
-                                //RPC.GetComponent<RpcTest>().SendFaction();
-                                RPC.GetComponent<RpcTest>().Spawn(target, SelectedCritter);
+                                foreach (var RPC in TestRelay.Instance.PlayerObjects)
+                                {
+                                    //RPC.GetComponent<RpcTest>().SendFaction();
+                                    RPC.GetComponent<RpcTest>().Spawn(target, SelectedCritter);
+                                }
+                                Reserves -= SelectedCritter.GetComponent<CritterHolder>().cost.amount;
+                                texty.text = Reserves.ToString();
                             }
-                            Reserves -= SelectedCritter.GetComponent<CritterHolder>().cost.amount;
-                            texty.text = Reserves.ToString();
                         }
+                        if(!RpcTest.Serverchecker.ServerCheck() && ownermap.GetTile(target).name == "Grassland 1")
+                        {
+                            if(SelectedCritter.GetComponent<CritterHolder>().cost.amount <= Reserves)
+                            {
+                                foreach (var RPC in TestRelay.Instance.PlayerObjects)
+                                {
+                                    //RPC.GetComponent<RpcTest>().SendFaction();
+                                    RPC.GetComponent<RpcTest>().Spawn(target, SelectedCritter);
+                                }
+                                Reserves -= SelectedCritter.GetComponent<CritterHolder>().cost.amount;
+                                texty.text = Reserves.ToString();
+                            }
+                        }
+                        
                     }
                 }
 
@@ -404,8 +452,8 @@ public class BattleManager1 : BattleManager
     }
     public void Spawn(Vector3Int target, GameObject spawnee = null, string Faction = "Royal", string name = "null", bool AIorNot = false, string futurename = "null", string ClientOrHost = "Host")
     {
-        try
-        {
+        // try
+        // {
             if(dicty[target] == null)
             {
                 GameObject spawner = Resources.Load<GameObject>("Prefabs/Units/Normies/" + name);
@@ -413,46 +461,49 @@ public class BattleManager1 : BattleManager
 
                 
                 trader.transform.position = new Vector3(ownermap.CellToWorld(target).x + 0.0f, ownermap.CellToWorld(target).y +0.25f, 0);
-                trader.GetComponent<CritterHolder>().spot = target;
-
-                trader.GetComponent<CritterHolder>().IsthisAI = AIorNot;
-
-                trader.GetComponent<CritterHolder>().name = futurename;
-
-                if(ClientOrHost == "Host")
+                if(trader.GetComponent<CritterHolder>() != null)
                 {
-                    if(RpcTest.Serverchecker.ServerCheck())
+                    trader.GetComponent<CritterHolder>().spot = target;
+
+                    trader.GetComponent<CritterHolder>().IsthisAI = AIorNot;
+
+                    trader.GetComponent<CritterHolder>().name = futurename;
+
+                    if(ClientOrHost == "Host")
                     {
-                        trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction;
+                        if(RpcTest.Serverchecker.ServerCheck())
+                        {
+                            trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction;
+                        }
+                        else
+                        {
+                            trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction_client;
+                        }
+                        
                     }
                     else
                     {
-                        trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction_client;
+                        if(RpcTest.Serverchecker.ServerCheck())
+                        {
+                            trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction_client;
+                        }
+                        else
+                        {
+                            trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction;
+                        }
+                        //trader.GetComponent<TestCritter>().faction = Playerfaction;
                     }
+
+                    trader.name = futurename;
                     
+                    Destroy(dicty[target]);
+                    dicty[target] = trader; 
                 }
-                else
-                {
-                    if(RpcTest.Serverchecker.ServerCheck())
-                    {
-                        trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction_client;
-                    }
-                    else
-                    {
-                        trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction;
-                    }
-                    //trader.GetComponent<TestCritter>().faction = Playerfaction;
-                }
-
-                trader.name = futurename;
-                
-                Destroy(dicty[target]);
-                dicty[target] = trader; 
             }
-        }
-        catch
-        {
-            Debug.LogError(name);
-        }
+        // }
+        // catch
+        // {
+        //     Debug.LogError(name);
+        // }
     }
 }

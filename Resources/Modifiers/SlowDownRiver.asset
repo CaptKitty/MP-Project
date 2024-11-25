@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 72462179417ba77429912feffd038a61, type: 3}
-  m_Name: +33% attack speed
+  m_Name: SlowDownRiver
   m_EditorClassIdentifier: 
   base_health: 0
   base_combatdistance: 0
@@ -22,12 +22,12 @@ MonoBehaviour:
   bonus_combatdistance: 0
   aiscripts: {fileID: 0}
   health_modifier: 1
-  combatdistance_modifier: 1
-  speed_modifier: 1
+  combatdistance_modifier: 0.75
+  speed_modifier: 0.5
   attack_modifier: 1
-  attacktime_modifier: 0.75
+  attacktime_modifier: 2
   duration: 0
   EndDuration: 0
-  Aura: {fileID: 4400841706119225226, guid: ac22eb6b2aeaf674eaf43856374707a1, type: 3}
+  Aura: {fileID: 0}
   StunEffect: 0
   potato: {fileID: 0}

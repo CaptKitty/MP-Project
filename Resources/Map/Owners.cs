@@ -54,7 +54,7 @@ public class Owners : MonoBehaviour
             }
             catch
             {
-                Debug.LogError(province.name);
+                //Debug.LogError(province.name);
             }
         }
         Mapshower.Instance.Paint();

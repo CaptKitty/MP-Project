@@ -1,0 +1,22 @@
+Province ={
+Name ={
+_2
+}
+Color ={
+249
+0
+112
+}
+Location ={
+291
+245
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Spain
+}
+}

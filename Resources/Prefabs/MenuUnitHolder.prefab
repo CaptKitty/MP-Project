@@ -67,7 +67,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_Font: {fileID: 12800000, guid: b567d69cac787a546a2cad908ad6b09a, type: 3}
     m_FontSize: 14
     m_FontStyle: 0
     m_BestFit: 0
@@ -592,6 +592,7 @@ MonoBehaviour:
   DoesThisHaveSword: 1
   DoesThisHaveSpear: 0
   DoesThisHaveJavelin: 0
+  DoesThisHaveSlinger: 0
   Upgrade: {fileID: 0}
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
@@ -740,7 +741,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_Font: {fileID: 12800000, guid: b567d69cac787a546a2cad908ad6b09a, type: 3}
     m_FontSize: 14
     m_FontStyle: 0
     m_BestFit: 0
@@ -820,7 +821,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_Font: {fileID: 12800000, guid: b567d69cac787a546a2cad908ad6b09a, type: 3}
     m_FontSize: 14
     m_FontStyle: 0
     m_BestFit: 0

@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 public class MainMenu : MonoBehaviour
 {
-    public GameObject Canvas1, Canvas2, ButtonA, ButtonB;
+    public GameObject Canvas1, Canvas2, ButtonA, ButtonB, Main, Multi;
     public void JoinHost()
     {
         Canvas1.SetActive(false);
@@ -21,6 +21,11 @@ public class MainMenu : MonoBehaviour
         Canvas2.SetActive(true);
         ButtonB.SetActive(true);
         //SceneManager.LoadScene("SampleScene");
+    }
+    public void SelectMulti()
+    {
+        Main.SetActive(false);
+        Multi.SetActive(true);
     }
     public void ChangePick(int whichone)
     {

@@ -5,11 +5,11 @@ _10
 Color ={
 0
 127
-127
+250
 }
 Location ={
-362
-301
+265
+254
 }
 Population ={
 0
@@ -17,6 +17,6 @@ Population ={
 }
 Owner ={
 Normal ={
-Gaul
+Spain
 }
 }

@@ -3,13 +3,13 @@ Name ={
 _14
 }
 Color ={
-255
+127
 0
-110
+0
 }
 Location ={
-483
-306
+433
+329
 }
 Population ={
 0
@@ -17,6 +17,6 @@ Population ={
 }
 Owner ={
 Normal ={
-Rome
+Gaul
 }
 }

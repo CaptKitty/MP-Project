@@ -1,15 +1,15 @@
 Province ={
 Name ={
-Taracco_4
+_6
 }
 Color ={
-0
 127
-250
+106
+0
 }
 Location ={
-266
-234
+139
+213
 }
 Population ={
 0

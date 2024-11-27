@@ -1,15 +1,15 @@
 Province ={
 Name ={
-_1
+_7
 }
 Color ={
-127
-106
 0
+127
+14
 }
 Location ={
-154
-197
+221
+226
 }
 Population ={
 0

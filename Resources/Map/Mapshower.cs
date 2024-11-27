@@ -41,12 +41,28 @@ public class Mapshower : MonoBehaviour
         
         var material = GetComponent<Renderer>().material;
         
-        return;
+        //return;
+
+        WWW wwwss = new WWW(Application.streamingAssetsPath + "/Basemap.png");
+        if(wwwss != null)
+        {
+            // Texture2D 
+            Texture2D texTmp = material.GetTexture("_MainTex") as Texture2D;// = new Texture2D(728, 456);//, TextureFormat.DXT5, false);
+            //texTmpss = material.GetTexture("_MainTex") as Texture2D;
+            //LoadImageIntoTexture compresses JPGs by DXT1 and PNGs by DXT5     
+            wwwss.LoadImageIntoTexture(texTmp);
+            //texTmpss = material.GetTexture("_MainTex") as Texture2D;
+            texTmp.filterMode = FilterMode.Point;
+            material.SetTexture("_MainTex", texTmp);
+
+            width = texTmp.width;//1460;//mainTex.width;//729;
+            height = texTmp.height;
+        }
 
         WWW www = new WWW(Application.streamingAssetsPath + "/TerrainMap.png");
         if(www != null)
         {
-            Texture2D texTmp = new Texture2D(728, 456, TextureFormat.DXT5, false);
+            Texture2D texTmp = new Texture2D(width, height, TextureFormat.DXT5, false);
             //LoadImageIntoTexture compresses JPGs by DXT1 and PNGs by DXT5     
             www.LoadImageIntoTexture(texTmp);
             
@@ -55,24 +71,13 @@ public class Mapshower : MonoBehaviour
         WWW wwws = new WWW(Application.streamingAssetsPath + "/Basemap_RiversAndCities.png");
         if(wwws != null)
         {
-            Texture2D texTmp = new Texture2D(728, 456, TextureFormat.DXT5, false);
+            Texture2D texTmp = new Texture2D(width, height, TextureFormat.DXT5, false);
             //LoadImageIntoTexture compresses JPGs by DXT1 and PNGs by DXT5     
             wwws.LoadImageIntoTexture(texTmp);
             material.SetTexture("_RiverTex", texTmp);
         }
-        
-        WWW wwwss = new WWW(Application.streamingAssetsPath + "/Basemap.png");
-        if(wwwss != null)
-        {
-            // Texture2D 
-            Texture2D texTmp = new Texture2D(728, 456);//, TextureFormat.DXT5, false);
-            //texTmpss = material.GetTexture("_MainTex") as Texture2D;
-            //LoadImageIntoTexture compresses JPGs by DXT1 and PNGs by DXT5     
-            wwwss.LoadImageIntoTexture(texTmp);
-            //texTmpss = material.GetTexture("_MainTex") as Texture2D;
-            texTmp.filterMode = FilterMode.Point;
-            material.SetTexture("_MainTex", texTmp);
-        }
+        transform.localScale = new Vector3(width, height, 1);
+
 
 
         // GetComponent<Renderer>().
@@ -150,6 +155,14 @@ public class Mapshower : MonoBehaviour
         {
             RePaint();
             //Application.Quit();
+        }
+        if (Input.GetKey("q"))
+        {
+            Camera.main.orthographicSize += 0.1f;
+        }
+        if (Input.GetKey("e"))
+        {
+            Camera.main.orthographicSize -= 0.1f;
         }
     }
     public void Paint()

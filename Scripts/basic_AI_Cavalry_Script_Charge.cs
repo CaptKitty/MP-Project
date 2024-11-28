@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-[CreateAssetMenu(menuName = "AIScript/Cav")]
-public class basic_AI_Cavalry_Script : base_AI_Script
+[CreateAssetMenu(menuName = "AIScript/Cav_Charge")]
+public class basic_AI_Cavalry_Script_Charge : base_AI_Script
 {
     GameObject TargetEnemy;
     public double FlankTime;
     public double Timer;
+    public int ChargeDamage;
+    public double ChargeTime;
     public override base_AI_Script Init()
     {
-        var potato = new basic_AI_Cavalry_Script();
+        var potato = new basic_AI_Cavalry_Script_Charge();
         potato.TargetEnemy = TargetEnemy;
         potato.FlankTime = FlankTime;
         return potato;
@@ -91,6 +93,11 @@ public class basic_AI_Cavalry_Script : base_AI_Script
     {   
         if(critter.NextAvailableAttack < Time.time)
         {
+            if(critter.NextAvailableAttack + ChargeTime < Time.time)
+            {
+                TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(ChargeDamage);
+            }
+
             critter.NextAvailableAttack = Time.time + critter.GrabAttackTime();
             TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(critter.GrabAttack());
             RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");

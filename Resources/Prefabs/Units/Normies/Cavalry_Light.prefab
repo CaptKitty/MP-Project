@@ -101,9 +101,9 @@ MonoBehaviour:
   IsthisAI: 0
   IsThisAlive: 1
   online: 0
-  AIScript: {fileID: 11400000, guid: 9dc512510d7afb34f92756a31319a571, type: 2}
+  AIScript: {fileID: 11400000, guid: 582ec410f3b07c24faef4c8e23416a2f, type: 2}
   scriptlist:
-  - {fileID: 11400000, guid: 9dc512510d7afb34f92756a31319a571, type: 2}
+  - {fileID: 11400000, guid: 582ec410f3b07c24faef4c8e23416a2f, type: 2}
   combatdistance: 0.75
   speed: 3
   attack: 25

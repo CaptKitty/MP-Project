@@ -19,6 +19,9 @@ public class Mapshower : MonoBehaviour
     public string culture3;
     public int culture3pop;
 
+    public Nation SelectedNation;
+    public Province SelectedProvince;
+
 
     public int width;
     public int height;
@@ -293,20 +296,62 @@ public class Mapshower : MonoBehaviour
                 }
                 selectALL = true;
                 prevColorA = remapColor;
-                changeColors(remapColor, new Color32(50, 0, 0, 255));//new Color32(127, 127, 127, 127));
+                
+                //changeColors(remapColor, new Color32(50, 0, 0, 255));//new Color32(127, 127, 127, 127));
+                int xps = remapColor[0];
+                int yps = remapColor[1];
+
+                Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
+
+                //
+
+                // UIElement.NationHost.UpdateTitle(province.nation.name);
+                // UIElement.ProvinceHost.UpdateTitle(province.name);
+
+                foreach(Province provinces in Owners.Instance.provincelist)
+                {
+                    x = (int)provinces.position.x;
+                    y = (int)provinces.position.y;
+
+                    remapColor = remapArr[x + y * width];
+                    xp = remapColor[0];
+                    yp = remapColor[1];
+
+                    if(province.nation == provinces.nation)
+                    {
+                        changeColors(remapColor, new Color32(50, 0, 0, 255));
+                    }
+                    else
+                    {
+                        changeColors(remapColor, new Color32(255, 255, 255, 255));
+                    }
+                }
+
+                x = (int)Mathf.Floor(p.x) + width / 2;
+                y = (int)Mathf.Floor(p.y) + height / 2;
+
+                remapColor = remapArr[x + y * width];
+                changeColors(remapColor, new Color32(255, 255, 255, 255));
+
+                //ownerTex.SetPixel(xps, yps, province.nation.ownerIdentity);
+
+
                 ownerTex.Apply(true);
                 paletteTex.Apply(true);
-                //print(mousePos + " " + mainTex.GetPixel(x,y));
-                
-                
                 
                 if(Input.GetMouseButtonDown(0))
                 {
-                    Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
-                    if(!province.nation.IsPlayer)
-                    {
-                        PrepBattle(province);
-                    }
+                    //Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
+                    SelectedNation = province.nation;
+                    UIElement.NationHost.UpdateTitle(province.nation.name);
+
+                    SelectedProvince = province;
+                    UIElement.ProvinceHost.UpdateTitle(province.name);
+                    
+                    // if(!province.nation.IsPlayer)
+                    // {
+                    //     PrepBattle(province);
+                    // }
                 }
                 
                 
@@ -338,13 +383,22 @@ public class Mapshower : MonoBehaviour
         }
 
     }
-    void PrepBattle(Province province)
+    public void PrepBattle()
     {
+        if(SelectedProvince == null)
+        {
+            return;
+        }
+        if(SelectedProvince.nation.IsPlayer)
+        {
+            return;
+        }
+        Province province = SelectedProvince;
         SessionManager.Instance.ChangeEnemyFaction(province.nation.name);
         SessionManager.Instance.ClientChangePlayerFaction(province.nation.name);
         SessionManager.Instance.savedProvince = province;
         SessionManager.Instance.LoadCampaign(province.nation.name);
-        this.gameObject.SetActive(false);
+        this.transform.parent.gameObject.SetActive(false);
         SceneManager.LoadScene("FightScene 1", LoadSceneMode.Additive);
     }
 

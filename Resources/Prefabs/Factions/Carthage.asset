@@ -20,8 +20,8 @@ MonoBehaviour:
   MercLevel: 0
   FarmLevel: 0
   BarracksUnits:
-  - {fileID: 1002579342033724372, guid: 5333515deaf5683439d613c37b184ef1, type: 3}
   - {fileID: 1002579342033724372, guid: 217317507daa4c844a36b65fe44e647b, type: 3}
+  - {fileID: 1002579342033724372, guid: 5333515deaf5683439d613c37b184ef1, type: 3}
   - {fileID: 1002579342033724372, guid: d88b4529fd6907742aeafd945e719149, type: 3}
   MercenaryUnits:
   - {fileID: 1002579342033724372, guid: e20ae5212fbd75843aaefae8cc3d4c71, type: 3}

@@ -44,7 +44,7 @@ public class Mapshower : MonoBehaviour
         
         var material = GetComponent<Renderer>().material;
         
-        //return;
+        return;
 
         WWW wwwss = new WWW(Application.streamingAssetsPath + "/Basemap.png");
         if(wwwss != null)
@@ -317,13 +317,15 @@ public class Mapshower : MonoBehaviour
                     xp = remapColor[0];
                     yp = remapColor[1];
 
+                    //var state = Owners.Instance.statelist.Find(x => x.name == province.state);
+
                     if(province.nation == provinces.nation)
                     {
-                        changeColors(remapColor, new Color32(50, 0, 0, 255));
+                        changeColors(remapColor, new Color32(64, 64, 64, 255));//state.stateIdentity);
                     }
                     else
                     {
-                        changeColors(remapColor, new Color32(255, 255, 255, 255));
+                        changeColors(remapColor, new Color32(0, 0, 0, 255));
                     }
                 }
 
@@ -334,6 +336,7 @@ public class Mapshower : MonoBehaviour
                 changeColors(remapColor, new Color32(255, 255, 255, 255));
 
                 //ownerTex.SetPixel(xps, yps, province.nation.ownerIdentity);
+                
 
 
                 ownerTex.Apply(true);
@@ -398,7 +401,7 @@ public class Mapshower : MonoBehaviour
         SessionManager.Instance.ClientChangePlayerFaction(province.nation.name);
         SessionManager.Instance.savedProvince = province;
         SessionManager.Instance.LoadCampaign(province.nation.name);
-        this.transform.parent.gameObject.SetActive(false);
+        this.gameObject.SetActive(false);
         SceneManager.LoadScene("FightScene 1", LoadSceneMode.Additive);
     }
 

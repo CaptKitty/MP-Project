@@ -316,7 +316,7 @@ public class BattleManager1 : BattleManager
                 SessionManager.Instance.HostArmy.Clear();
                 SessionManager.Instance.ClientArmy.Clear();
 
-                Mapshower.Instance.transform.parent.gameObject.SetActive(true);
+                Mapshower.Instance.gameObject.SetActive(true);
                 SceneManager.UnloadScene("FightScene 1");
                 return;
             }

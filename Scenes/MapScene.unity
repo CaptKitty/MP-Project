@@ -405,7 +405,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1974663638}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &324732795
 GameObject:
@@ -466,7 +466,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_FontData:
-    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_Font: {fileID: 12800000, guid: b567d69cac787a546a2cad908ad6b09a, type: 3}
     m_FontSize: 30
     m_FontStyle: 0
     m_BestFit: 0
@@ -1929,7 +1929,7 @@ RectTransform:
   - {fileID: 494637251}
   - {fileID: 513395794}
   m_Father: {fileID: 1803615293}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -2014,12 +2014,11 @@ Transform:
   m_GameObject: {fileID: 1803615290}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -10}
-  m_LocalScale: {x: 728, y: 456, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1974663638}
   - {fileID: 1799533417}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1974663638}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1974663632
@@ -2125,12 +2124,13 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1974663632}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 10}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 728, y: 456, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1803615293}
   - {fileID: 85247145}
-  m_Father: {fileID: 1803615293}
+  m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -2232,7 +2232,7 @@ MonoBehaviour:
   - name: Rome
     ownerIdentity:
       serializedVersion: 2
-      rgba: 69588
+      rgba: 1449631
     IsPlayer: 1
     manpower: 0
     treasury: 0
@@ -2244,7 +2244,7 @@ MonoBehaviour:
   - name: Carthage
     ownerIdentity:
       serializedVersion: 2
-      rgba: 115668
+      rgba: 11382891
     IsPlayer: 0
     manpower: 0
     treasury: 0

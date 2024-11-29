@@ -209,7 +209,12 @@ public class LoadProvinces : MonoBehaviour
             {
                 if(state.nation.name == province.nation.name)
                 {
+                    if(state.stateIdentity == new Color(0,0,0,0))
+                    {
+                        state.stateIdentity = province.identity;
+                    }
                     state.provincelist.Add(province);
+                    province.state = state.name;
                 }
             }
         }
@@ -223,6 +228,7 @@ public class LoadProvinces : MonoBehaviour
             state.nation = nation;
             state.taxpercentage = 10;
             state.levypercentage = 10;
+            state.stateIdentity = new Color32(0,0,0,0);
             state.provincelist = new List<Province>();
             Owners.Instance.statelist.Add(state);
         }

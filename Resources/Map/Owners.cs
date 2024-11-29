@@ -169,6 +169,7 @@ public class State
 {
     public string name;
     public List<Province> provincelist;
+    public Color32 stateIdentity; 
     public Nation nation;
     public int taxpercentage;
     public int levypercentage;

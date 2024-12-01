@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using System.IO;
 using System;
 using System.Diagnostics;
@@ -385,6 +386,20 @@ public class Mapshower : MonoBehaviour
             
         }
 
+    }
+    public void DevProvince()
+    {
+        if(SelectedProvince == null)
+        {
+            return;
+        }
+        if(SelectedProvince.nation.IsPlayer)
+        {
+            return;
+        }
+        SelectedProvince.population += 1;
+        var potato = GameObject.Find("Text (Legacy) (1)");
+        potato.GetComponent<Text>().text = SelectedProvince.population.ToString();
     }
     public void PrepBattle()
     {

@@ -231,7 +231,7 @@ public class BattleManager1 : BattleManager
         if (!ownermap.HasTile(target)) {
             return;
         }
-        MousePet.transform.position = new Vector3(ownermap.CellToWorld(target).x + 0.0f, ownermap.CellToWorld(target).y +0.25f, 0);;
+        MousePet.transform.position = new Vector3(ownermap.CellToWorld(target).x + 0.0f, ownermap.CellToWorld(target).y +0.0f, 0);//ownermap.CellToWorld(target).y +0.25f, 0);;
         // if (!highlightmap.HasTile(target)) {
         //     return;
         // }
@@ -248,7 +248,7 @@ public class BattleManager1 : BattleManager
                 {
                     if(dicty[target] == null)
                     {
-                        if(RpcTest.Serverchecker.ServerCheck() && ownermap.GetTile(target).name == "Grassland 2")
+                        if(RpcTest.Serverchecker.ServerCheck() && ownermap.GetTile(target).name == "Grassland 4")
                         {
                             if(SelectedCritter.GetComponent<CritterHolder>().cost.amount <= Reserves)
                             {
@@ -261,7 +261,7 @@ public class BattleManager1 : BattleManager
                                 texty.text = Reserves.ToString();
                             }
                         }
-                        if(!RpcTest.Serverchecker.ServerCheck() && ownermap.GetTile(target).name == "Grassland 1")
+                        if(!RpcTest.Serverchecker.ServerCheck() && ownermap.GetTile(target).name == "Grassland 5")
                         {
                             if(SelectedCritter.GetComponent<CritterHolder>().cost.amount <= Reserves)
                             {
@@ -460,7 +460,7 @@ public class BattleManager1 : BattleManager
                 GameObject trader = Instantiate(spawner, ownermap.transform);
 
                 
-                trader.transform.position = new Vector3(ownermap.CellToWorld(target).x + 0.0f, ownermap.CellToWorld(target).y +0.25f, 0);
+                trader.transform.position = new Vector3(ownermap.CellToWorld(target).x + 0.0f, ownermap.CellToWorld(target).y , 0); //+0.25f
                 if(trader.GetComponent<CritterHolder>() != null)
                 {
                     trader.GetComponent<CritterHolder>().spot = target;

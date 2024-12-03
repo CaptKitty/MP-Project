@@ -29,7 +29,7 @@ namespace WaveFunctionCollaps
             while (iteration < this.maxIterations)
             {
                 CoreSolver solver = new CoreSolver(this.outputGrid, this.patternManager);
-                int innerIteration = 100;
+                int innerIteration = 1000;
                 while (!solver.CheckForConflics() && !solver.CheckIfSolved())
                 {
                     Vector2Int position = solver.GetLowestEntropyCell();

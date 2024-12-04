@@ -86,7 +86,7 @@ public class BattleManager : MonoBehaviour
         if (!ownermap.HasTile(target)) {
             return;
         }
-        MousePet.transform.position = new Vector3(ownermap.CellToWorld(target).x + 0.0f, ownermap.CellToWorld(target).y +0.25f, 0);;
+        //MousePet.transform.position = new Vector3(ownermap.CellToWorld(target).x + 0.0f, ownermap.CellToWorld(target).y +0.25f, 0);;
         // if (!highlightmap.HasTile(target)) {
         //     return;
         // }

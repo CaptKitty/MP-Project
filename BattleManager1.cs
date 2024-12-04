@@ -43,16 +43,16 @@ public class BattleManager1 : BattleManager
     }
     public void TerrainTime()
     {
-        bool hasriver = false;
-        foreach (Vector3Int position in ownermap.cellBounds.allPositionsWithin)
+        transform.GetChild(0).GetComponent<TilemapEditor>().GenerateTerrain();
+        foreach (Vector3Int position in ownermap.transform.GetChild(0).GetComponent<Tilemap>().cellBounds.allPositionsWithin)
         {
-            if(ownermap.GetTile(position) == null)
+            if(ownermap.transform.GetChild(0).GetComponent<Tilemap>().GetTile(position) == null)
             {
                 continue;
             }
-            if(ownermap.GetTile(position).name == "Grassland")
+            if(ownermap.transform.GetChild(0).GetComponent<Tilemap>().GetTile(position).name == "_Forest")
             {
-                int a = Random.Range(0,15);
+                int a = Random.Range(0,2);
                 if(a == 0)
                 {
                     foreach (var RPC in TestRelay.Instance.PlayerObjects)
@@ -178,7 +178,7 @@ public class BattleManager1 : BattleManager
                     
                     RpcTest.Serverchecker.StartBattle();
                     
-                    MousePet.SetActive(false);
+                    //MousePet.SetActive(false);
                     if(!FightIsOn)
                     {
                         foreach (var item in enemylist)
@@ -231,7 +231,7 @@ public class BattleManager1 : BattleManager
         if (!ownermap.HasTile(target)) {
             return;
         }
-        MousePet.transform.position = new Vector3(ownermap.CellToWorld(target).x + 0.0f, ownermap.CellToWorld(target).y +0.0f, 0);//ownermap.CellToWorld(target).y +0.25f, 0);;
+        //MousePet.transform.position = new Vector3(ownermap.CellToWorld(target).x + 0.0f, ownermap.CellToWorld(target).y +0.0f, 0);//ownermap.CellToWorld(target).y +0.25f, 0);;
         // if (!highlightmap.HasTile(target)) {
         //     return;
         // }
@@ -460,7 +460,7 @@ public class BattleManager1 : BattleManager
                 GameObject trader = Instantiate(spawner, ownermap.transform);
 
                 
-                trader.transform.position = new Vector3(ownermap.CellToWorld(target).x + 0.0f, ownermap.CellToWorld(target).y , 0); //+0.25f
+                trader.transform.position = new Vector3(ownermap.CellToWorld(target).x + 0.5f, ownermap.CellToWorld(target).y +0.5f , 0); //+0.25f
                 if(trader.GetComponent<CritterHolder>() != null)
                 {
                     trader.GetComponent<CritterHolder>().spot = target;

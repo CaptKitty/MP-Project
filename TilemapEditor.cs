@@ -77,7 +77,7 @@ public class TilemapEditor : MonoBehaviour
         {
             outputImage.SetTile(position, basetile);
         }
-        foreach (Vector3Int position in outputImage.cellBounds.allPositionsWithin)
+        foreach (Vector3Int position in inputImage.cellBounds.allPositionsWithin)
         {
             Inputs potato = new Inputs();
             for (int j = -1; j < 2; j++)

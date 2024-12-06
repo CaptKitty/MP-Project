@@ -30,24 +30,24 @@ public class TilemapEditor : MonoBehaviour
             }
             if(potato.Tilearray.Count == 9)
             {
-                bool canaddpotato = true;
-                int numberofequals = 0;
-                foreach (var item in ComboList)
-                {
-                    //if(potato.Tilearray[0] == item.Tilearray[0] && potato.Tilearray[1] == item.Tilearray[1] && potato.Tilearray[2] == item.Tilearray[2] && potato.Tilearray[3] == item.Tilearray[3])
-                    for (int i = 0; i < 9; i++)
-                    {
-                        if(potato.Tilearray[i] == item.Tilearray[i])
-                        {
-                            numberofequals++;
-                            canaddpotato = false;
-                        }
-                    }
-                }
-                if(numberofequals != 9)//canaddpotato)
-                {
+                // bool canaddpotato = true;
+                // int numberofequals = 0;
+                // foreach (var item in ComboList)
+                // {
+                //     //if(potato.Tilearray[0] == item.Tilearray[0] && potato.Tilearray[1] == item.Tilearray[1] && potato.Tilearray[2] == item.Tilearray[2] && potato.Tilearray[3] == item.Tilearray[3])
+                //     for (int i = 0; i < 9; i++)
+                //     {
+                //         if(potato.Tilearray[i] == item.Tilearray[i])
+                //         {
+                //             numberofequals++;
+                //             canaddpotato = false;
+                //         }
+                //     }
+                // }
+                // if(numberofequals != 9)//canaddpotato)
+                // {
                     ComboList.Add(potato);
-                }
+                //}
             }
         }
     }

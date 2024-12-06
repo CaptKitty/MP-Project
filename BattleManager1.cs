@@ -52,20 +52,32 @@ public class BattleManager1 : BattleManager
             }
             if(ownermap.transform.GetChild(0).GetComponent<Tilemap>().GetTile(position).name == "_Forest")
             {
-                int a = Random.Range(0,2);
-                if(a == 0)
+                foreach (var RPC in TestRelay.Instance.PlayerObjects)
                 {
-                    foreach (var RPC in TestRelay.Instance.PlayerObjects)
-                    {
-                        RPC.GetComponent<RpcTest>().Spawn(position, "Foliage_Brush");
-                    }
+                    RPC.GetComponent<RpcTest>().Spawn(position, "Foliage_Tree");
                 }
-                if(a == 1)
+                // int a = Random.Range(0,2);
+                // if(a == 0)
+                // {
+                    
+                // }
+                // if(a == 1)
+                // {
+                    
+                // }
+            }
+            if(ownermap.transform.GetChild(0).GetComponent<Tilemap>().GetTile(position).name == "_Hills")
+            {
+                foreach (var RPC in TestRelay.Instance.PlayerObjects)
                 {
-                    foreach (var RPC in TestRelay.Instance.PlayerObjects)
-                    {
-                        RPC.GetComponent<RpcTest>().Spawn(position, "Foliage_Tree");
-                    }
+                    RPC.GetComponent<RpcTest>().Spawn(position, "Foliage_Brush");
+                }
+            }
+            if(ownermap.transform.GetChild(0).GetComponent<Tilemap>().GetTile(position).name == "_Mountain")
+            {
+                foreach (var RPC in TestRelay.Instance.PlayerObjects)
+                {
+                    RPC.GetComponent<RpcTest>().Spawn(position, "Foliage_Cliff");
                 }
             }
         }

@@ -11,9 +11,11 @@ public class Owners : MonoBehaviour
     public List<State> statelist;
     public List<Culture> culturelist;
     public Dictionary<string, Culture> culturedict;
-    public List<Province> provincelist;
+    public List<Province> provincelist = new List<Province>();
     public Dictionary<string, Province> provincedict;
     public Dictionary<Color32, Province> provincedictcolor;
+    public List<GameObject> armylist = new List<GameObject>();
+    private float timer;
     // public List<Province> provincelists;
 
     // Start is called before the first frame update
@@ -54,7 +56,7 @@ public class Owners : MonoBehaviour
             }
             catch
             {
-                //Debug.LogError(province.name);
+                Debug.LogError(province.name);
             }
         }
         Mapshower.Instance.Paint();
@@ -89,10 +91,36 @@ public class Owners : MonoBehaviour
         return culturedict[culturename];
     }
 
-    // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        
+        foreach (var RPC in TestRelay.Instance.PlayerObjects)
+        {
+            RPC.GetComponent<RpcTest>().HandleUpdate();
+        }
+    }
+
+    // Update is called once per frame
+    public void UpdateHandler()
+    {
+        if(Time.time > timer)
+        {
+            timer = Time.time + 5;
+            foreach(var a in provincelist)
+            {
+                if(a.troops < 20)
+                {
+                    a.AddTroops(1);
+                }
+            }
+            UIElement.NationHost.UpdateTitle(Mapshower.Instance.SelectedProvince.troops.ToString());
+        }
+        foreach(var a in armylist)
+        {
+            if(a != null)
+            {
+                a.GetComponent<ArmyMovement>().Movement();
+            }
+        }
     }
 }
 [System.Serializable]
@@ -104,6 +132,7 @@ public class Province
     public string state;
     public Vector2 position;
     public int population = 1000;
+    public int troops = 10;
     public List<Culture> cultures;
     public int taxincome;
     public int taxpercentage;
@@ -111,6 +140,11 @@ public class Province
     public int levypercentage;
     public int unrest;
     
+    public void AddTroops(int a)
+    {
+        troops += a;
+    }
+
     public void UpdatePopulation()
     {
         population = 0;

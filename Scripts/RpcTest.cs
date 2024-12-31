@@ -57,6 +57,72 @@ public class RpcTest : NetworkBehaviour
             ServerOnlyRpc(value + 1, sourceNetworkObjectId);
         }
     }
+
+    public void HandleUpdate()
+    {
+        if(IsServer)
+        {
+            SendUpdateServerRpc();
+            //SendUpdateClientRpc(); k
+        }
+        else
+        {
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    void SendUpdateServerRpc()
+    {
+        Owners.Instance.UpdateHandler();
+    }
+    [Rpc(SendTo.Server)]
+    void SendUpdateClientRpc()
+    {
+        Owners.Instance.UpdateHandler();
+    }
+
+
+    public void SendTroops(string origin, string province, string owner)
+    {
+        if(IsServer)
+        {
+            SendSendTroopsServerRpc(origin, province, owner);
+        }
+        else
+        {
+            SendSendTroopsServerRpc(origin, province, owner);
+            SendSendTroopsClientRpc(origin, province, owner);
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    void SendSendTroopsServerRpc(string origin, string province, string owner)
+    {
+        Mapshower.Instance.SendTroops(origin, province, owner);
+    }
+    [Rpc(SendTo.Server)]
+    void SendSendTroopsClientRpc(string origin, string province, string owner)
+    {
+        Mapshower.Instance.SendTroops(origin, province, owner);
+    }
+
+    public void ChangeProvinceOwner(string province, string owner)
+    {   
+        SendChangeProvinceOwnerServerRpc(province, owner);
+        SendChangeProvinceOwnerClientRpc(province, owner);
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    void SendChangeProvinceOwnerServerRpc(string province, string owner)
+    {
+        Mapshower.Instance.ChangeProvinceOwner(province, owner);
+    }
+    [Rpc(SendTo.Server)]
+    void SendChangeProvinceOwnerClientRpc(string province, string owner)
+    {
+        Mapshower.Instance.ChangeProvinceOwner(province, owner);
+    }
+
     //ClientSendsThis
     public void SendFaction()
     {   
@@ -69,6 +135,7 @@ public class RpcTest : NetworkBehaviour
             SendYourFactionClientRpc(SessionManager.Instance.HostFaction.name, SessionManager.Instance.ClientFaction.name);
         }
     }
+
     [Rpc(SendTo.ClientsAndHost)]
     void SendYourFactionServerRpc(string host, string client)
     {

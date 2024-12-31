@@ -26,6 +26,7 @@ public class Mapshower : MonoBehaviour
 
     public int width;
     public int height;
+    private Province DraggedProvince = new Province();
 
     Color32[] remapArr;
     Texture2D paletteTex;
@@ -98,7 +99,7 @@ public class Mapshower : MonoBehaviour
     void OnEnable()
     {
         //Paint();
-        RePaint();
+        //RePaint();
     }
     // Start is called before the first frame update
     void Start()
@@ -172,6 +173,7 @@ public class Mapshower : MonoBehaviour
     public void Paint()
     {
         int i = 0;
+        
         foreach(Province province in Owners.Instance.provincelist)
         {
             i = i+1;
@@ -193,6 +195,7 @@ public class Mapshower : MonoBehaviour
     }
     public void RePaint()
     {
+        print(Owners.Instance.provincelist);
         foreach(Province province in Owners.Instance.provincelist)
         {
             int x = (int)province.position.x;
@@ -260,6 +263,7 @@ public class Mapshower : MonoBehaviour
             // UIManager.Instance.gameObject.transform.GetChild(0).gameObject.SetActive(false);
             //return;
         }
+
         if(1==1)
         {
             if (EventSystem.current.IsPointerOverGameObject())
@@ -309,6 +313,32 @@ public class Mapshower : MonoBehaviour
                 // UIElement.NationHost.UpdateTitle(province.nation.name);
                 // UIElement.ProvinceHost.UpdateTitle(province.name);
 
+                    if(2==2)
+                    {
+                        
+                        if(Input.GetMouseButtonDown(0))
+                        {
+                            DraggedProvince = province;
+                        }
+                        if(Input.GetMouseButtonUp(0))
+                        {
+                            if(DraggedProvince != province)
+                            {
+                                if(DraggedProvince != null && DraggedProvince.nation != null)
+                                {
+                                    if(DraggedProvince.nation.IsPlayer)
+                                    {
+                                        foreach (var RPC in TestRelay.Instance.PlayerObjects)
+                                        {
+                                            RPC.GetComponent<RpcTest>().SendTroops(DraggedProvince.name, province.name, DraggedProvince.nation.name);
+                                            //RPC.GetComponent<RpcTest>().ChangeProvinceOwner(province.name, DraggedProvince.nation.name);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                 foreach(Province provinces in Owners.Instance.provincelist)
                 {
                     x = (int)provinces.position.x;
@@ -320,21 +350,21 @@ public class Mapshower : MonoBehaviour
 
                     //var state = Owners.Instance.statelist.Find(x => x.name == province.state);
 
-                    if(province.nation == provinces.nation)
-                    {
-                        changeColors(remapColor, new Color32(64, 64, 64, 255));//state.stateIdentity);
-                    }
-                    else
-                    {
-                        changeColors(remapColor, new Color32(0, 0, 0, 255));
-                    }
+                    // if(province.nation == provinces.nation)
+                    // {
+                    //     changeColors(remapColor, new Color32(64, 64, 64, 255));//state.stateIdentity);
+                    // }
+                    // else
+                    // {
+                        changeColors(remapColor, new Color32(255, 255, 255, 255));
+                    //}
                 }
 
                 x = (int)Mathf.Floor(p.x) + width / 2;
                 y = (int)Mathf.Floor(p.y) + height / 2;
 
                 remapColor = remapArr[x + y * width];
-                changeColors(remapColor, new Color32(255, 255, 255, 255));
+                changeColors(remapColor, new Color32(64, 64, 64, 255));
 
                 //ownerTex.SetPixel(xps, yps, province.nation.ownerIdentity);
                 
@@ -347,7 +377,7 @@ public class Mapshower : MonoBehaviour
                 {
                     //Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
                     SelectedNation = province.nation;
-                    UIElement.NationHost.UpdateTitle(province.nation.name);
+                    UIElement.NationHost.UpdateTitle(province.troops.ToString());//province.nation.name);
 
                     SelectedProvince = province;
                     UIElement.ProvinceHost.UpdateTitle(province.name);
@@ -359,33 +389,54 @@ public class Mapshower : MonoBehaviour
                 }
                 
                 
-                // UIManager.Instance.ChangeText(province);
-                // print(Owners.Instance.CallProvinceByString(province.name).identity);
-                //print(province.name);
-                // if(banana != null)
+                // // UIManager.Instance.ChangeText(province);
+                // // print(Owners.Instance.CallProvinceByString(province.name).identity);
+                // //print(province.name);
+                // // if(banana != null)
+                // // {
+                // //     //UIManager.Instance.gameObject.transform.GetChild(1).gameObject.SetActive(true);
+                // //     //UIManager.Instance.gameObject.transform.GetChild(0).gameObject.SetActive(false);
+                // //     if(banana.GetComponent<CampaignArmyController>().general.nation.IsPlayer)
+                // //     {
+                // //         banana.GetComponent<CampaignArmyController>().TryToMove(province);
+                //         // RePaint();
+                // //     }
+                // // }
+                // // else
+                // // {
+                // //     UIManager.Instance.gameObject.transform.GetChild(1).gameObject.SetActive(false);
+                // //     UIManager.Instance.gameObject.transform.GetChild(0).gameObject.SetActive(true);
+                // // }
+                // if(Input.GetMouseButtonDown(1))
                 // {
-                //     //UIManager.Instance.gameObject.transform.GetChild(1).gameObject.SetActive(true);
-                //     //UIManager.Instance.gameObject.transform.GetChild(0).gameObject.SetActive(false);
-                //     if(banana.GetComponent<CampaignArmyController>().general.nation.IsPlayer)
-                //     {
-                //         banana.GetComponent<CampaignArmyController>().TryToMove(province);
-                        // RePaint();
-                //     }
+                //     AddFileOfPower(new Vector2(x,y),mainTex.GetPixel(x,y));
                 // }
-                // else
-                // {
-                //     UIManager.Instance.gameObject.transform.GetChild(1).gameObject.SetActive(false);
-                //     UIManager.Instance.gameObject.transform.GetChild(0).gameObject.SetActive(true);
-                // }
-                if(Input.GetMouseButtonDown(1))
-                {
-                    AddFileOfPower(new Vector2(x,y),mainTex.GetPixel(x,y));
-                }
-                // 
+                // // 
             }
             
         }
 
+    }
+    public void SendTroops(string origin, string target, string owner)
+    {
+        GameObject potato = Resources.Load<GameObject>("Prefabs/Map_Farmer");
+        GameObject tomato = Instantiate(potato, transform.GetChild(2));//
+        Vector2 location = Owners.Instance.provincelist.Find(x => x.name == origin).position;
+        location = new Vector2(location.x-366,location.y-218);
+        tomato.transform.position = location;
+        location = Owners.Instance.provincelist.Find(x => x.name == target).position;
+        location = new Vector2(location.x-366,location.y-218);
+        tomato.GetComponent<ArmyMovement>().target = location;
+        tomato.GetComponent<ArmyMovement>().province = target;
+        tomato.GetComponent<ArmyMovement>().nation = owner;
+        tomato.GetComponent<ArmyMovement>().troops = Owners.Instance.provincelist.Find(x => x.name == origin).troops/2;
+        Owners.Instance.provincelist.Find(x => x.name == origin).troops -= Owners.Instance.provincelist.Find(x => x.name == origin).troops/2;
+        
+    }
+    public void ChangeProvinceOwner(string province, string owner)
+    {
+        Owners.Instance.provincelist.Find(x => x.name == province).nation = Owners.Instance.nationlist.Find(x => x.name == owner);
+        RePaint();
     }
     public void DevProvince()
     {

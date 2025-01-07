@@ -48,13 +48,14 @@ public class TestRelay : MonoBehaviour
             JoinCodeTextStuff = JoinCode;
             JoinCodeStuff.Instance.Texty.text = JoinCode;
 
-            NetworkManager.Singleton.GetComponent<UnityTransport>().SetHostRelayData(
-                allocation.RelayServer.IpV4,
-                (ushort) allocation.RelayServer.Port,
-                allocation.AllocationIdBytes,
-                allocation.Key,
-                allocation.ConnectionData
-            );
+            // NetworkManager.Singleton.GetComponent<UnityTransport>().SetHostRelayData(
+            //     allocation.RelayServer.IpV4,
+            //     (ushort) allocation.RelayServer.Port,
+            //     allocation.AllocationIdBytes,
+            //     allocation.Key,
+            //     allocation.ConnectionData
+            // );
+            NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(new RelayServerData(allocation, "wss"));
 
             NetworkManager.Singleton.StartHost();
         }
@@ -90,14 +91,16 @@ public class TestRelay : MonoBehaviour
         {
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(JoinCode.text);
 
-            NetworkManager.Singleton.GetComponent<UnityTransport>().SetClientRelayData(
-                joinAllocation.RelayServer.IpV4,
-                (ushort) joinAllocation.RelayServer.Port,
-                joinAllocation.AllocationIdBytes,
-                joinAllocation.Key,
-                joinAllocation.ConnectionData,
-                joinAllocation.HostConnectionData
-            );
+            // NetworkManager.Singleton.GetComponent<UnityTransport>().SetClientRelayData(
+            //     joinAllocation.RelayServer.IpV4,
+            //     (ushort) joinAllocation.RelayServer.Port,
+            //     joinAllocation.AllocationIdBytes,
+            //     joinAllocation.Key,
+            //     joinAllocation.ConnectionData,
+            //     joinAllocation.HostConnectionData
+            // );
+            NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(new RelayServerData(joinAllocation, "wss"));
+
             NetworkManager.Singleton.StartClient();
 
             

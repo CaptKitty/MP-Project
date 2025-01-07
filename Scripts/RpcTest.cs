@@ -60,50 +60,56 @@ public class RpcTest : NetworkBehaviour
 
     public void HandleUpdate()
     {
+        Owners.Instance.HandleMovement();
+        //Everyone is the Server's bitch.
         if(IsServer)
         {
-            SendUpdateServerRpc();
-            //SendUpdateClientRpc(); k
-        }
-        else
-        {
+            Owners.Instance.ServerUpdateHandler();
+            //SendUpdateServerRpc();
         }
     }
-
     [Rpc(SendTo.ClientsAndHost)]
-    void SendUpdateServerRpc()
+    public void SendCityUpdateServerRpc(string provincename, string nationname, int troops)
     {
-        Owners.Instance.UpdateHandler();
+        //Owners.Instance.provincedict[provincename].nation = Owners.Instance.nationdict[nationname];
+        //Owners.Instance.provincedict[provincename].troops = troops;
+
+        Mapshower.Instance.ChangeProvinceOwner(provincename, nationname);
+        Owners.Instance.provincelist.Find(x => x.name == provincename).troops = troops;
     }
-    [Rpc(SendTo.Server)]
-    void SendUpdateClientRpc()
+    [Rpc(SendTo.ClientsAndHost)]
+    public void KillTroopsServerRpc(string name)
     {
-        Owners.Instance.UpdateHandler();
+        Owners.Instance.Kill(name);
     }
 
 
     public void SendTroops(string origin, string province, string owner)
     {
+        int a = Random.Range(0,1000000);
+                
+        int b = Owners.Instance.provincelist.Find(x => x.name == origin).troops;
+        int count = b/2;
         if(IsServer)
         {
-            SendSendTroopsServerRpc(origin, province, owner);
+            SendSendTroopsServerRpc(origin, province, owner, a, count);
         }
         else
         {
-            SendSendTroopsServerRpc(origin, province, owner);
-            SendSendTroopsClientRpc(origin, province, owner);
+            SendSendTroopsServerRpc(origin, province, owner, a, count);
+            //SendSendTroopsClientRpc(origin, province, owner, a);
         }
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    void SendSendTroopsServerRpc(string origin, string province, string owner)
+    void SendSendTroopsServerRpc(string origin, string province, string owner, int a, int count)
     {
-        Mapshower.Instance.SendTroops(origin, province, owner);
+        Mapshower.Instance.SendTroops(origin, province, owner, a, count);
     }
     [Rpc(SendTo.Server)]
-    void SendSendTroopsClientRpc(string origin, string province, string owner)
+    void SendSendTroopsClientRpc(string origin, string province, string owner, int a, int count)
     {
-        Mapshower.Instance.SendTroops(origin, province, owner);
+        Mapshower.Instance.SendTroops(origin, province, owner, a, count);
     }
 
     public void ChangeProvinceOwner(string province, string owner)

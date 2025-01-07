@@ -31,19 +31,43 @@ public class FactionUpgrade : MonoBehaviour
     {
         if(input.Contains("Barracks"))
         {
-            SessionManager.Instance.HostFaction.UpgradeBarracks();
+            //SessionManager.Instance.HostFaction.UpgradeBarracks();
+            if(Mapshower.Instance.SelectedProvince.troops > 10)
+            {
+                Mapshower.Instance.SelectedProvince.troops -= 10;
+                ProvinceModifier moddie = new ProvinceModifier();
+                moddie.BaseTroops = 5;
+                Mapshower.Instance.SelectedProvince.AddModifier(moddie);
+            }
         }
         if(input.Contains("Merc"))
         {
-            SessionManager.Instance.HostFaction.UpgradeMercenaries();
+            if(Mapshower.Instance.SelectedProvince.troops > 10)
+            {
+                Mapshower.Instance.SelectedProvince.troops -= 10;
+                ProvinceModifier moddie = new ProvinceModifier();
+                moddie.DefensiveDice = 1;
+                Mapshower.Instance.SelectedProvince.AddModifier(moddie);
+            }
+            //SessionManager.Instance.HostFaction.UpgradeMercenaries();
+            //Mapshower.Instance.SelectedProvince.AddModifier();
         }
         if(input.Contains("Farm"))
         {
-            SessionManager.Instance.HostFaction.FarmLevel++;
+            if(Mapshower.Instance.SelectedProvince.troops > 10)
+            {
+                Mapshower.Instance.SelectedProvince.troops -= 10;
+                ProvinceModifier moddie = new ProvinceModifier();
+                moddie.BonusSpawns = 1;
+                Mapshower.Instance.SelectedProvince.AddModifier(moddie);
+            }
+            //SessionManager.Instance.HostFaction.FarmLevel++;
+            //Mapshower.Instance.SelectedProvince.AddModifier();
         }
         if(input.Contains("Unit"))
         {
-            AddUnitModifier();
+            //AddUnitModifier();
+            //Mapshower.Instance.SelectedProvince.AddModifier();
         }
         gameObject.SetActive(false);
     }

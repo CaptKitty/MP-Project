@@ -7,6 +7,7 @@ using System;
 using System.Diagnostics;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using Unity.Netcode;
 
 public class Mapshower : MonoBehaviour
 {
@@ -158,7 +159,7 @@ public class Mapshower : MonoBehaviour
     {
         if (Input.GetKeyDown("escape"))
         {
-            RePaint();
+            PopPaint();
             //Application.Quit();
         }
         if (Input.GetKey("q"))
@@ -195,7 +196,7 @@ public class Mapshower : MonoBehaviour
     }
     public void RePaint()
     {
-        print(Owners.Instance.provincelist);
+        //print(Owners.Instance.provincelist);
         foreach(Province province in Owners.Instance.provincelist)
         {
             int x = (int)province.position.x;
@@ -228,7 +229,7 @@ public class Mapshower : MonoBehaviour
             if(!selectAny || !prevColor.Equals(remapColor)){
                 selectAny = true;
                 prevColor = remapColor;
-                paletteTex.SetPixel(xp, yp, PopToColor(province.population));
+                paletteTex.SetPixel(xp, yp, PopToColor(province.troops));
                 paletteTex.Apply(false);
                 ownerTex.Apply(false);
             }
@@ -330,7 +331,10 @@ public class Mapshower : MonoBehaviour
                                     {
                                         foreach (var RPC in TestRelay.Instance.PlayerObjects)
                                         {
-                                            RPC.GetComponent<RpcTest>().SendTroops(DraggedProvince.name, province.name, DraggedProvince.nation.name);
+                                            if(RPC.GetComponent<NetworkObject>().IsLocalPlayer)
+                                            {
+                                                RPC.GetComponent<RpcTest>().SendTroops(DraggedProvince.name, province.name, DraggedProvince.nation.name);
+                                            }
                                             //RPC.GetComponent<RpcTest>().ChangeProvinceOwner(province.name, DraggedProvince.nation.name);
                                         }
                                     }
@@ -417,7 +421,7 @@ public class Mapshower : MonoBehaviour
         }
 
     }
-    public void SendTroops(string origin, string target, string owner)
+    public void SendTroops(string origin, string target, string owner, int numero, int count)
     {
         GameObject potato = Resources.Load<GameObject>("Prefabs/Map_Farmer");
         GameObject tomato = Instantiate(potato, transform.GetChild(2));//
@@ -429,9 +433,14 @@ public class Mapshower : MonoBehaviour
         tomato.GetComponent<ArmyMovement>().target = location;
         tomato.GetComponent<ArmyMovement>().province = target;
         tomato.GetComponent<ArmyMovement>().nation = owner;
-        tomato.GetComponent<ArmyMovement>().troops = Owners.Instance.provincelist.Find(x => x.name == origin).troops/2;
-        Owners.Instance.provincelist.Find(x => x.name == origin).troops -= Owners.Instance.provincelist.Find(x => x.name == origin).troops/2;
-        
+        tomato.GetComponent<ArmyMovement>().troops = count;
+        tomato.GetComponent<ArmyMovement>().name = numero.ToString();
+        tomato.name = numero.ToString();
+        //Owners.Instance.provincelist.Find(x => x.name == origin).troops -=;
+        if(Owners.Instance.nationlist.Find(x => x.name == owner).IsPlayer)
+        {
+            Owners.Instance.provincelist.Find(x => x.name == origin).AddTroops(-count);
+        }
     }
     public void ChangeProvinceOwner(string province, string owner)
     {
@@ -451,6 +460,10 @@ public class Mapshower : MonoBehaviour
         SelectedProvince.population += 1;
         var potato = GameObject.Find("Text (Legacy) (1)");
         potato.GetComponent<Text>().text = SelectedProvince.population.ToString();
+    }
+    public void OpenBuildingMenu()
+    {
+        FactionUpgrade.Instance.gameObject.SetActive(true);
     }
     public void PrepBattle()
     {
@@ -533,31 +546,31 @@ public class Mapshower : MonoBehaviour
     }
     public Color PopToColor(int population)
     {
-        if(population >= 2500)
+        if(population >= 50)
         {
             return new Color32(0,255,33,1);
         }
-        if(population >= 2000)
+        if(population >= 40)
         {
             return new Color32(76,255,0,1);
         }
-        if(population >= 1500)
+        if(population >= 30)
         {
             return new Color32(182,255,0,1);
         }
-        if(population >= 1000)
+        if(population >= 20)
         {
             return new Color32(255,216,0,1);
         }
-        if(population >= 750)
+        if(population >= 15)
         {
             return new Color32(255,106,0,1);
         }
-        if(population >= 500)
+        if(population >= 10)
         {
             return new Color32(255,53,0,1);
         }
-        if(population >= 250)
+        if(population >= 5)
         {
             return new Color32(255,0,0,1);
         }

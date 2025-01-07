@@ -99,21 +99,40 @@ public class Owners : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    public void UpdateHandler()
+    public void ServerUpdateHandler()
     {
         if(Time.time > timer)
         {
             timer = Time.time + 5;
             foreach(var a in provincelist)
             {
-                if(a.troops < 20)
+                if(a.troops < a.GrabMaxTroops())
                 {
-                    a.AddTroops(1);
+                    a.AddTroops(a.GrabTroopstoAdd());
                 }
             }
             UIElement.NationHost.UpdateTitle(Mapshower.Instance.SelectedProvince.troops.ToString());
         }
+        var b = new List<GameObject>();
+        foreach(var a in armylist)
+        {
+            if(a != null)
+            {
+                //a.GetComponent<ArmyMovement>().Movement();
+                a.GetComponent<ArmyMovement>().Fighty();
+            }
+            if(a == null)
+            {
+                b.Add(a);
+            }
+        }
+        foreach(var a in b)
+        {
+            armylist.Remove(a);
+        }
+    }
+    public void HandleMovement()
+    {
         foreach(var a in armylist)
         {
             if(a != null)
@@ -121,6 +140,20 @@ public class Owners : MonoBehaviour
                 a.GetComponent<ArmyMovement>().Movement();
             }
         }
+    }
+    public void Kill(string armyname)
+    {
+        foreach(var a in armylist)
+        {
+            if(a != null)
+            {
+                if(a.name == armyname)
+                {
+                    Destroy(a);
+                }              
+            }
+        }
+
     }
 }
 [System.Serializable]
@@ -139,12 +172,72 @@ public class Province
     public int levyincome;
     public int levypercentage;
     public int unrest;
+    public List<ProvinceModifier> provincemodifiers = new List<ProvinceModifier>();
     
+    public void AddModifier(ProvinceModifier moddie)
+    {
+        provincemodifiers.Add(moddie);
+    }
+    public int MaxDice()
+    {
+        return 6;
+    }
+    public int GrabDefensiveDice()
+    {
+        int dice = 0;
+        foreach (var item in provincemodifiers)
+        {
+            if(item == null)
+            {
+                continue;
+            }
+            dice += item.DefensiveDice;
+        }
+        return dice;
+    }
+    public int GrabMaxTroops()
+    {
+        int troopcount = 20;
+        foreach (var item in provincemodifiers)
+        {
+            if(item == null)
+            {
+                continue;
+            }
+            troopcount += item.BaseTroops;
+        }
+        foreach (var item in provincemodifiers)
+        {
+            if(item == null)
+            {
+                continue;
+            }
+            troopcount = (int)((float)troopcount * item.BaseTroopsModifier);
+        }
+        return troopcount;
+    }
+    public int GrabTroopstoAdd()
+    {
+        int recruitcount = 1;
+        foreach (var item in provincemodifiers)
+        {
+            if(item == null)
+            {
+                continue;
+            }
+            recruitcount += item.BonusSpawns;
+        }
+        return recruitcount;
+    }
     public void AddTroops(int a)
     {
         troops += a;
+        foreach (var RPC in TestRelay.Instance.PlayerObjects)
+        {
+            RPC.GetComponent<RpcTest>().SendCityUpdateServerRpc(name, nation.name, troops);
+        }
+        UIElement.NationHost.UpdateTitle(Mapshower.Instance.SelectedProvince.troops.ToString());
     }
-
     public void UpdatePopulation()
     {
         population = 0;

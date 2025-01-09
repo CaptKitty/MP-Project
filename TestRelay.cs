@@ -71,13 +71,15 @@ public class TestRelay : MonoBehaviour
             JoinCodeTextStuff = JoinCode;
             JoinCodeStuff.Instance.Texty.text = JoinCode;
 
-            NetworkManager.Singleton.GetComponent<UnityTransport>().SetHostRelayData(
-                allocation.RelayServer.IpV4,
-                (ushort) allocation.RelayServer.Port,
-                allocation.AllocationIdBytes,
-                allocation.Key,
-                allocation.ConnectionData
-            );
+            // NetworkManager.Singleton.GetComponent<UnityTransport>().SetHostRelayData(
+            //     allocation.RelayServer.IpV4,
+            //     (ushort) allocation.RelayServer.Port,
+            //     allocation.AllocationIdBytes,
+            //     allocation.Key,
+            //     allocation.ConnectionData
+            // );
+
+            NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(new RelayServerData(allocation, "wss"));
 
             NetworkManager.Singleton.StartHost();
         }

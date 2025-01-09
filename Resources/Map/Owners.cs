@@ -111,7 +111,7 @@ public class Owners : MonoBehaviour
                     a.AddTroops(a.GrabTroopstoAdd());
                 }
             }
-            UIElement.NationHost.UpdateTitle(Mapshower.Instance.SelectedProvince.troops.ToString());
+            UIElement.ProvinceHost.Updatethird(Mapshower.Instance.SelectedProvince.troops.ToString());
         }
         var b = new List<GameObject>();
         foreach(var a in armylist)
@@ -177,6 +177,7 @@ public class Province
     public void AddModifier(ProvinceModifier moddie)
     {
         provincemodifiers.Add(moddie);
+        UIElement.ProvinceHost.UpdateDescription(this);
     }
     public int MaxDice()
     {
@@ -193,6 +194,27 @@ public class Province
             }
             dice += item.DefensiveDice;
         }
+        foreach (var item in nation.NationModifier)
+        {
+            if(item == null)
+            {
+                continue;
+            }
+            dice += item.DefensiveDice;
+        }
+        return dice;
+    }
+    public int GrabOffensiveDice()
+    {
+        int dice = 0;
+        foreach (var item in nation.NationModifier)
+        {
+            if(item == null)
+            {
+                continue;
+            }
+            dice += item.OffensiveDice;
+        }
         return dice;
     }
     public int GrabMaxTroops()
@@ -206,7 +228,23 @@ public class Province
             }
             troopcount += item.BaseTroops;
         }
+        foreach (var item in nation.NationModifier)
+        {
+            if(item == null)
+            {
+                continue;
+            }
+            troopcount += item.BaseTroops;
+        }
         foreach (var item in provincemodifiers)
+        {
+            if(item == null)
+            {
+                continue;
+            }
+            troopcount = (int)((float)troopcount * item.BaseTroopsModifier);
+        }
+        foreach (var item in nation.NationModifier)
         {
             if(item == null)
             {
@@ -236,7 +274,7 @@ public class Province
         {
             RPC.GetComponent<RpcTest>().SendCityUpdateServerRpc(name, nation.name, troops);
         }
-        UIElement.NationHost.UpdateTitle(Mapshower.Instance.SelectedProvince.troops.ToString());
+        UIElement.ProvinceHost.Updatethird(Mapshower.Instance.SelectedProvince.troops.ToString());
     }
     public void UpdatePopulation()
     {
@@ -269,7 +307,59 @@ public class Nation
     public List<GameObject> armies;
     // public List<Nation> Enemies;
     public Faction faction;
+    public List<ProvinceModifier> NationModifier = new List<ProvinceModifier>();
 
+    public void AddModifier(ProvinceModifier moddie)
+    {
+        NationModifier.Add(moddie);
+    }
+    public int GrabMaxTroops()
+    {
+        int troopcount = 0;
+        foreach (var item in NationModifier)
+        {
+            if(item == null)
+            {
+                continue;
+            }
+            troopcount += item.BaseTroops;
+        }
+        foreach (var item in NationModifier)
+        {
+            if(item == null)
+            {
+                continue;
+            }
+            troopcount = (int)((float)troopcount * item.BaseTroopsModifier);
+        }
+        return troopcount;
+    }
+    public int GrabDefensiveDice()
+    {
+        int dice = 0;
+        foreach (var item in NationModifier)
+        {
+            if(item == null)
+            {
+                continue;
+            }
+            dice += item.DefensiveDice;
+        }
+        return dice;
+    }
+    public int GrabOffensiveDice()
+    {
+        int dice = 0;
+        foreach (var item in NationModifier)
+        {
+            if(item == null)
+            {
+                continue;
+            }
+            dice += item.OffensiveDice;
+        }
+        return dice;
+    }
     public void AddManpower(int Manpower)
     {
         manpower += Manpower;

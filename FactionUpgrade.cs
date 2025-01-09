@@ -34,7 +34,7 @@ public class FactionUpgrade : MonoBehaviour
             //SessionManager.Instance.HostFaction.UpgradeBarracks();
             if(Mapshower.Instance.SelectedProvince.troops > 10)
             {
-                Mapshower.Instance.SelectedProvince.troops -= 10;
+                Mapshower.Instance.SelectedProvince.AddTroops(-10);
                 ProvinceModifier moddie = new ProvinceModifier();
                 moddie.BaseTroops = 5;
                 Mapshower.Instance.SelectedProvince.AddModifier(moddie);
@@ -44,7 +44,7 @@ public class FactionUpgrade : MonoBehaviour
         {
             if(Mapshower.Instance.SelectedProvince.troops > 10)
             {
-                Mapshower.Instance.SelectedProvince.troops -= 10;
+                Mapshower.Instance.SelectedProvince.AddTroops(-10);
                 ProvinceModifier moddie = new ProvinceModifier();
                 moddie.DefensiveDice = 1;
                 Mapshower.Instance.SelectedProvince.AddModifier(moddie);
@@ -56,7 +56,7 @@ public class FactionUpgrade : MonoBehaviour
         {
             if(Mapshower.Instance.SelectedProvince.troops > 10)
             {
-                Mapshower.Instance.SelectedProvince.troops -= 10;
+                Mapshower.Instance.SelectedProvince.AddTroops(-10);
                 ProvinceModifier moddie = new ProvinceModifier();
                 moddie.BonusSpawns = 1;
                 Mapshower.Instance.SelectedProvince.AddModifier(moddie);

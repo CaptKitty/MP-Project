@@ -64,7 +64,7 @@ public class ArmyMovement : MonoBehaviour
     {
         Province relevantprovince = Owners.Instance.provincelist.Find(x => x.name == province);
         
-        int ArmyDice = Random.Range(0, MaxDice());
+        int ArmyDice = Random.Range(0, MaxDice()+Owners.Instance.nationlist.Find(x => x.name == nation).GrabOffensiveDice());
         int ProvinceDice = Random.Range(0, relevantprovince.MaxDice()) + relevantprovince.GrabDefensiveDice();
 
         if(ArmyDice !< ProvinceDice)

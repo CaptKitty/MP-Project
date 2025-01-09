@@ -381,10 +381,15 @@ public class Mapshower : MonoBehaviour
                 {
                     //Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
                     SelectedNation = province.nation;
-                    UIElement.NationHost.UpdateTitle(province.troops.ToString());//province.nation.name);
+                    //province.nation.name);
+                    UIElement.NationHost.UpdateTitle(province.nation.name);
+                    UIElement.NationHost.UpdateDescription(province.nation);
+                    
 
                     SelectedProvince = province;
                     UIElement.ProvinceHost.UpdateTitle(province.name);
+                    UIElement.ProvinceHost.UpdateDescription(province);
+                    UIElement.ProvinceHost.Updatethird(province.troops.ToString());
                     
                     // if(!province.nation.IsPlayer)
                     // {

@@ -428,18 +428,25 @@ public class Mapshower : MonoBehaviour
     }
     public void SendTroops(string origin, string target, string owner, int numero, int count)
     {
+        if(count < 1)
+        {
+            return;
+        }
         GameObject potato = Resources.Load<GameObject>("Prefabs/Map_Farmer");
         GameObject tomato = Instantiate(potato, transform.GetChild(2));//
         Vector2 location = Owners.Instance.provincelist.Find(x => x.name == origin).position;
         location = new Vector2(location.x-366,location.y-218);
         tomato.transform.position = location;
         location = Owners.Instance.provincelist.Find(x => x.name == target).position;
-        location = new Vector2(location.x-366,location.y-218);
+        location = new Vector2(location.x-366+20,location.y-218);
         tomato.GetComponent<ArmyMovement>().target = location;
         tomato.GetComponent<ArmyMovement>().province = target;
         tomato.GetComponent<ArmyMovement>().nation = owner;
         tomato.GetComponent<ArmyMovement>().troops = count;
         tomato.GetComponent<ArmyMovement>().name = numero.ToString();
+        var nation = Owners.Instance.nationlist.Find(x => x.name == owner);
+        tomato.transform.GetComponent<Image>().color = new Color32(nation.ownerIdentity.r, nation.ownerIdentity.g, nation.ownerIdentity.b, 255);
+        tomato.GetComponent<ArmyMovement>().SetTroopsMarker();
         tomato.name = numero.ToString();
         //Owners.Instance.provincelist.Find(x => x.name == origin).troops -=;
         if(Owners.Instance.nationlist.Find(x => x.name == owner).IsPlayer)
@@ -450,6 +457,10 @@ public class Mapshower : MonoBehaviour
     public void ChangeProvinceOwner(string province, string owner)
     {
         Owners.Instance.provincelist.Find(x => x.name == province).nation = Owners.Instance.nationlist.Find(x => x.name == owner);
+        if(Owners.Instance.provincelist.Find(x => x.name == province).Drafty != null)
+        {
+            Owners.Instance.provincelist.Find(x => x.name == province).Drafty.transform.GetComponent<Image>().color = new Color32(Owners.Instance.nationlist.Find(x => x.name == owner).ownerIdentity.r, Owners.Instance.nationlist.Find(x => x.name == owner).ownerIdentity.g, Owners.Instance.nationlist.Find(x => x.name == owner).ownerIdentity.b, 255);
+        }
         RePaint();
     }
     public void DevProvince()

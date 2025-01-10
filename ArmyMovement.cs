@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ArmyMovement : MonoBehaviour
 {
@@ -14,6 +15,8 @@ public class ArmyMovement : MonoBehaviour
     void Start()
     {
         Owners.Instance.armylist.Add(this.gameObject);
+        transform.GetChild(0).GetChild(0).GetComponent<Text>().text = troops.ToString();
+        SetTroopsMarker();
     }
     void FixedUpdate()
     {
@@ -70,6 +73,12 @@ public class ArmyMovement : MonoBehaviour
         if(ArmyDice !< ProvinceDice)
         {
             troops -= 1;
+            //transform.GetChild(0).GetChild(0).GetComponent<Text>().text = troops.ToString();
+            SetTroopsMarker();
+            foreach (var RPC in TestRelay.Instance.PlayerObjects)
+            {
+                RPC.GetComponent<RpcTest>().UpdateTroopsServerRpc(name);
+            }
             if(troops < 1)
             {
                 Die();
@@ -84,6 +93,10 @@ public class ArmyMovement : MonoBehaviour
                 Victory();
             }
         }
+    }
+    public void SetTroopsMarker()
+    {
+        transform.GetChild(0).GetChild(0).GetComponent<Text>().text = troops.ToString();
     }
     public void Victory()
     {

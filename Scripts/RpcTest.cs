@@ -35,6 +35,10 @@ public class RpcTest : NetworkBehaviour
         //     }
         // }
     }
+    public void OnDisable()
+    {
+        TestRelay.Instance.PlayerObjects.Remove(this.gameObject);
+    }
     public bool ServerCheck()
     {
         if(IsServer)
@@ -60,7 +64,7 @@ public class RpcTest : NetworkBehaviour
 
     public void HandleUpdate()
     {
-        Owners.Instance.HandleMovement();
+        
         //Everyone is the Server's bitch.
         if(IsServer)
         {
@@ -76,11 +80,27 @@ public class RpcTest : NetworkBehaviour
 
         Mapshower.Instance.ChangeProvinceOwner(provincename, nationname);
         Owners.Instance.provincelist.Find(x => x.name == provincename).troops = troops;
+        Owners.Instance.provincelist.Find(x => x.name == provincename).SetTroopsMarker();
+    }
+    [Rpc(SendTo.ClientsAndHost)]
+    public void UpdateTroopsMovementServerRpc()
+    {
+        Owners.Instance.HandleMovement();
+    }
+    [Rpc(SendTo.ClientsAndHost)]
+    public void UpdateTroopsServerRpc(string name)
+    {
+        Owners.Instance.UpdateCount(name);
     }
     [Rpc(SendTo.ClientsAndHost)]
     public void KillTroopsServerRpc(string name)
     {
         Owners.Instance.Kill(name);
+    }
+    [Rpc(SendTo.ClientsAndHost)]
+    public void SetSecondsPerTurnServerRpc(float time)
+    {
+        Owners.Instance.TimeScale = time;
     }
 
 

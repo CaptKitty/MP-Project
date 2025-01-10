@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.Events;
 
 public class Owners : MonoBehaviour
@@ -16,6 +17,9 @@ public class Owners : MonoBehaviour
     public Dictionary<Color32, Province> provincedictcolor;
     public List<GameObject> armylist = new List<GameObject>();
     private float timer;
+    public int Turn = 0;
+    //How Long does a Turn last ingame?
+    public float TimeScale = 1f;
     // public List<Province> provincelists;
 
     // Start is called before the first frame update
@@ -91,19 +95,34 @@ public class Owners : MonoBehaviour
         return culturedict[culturename];
     }
 
-    void FixedUpdate()
+    void Update()
+    {
+        if(timer <= Time.time)
+        {
+            timer = Time.time + (TimeScale / 50);
+            // foreach (var RPC in TestRelay.Instance.PlayerObjects)
+            // {
+            //     RPC.GetComponent<RpcTest>().HandleUpdate();
+            // }
+            if(RpcTest.Serverchecker.IsServer)
+            {
+                ServerUpdateHandler();
+            }
+        }
+    }
+    public void SetTime(float time)
     {
         foreach (var RPC in TestRelay.Instance.PlayerObjects)
         {
-            RPC.GetComponent<RpcTest>().HandleUpdate();
+            RPC.GetComponent<RpcTest>().SetSecondsPerTurnServerRpc(time);
         }
     }
 
     public void ServerUpdateHandler()
     {
-        if(Time.time > timer)
+        Turn++;
+        if(Turn % 250 == 0) //OncePerFiveSeconds
         {
-            timer = Time.time + 5;
             foreach(var a in provincelist)
             {
                 if(a.troops < a.GrabMaxTroops())
@@ -130,6 +149,10 @@ public class Owners : MonoBehaviour
         {
             armylist.Remove(a);
         }
+        foreach (var RPC in TestRelay.Instance.PlayerObjects)
+        {
+            RPC.GetComponent<RpcTest>().UpdateTroopsMovementServerRpc();
+        }
     }
     public void HandleMovement()
     {
@@ -138,6 +161,19 @@ public class Owners : MonoBehaviour
             if(a != null)
             {
                 a.GetComponent<ArmyMovement>().Movement();
+            }
+        }
+    }
+    public void UpdateCount(string armyname)
+    {
+        foreach(var a in armylist)
+        {
+            if(a != null)
+            {
+                if(a.name == armyname)
+                {
+                    a.GetComponent<ArmyMovement>().SetTroopsMarker();
+                }              
             }
         }
     }
@@ -153,7 +189,6 @@ public class Owners : MonoBehaviour
                 }              
             }
         }
-
     }
 }
 [System.Serializable]
@@ -173,6 +208,7 @@ public class Province
     public int levypercentage;
     public int unrest;
     public List<ProvinceModifier> provincemodifiers = new List<ProvinceModifier>();
+    public GameObject Drafty = null;
     
     public void AddModifier(ProvinceModifier moddie)
     {
@@ -275,6 +311,25 @@ public class Province
             RPC.GetComponent<RpcTest>().SendCityUpdateServerRpc(name, nation.name, troops);
         }
         UIElement.ProvinceHost.Updatethird(Mapshower.Instance.SelectedProvince.troops.ToString());
+    }
+    public void SetTroopsMarker()
+    {
+        if(Drafty == null)
+        {
+            GameObject potato = Resources.Load<GameObject>("Prefabs/Map_Farmer");
+            GameObject Corn = Owners.Instance.gameObject;
+            GameObject tomato = GameObject.Instantiate(potato, GameObject.Find("Map").transform.GetChild(2));
+            Vector2 location = position;
+            location = new Vector2(location.x-366,location.y-218);
+            tomato.transform.position = location;
+            tomato.name = troops.ToString();
+            tomato.transform.GetChild(0).GetChild(0).GetComponent<Text>().text = troops.ToString();
+            tomato.transform.GetComponent<Image>().color = new Color32(nation.ownerIdentity.r, nation.ownerIdentity.g, nation.ownerIdentity.b, 255);
+
+            GameObject.Destroy(tomato.GetComponent<ArmyMovement>());
+            Drafty = tomato;
+        }
+        Drafty.transform.GetChild(0).GetChild(0).GetComponent<Text>().text = troops.ToString();
     }
     public void UpdatePopulation()
     {

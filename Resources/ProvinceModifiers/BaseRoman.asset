@@ -15,5 +15,5 @@ MonoBehaviour:
   BaseTroops: 0
   BaseTroopsModifier: 1
   DefensiveDice: 0
-  OffensiveDice: 1
+  OffensiveDice: 0
   BonusSpawns: 0

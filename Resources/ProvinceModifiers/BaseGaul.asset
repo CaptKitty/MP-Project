@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 371e36551f492094fba994c54c088602, type: 3}
   m_Name: BaseGaul
   m_EditorClassIdentifier: 
-  BaseTroops: 5
+  BaseTroops: 0
   BaseTroopsModifier: 1
   DefensiveDice: 0
   OffensiveDice: 0

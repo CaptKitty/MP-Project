@@ -73,6 +73,11 @@ public class RpcTest : NetworkBehaviour
         }
     }
     [Rpc(SendTo.ClientsAndHost)]
+    public void AddProvinceModifierServerRpc(string modifiername, string provincename)
+    {
+        Owners.Instance.provincelist.Find(x => x.name == provincename).AddLocalModifier(modifiername);
+    }
+    [Rpc(SendTo.ClientsAndHost)]
     public void SendCityUpdateServerRpc(string provincename, string nationname, int troops)
     {
         //Owners.Instance.provincedict[provincename].nation = Owners.Instance.nationdict[nationname];

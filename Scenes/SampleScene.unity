@@ -1210,6 +1210,7 @@ MonoBehaviour:
     levypercentage: 0
     unrest: 0
     provincemodifiers: []
+    Drafty: {fileID: 0}
   BattleStatus: None
   Campaign: 0
   CampaignLevel: 1

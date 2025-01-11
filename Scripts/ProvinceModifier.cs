@@ -6,6 +6,7 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "ProvinceModifier")]
 public class ProvinceModifier : ScriptableObject
 {
+    public string description = "";
     public int BaseTroops = 0; //GrowthCaph
     public float BaseTroopsModifier = 1; //GrowthCaphModifier
     public int DefensiveDice = 0; //D6+x on defence

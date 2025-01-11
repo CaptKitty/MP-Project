@@ -212,7 +212,26 @@ public class Province
     
     public void AddModifier(ProvinceModifier moddie)
     {
-        provincemodifiers.Add(moddie);
+        //provincemodifiers.Add(moddie);
+        foreach (var RPC in TestRelay.Instance.PlayerObjects)
+        {
+            RPC.GetComponent<RpcTest>().AddProvinceModifierServerRpc(moddie.name, name);
+        }
+        UIElement.ProvinceHost.UpdateDescription(this);
+    }
+    public void AddTroops(int a)
+    {
+        troops += a;
+        foreach (var RPC in TestRelay.Instance.PlayerObjects)
+        {
+            RPC.GetComponent<RpcTest>().SendCityUpdateServerRpc(name, nation.name, troops);
+        }
+        UIElement.ProvinceHost.Updatethird(Mapshower.Instance.SelectedProvince.troops.ToString());
+    }
+    public void AddLocalModifier(string moddie)
+    {
+        var modi = Resources.Load<ProvinceModifier>("Prefabs/Modifiers/" + moddie);
+        provincemodifiers.Add(modi);
         UIElement.ProvinceHost.UpdateDescription(this);
     }
     public int MaxDice()
@@ -303,15 +322,7 @@ public class Province
         }
         return recruitcount;
     }
-    public void AddTroops(int a)
-    {
-        troops += a;
-        foreach (var RPC in TestRelay.Instance.PlayerObjects)
-        {
-            RPC.GetComponent<RpcTest>().SendCityUpdateServerRpc(name, nation.name, troops);
-        }
-        UIElement.ProvinceHost.Updatethird(Mapshower.Instance.SelectedProvince.troops.ToString());
-    }
+
     public void SetTroopsMarker()
     {
         if(Drafty == null)

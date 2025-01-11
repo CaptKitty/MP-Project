@@ -415,6 +415,33 @@ public class Nation
         }
         return dice;
     }
+    public float GrabSpeedModifier()
+    {
+        float speed = 1;
+        foreach (var item in NationModifier)
+        {
+            if(item == null)
+            {
+                continue;
+            }
+            speed = speed * item.SpeedModifier;
+        }
+        return speed;
+    }
+    public int GrabCombatWidth()
+    {
+        int CombatWidth = 0;
+        foreach (var item in NationModifier)
+        {
+            if(item == null)
+            {
+                continue;
+            }
+            CombatWidth += item.BonusCombatWidth;
+        }
+        return CombatWidth;
+    }
+    
     public void AddManpower(int Manpower)
     {
         manpower += Manpower;

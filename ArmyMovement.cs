@@ -7,6 +7,7 @@ public class ArmyMovement : MonoBehaviour
 {
     public string name;
     public Vector3 target = new Vector3();
+    public string origin;
     public string province;
     public string nation;
     public int troops;
@@ -28,14 +29,27 @@ public class ArmyMovement : MonoBehaviour
             RPC.GetComponent<RpcTest>().KillTroopsServerRpc(name);
         }
     }
+    public float TickDistance()
+    {
+        float a = Owners.Instance.nationlist.Find(x => x.name == nation).GrabSpeedModifier();
+        a = a * 0.35f;
+        return a;
+    }
     public void Movement()
     {
         var heading  = target - gameObject.transform.position;
         var distance = heading.magnitude;
         var direction = heading / distance;
-        if(direction != null)
+        if(distance < TickDistance())
         {
-            gameObject.transform.position += direction * 0.02f * 25f;
+            gameObject.transform.position = target;
+        }
+        else
+        {
+            if(direction != null)
+            {
+                gameObject.transform.position += direction * 0.02f * 25f * Owners.Instance.nationlist.Find(x => x.name == nation).GrabSpeedModifier();
+            }
         }
     }
     public void Fighty()
@@ -43,7 +57,7 @@ public class ArmyMovement : MonoBehaviour
         var heading  = target - gameObject.transform.position;
         var distance = heading.magnitude;
         var direction = heading / distance;
-        if(distance < 0.35f)
+        if(distance < TickDistance())
         {
             if(Time.time > timer)
             {
@@ -63,36 +77,56 @@ public class ArmyMovement : MonoBehaviour
     {
         return 6;
     }
+    public int GrabCombatWidth(int potato)
+    {
+        int CombatWidth = 1;
+        
+        int NationalBonusCombatWidth = Owners.Instance.nationlist.Find(x => x.name == nation).GrabCombatWidth();
+        int TroopBasedBonusCombatWidth = (potato/10);//AddProvinceStuff?
+
+        return CombatWidth + NationalBonusCombatWidth + TroopBasedBonusCombatWidth;
+    }
     public void Combat(string province)
     {
         Province relevantprovince = Owners.Instance.provincelist.Find(x => x.name == province);
         
-        int ArmyDice = Random.Range(0, MaxDice()+Owners.Instance.nationlist.Find(x => x.name == nation).GrabOffensiveDice());
-        int ProvinceDice = Random.Range(0, relevantprovince.MaxDice()) + relevantprovince.GrabDefensiveDice();
+        
+        int a = GrabCombatWidth(troops);
 
-        if(ArmyDice !< ProvinceDice)
+        try
         {
-            troops -= 1;
-            //transform.GetChild(0).GetChild(0).GetComponent<Text>().text = troops.ToString();
-            SetTroopsMarker();
-            foreach (var RPC in TestRelay.Instance.PlayerObjects)
+            for (int i = 0; i < a; i++)
             {
-                RPC.GetComponent<RpcTest>().UpdateTroopsServerRpc(name);
-            }
-            if(troops < 1)
-            {
-                Die();
-                return;
+                int ArmyDice = Random.Range(0, MaxDice()+Owners.Instance.nationlist.Find(x => x.name == nation).GrabOffensiveDice());
+                int ProvinceDice = Random.Range(0, relevantprovince.MaxDice()) + relevantprovince.GrabDefensiveDice();
+                if(ArmyDice !< ProvinceDice)
+                {
+                    troops -= 1;
+                    //transform.GetChild(0).GetChild(0).GetComponent<Text>().text = troops.ToString();
+                    SetTroopsMarker();
+                    foreach (var RPC in TestRelay.Instance.PlayerObjects)
+                    {
+                        RPC.GetComponent<RpcTest>().UpdateTroopsServerRpc(name);
+                    }
+                    if(troops < 1)
+                    {
+                        Die();
+                        return;
+                    }
+                }
+                else
+                {
+                    relevantprovince.AddTroops(-1);
+                    if(relevantprovince.troops < 1)
+                    {
+                        Victory();
+                    }
+                }
             }
         }
-        else
-        {
-            relevantprovince.AddTroops(-1);
-            if(relevantprovince.troops < 1)
-            {
-                Victory();
-            }
-        }
+        catch{}
+        
+        
     }
     public void SetTroopsMarker()
     {

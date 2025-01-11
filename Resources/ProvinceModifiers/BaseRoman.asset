@@ -17,3 +17,4 @@ MonoBehaviour:
   DefensiveDice: 0
   OffensiveDice: 0
   BonusSpawns: 0
+  SpeedModifier: 1

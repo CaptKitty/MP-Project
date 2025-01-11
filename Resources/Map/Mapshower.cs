@@ -428,6 +428,37 @@ public class Mapshower : MonoBehaviour
     }
     public void SendTroops(string origin, string target, string owner, int numero, int count)
     {
+        foreach (var item in Owners.Instance.armylist)
+        {
+            if(item == null)
+            {
+                continue;
+            }
+            if(item.GetComponent<ArmyMovement>().province == target && item.GetComponent<ArmyMovement>().nation == owner && item.GetComponent<ArmyMovement>().origin == origin)
+            {
+                Vector3 OriginLocation = Owners.Instance.provincelist.Find(x => x.name == origin).position;
+                OriginLocation = new Vector2(OriginLocation.x-366,OriginLocation.y-218);
+
+                //var targetLocation = Owners.Instance.provincelist.Find(x => x.name == target).position;
+                //targetLocation = new Vector2(targetLocation.x-366+20,targetLocation.y-218);
+                
+                var heading  = OriginLocation - item.transform.position;
+                var distance = heading.magnitude;
+
+                if(distance < 100)
+                {
+                    item.GetComponent<ArmyMovement>().troops += count;
+                    item.GetComponent<ArmyMovement>().SetTroopsMarker();
+
+                    if(Owners.Instance.nationlist.Find(x => x.name == owner).IsPlayer)
+                    {
+                        Owners.Instance.provincelist.Find(x => x.name == origin).AddTroops(-count);
+                    }
+                    return;
+                }
+            }
+        }
+
         if(count < 1)
         {
             return;
@@ -439,6 +470,7 @@ public class Mapshower : MonoBehaviour
         tomato.transform.position = location;
         location = Owners.Instance.provincelist.Find(x => x.name == target).position;
         location = new Vector2(location.x-366+20,location.y-218);
+        tomato.GetComponent<ArmyMovement>().origin = origin;
         tomato.GetComponent<ArmyMovement>().target = location;
         tomato.GetComponent<ArmyMovement>().province = target;
         tomato.GetComponent<ArmyMovement>().nation = owner;

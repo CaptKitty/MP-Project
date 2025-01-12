@@ -7,6 +7,8 @@ using UnityEngine;
 public class ProvinceModifier : ScriptableObject
 {
     public string description = "";
+    public int Enddate = 0;
+
     public int BaseTroops = 0; //GrowthCaph
     public float BaseTroopsModifier = 1; //GrowthCaphModifier
     public int DefensiveDice = 0; //D6+x on defence
@@ -15,4 +17,9 @@ public class ProvinceModifier : ScriptableObject
 
     public int BonusCombatWidth = 0;
     public float SpeedModifier = 1;
+    
+    public ProvinceModifier Init()
+    {
+        return Instantiate(this);
+    }
 }

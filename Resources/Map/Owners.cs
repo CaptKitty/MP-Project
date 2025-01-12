@@ -130,8 +130,30 @@ public class Owners : MonoBehaviour
                     a.AddTroops(a.GrabTroopstoAdd());
                 }
             }
+            
             UIElement.ProvinceHost.Updatethird(Mapshower.Instance.SelectedProvince.troops.ToString());
         }
+        if(Turn % 50 == 0) //OncePerOneSecond
+        {
+            var ModifiersToRemove = new List<ProvinceModifier>();
+            foreach(var a in nationlist)
+            {
+                foreach (var aa in a.NationModifier)
+                {
+                    if(aa.Enddate != -1 && aa.Enddate < Turn)
+                    {
+                        ModifiersToRemove.Add(aa);
+                    }
+                }
+                foreach (var item in ModifiersToRemove)
+                {
+                    a.RemoveModifier(item);
+                }
+            }
+            
+            UIElement.ProvinceHost.Updatethird(Mapshower.Instance.SelectedProvince.troops.ToString());
+        }
+        
         var b = new List<GameObject>();
         foreach(var a in armylist)
         {
@@ -377,7 +399,32 @@ public class Nation
 
     public void AddModifier(ProvinceModifier moddie)
     {
-        NationModifier.Add(moddie);
+        foreach (var RPC in TestRelay.Instance.PlayerObjects)
+        {
+            RPC.GetComponent<RpcTest>().AddNationModifierServerRpc(moddie.name, name);
+        }
+    }
+    public void AddNationalModifier(string moddie)
+    {
+        var modi = Resources.Load<ProvinceModifier>("Prefabs/Modifiers/" + moddie);
+        modi = modi.Init();
+        if(modi.Enddate != -1)
+        {
+            modi.Enddate = Owners.Instance.Turn + modi.Enddate;
+        }
+        NationModifier.Add(modi);
+    }
+    public void RemoveModifier(ProvinceModifier moddie)
+    {
+        foreach (var RPC in TestRelay.Instance.PlayerObjects)
+        {
+            RPC.GetComponent<RpcTest>().RemoveNationModifierServerRpc(moddie.name, name);
+        }
+    }
+    public void RemoveNationalModifier(string moddie)
+    {
+        var modi = NationModifier.Find(x => x.name == moddie);
+        NationModifier.Remove(modi);
     }
     public int GrabMaxTroops()
     {

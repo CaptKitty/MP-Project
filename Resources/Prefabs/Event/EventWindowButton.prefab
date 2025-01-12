@@ -271,7 +271,7 @@ MonoBehaviour:
   skills: 0
   resize: 0
   resizesize: {x: 0, y: 0}
-  positions: {x: 300, y: -300, z: 0}
+  positions: {x: 400, y: -300, z: 0}
 --- !u!1 &395734321489070894
 GameObject:
   m_ObjectHideFlags: 0

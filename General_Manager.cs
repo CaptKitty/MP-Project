@@ -37,10 +37,7 @@ public class General_Manager : MonoBehaviour
             catch{}
             foreach (var items in item.EffectList)
             {
-                if(items.province == "")
-                {
-                    items.GrabRandomProvince();
-                }
+                items.GrabRandomTarget();
             }
         }
 

@@ -9,15 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 371e36551f492094fba994c54c088602, type: 3}
-  m_Name: Troopius Maximus
+  m_Script: {fileID: 11500000, guid: a07c311a23092b44aa188894176714ce, type: 3}
+  m_Name: Add SacrificeToBaal
   m_EditorClassIdentifier: 
-  description: +5 Local Spawns
-  Enddate: -1
-  BaseTroops: 0
-  BaseTroopsModifier: 1
-  DefensiveDice: 0
-  OffensiveDice: 0
-  BonusSpawns: 5
-  BonusCombatWidth: 0
-  SpeedModifier: 1
+  tooltip: Add <modifier> to <nation>
+  province: 
+  nation: Carthage
+  Modifier: {fileID: 11400000, guid: c6bceab9ee80cf84799032a963bf8ffe, type: 2}

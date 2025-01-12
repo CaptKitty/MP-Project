@@ -23,13 +23,13 @@ public class EventHolder : MonoBehaviour
             GameObject NewButton = Instantiate(Resources.Load<GameObject>("Prefabs/Event/EventWindowButton"));
             NewButton.transform.SetParent(this.transform);
             NewButton.GetComponent<OptionHolder>().thisoption = Option;
-            NewButton.transform.position = new Vector2(0, -175 + 50 * i);//new Vector2(200 * i, -300);
+            NewButton.transform.position = new Vector2(0, -165 + 50 * i);//new Vector2(200 * i, -300);
             NewButton.transform.GetChild(0).GetComponent<Text>().text = Option.Message;
             NewButton.GetComponent<Tooltip>().message = Option.Tooltip;
                      
             foreach (var item in Option.EffectList)
             {
-                NewButton.GetComponent<Tooltip>().message += "\n" + item.GrabTooltip();
+                NewButton.GetComponent<Tooltip>().message += item.GrabTooltip() + "\n";
             }
 
             // if(Option.trigger != null)

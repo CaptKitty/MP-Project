@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dea672753d962b246854a2a9bec122de, type: 3}
   m_Name: PotatoTime
   m_EditorClassIdentifier: 
-  Title: Generous Dev
-  Message: Praise Jay?
+  Title: Test Event
+  Message: To test or not to test, that is the question.
   trigger: {fileID: 0}
   HasTriggered: 0
   initialOption:
@@ -22,12 +22,15 @@ MonoBehaviour:
     trigger: {fileID: 0}
     EffectList: []
   OptionList:
-  - Message: Praise Jay!
+  - Message: Praise Tests!
     Tooltip: 
     trigger: {fileID: 0}
     EffectList:
     - {fileID: 11400000, guid: 365790f30794655428061e6336002679, type: 2}
-  - Message: No devs, no masters!
+    - {fileID: 11400000, guid: c36828c703217144abef28ed4d81cb43, type: 2}
+  - Message: No tests, no masters!
     Tooltip: 
     trigger: {fileID: 0}
-    EffectList: []
+    EffectList:
+    - {fileID: 11400000, guid: 8251197134dd8cd41a46940a18eb4fb3, type: 2}
+    - {fileID: 11400000, guid: 96c629379cc4b844c8b73ca25362f7fb, type: 2}

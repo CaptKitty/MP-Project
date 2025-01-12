@@ -11,19 +11,20 @@ public class BaseEffect : ScriptableObject
     public string province = ""; 
     public string nation = ""; 
     public virtual void Execute(){}
-    public virtual void GrabRandomProvince(string ownernation = "")
+    public virtual void GrabRandomNation(string ownernation = "")
     {
         if(ownernation == "")
         {
-            province = Owners.Instance.provincelist[Random.Range(0,Owners.Instance.provincelist.Count)].name;
+            nation = Owners.Instance.nationlist[Random.Range(0,Owners.Instance.nationlist.Count)].name;
         }
     }
-    public virtual void GrabRandomNation(){}
+    public virtual void GrabRandomTarget(){}
     public virtual string GrabTooltip()
     {
         string newstring = tooltip;
         newstring = Regex.Replace(newstring, "<province>", province);
-        newstring = Regex.Replace(newstring, "<nation>", nation); 
+        newstring = Regex.Replace(newstring, "<nation>", nation);
+
         return newstring;
     }
 }

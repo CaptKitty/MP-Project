@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 371e36551f492094fba994c54c088602, type: 3}
-  m_Name: Troopius Maximus
+  m_Name: Sacrifices to Baal
   m_EditorClassIdentifier: 
-  description: +5 Local Spawns
+  description: -1 Troop Capacity
   Enddate: -1
-  BaseTroops: 0
+  BaseTroops: -1
   BaseTroopsModifier: 1
   DefensiveDice: 0
   OffensiveDice: 0
-  BonusSpawns: 5
+  BonusSpawns: 0
   BonusCombatWidth: 0
   SpeedModifier: 1

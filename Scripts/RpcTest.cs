@@ -5,6 +5,7 @@ using Unity.Services.Authentication;
 public class RpcTest : NetworkBehaviour
 {
     public static RpcTest Serverchecker;
+    public string PlayerNation;
     public override void OnNetworkSpawn()
     {
         if (!IsServer && IsOwner) //Only send an RPC to the server from the client that owns the NetworkObject of this NetworkBehaviour instance
@@ -34,6 +35,16 @@ public class RpcTest : NetworkBehaviour
         //         UpdateCritters();
         //     }
         // }
+        string a = SessionManager.Instance.HostFaction.name;
+        //a -= "(Clone)";
+        a = a.Remove(a.Length-7);
+        PlayerNation = a;
+        
+        //Debug.LogError(IsLocalPlayer + " + " + NetworkObjectId.ToString());
+        if(IsLocalPlayer)
+        {
+            SetCountryRpc(NetworkObjectId, a);
+        }
     }
     public void OnDisable()
     {
@@ -51,7 +62,7 @@ public class RpcTest : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     void ClientAndHostRpc(int value, ulong sourceNetworkObjectId)
     {
-        Debug.Log($"Client Received the RPC #{value} on NetworkObject #{sourceNetworkObjectId}");
+        //Debug.Log($"Client Received the RPC #{value} on NetworkObject #{sourceNetworkObjectId}");
         
         // SendYourCritterRpc(Manager2.Instance.critterslist[0].NutritionAmount, Manager2.Instance.critterslist[0].Actions);
         // SendYourCritterRpc(Manager2.Instance.critterslist[1].NutritionAmount, Manager2.Instance.critterslist[1].Actions);
@@ -69,7 +80,6 @@ public class RpcTest : NetworkBehaviour
         if(IsServer)
         {
             Owners.Instance.ServerUpdateHandler();
-            //SendUpdateServerRpc();
         }
     }
     [Rpc(SendTo.ClientsAndHost)]
@@ -118,33 +128,66 @@ public class RpcTest : NetworkBehaviour
         Owners.Instance.TimeScale = time;
     }
 
-
-    public void SendTroops(string origin, string province, string owner)
+    [Rpc(SendTo.Server)]
+    public void SetCountryRpc(ulong ID, string playernation)
+    {
+        //Debug.Log(ID);
+        foreach (var RPC in TestRelay.Instance.PlayerObjects)
+        {
+            //Debug.Log(RPC.GetComponent<NetworkObject>().NetworkObjectId);
+            if(RPC.GetComponent<NetworkObject>().NetworkObjectId == ID)// && RPC.GetComponent<RpcTest>().IsLocalPlayer)
+            {
+                //Debug.Log("ID is: " + ID + ", objectID is: " + RPC.GetComponent<NetworkObject>().NetworkObjectId + ", Nation is " + playernation + ", Objectname is " + RPC.name);
+                RPC.GetComponent<RpcTest>().PlayerNation = playernation;
+            }
+        }
+    }
+    [Rpc(SendTo.ClientsAndHost)]
+    public void SetEventRpc(string name, string nation)
+    {
+        General_Manager.Instance.TriggerEvent(name, nation, Fixed:true);
+    }
+    [Rpc(SendTo.ClientsAndHost)]
+    public void SendEffectToLoadListRpc(string Effecttype = null, string targetnation = null, string originnation = null, string bonusdata = null, string bonusdata2 = null, string bonusdata3 = null)
+    {
+        General_Manager.Instance.DownLoadedEventData.Add(General_Manager.Instance.TranslateDataIntoEffects(Effecttype, targetnation, originnation, bonusdata, bonusdata2, bonusdata3));
+    }
+    [Rpc(SendTo.ClientsAndHost)]
+    public void SendDynamicEventToExecuteRpc(string Title = null, string Description = null, string Option = null, string targetnation = null, string originnation = null, string bonusdata = null, string bonusdata2 = null, string bonusdata3 = null)
+    {
+        General_Manager.Instance.ExecuteEventData(Title, Description, Option, targetnation, originnation, bonusdata, bonusdata2, bonusdata3);
+    }
+    public void SendTroops(string origin, string province, string owner, int troopcount = 0, bool SpawnNewArmy = false)
     {
         int a = Random.Range(0,1000000);
                 
         int b = Owners.Instance.provincelist.Find(x => x.name == origin).troops;
         int count = b/2;
+        if(troopcount != 0)
+        {
+            count = troopcount;
+        }
+        
         if(IsServer)
         {
-            SendSendTroopsServerRpc(origin, province, owner, a, count);
+            SendSendTroopsServerRpc(origin, province, owner, a, count, SpawnNewArmy:SpawnNewArmy);
         }
         else
         {
-            SendSendTroopsServerRpc(origin, province, owner, a, count);
+            SendSendTroopsServerRpc(origin, province, owner, a, count, SpawnNewArmy:SpawnNewArmy);
             //SendSendTroopsClientRpc(origin, province, owner, a);
         }
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    void SendSendTroopsServerRpc(string origin, string province, string owner, int a, int count)
+    void SendSendTroopsServerRpc(string origin, string province, string owner, int a, int count, bool SpawnNewArmy = false)
     {
-        Mapshower.Instance.SendTroops(origin, province, owner, a, count);
+        Mapshower.Instance.SendTroops(origin, province, owner, a, count, SpawnNewArmy:SpawnNewArmy);
     }
     [Rpc(SendTo.Server)]
-    void SendSendTroopsClientRpc(string origin, string province, string owner, int a, int count)
+    void SendSendTroopsClientRpc(string origin, string province, string owner, int a, int count, bool SpawnNewArmy = false)
     {
-        Mapshower.Instance.SendTroops(origin, province, owner, a, count);
+        Mapshower.Instance.SendTroops(origin, province, owner, a, count, SpawnNewArmy:SpawnNewArmy);
     }
 
     public void ChangeProvinceOwner(string province, string owner)
@@ -335,7 +378,7 @@ public class RpcTest : NetworkBehaviour
     [Rpc(SendTo.Server)]
     void ServerOnlyRpc(int value, ulong sourceNetworkObjectId)
     {
-        Debug.Log($"Server Received the RPC #{value} on NetworkObject #{sourceNetworkObjectId}");
+        //Debug.Log($"Server Received the RPC #{value} on NetworkObject #{sourceNetworkObjectId}");
 
         ClientAndHostRpc(value, sourceNetworkObjectId);
     }

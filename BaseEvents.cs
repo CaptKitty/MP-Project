@@ -13,7 +13,7 @@ public class BaseEvents :  ScriptableObject
     public BaseTrigger trigger; 
     public bool HasTriggered = false ;   
     public Option initialOption;
-    public List<Option> OptionList; 
+    public List<Option> OptionList = new List<Option>(); 
 }
 [System.Serializable]   
 public class Option 
@@ -21,5 +21,5 @@ public class Option
     public string Message;
     public string Tooltip;
     public BaseTrigger trigger;
-    public List<BaseEffect> EffectList;
+    public List<BaseEffect> EffectList = new List<BaseEffect>();
 }

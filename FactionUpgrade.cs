@@ -22,6 +22,39 @@ public class FactionUpgrade : MonoBehaviour
     }
     public void PressButton(string input)
     {
+        if(input.Contains("Allied"))
+        {
+            var a = Owners.Instance.CallPlayer();
+            a.SetDiplomaticStatus(Mapshower.Instance.SelectedProvince.nation.name, "ally");
+        }
+        if(input.Contains("Neutral"))
+        {
+            var a = Owners.Instance.CallPlayer();
+            a.SetDiplomaticStatus(Mapshower.Instance.SelectedProvince.nation.name, "peace");
+        }
+        if(input.Contains("Enemy"))
+        {
+            //We Declaring war boys
+            var a = Owners.Instance.CallPlayer();
+            a.SetDiplomaticStatus(Mapshower.Instance.SelectedProvince.nation.name, "war");
+            
+            SpawnDiplomaticEffect b = new SpawnDiplomaticEffect();
+            b.nation = Mapshower.Instance.SelectedProvince.nation.name;
+            b.othercountry = Owners.Instance.CallPlayer().name;
+            b.newstatus = "war";
+
+            if(TestRelay.Instance.PlayerObjects.Find(x => x.GetComponent<RpcTest>().PlayerNation == b.nation) == null)
+            {
+                BaseEvents potato = Instantiate(Resources.Load<BaseEvents>("Events/Declared War"));
+                potato.OptionList[0].EffectList[0] = b;
+                General_Manager.Instance.TriggerEvent(potato, Mapshower.Instance.SelectedProvince.nation.name);////);
+            }
+            else
+            {
+                TestRelay.Instance.PlayerObjects.Find(x => x.GetComponent<RpcTest>().PlayerNation == b.nation).GetComponent<RpcTest>().SendEffectToLoadListRpc("SpawnDiplomaticEffect", b.nation, b.othercountry, "war");
+                TestRelay.Instance.PlayerObjects.Find(x => x.GetComponent<RpcTest>().PlayerNation == b.nation).GetComponent<RpcTest>().SendDynamicEventToExecuteRpc(Title: "Potato", Description: "FuckYouThatsWhy", Option: "No u", targetnation: b.nation, bonusdata: "Rome Declares war on Gaul");
+            }
+        }
         if(input.Contains("Upgrade"))
         {
             Upgrade(input);

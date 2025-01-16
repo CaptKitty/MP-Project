@@ -81,7 +81,11 @@ public class Tooltip : MonoBehaviour
 
     void OnMouseExit()
     {
-        ToolTipManager._instance.HideToolTip();
+        try
+        {
+            ToolTipManager._instance.HideToolTip();
+        }
+        catch{};
         return;
         if(ToolTipManager._instance)
         {

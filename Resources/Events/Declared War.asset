@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dea672753d962b246854a2a9bec122de, type: 3}
+  m_Name: Declared War
+  m_EditorClassIdentifier: 
+  Title: War!!!!
+  Message: You got declared on bitch.
+  trigger: {fileID: 11400000, guid: 7ce7f2a0ea4050842ac516b0bbd7b0f8, type: 2}
+  HasTriggered: 0
+  initialOption:
+    Message: 
+    Tooltip: 
+    trigger: {fileID: 0}
+    EffectList: []
+  OptionList:
+  - Message: Oh no
+    Tooltip: 
+    trigger: {fileID: 0}
+    EffectList:
+    - {fileID: 11400000, guid: ae523c75967bd824ba7aca9b8c274e37, type: 2}

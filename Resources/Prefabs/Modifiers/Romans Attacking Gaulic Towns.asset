@@ -9,17 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 371e36551f492094fba994c54c088602, type: 3}
-  m_Name: BaseGaul
+  m_Script: {fileID: 11500000, guid: 8f9d2f8568ff2f5419274fd0fd50cc07, type: 3}
+  m_Name: Romans Attacking Gaulic Towns
   m_EditorClassIdentifier: 
-  description: 
-  Enddate: -1
-  BaseTroops: 0
-  BaseTroopsModifier: 1
-  DefensiveDice: 0
-  OffensiveDice: 0
-  OrderDice: 0
-  ChaosDice: 0
-  BonusSpawns: 0
-  BonusCombatWidth: 0
-  SpeedModifier: 1
+  tooltip: Spawn <troopcount> Rebels of <homecountry> origin in <province>.
+  province: 
+  nation: Gaul
+  HomeCountry: Rome
+  troopcount: 5
+  PlayerNation: 0

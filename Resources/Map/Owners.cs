@@ -99,16 +99,21 @@ public class Owners : MonoBehaviour
     {
         if(timer <= Time.time)
         {
-            timer = Time.time + (TimeScale / 50);
-            // foreach (var RPC in TestRelay.Instance.PlayerObjects)
-            // {
-            //     RPC.GetComponent<RpcTest>().HandleUpdate();
-            // }
-            if(RpcTest.Serverchecker.IsServer)
-            {
-                ServerUpdateHandler();
-            }
+            ExecuteUpdate();
         }
+    }
+    void ExecuteUpdate()
+    {
+        timer = Time.time + (TimeScale / 50);
+        // foreach (var RPC in TestRelay.Instance.PlayerObjects)
+        // {
+        //     RPC.GetComponent<RpcTest>().HandleUpdate();
+        // }
+        if(RpcTest.Serverchecker.IsServer)
+        {
+            ServerUpdateHandler();
+        }
+        
     }
     public void SetTime(float time)
     {
@@ -116,6 +121,7 @@ public class Owners : MonoBehaviour
         {
             RPC.GetComponent<RpcTest>().SetSecondsPerTurnServerRpc(time);
         }
+        ExecuteUpdate();
     }
 
     public void ServerUpdateHandler()
@@ -150,26 +156,24 @@ public class Owners : MonoBehaviour
                     a.RemoveModifier(item);
                 }
             }
-            
+
+            var b = new List<GameObject>();
+            foreach(var a in armylist)
+            {
+                if(a != null)
+                {
+                    a.GetComponent<ArmyMovement>().Fighty();
+                }
+                if(a == null)
+                {
+                    b.Add(a);
+                }
+            }
+            foreach(var a in b)
+            {
+                armylist.Remove(a);
+            }
             UIElement.ProvinceHost.Updatethird(Mapshower.Instance.SelectedProvince.troops.ToString());
-        }
-        
-        var b = new List<GameObject>();
-        foreach(var a in armylist)
-        {
-            if(a != null)
-            {
-                //a.GetComponent<ArmyMovement>().Movement();
-                a.GetComponent<ArmyMovement>().Fighty();
-            }
-            if(a == null)
-            {
-                b.Add(a);
-            }
-        }
-        foreach(var a in b)
-        {
-            armylist.Remove(a);
         }
         foreach (var RPC in TestRelay.Instance.PlayerObjects)
         {
@@ -382,6 +386,12 @@ public class Province
     }
 }
 [System.Serializable]
+public class Diplomacy
+{
+    public string othernation;
+    public string relationship = "peace";
+}
+[System.Serializable]
 public class Nation
 {
     public string name;
@@ -393,15 +403,64 @@ public class Nation
     public List<Armor> unlockedarmor;
     public List<Regiment> regimentdesigns;
     public List<GameObject> armies;
-    // public List<Nation> Enemies;
+    public List<Diplomacy> Diplomacystuff = new List<Diplomacy>();
     public Faction faction;
     public List<ProvinceModifier> NationModifier = new List<ProvinceModifier>();
+
+    public bool CanIDoThis(string othernation, string goal = "movement")
+    {
+        string status = GrabDiplomaticStatus(othernation);
+        if(status == "literallyme")
+        {
+            return true;
+        }
+        if(status == "peace")
+        {
+            //SetDiplomaticStatus(othernation,"war");
+            
+
+
+            //General_Manager.Instance.TriggerEvent("Declare War");
+            return false;
+        }
+        if(status == "war")
+        {
+            return true;
+        }
+        return false;
+    }
+    public string SetDiplomaticStatus(string othernation, string newstatus = "peace")
+    {
+        var b = GrabDiplomaticStatus(othernation);
+        var a = Diplomacystuff.Find(x => x.othernation == othernation);
+        a.relationship = newstatus;
+        return a.relationship;
+    }
+    public string GrabDiplomaticStatus(string othernation)
+    {
+        if(othernation == name)
+        {
+            return "literallyme";
+        }
+        var a = Diplomacystuff.Find(x => x.othernation == othernation);
+        if(a == null)
+        {
+            var b = new Diplomacy();
+            b.othernation = othernation;
+            Diplomacystuff.Add(b);
+            return b.relationship;
+        }
+        return a.relationship;
+    }
 
     public void AddModifier(ProvinceModifier moddie)
     {
         foreach (var RPC in TestRelay.Instance.PlayerObjects)
         {
-            RPC.GetComponent<RpcTest>().AddNationModifierServerRpc(moddie.name, name);
+            if(RPC.GetComponent<RpcTest>().IsLocalPlayer)
+            {
+                RPC.GetComponent<RpcTest>().AddNationModifierServerRpc(moddie.name, name);
+            }
         }
     }
     public void AddNationalModifier(string moddie)
@@ -470,6 +529,33 @@ public class Nation
                 continue;
             }
             dice += item.OffensiveDice;
+        }
+        return dice;
+    }
+    public int GrabTroopDice(int troops)
+    {
+        int dice = 0;
+        if(troops >= 10) //OrderTime
+        {
+            foreach (var item in NationModifier)
+            {
+                if(item == null)
+                {
+                    continue;
+                }
+                dice += item.OrderDice;
+            }
+        }
+        if(troops < 10) //ChaosTime
+        {
+            foreach (var item in NationModifier)
+            {
+                if(item == null)
+                {
+                    continue;
+                }
+                dice += item.ChaosDice;
+            }
         }
         return dice;
     }

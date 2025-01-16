@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dea672753d962b246854a2a9bec122de, type: 3}
-  m_Name: PotatoTime
+  m_Name: Declare War
   m_EditorClassIdentifier: 
-  Title: Test Event
-  Message: To test or not to test, that is the question.
+  Title: War?!
+  Message: Do you want to declare war on this nation?
   trigger: {fileID: 11400000, guid: 7ce7f2a0ea4050842ac516b0bbd7b0f8, type: 2}
   HasTriggered: 0
   initialOption:
@@ -22,20 +22,12 @@ MonoBehaviour:
     trigger: {fileID: 0}
     EffectList: []
   OptionList:
-  - Message: Praise Tests!
+  - Message: Yes
     Tooltip: 
     trigger: {fileID: 0}
     EffectList:
-    - {fileID: 11400000, guid: 365790f30794655428061e6336002679, type: 2}
-    - {fileID: 11400000, guid: c36828c703217144abef28ed4d81cb43, type: 2}
-  - Message: No tests, no masters!
+    - {fileID: 11400000, guid: e72e7d1f7ae21744a8771510b7ed029a, type: 2}
+  - Message: No
     Tooltip: 
     trigger: {fileID: 0}
-    EffectList:
-    - {fileID: 11400000, guid: 8251197134dd8cd41a46940a18eb4fb3, type: 2}
-    - {fileID: 11400000, guid: 96c629379cc4b844c8b73ca25362f7fb, type: 2}
-  - Message: No tests, no masters!
-    Tooltip: 
-    trigger: {fileID: 0}
-    EffectList:
-    - {fileID: 11400000, guid: 7155e379761d5224ab3eaf7b191c3290, type: 2}
+    EffectList: []

@@ -159,8 +159,9 @@ public class Mapshower : MonoBehaviour
     {
         if (Input.GetKeyDown("escape"))
         {
-            PopPaint();
-            //Application.Quit();
+            SceneManager.LoadScene("SampleScene");
+            //PopPaint();
+            ////Application.Quit();
         }
         if (Input.GetKey("q"))
         {
@@ -329,13 +330,18 @@ public class Mapshower : MonoBehaviour
                                 {
                                     if(DraggedProvince.nation.IsPlayer)
                                     {
-                                        foreach (var RPC in TestRelay.Instance.PlayerObjects)
+                                        //UnityEngine.Debug.Log(DraggedProvince.nation.GrabDiplomaticStatus(province.nation.name));
+                                        //string diplostatus = GrabDiplomaticStatus();
+                                        if(DraggedProvince.nation.CanIDoThis(province.nation.name))
                                         {
-                                            if(RPC.GetComponent<NetworkObject>().IsLocalPlayer)
+                                            foreach (var RPC in TestRelay.Instance.PlayerObjects)
                                             {
-                                                RPC.GetComponent<RpcTest>().SendTroops(DraggedProvince.name, province.name, DraggedProvince.nation.name);
+                                                if(RPC.GetComponent<NetworkObject>().IsLocalPlayer)
+                                                {
+                                                    RPC.GetComponent<RpcTest>().SendTroops(DraggedProvince.name, province.name, DraggedProvince.nation.name);
+                                                }
+                                                //RPC.GetComponent<RpcTest>().ChangeProvinceOwner(province.name, DraggedProvince.nation.name);
                                             }
-                                            //RPC.GetComponent<RpcTest>().ChangeProvinceOwner(province.name, DraggedProvince.nation.name);
                                         }
                                     }
                                 }
@@ -384,7 +390,7 @@ public class Mapshower : MonoBehaviour
                     //province.nation.name);
                     UIElement.NationHost.UpdateTitle(province.nation.name);
                     UIElement.NationHost.UpdateDescription(province.nation);
-                    
+                    UIElement.NationHost.Updatethird(Owners.Instance.CallPlayer().GrabDiplomaticStatus(province.nation.name));
 
                     SelectedProvince = province;
                     UIElement.ProvinceHost.UpdateTitle(province.name);
@@ -426,7 +432,7 @@ public class Mapshower : MonoBehaviour
         }
 
     }
-    public void SendTroops(string origin, string target, string owner, int numero, int count)
+    public void SendTroops(string origin, string target, string owner, int numero, int count, bool SpawnNewArmy = false)
     {
         foreach (var item in Owners.Instance.armylist)
         {
@@ -481,10 +487,14 @@ public class Mapshower : MonoBehaviour
         tomato.GetComponent<ArmyMovement>().SetTroopsMarker();
         tomato.name = numero.ToString();
         //Owners.Instance.provincelist.Find(x => x.name == origin).troops -=;
-        if(Owners.Instance.nationlist.Find(x => x.name == owner).IsPlayer)
+        if(!SpawnNewArmy)
         {
-            Owners.Instance.provincelist.Find(x => x.name == origin).AddTroops(-count);
+            if(Owners.Instance.nationlist.Find(x => x.name == owner).IsPlayer)
+            {
+                Owners.Instance.provincelist.Find(x => x.name == origin).AddTroops(-count);
+            }
         }
+        
     }
     public void ChangeProvinceOwner(string province, string owner)
     {

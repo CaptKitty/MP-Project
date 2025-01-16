@@ -132,7 +132,7 @@ public class ToolTipManager : MonoBehaviour
         try
         {
             GetComponent<Canvas>().enabled = false;
-            textComponent.text = string.Empty;
+            //textComponent.text = string.Empty;
         }
         catch{}
 

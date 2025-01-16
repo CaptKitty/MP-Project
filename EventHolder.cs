@@ -12,8 +12,24 @@ public class EventHolder : MonoBehaviour
     {
         // LoadEvent();
     }
-    public void LoadEvent()
+    public void LoadEvent(string nation = null)
     {
+        Debug.Log(nation);
+        Debug.Log(Owners.Instance.CallPlayer().name);
+        //AI-Time
+        if(nation != null && nation != Owners.Instance.CallPlayer().name)
+        {
+            foreach (var item in thisevent.OptionList[0].EffectList)
+            {
+                item.nation = nation;//name;
+                item.Execute();
+            }
+            Instaclick();
+            Debug.Log("Executed AI Function");
+            Debug.Log(thisevent.name);
+            return;
+        }
+
         transform.GetChild(0).GetComponent<Text>().text = thisevent.Title;
         transform.GetChild(1).GetComponent<Text>().text = thisevent.Message;
 
@@ -47,10 +63,18 @@ public class EventHolder : MonoBehaviour
         }
         if(thisevent != null && thisevent.initialOption != null && thisevent.initialOption.EffectList != null && thisevent.initialOption.EffectList.Count != 0)
         {
-            GameObject NewButton = Instantiate(Resources.Load<GameObject>("Prefabs/Event/EventWindowButton"));
-            NewButton.transform.SetParent(this.transform);
-            NewButton.GetComponent<OptionHolder>().thisoption = thisevent.initialOption;
-            NewButton.GetComponent<OptionHolder>().OnClickThis();
+            Instaclick();
+            // GameObject NewButton = Instantiate(Resources.Load<GameObject>("Prefabs/Event/EventWindowButton"));
+            // NewButton.transform.SetParent(this.transform);
+            // NewButton.GetComponent<OptionHolder>().thisoption = thisevent.initialOption;
+            // NewButton.GetComponent<OptionHolder>().OnClickThis();
         }
+    }
+    public void Instaclick()
+    {
+        GameObject NewButton = Instantiate(Resources.Load<GameObject>("Prefabs/Event/EventWindowButton"));
+        NewButton.transform.SetParent(this.transform);
+        NewButton.GetComponent<OptionHolder>().thisoption = thisevent.initialOption;
+        NewButton.GetComponent<OptionHolder>().OnClickThis();
     }
 }

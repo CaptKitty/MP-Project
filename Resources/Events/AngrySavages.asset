@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dea672753d962b246854a2a9bec122de, type: 3}
+  m_Name: AngrySavages
+  m_EditorClassIdentifier: 
+  Title: Rome Exclusive Event
+  Message: How do we feel about gauls
+  trigger: {fileID: 11400000, guid: 5ef38b32602b93243a505fbfe5e1eb16, type: 2}
+  HasTriggered: 0
+  initialOption:
+    Message: 
+    Tooltip: 
+    trigger: {fileID: 0}
+    EffectList: []
+  OptionList:
+  - Message: Savages barely even human
+    Tooltip: 
+    trigger: {fileID: 0}
+    EffectList:
+    - {fileID: 11400000, guid: 870bfd9cc50e9c148b865076fd1f3ef4, type: 2}
+    - {fileID: 11400000, guid: 1d9b1b34379a4964b9e8254c847f4064, type: 2}
+    - {fileID: 11400000, guid: 1d9b1b34379a4964b9e8254c847f4064, type: 2}
+    - {fileID: 11400000, guid: 1d9b1b34379a4964b9e8254c847f4064, type: 2}

@@ -5,7 +5,7 @@ using UnityEngine;
 [System.Serializable]
 public class OptionHolder : MonoBehaviour
 {
-    public Option thisoption;
+    public Option thisoption = new Option();
     
     public void OnClickThis()
     {
@@ -15,10 +15,19 @@ public class OptionHolder : MonoBehaviour
         }
         catch{}
 
-        foreach (var item in thisoption.EffectList)
+        if(thisoption != null && thisoption.EffectList != null)
         {
-            item.Execute();
+            foreach (var item in thisoption.EffectList)
+            {
+                Debug.Log(thisoption);
+                if(item != null)
+                {
+                    item.Execute();
+                }
+            }
         }
+
+        
         
         Destroy(transform.parent.gameObject);
     }

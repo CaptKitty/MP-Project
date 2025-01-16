@@ -9,17 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 371e36551f492094fba994c54c088602, type: 3}
-  m_Name: BaseGaul
+  m_Script: {fileID: 11500000, guid: c7ffdbde769b7024cb30c50dfa93e9e1, type: 3}
+  m_Name: OrderRaid
   m_EditorClassIdentifier: 
-  description: 
-  Enddate: -1
-  BaseTroops: 0
-  BaseTroopsModifier: 1
-  DefensiveDice: 0
-  OffensiveDice: 0
-  OrderDice: 0
-  ChaosDice: 0
-  BonusSpawns: 0
-  BonusCombatWidth: 0
-  SpeedModifier: 1
+  tooltip: Spawn Event for Gaul
+  province: 
+  nation: Gaul
+  HomeCountry: 
+  troopcount: 0
+  PlayerNation: 0
+  EventToTrigger: {fileID: 11400000, guid: 7e8bcfcd3bc56d241a7728ef160c127b, type: 2}

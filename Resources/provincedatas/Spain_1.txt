@@ -1,15 +1,15 @@
 Province ={
 Name ={
-_2
+Spain_1
 }
 Color ={
+249
 0
-127
-70
+112
 }
 Location ={
-525
-549
+344
+399
 }
 Population ={
 0
@@ -17,6 +17,6 @@ Population ={
 }
 Owner ={
 Normal ={
-Gaul
+Spain
 }
 }

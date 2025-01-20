@@ -1,15 +1,15 @@
 Province ={
 Name ={
-_2
+Cart_1
 }
 Color ={
-0
 127
-70
+0
+0
 }
 Location ={
-525
-549
+760
+560
 }
 Population ={
 0
@@ -17,6 +17,6 @@ Population ={
 }
 Owner ={
 Normal ={
-Gaul
+Carthage
 }
 }

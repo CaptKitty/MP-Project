@@ -1,15 +1,15 @@
 Province ={
 Name ={
-_2
+Rom_4
 }
 Color ={
+255
 0
-127
-70
+110
 }
 Location ={
-525
-549
+816
+606
 }
 Population ={
 0
@@ -17,6 +17,6 @@ Population ={
 }
 Owner ={
 Normal ={
-Gaul
+Rome
 }
 }

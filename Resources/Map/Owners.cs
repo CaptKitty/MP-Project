@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 
+using UnityEngine.Tilemaps;
+
 public class Owners : MonoBehaviour
 {
     public static Owners Instance;
@@ -29,6 +31,10 @@ public class Owners : MonoBehaviour
     }
     void Start()
     {
+        if(this != Owners.Instance)
+        {
+            return;
+        }
         this.transform.GetComponent<LoadProvinces>().LoadinCultures();
         
         culturedict = new Dictionary<string, Culture>();
@@ -53,6 +59,10 @@ public class Owners : MonoBehaviour
         provincedictcolor = new Dictionary<Color32, Province>();
         foreach (Province province in provincelist)
         {
+            // if(provincedict[province.name] != null)
+            // {
+            //     continue;
+            // }
             try
             {
                 provincedict.Add(province.name, province);
@@ -60,10 +70,11 @@ public class Owners : MonoBehaviour
             }
             catch
             {
-                Debug.LogError(province.name);
+                //Debug.LogError(province.name);
             }
         }
         Mapshower.Instance.Paint();
+        Mapshower.Instance.Potato();
         // Debug.Log(nationdict["Netherlands"].manpower);
     }
     public Nation CallPlayer()
@@ -235,6 +246,7 @@ public class Province
     public int unrest;
     public List<ProvinceModifier> provincemodifiers = new List<ProvinceModifier>();
     public GameObject Drafty = null;
+    public List<Vector3Int> ProvincialTileList = new List<Vector3Int>();
     
     public void AddModifier(ProvinceModifier moddie)
     {
@@ -357,7 +369,7 @@ public class Province
             GameObject Corn = Owners.Instance.gameObject;
             GameObject tomato = GameObject.Instantiate(potato, GameObject.Find("Map").transform.GetChild(2));
             Vector2 location = position;
-            location = new Vector2(location.x-366,location.y-218);
+            location = new Vector2(location.x-993,location.y-440);
             tomato.transform.position = location;
             tomato.name = troops.ToString();
             tomato.transform.GetChild(0).GetChild(0).GetComponent<Text>().text = troops.ToString();

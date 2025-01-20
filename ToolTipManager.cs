@@ -44,7 +44,7 @@ public class ToolTipManager : MonoBehaviour
     {
         // Awake();
         // Cursor.visible = true;
-        GetComponent<Canvas>().enabled = !GetComponent<Canvas>().enabled;
+        GetComponent<Canvas>().enabled = false;//!GetComponent<Canvas>().enabled;
         // gameObject.SetActive(false);
     }
     void OnEnable()

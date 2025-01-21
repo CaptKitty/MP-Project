@@ -132,12 +132,27 @@ public class ArmyMovement : MonoBehaviour
     }
     public void SetTroopsMarker()
     {
-        transform.GetChild(0).GetChild(0).GetComponent<Text>().text = troops.ToString();
+        if(troops == 0)
+        {
+            this.GetComponent<Image>().enabled = false;
+            transform.GetChild(0).GetChild(0).GetComponent<Text>().text = "";
+        }
+        else
+        {
+            this.GetComponent<Image>().enabled = true;
+            transform.GetChild(0).GetChild(0).GetComponent<Text>().text = troops.ToString();
+        }
     }
     public void Victory()
     {
         Mapshower.Instance.ChangeProvinceOwner(province, nation);
-        Owners.Instance.provincelist.Find(x => x.name == province).AddTroops(troops);
+
+        Owners.Instance.statelist.Find(x => x.name == Owners.Instance.provincelist.Find(x => x.name == province).state).Capitol.AddTroops(troops);
+        // if(Owners.Instance.provincelist.Find(x => x.name == province).Drafty != null)
+        // {
+        //     Owners.Instance.provincelist.Find(x => x.name == province).Drafty.GetComponent<ArmyMovement>().SetTroopsMarker();
+        // }
+        
         Die();
     }
 }

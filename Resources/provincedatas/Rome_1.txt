@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Rome_1
+}
+Color ={
+140
+127
+255
+}
+Location ={
+388
+332
+}
+Population ={
+5
+Hellenic
+}
+Owner ={
+Normal ={
+Rome
+}
+}
+State ={
+Colonia
+}

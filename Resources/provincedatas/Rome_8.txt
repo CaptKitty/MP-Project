@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Rome_8
+}
+Color ={
+145
+255
+187
+}
+Location ={
+454
+316
+}
+Population ={
+5
+Catalusian
+}
+Owner ={
+Normal ={
+Gaul
+}
+}
+State ={
+Roma
+}

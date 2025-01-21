@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -74,7 +75,7 @@ public class Owners : MonoBehaviour
             }
         }
         Mapshower.Instance.Paint();
-        Mapshower.Instance.Potato();
+        //Mapshower.Instance.Potato();
         // Debug.Log(nationdict["Netherlands"].manpower);
     }
     public Nation CallPlayer()
@@ -142,9 +143,18 @@ public class Owners : MonoBehaviour
         {
             foreach(var a in provincelist)
             {
-                if(a.troops < a.GrabMaxTroops())
+                if(a.Drafty != null)
                 {
-                    a.AddTroops(a.GrabTroopstoAdd());
+                    if(a.Drafty.transform.GetChild(0).GetChild(0).GetComponent<Text>().text == "0")
+                    {
+                        a.Drafty.GetComponent<Image>().enabled = false;
+                        a.Drafty.transform.GetChild(0).GetChild(0).GetComponent<Text>().text = "";
+                    }
+                }
+                var b = Owners.Instance.statelist.Find(x => x.name == a.state);
+                if(b.Capitol.troops < b.GrabMaxTroops())
+                {
+                    b.Capitol.AddTroops(a.GrabTroopstoAdd());
                 }
             }
             
@@ -229,6 +239,48 @@ public class Owners : MonoBehaviour
     }
 }
 [System.Serializable]
+public class State : Province
+{
+    //public string name;
+    public List<Province> provincelist;
+    public Province Capitol;
+    public Color32 stateIdentity; 
+
+    public override int GrabMaxTroops()
+    {
+        int troopcount = 0;
+        foreach (var item in provincelist)
+        {
+            troopcount += item.GrabMaxTroops();
+        }
+        return troopcount;
+    }
+    public void GrabPopulationPieCharts()
+    {
+        cultures.Clear();
+        foreach (var item in provincelist)
+        {
+            foreach (var culture in item.cultures)
+            {
+                if(cultures.Find(x => x.name == culture.name) != null)
+                {
+                    cultures.Find(x => x.name == culture.name).population += culture.population;
+                }
+                else
+                {
+                    cultures.Add(culture.GrabCulture());
+                }
+            }
+        }
+        var a = new List<float>();
+        foreach (var item in cultures)
+        {
+            a.Add(item.population);
+        }
+        Piechart.Instance.SetValues(cultures);
+    }
+}
+[System.Serializable]
 public class Province
 {
     public string name;
@@ -237,13 +289,13 @@ public class Province
     public string state;
     public Vector2 position;
     public int population = 1000;
-    public int troops = 10;
-    public List<Culture> cultures;
-    public int taxincome;
-    public int taxpercentage;
-    public int levyincome;
-    public int levypercentage;
-    public int unrest;
+    public int troops = 0;
+    public List<Culture> cultures = new List<Culture>();
+    // public int taxincome;
+    // public int taxpercentage;
+    // public int levyincome;
+    // public int levypercentage;
+    // public int unrest;
     public List<ProvinceModifier> provincemodifiers = new List<ProvinceModifier>();
     public GameObject Drafty = null;
     public List<Vector3Int> ProvincialTileList = new List<Vector3Int>();
@@ -257,8 +309,9 @@ public class Province
         }
         UIElement.ProvinceHost.UpdateDescription(this);
     }
-    public void AddTroops(int a)
+    public virtual void AddTroops(int a)
     {
+        
         troops += a;
         foreach (var RPC in TestRelay.Instance.PlayerObjects)
         {
@@ -310,7 +363,7 @@ public class Province
         }
         return dice;
     }
-    public int GrabMaxTroops()
+    public virtual int GrabMaxTroops()
     {
         int troopcount = 20;
         foreach (var item in provincemodifiers)
@@ -618,16 +671,14 @@ public class Culture
     public string name;
     public Color32 ownerIdentity;
     public int population;
-}
-[System.Serializable]
-public class State
-{
-    public string name;
-    public List<Province> provincelist;
-    public Color32 stateIdentity; 
-    public Nation nation;
-    public int taxpercentage;
-    public int levypercentage;
+    public Culture GrabCulture()
+    {
+        Culture cult = new Culture();
+        cult.name = name;
+        cult.ownerIdentity = ownerIdentity;
+        cult.population = population;
+        return cult;
+    }
 }
 [System.Serializable]
 public class General

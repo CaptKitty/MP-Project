@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Andalusia_5
+}
+Color ={
+174
+100
+214
+}
+Location ={
+350
+385
+}
+Population ={
+5
+Narboni
+}
+Owner ={
+Normal ={
+Spain
+}
+}
+State ={
+SpainCapitol
+}

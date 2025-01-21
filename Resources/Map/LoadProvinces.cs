@@ -20,7 +20,7 @@ public class LoadProvinces : MonoBehaviour
         Owners.Instance.provincelist.Clear();
         Owners.Instance.provincelist = provincelist;
         AddStates();
-        LoadProvincesinStates();
+        //LoadProvincesinStates();
     }
 
     public void LoadinCultures()
@@ -51,7 +51,7 @@ public class LoadProvinces : MonoBehaviour
                     byte red = byte.Parse(line);
                     byte green = byte.Parse(sr.ReadLine());
                     byte blue = byte.Parse(sr.ReadLine());
-                    culture.ownerIdentity = new Color32(red,green,blue,0);
+                    culture.ownerIdentity = new Color32(red,green,blue,255);
                     // Debug.Log(color);
                 }
                 line = sr.ReadLine();
@@ -130,25 +130,25 @@ public class LoadProvinces : MonoBehaviour
                     location = new Vector2(x,y);
                     // Debug.Log(location);
                 }
-                // if(line.Contains("Population"))
-                // {
-                //     line = sr.ReadLine();
-                //     population = int.Parse(line);
-                //     culture = new Culture();
-                //     culture.population = population;
-                //     line = sr.ReadLine();
-                //     if(line == "}")
-                //     {
-                //         //line = "Dutch";
-                //         line = "None";
-                //     }
-                //     culture.name = line;
-                //     culture.ownerIdentity = Owners.Instance.CallCultureByName(line).ownerIdentity;
-                //     culture.name = Owners.Instance.CallCultureByName(line).name;
-                //     newprovince.cultures.Add(culture);
+                if(line.Contains("Population"))
+                {
+                    line = sr.ReadLine();
+                    population = int.Parse(line);
+                    culture = new Culture();
+                    culture.population = population;
+                    line = sr.ReadLine();
+                    if(line == "}")
+                    {
+                        //line = "Dutch";
+                        line = "None";
+                    }
+                    culture.name = line;
+                    culture.ownerIdentity = Owners.Instance.CallCultureByName(line).ownerIdentity;
+                    culture.name = line;//Owners.Instance.CallCultureByName(line).name;
+                    newprovince.cultures.Add(culture);
                     
-                //     // Debug.Log(population);
-                // }
+                    // Debug.Log(population);
+                }
                 if(line.Contains("Owner"))
                 {
                     line = sr.ReadLine();
@@ -156,42 +156,48 @@ public class LoadProvinces : MonoBehaviour
                     newprovince.nation = GetNation(line.Trim( ));
                     // Debug.Log(nation);
                 }
+                if(line.Contains("State"))
+                {
+                    line = sr.ReadLine();
+                    newprovince.state = line.Trim( );
+                    // Debug.Log(provincename);
+                }
                 line = sr.ReadLine();
             }
-            if(culture.name == "None")
-            {
-                if(newprovince.nation.name == "France")
-                {
-                    culture.name = "French";
-                    culture.ownerIdentity = Owners.Instance.CallCultureByName(culture.name).ownerIdentity;
-                }
-                if(newprovince.nation.name == "Spain")
-                {
-                    culture.name = "Spanish";
-                    culture.ownerIdentity = Owners.Instance.CallCultureByName(culture.name).ownerIdentity;
-                }
-                if(newprovince.nation.name == "Portugal")
-                {
-                    culture.name = "Portuguese";
-                    culture.ownerIdentity = Owners.Instance.CallCultureByName(culture.name).ownerIdentity;
-                }
-                if(newprovince.nation.name == "Netherlands")
-                {
-                    culture.name = "Dutch";
-                    culture.ownerIdentity = Owners.Instance.CallCultureByName(culture.name).ownerIdentity;
-                }
-            }
+            // if(culture.name == "")
+            // {
+            //     if(newprovince.nation.name == "France")
+            //     {
+            //         culture.name = "French";
+            //         culture.ownerIdentity = Owners.Instance.CallCultureByName(culture.name).ownerIdentity;
+            //     }
+            //     if(newprovince.nation.name == "Spain")
+            //     {
+            //         culture.name = "Spanish";
+            //         culture.ownerIdentity = Owners.Instance.CallCultureByName(culture.name).ownerIdentity;
+            //     }
+            //     if(newprovince.nation.name == "Portugal")
+            //     {
+            //         culture.name = "Portuguese";
+            //         culture.ownerIdentity = Owners.Instance.CallCultureByName(culture.name).ownerIdentity;
+            //     }
+            //     if(newprovince.nation.name == "Netherlands")
+            //     {
+            //         culture.name = "Dutch";
+            //         culture.ownerIdentity = Owners.Instance.CallCultureByName(culture.name).ownerIdentity;
+            //     }
+            // }
             
             newprovince.name = provincename;
             newprovince.identity = color;
             newprovince.position = location;
-            if(newprovince.cultures.Count == 0)
-            {
-                culture.ownerIdentity = newprovince.nation.ownerIdentity;
-                culture.population = 1000;
-                culture.name = newprovince.nation.name;
-                newprovince.cultures.Add(culture);
-            }
+            // if(newprovince.cultures.Count == 0)
+            // {
+            //     culture.ownerIdentity = newprovince.nation.ownerIdentity;
+            //     culture.population = 1000;
+            //     culture.name = newprovince.nation.name;
+            //     newprovince.cultures.Add(culture);
+            // }
             newprovince.UpdatePopulation();
             // newprovince.population = population;
             
@@ -213,25 +219,50 @@ public class LoadProvinces : MonoBehaviour
                     {
                         state.stateIdentity = province.identity;
                     }
+                    if(state.provincelist.Count == 0)
+                    {
+                        state.Capitol = province;
+                    }
                     state.provincelist.Add(province);
-                    province.state = state.name;
+                    //province.state = state.name;
                 }
             }
         }
     }
     void AddStates()
     {
-        foreach (Nation nation in Owners.Instance.nationlist)
+        foreach (Province province in Owners.Instance.provincelist)
         {
-            State state = new State();
-            state.name = nation.name;
-            state.nation = nation;
-            state.taxpercentage = 10;
-            state.levypercentage = 10;
-            state.stateIdentity = new Color32(0,0,0,0);
-            state.provincelist = new List<Province>();
-            Owners.Instance.statelist.Add(state);
+            var a = Owners.Instance.statelist.Find(x => x.name == province.state);
+            if(a == null)
+            {
+                State state = new State();
+                state.name = province.state;
+                state.nation = province.nation;
+                state.stateIdentity = new Color32(0,0,0,0);
+                state.provincelist = new List<Province>();
+                state.provincelist.Add(province);
+                state.Capitol = province;
+                Owners.Instance.statelist.Add(state);
+            }
+            else
+            {
+                a.provincelist.Add(province);
+            }
+
         }
+
+        // foreach (Nation nation in Owners.Instance.nationlist)
+        // {
+        //     State state = new State();
+        //     state.name = nation.name;
+        //     state.nation = nation;
+        //     // state.taxpercentage = 10;
+        //     // state.levypercentage = 10;
+        //     state.stateIdentity = new Color32(0,0,0,0);
+        //     state.provincelist = new List<Province>();
+        //     Owners.Instance.statelist.Add(state);
+        // }
     }
 
     Nation GetNation(string name)

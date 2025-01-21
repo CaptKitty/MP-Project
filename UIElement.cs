@@ -40,6 +40,32 @@ public class UIElement : MonoBehaviour
         // {
         // }
     }
+    public void UpdateDescription(State state)//List<ProvinceModifier> provincemodifiers)
+    {
+        var texty = state.name + "\n";
+        foreach (var item in state.provincelist)
+        {
+            texty += "\n" + item.name;
+        }
+        // texty += "\nMaxTroops: " + province.GrabMaxTroops().ToString();
+        // texty += "\nDefenceBonus: " + province.GrabDefensiveDice().ToString();
+
+        transform.GetChild(1).gameObject.GetComponent<Text>().text = texty;
+
+        // foreach (var modifiers in province.provincemodifiers)
+        // {
+        // }
+    }
+    public void UpdateDescription(State state, bool potato)//List<ProvinceModifier> provincemodifiers)
+    {
+        string texty = "\nMaxTroops: " + state.GrabMaxTroops().ToString();
+
+        transform.GetChild(1).gameObject.GetComponent<Text>().text = texty;
+
+        // foreach (var modifiers in province.provincemodifiers)
+        // {
+        // }
+    }
     public void UpdateDescription(Province province)//List<ProvinceModifier> provincemodifiers)
     {
         var texty = "Modifiers:";

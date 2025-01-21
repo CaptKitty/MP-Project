@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Andalusia_1
+}
+Color ={
+140
+90
+0
+}
+Location ={
+378
+354
+}
+Population ={
+5
+Narboni
+}
+Owner ={
+Normal ={
+League of Exiles
+}
+}
+State ={
+League of ExilesCapitol
+}

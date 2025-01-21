@@ -5,12 +5,14 @@ using UnityEngine.UI;
 
 public class Piechart : MonoBehaviour
 {
+    public static Piechart Instance;
     public Image[] imagesPieChart;
     public float[] values;
     // Start is called before the first frame update
     void Start()
     {
-        SetValues(values);
+        Instance = this;
+        //SetValues(values);
     }
 
     // Update is called once per frame
@@ -18,22 +20,23 @@ public class Piechart : MonoBehaviour
     {
         
     }
-    public void SetValues(float[] ValuesToSet)
+    public void SetValues(List<Culture> ValuesToSet) //List<float> 
     {
         float totalValues = 0;
-        for (int i = 0; i < imagesPieChart.Length; i++)
+        for (int i = 0; i < ValuesToSet.Count; i++)
         {
-            totalValues += FindPercentage(ValuesToSet,i);
+            totalValues += FindPercentage(ValuesToSet,index:i);
             imagesPieChart[i].fillAmount = totalValues;
+            imagesPieChart[i].color = ValuesToSet[i].ownerIdentity;
         }
     }
-    public float FindPercentage(float[] valueToSet, int index)
+    public float FindPercentage(List<Culture> valueToSet, int index)
     {
         float totalAmount = 0;
-        for (int i = 0; i < imagesPieChart.Length; i++)
+        for (int i = 0; i < valueToSet.Count; i++)
         {
-            totalAmount += valueToSet[i];
+            totalAmount += valueToSet[i].population;
         }
-        return valueToSet[index] / totalAmount;
+        return (float)valueToSet[index].population / totalAmount;
     }
 }

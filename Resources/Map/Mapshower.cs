@@ -15,6 +15,7 @@ public class Mapshower : MonoBehaviour
 {
     public string regionname;
     public int regionnumber;
+    public string statename;
     public string owner;
     public string culture1;
     public int culture1pop;
@@ -30,6 +31,7 @@ public class Mapshower : MonoBehaviour
     public int width;
     public int height;
     private Province DraggedProvince = new Province();
+    private Province OldProvince = new Province();
 
     Color32[] remapArr;
     Texture2D paletteTex;
@@ -160,6 +162,7 @@ public class Mapshower : MonoBehaviour
     {
         Tile tomato = Resources.Load<Tile>("Tiles/Hexes/BaseHex");
         var mainTex = GetComponent<Renderer>().material.GetTexture("_MainTex") as Texture2D;
+        var areaTex = GetComponent<Renderer>().material.GetTexture("_AreaTex") as Texture2D;
         foreach (Vector3Int position in banana.GetComponent<Tilemap>().cellBounds.allPositionsWithin)
         {
             Vector3 potato = banana.GetComponent<Tilemap>().CellToWorld(position);
@@ -174,14 +177,19 @@ public class Mapshower : MonoBehaviour
                     tomato = Instantiate(tomato);
                     //TileBase tomato = banana.GetComponent<Tilemap>().GetTile(position);
                     
-                    tomato.color = mainTex.GetPixel(x, y);
+                    tomato.color =  areaTex.GetPixel(x, y);
 
                     Province corn = Owners.Instance.CallProvinceByColor(a);
 
                     
-                    //print(x + " " + y);
-                    tomato.color = new Color(corn.nation.ownerIdentity.r, corn.nation.ownerIdentity.g, corn.nation.ownerIdentity.b, 0);
-                    //tomato.color = new Color(tomato.color.r, tomato.color.g, tomato.color.b, 1);
+                    //print(mainTex.GetPixel(x, y));
+                    //tomato.color = corn.nation.ownerIdentity;//new Color(corn.nation.ownerIdentity.r, corn.nation.ownerIdentity.g, corn.nation.ownerIdentity.b, 255);
+
+                    print(areaTex.GetPixel(x, y));
+                    print(tomato.color);
+                    //print(corn);
+                    //print(corn.nation.ownerIdentity);
+                    tomato.color = new Color(tomato.color.r, tomato.color.g, tomato.color.b, 0);
                     
                     banana.GetComponent<Tilemap>().SetTile(position,tomato);
                     corn.ProvincialTileList.Add(position);
@@ -310,6 +318,7 @@ public class Mapshower : MonoBehaviour
             }
         }
     }
+
     public void PopPaint()
     {
         foreach(Province province in Owners.Instance.provincelist)
@@ -384,7 +393,7 @@ public class Mapshower : MonoBehaviour
                 
                 if(Input.GetMouseButtonDown(1))
                 {
-                    print(new Vector2(x,y));
+                    ///print(new Vector2(x,y));
                     AddFileOfPower(new Vector2(x,y),mainTex.GetPixel(x,y));
                 }
 
@@ -422,7 +431,8 @@ public class Mapshower : MonoBehaviour
                         {
                             DraggedProvince = province;
                             material.SetFloat("_ProvinceView", 0f);
-                            print(mainTex.GetPixel(x, y) + " " + x + " " + y);
+                            Owners.Instance.statelist.Find(x => x.name == DraggedProvince.state).GrabPopulationPieCharts();
+                            //print(mainTex.GetPixel(x, y) + " " + x + " " + y);
                         }
                         if(Input.GetMouseButtonUp(0))
                         {
@@ -436,11 +446,13 @@ public class Mapshower : MonoBehaviour
                                         //string diplostatus = GrabDiplomaticStatus();
                                         if(DraggedProvince.nation.CanIDoThis(province.nation.name))
                                         {
+                                            var a = Owners.Instance.statelist.Find(x => x.name == DraggedProvince.state).Capitol;
+
                                             foreach (var RPC in TestRelay.Instance.PlayerObjects)
                                             {
                                                 if(RPC.GetComponent<NetworkObject>().IsLocalPlayer)
                                                 {
-                                                    RPC.GetComponent<RpcTest>().SendTroops(DraggedProvince.name, province.name, DraggedProvince.nation.name);
+                                                    RPC.GetComponent<RpcTest>().SendTroops(a.name, province.name, DraggedProvince.nation.name);
                                                 }
                                                 //RPC.GetComponent<RpcTest>().ChangeProvinceOwner(province.name, DraggedProvince.nation.name);
                                             }
@@ -450,8 +462,27 @@ public class Mapshower : MonoBehaviour
                             }
                             else//if(DraggedProvince == province)
                             {
-                                //material.SetFloat("_ProvinceView", 1f);
-                                ChangeProvinceOwner(DraggedProvince.name, DraggedProvince.nation.name, true);
+                                // material.SetFloat("_ProvinceView", 1f);
+                                // // PaintSettlementsInProvince(province);
+                                // //     x = (int)province.position.x;
+                                // //     y = (int)province.position.y;
+
+                                // //         remapColor = remapArr[x + y * width];
+                                // //         xp = remapColor[0];
+                                // //         yp = remapColor[1];
+
+                                // //         //var state = Owners.Instance.statelist.Find(x => x.name == province.state);
+
+                                // //         // if(province.nation == provinces.nation)
+                                // //         // {
+                                // //         //     changeColors(remapColor, new Color32(64, 64, 64, 255));//state.stateIdentity);
+                                // //         // }
+                                // //         // else
+                                // //         // {
+                                // //             print(x + " " + y + " " + remapColor);
+                                // //             changeColors(remapColor, new Color32(64, 64, 64, 255));
+                                
+                                // // ChangeProvinceOwner(DraggedProvince.name, DraggedProvince.nation.name, true);
                             }
                         }
                     }
@@ -477,11 +508,36 @@ public class Mapshower : MonoBehaviour
                     //}
                 }
 
-                x = (int)Mathf.Floor(p.x) + width / 2;
-                y = (int)Mathf.Floor(p.y) + height / 2;
+                foreach(Province provinces in Owners.Instance.provincelist)
+                {
+                    if(provinces.state == province.state)
+                    {
+                        x = (int)provinces.position.x;
+                        y = (int)provinces.position.y;
 
-                remapColor = remapArr[x + y * width];
-                changeColors(remapColor, new Color32(64, 64, 64, 255));
+                        remapColor = remapArr[x + y * width];
+                        xp = remapColor[0];
+                        yp = remapColor[1];
+
+                        //var state = Owners.Instance.statelist.Find(x => x.name == province.state);
+
+                        // if(province.nation == provinces.nation)
+                        // {
+                        //     changeColors(remapColor, new Color32(64, 64, 64, 255));//state.stateIdentity);
+                        // }
+                        // else
+                        // {
+                            changeColors(remapColor, new Color32(64, 64, 64, 255));
+                        //}
+                    }
+                }
+
+                // x = (int)Mathf.Floor(p.x) + width / 2;
+                // y = (int)Mathf.Floor(p.y) + height / 2;
+
+                // remapColor = remapArr[x + y * width];
+                
+                // changeColors(remapColor, new Color32(64, 64, 64, 255));
 
                 //ownerTex.SetPixel(xps, yps, province.nation.ownerIdentity);
                 
@@ -496,13 +552,14 @@ public class Mapshower : MonoBehaviour
                     SelectedNation = province.nation;
                     //province.nation.name);
                     UIElement.NationHost.UpdateTitle(province.nation.name);
-                    UIElement.NationHost.UpdateDescription(province.nation);
+                    //State stat = ;
+                    UIElement.NationHost.UpdateDescription(Owners.Instance.statelist.Find(x => x.name == province.state));
                     UIElement.NationHost.Updatethird(Owners.Instance.CallPlayer().GrabDiplomaticStatus(province.nation.name));
 
                     SelectedProvince = province;
                     UIElement.ProvinceHost.UpdateTitle(province.name);
-                    UIElement.ProvinceHost.UpdateDescription(province);
-                    UIElement.ProvinceHost.Updatethird(province.troops.ToString());
+                    UIElement.ProvinceHost.UpdateDescription(Owners.Instance.statelist.Find(x => x.name == province.state),false);
+                    UIElement.ProvinceHost.Updatethird(Owners.Instance.statelist.Find(x => x.name == province.state).Capitol.troops.ToString());
                     
                     // if(!province.nation.IsPlayer)
                     // {
@@ -600,47 +657,92 @@ public class Mapshower : MonoBehaviour
         }
         
     }
-    public void ChangeProvinceOwner(string province, string owner, bool tempy = false)
+    // public void ChangeProvinceOwner(string province, string owner, bool tempy = false)
+    // {
+        
+    //     if(tempy == true)
+    //     {
+    //         Tile tomato = Resources.Load<Tile>("Tiles/Hexes/BaseHex");
+    //         var corn = OldProvince;
+            
+    //         foreach (var item in OldProvince.ProvincialTileList)
+    //         {
+    //             tomato = Instantiate(tomato);
+    //             Tile a = (Tile)banana.GetComponent<Tilemap>().GetTile(item);
+    //             print(a.color);
+    //             //tomato.color = a.color;
+    //             tomato.color = new Color((float)a.color.r, (float)a.color.g, (float)a.color.b, 0);//new Color(corn.nation.ownerIdentity.r, corn.nation.ownerIdentity.g, corn.nation.ownerIdentity.b, 0);
+    //             //print(tomato.color);
+    //             banana.GetComponent<Tilemap>().SetTile(item,tomato);
+    //         }
+    //     }
+    //     OldProvince = Owners.Instance.provincelist.Find(x => x.name == province);
+
+    //     if(1==1)//tempy == true)
+    //     {
+    //         Tile tomato = Resources.Load<Tile>("Tiles/Hexes/BaseHex");
+    //         var corn = Owners.Instance.provincelist.Find(x => x.name == province);
+    //         //tomato = Instantiate(tomato);
+    //         foreach (var item in Owners.Instance.provincelist.Find(x => x.name == province).ProvincialTileList)
+    //         {
+    //             tomato = Instantiate(tomato);
+    //             Tile a = (Tile)banana.GetComponent<Tilemap>().GetTile(item);
+    //             tomato.color = new Color((float)a.color.r, (float)a.color.g, (float)a.color.b, 255);//corn.nation.ownerIdentity;//new Color(corn.nation.ownerIdentity.r, corn.nation.ownerIdentity.g, corn.nation.ownerIdentity.b, 255);
+    //             banana.GetComponent<Tilemap>().SetTile(item,tomato);
+    //         }
+    //         return;
+    //     }
+    //     // if(Owners.Instance.provincelist.Find(x => x.name == province).nation != Owners.Instance.nationlist.Find(x => x.name == owner))
+    //     // {
+    //     //     Tile tomato = Resources.Load<Tile>("Tiles/Hexes/BaseHex");
+    //     //     var corn = Owners.Instance.provincelist.Find(x => x.name == province);
+    //     //     tomato = Instantiate(tomato);
+    //     //     foreach (var item in Owners.Instance.provincelist.Find(x => x.name == province).ProvincialTileList)
+    //     //     {
+    //     //         Tile a = (Tile)banana.GetComponent<Tilemap>().GetTile(item);
+    //     //         tomato.color = new Color(corn.nation.ownerIdentity.r, corn.nation.ownerIdentity.g, corn.nation.ownerIdentity.b, 0);//Owners.Instance.nationlist.Find(x => x.name == owner).ownerIdentity;
+    //     //         if(tempy)
+    //     //         {
+    //     //             tomato.color = new Color(corn.nation.ownerIdentity.r, corn.nation.ownerIdentity.g, corn.nation.ownerIdentity.b, 255);
+    //     //         }
+    //     //         banana.GetComponent<Tilemap>().SetTile(item,tomato);
+    //     //     }
+    //     //     UnityEngine.Debug.LogError("Done");
+    //     // }
+    // }
+    public void ChangeProvinceOwner(string province, string owner)
     {
-        if(tempy == true)
-        {
-            Tile tomato = Resources.Load<Tile>("Tiles/Hexes/BaseHex");
-            var corn = Owners.Instance.provincelist.Find(x => x.name == province);
-            tomato = Instantiate(tomato);
-            foreach (var item in Owners.Instance.provincelist.Find(x => x.name == province).ProvincialTileList)
-            {
-                Tile a = (Tile)banana.GetComponent<Tilemap>().GetTile(item);
-                tomato.color = new Color(corn.nation.ownerIdentity.r, corn.nation.ownerIdentity.g, corn.nation.ownerIdentity.b, 255);
-                banana.GetComponent<Tilemap>().SetTile(item,tomato);
-            }
-            return;
-        }
         if(Owners.Instance.provincelist.Find(x => x.name == province).nation != Owners.Instance.nationlist.Find(x => x.name == owner))
         {
-            Tile tomato = Resources.Load<Tile>("Tiles/Hexes/BaseHex");
-            var corn = Owners.Instance.provincelist.Find(x => x.name == province);
-            tomato = Instantiate(tomato);
-            foreach (var item in Owners.Instance.provincelist.Find(x => x.name == province).ProvincialTileList)
+            Owners.Instance.provincelist.Find(x => x.name == province).nation = Owners.Instance.nationlist.Find(x => x.name == owner);
+            if(Owners.Instance.provincelist.Find(x => x.name == province).Drafty != null)
             {
-                Tile a = (Tile)banana.GetComponent<Tilemap>().GetTile(item);
-                tomato.color = new Color(corn.nation.ownerIdentity.r, corn.nation.ownerIdentity.g, corn.nation.ownerIdentity.b, 0);//Owners.Instance.nationlist.Find(x => x.name == owner).ownerIdentity;
-                if(tempy)
-                {
-                    tomato.color = new Color(corn.nation.ownerIdentity.r, corn.nation.ownerIdentity.g, corn.nation.ownerIdentity.b, 255);
-                }
-                banana.GetComponent<Tilemap>().SetTile(item,tomato);
+                Owners.Instance.provincelist.Find(x => x.name == province).Drafty.transform.GetComponent<Image>().color = new Color32(Owners.Instance.nationlist.Find(x => x.name == owner).ownerIdentity.r, Owners.Instance.nationlist.Find(x => x.name == owner).ownerIdentity.g, Owners.Instance.nationlist.Find(x => x.name == owner).ownerIdentity.b, 255);
             }
-            UnityEngine.Debug.LogError("Done");
+            var a = new List<State>();
+            foreach (var item in Owners.Instance.statelist)
+            {
+                if(item.nation.name == owner)
+                {
+                    a.Add(item);
+                }
+            }
+            Owners.Instance.provincelist.Find(x => x.name == province).state = a[0].name;
+            var distances = (a[0].Capitol.position - Owners.Instance.provincelist.Find(x => x.name == province).position).magnitude;
+            print(distances);
+            foreach (var item in a)
+            {
+                var heading  = item.Capitol.position - Owners.Instance.provincelist.Find(x => x.name == province).position;
+                var distance = heading.magnitude;
+                if(distance < distances)
+                {
+                    Owners.Instance.provincelist.Find(x => x.name == province).state = item.name;
+                }
+            }
+            Owners.Instance.statelist.Find(x => x.name == Owners.Instance.provincelist.Find(x => x.name == province).state).provincelist.Add(Owners.Instance.provincelist.Find(x => x.name == province));
+            //Potato();
+            RePaint();
         }
-
-
-        Owners.Instance.provincelist.Find(x => x.name == province).nation = Owners.Instance.nationlist.Find(x => x.name == owner);
-        if(Owners.Instance.provincelist.Find(x => x.name == province).Drafty != null)
-        {
-            Owners.Instance.provincelist.Find(x => x.name == province).Drafty.transform.GetComponent<Image>().color = new Color32(Owners.Instance.nationlist.Find(x => x.name == owner).ownerIdentity.r, Owners.Instance.nationlist.Find(x => x.name == owner).ownerIdentity.g, Owners.Instance.nationlist.Find(x => x.name == owner).ownerIdentity.b, 255);
-        }
-        //Potato();
-        RePaint();        
     }
     public void DevProvince()
     {
@@ -722,6 +824,9 @@ public class Mapshower : MonoBehaviour
         sw.WriteLine("Normal ={");
         sw.WriteLine(owner);
         sw.WriteLine("}");
+        sw.WriteLine("}");
+        sw.WriteLine("State ={");
+        sw.WriteLine(statename);
         sw.WriteLine("}");
         sw.Close();
     }

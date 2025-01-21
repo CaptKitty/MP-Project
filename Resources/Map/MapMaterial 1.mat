@@ -36,6 +36,10 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _AreaRemapTex:
+        m_Texture: {fileID: 2800000, guid: bf5cf1a65e30a1543b47d126ada9da65, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _AreaTex:
         m_Texture: {fileID: 2800000, guid: d0a2d33b88d7a9042830b026d6b019ef, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -69,7 +73,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: d0a2d33b88d7a9042830b026d6b019ef, type: 3}
+        m_Texture: {fileID: 2800000, guid: a0af0b1074271084383756a6ac7cb458, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:

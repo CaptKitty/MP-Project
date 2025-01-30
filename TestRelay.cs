@@ -111,12 +111,17 @@ public class TestRelay : MonoBehaviour
     }
     public void GimmeMap()
     {
-        SceneManager.LoadScene("MapScene");
-        // if(BattleManager1.Instance == null && CanThisSpawn)
-        // {
-        //     CanThisSpawn = false;
-        //     SceneManager.LoadScene("FightScene 1");//, LoadSceneMode.Additive);
-        // }
+        SceneManager.UnloadScene("SampleScene");
+        Mapshower.Instance.gameObject.SetActive(true);
+
+        //SceneManager.LoadScene("MapScene");
+        
+        
+        // // if(BattleManager1.Instance == null && CanThisSpawn)
+        // // {
+        // //     CanThisSpawn = false;
+        // //     SceneManager.LoadScene("FightScene 1");//, LoadSceneMode.Additive);
+        // // }
     }
     public void GimmeBattlefield()
     {

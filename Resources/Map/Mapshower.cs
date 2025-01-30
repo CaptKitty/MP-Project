@@ -8,6 +8,7 @@ using System.Diagnostics;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using Unity.Netcode;
+using System.Linq;
 
 using UnityEngine.Tilemaps;
 
@@ -30,6 +31,7 @@ public class Mapshower : MonoBehaviour
 
     public int width;
     public int height;
+    public Vector2 Offset = new Vector2(0,0);
     private Province DraggedProvince = new Province();
     private Province OldProvince = new Province();
 
@@ -109,6 +111,7 @@ public class Mapshower : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        
         var material = GetComponent<Renderer>().material;
         var mainTex = material.GetTexture("_MainTex") as Texture2D;
         var mainArr = mainTex.GetPixels32();
@@ -156,7 +159,7 @@ public class Mapshower : MonoBehaviour
 
         Paint();
         
-
+        gameObject.SetActive(false);
     }
     public void Potato()
     {
@@ -207,6 +210,22 @@ public class Mapshower : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown("1"))
+        {
+            RePaint();
+        }
+        if (Input.GetKeyDown("2"))
+        {
+            CulturePaint();
+        }
+        if (Input.GetKeyDown("3"))
+        {
+            PopPaint();
+        }
+        if (Input.GetKeyDown("t"))
+        {
+            TestTime();
+        }
         if (Input.GetKeyDown("escape"))
         {
             SceneManager.LoadScene("SampleScene");
@@ -333,7 +352,7 @@ public class Mapshower : MonoBehaviour
             if(!selectAny || !prevColor.Equals(remapColor)){
                 selectAny = true;
                 prevColor = remapColor;
-                paletteTex.SetPixel(xp, yp, PopToColor(province.troops));
+                paletteTex.SetPixel(xp, yp, GrabPopulation(province.cultures));//PopToColor(province.troops));
                 paletteTex.Apply(false);
                 ownerTex.Apply(false);
             }
@@ -353,7 +372,7 @@ public class Mapshower : MonoBehaviour
             if(!selectAny || !prevColor.Equals(remapColor)){
                 selectAny = true;
                 prevColor = remapColor;
-                paletteTex.SetPixel(xp, yp, province.cultures[0].ownerIdentity);
+                paletteTex.SetPixel(xp, yp, GrabCulture(province.cultures));
                 paletteTex.Apply(false);
                 ownerTex.Apply(false);
             }
@@ -555,8 +574,10 @@ public class Mapshower : MonoBehaviour
                     //State stat = ;
                     UIElement.NationHost.UpdateDescription(Owners.Instance.statelist.Find(x => x.name == province.state));
                     UIElement.NationHost.Updatethird(Owners.Instance.CallPlayer().GrabDiplomaticStatus(province.nation.name));
+                    UIElement.NationHost.UpdateFourth(GrabStateStuff(province.state));
 
                     SelectedProvince = province;
+                    BuildingTab.Instance.GrabBuildings(SelectedProvince);
                     UIElement.ProvinceHost.UpdateTitle(province.name);
                     UIElement.ProvinceHost.UpdateDescription(Owners.Instance.statelist.Find(x => x.name == province.state),false);
                     UIElement.ProvinceHost.Updatethird(Owners.Instance.statelist.Find(x => x.name == province.state).Capitol.troops.ToString());
@@ -604,7 +625,7 @@ public class Mapshower : MonoBehaviour
             if(item.GetComponent<ArmyMovement>().province == target && item.GetComponent<ArmyMovement>().nation == owner && item.GetComponent<ArmyMovement>().origin == origin)
             {
                 Vector3 OriginLocation = Owners.Instance.provincelist.Find(x => x.name == origin).position;
-                OriginLocation = new Vector2(OriginLocation.x-366,OriginLocation.y-218);
+                OriginLocation = new Vector2(OriginLocation.x-Offset.x,OriginLocation.y-Offset.y);
 
                 //var targetLocation = Owners.Instance.provincelist.Find(x => x.name == target).position;
                 //targetLocation = new Vector2(targetLocation.x-366+20,targetLocation.y-218);
@@ -633,10 +654,10 @@ public class Mapshower : MonoBehaviour
         GameObject potato = Resources.Load<GameObject>("Prefabs/Map_Farmer");
         GameObject tomato = Instantiate(potato, transform.GetChild(2));//
         Vector2 location = Owners.Instance.provincelist.Find(x => x.name == origin).position;
-        location = new Vector2(location.x-366,location.y-218);
+        location = new Vector2(location.x-Offset.x,location.y-Offset.y);
         tomato.transform.position = location;
         location = Owners.Instance.provincelist.Find(x => x.name == target).position;
-        location = new Vector2(location.x-366+20,location.y-218);
+        location = new Vector2(location.x-Offset.x+20,location.y-Offset.y);
         tomato.GetComponent<ArmyMovement>().origin = origin;
         tomato.GetComponent<ArmyMovement>().target = location;
         tomato.GetComponent<ArmyMovement>().province = target;
@@ -714,6 +735,18 @@ public class Mapshower : MonoBehaviour
     {
         if(Owners.Instance.provincelist.Find(x => x.name == province).nation != Owners.Instance.nationlist.Find(x => x.name == owner))
         {
+            var thisprovince = Owners.Instance.provincelist.Find(x => x.name == province);
+            if(Owners.Instance.statelist.Find(x => x.name == thisprovince.state) != null)
+            {
+                if(Owners.Instance.statelist.Find(x => x.name == thisprovince.state).Capitol == thisprovince && Owners.Instance.statelist.Find(x => x.name == thisprovince.state).provincelist.Count > 1)
+                {
+                    Owners.Instance.statelist.Find(x => x.name == thisprovince.state).Capitol = Owners.Instance.statelist.Find(x => x.name == thisprovince.state).provincelist[1];
+                }
+            }
+
+            Owners.Instance.statelist.Find(x => x.name == thisprovince.state).provincelist.Remove(thisprovince);
+
+
             Owners.Instance.provincelist.Find(x => x.name == province).nation = Owners.Instance.nationlist.Find(x => x.name == owner);
             if(Owners.Instance.provincelist.Find(x => x.name == province).Drafty != null)
             {
@@ -734,6 +767,7 @@ public class Mapshower : MonoBehaviour
             {
                 var heading  = item.Capitol.position - Owners.Instance.provincelist.Find(x => x.name == province).position;
                 var distance = heading.magnitude;
+                print(distance + " vs " + distances);
                 if(distance < distances)
                 {
                     Owners.Instance.provincelist.Find(x => x.name == province).state = item.name;
@@ -743,6 +777,67 @@ public class Mapshower : MonoBehaviour
             //Potato();
             RePaint();
         }
+    }
+    public void TestTime()
+    {
+        // foreach (var item in Owners.Instance.provincelist)
+        // {
+        //     item.ResetJobs();
+        //     var texty = "";
+        //     texty += item.name + "\n";
+        //     foreach (var items in item.GrabProvincialOutput())
+        //     {
+        //         texty += items.amount + " " + items.resource.name;
+        //     }
+        //     print(texty);
+        // }
+        foreach (var item in Owners.Instance.statelist)
+        {
+            // item.();
+            // item.ResetJobs();
+            var texty = "";
+            texty += item.name + "\n";
+            foreach (var items in item.GrabStateOutput())
+            {
+                texty += items.amount + " :" + items.resource.name + ":\n";
+            }
+            print(texty);
+        }
+    }
+    public string GrabStateStuff(string namey)
+    {
+        var a = Owners.Instance.statelist.Find(x => x.name == namey);
+        var textoid = "";
+        textoid += a.name + "\n";
+        foreach (var items in a.GrabStateOutput())
+        {
+            items.amount = (float)Math.Round(items.amount, 2);
+            textoid += items.amount + " <sprite name=\"" + items.resource.name + "\">\n";
+        }
+        return textoid;
+        // foreach (var item in Owners.Instance.provincelist)
+        // {
+        //     item.ResetJobs();
+        //     var texty = "";
+        //     texty += item.name + "\n";
+        //     foreach (var items in item.GrabProvincialOutput())
+        //     {
+        //         texty += items.amount + " " + items.resource.name;
+        //     }
+        //     print(texty);
+        // }
+        // foreach (var item in Owners.Instance.statelist)
+        // {
+        //     // item.();
+        //     // item.ResetJobs();
+        //     var texty = "";
+        //     texty += item.name + "\n";
+        //     foreach (var items in item.GrabStateOutput())
+        //     {
+        //         texty += items.amount + " :" + items.resource.name + ":\n";
+        //     }
+        //     print(texty);
+        // }
     }
     public void DevProvince()
     {
@@ -875,5 +970,42 @@ public class Mapshower : MonoBehaviour
             return new Color32(255,0,0,1);
         }
         return new Color32(0,0,0,1);
+    }
+    public Color GrabPopulation(List<Culture> culturelist, int MaxPopulation = 7)
+    {
+        float a = 0;
+        foreach (var item in culturelist)
+        {
+            a += item.population;
+        }
+        float c = ((1-a) / ((float)MaxPopulation-a))*2;
+        if(c >= 1)
+        {
+            byte e = (byte)(255-(255*c));
+            var b = new Color32(e, 255, 0, 255);
+            return b;
+        }
+        else
+        {
+            byte e = (byte)(255-(255*c));
+            var b = new Color32(255, e, 0, 255);
+            return b;
+        }
+        var d = new Color32(0, 0, 0, 255);
+        return d;
+    }
+    public Color GrabCulture(List<Culture> culturelist)
+    {
+        var a = 0;
+        var b = new Color(0,0,0,0);
+        foreach (var item in culturelist)
+        {
+            if(item.population > a)
+            {
+                a = item.population;
+                b = item.ownerIdentity;
+            }
+        }
+        return b;
     }
 }

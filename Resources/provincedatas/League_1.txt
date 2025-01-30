@@ -1,0 +1,25 @@
+Province ={
+Name ={
+League_1
+}
+Color ={
+63
+72
+204
+}
+Location ={
+670
+1429
+}
+Population ={
+5
+Xenic
+}
+Owner ={
+Normal ={
+League of Exiles
+}
+}
+State ={
+
+}

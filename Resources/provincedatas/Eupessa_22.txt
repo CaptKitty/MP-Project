@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Eupessa_22
+}
+Color ={
+33
+56
+118
+}
+Location ={
+391
+1511
+}
+Population ={
+5
+Eupessan
+}
+Owner ={
+Normal ={
+Eupessa
+}
+}
+State ={
+
+}

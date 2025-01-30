@@ -160,6 +160,10 @@ public class LoadProvinces : MonoBehaviour
                 {
                     line = sr.ReadLine();
                     newprovince.state = line.Trim( );
+                    if(newprovince.state == "")
+                    {
+                        newprovince.state = newprovince.nation.name;
+                    }
                     // Debug.Log(provincename);
                 }
                 line = sr.ReadLine();

@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Moria_21
+}
+Color ={
+94
+162
+131
+}
+Location ={
+569
+1254
+}
+Population ={
+5
+Aldierban
+}
+Owner ={
+Normal ={
+Moria
+}
+}
+State ={
+
+}

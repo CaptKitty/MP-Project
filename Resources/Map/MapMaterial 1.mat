@@ -32,7 +32,7 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
-  m_LockedProperties: 
+  m_LockedProperties: _CityTex
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -41,7 +41,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _AreaTex:
-        m_Texture: {fileID: 2800000, guid: d0a2d33b88d7a9042830b026d6b019ef, type: 3}
+        m_Texture: {fileID: 2800000, guid: ece26e798e85b914fae043b6115ab09b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
@@ -73,7 +73,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: a0af0b1074271084383756a6ac7cb458, type: 3}
+        m_Texture: {fileID: 2800000, guid: ece26e798e85b914fae043b6115ab09b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -109,7 +109,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _RemapTex:
-        m_Texture: {fileID: 2800000, guid: d0a2d33b88d7a9042830b026d6b019ef, type: 3}
+        m_Texture: {fileID: 2800000, guid: ece26e798e85b914fae043b6115ab09b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _RiverTex:
@@ -121,14 +121,14 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TerrainTex:
-        m_Texture: {fileID: 2800000, guid: 1906f4783e27c2547a6d5b12c905660f, type: 3}
+        m_Texture: {fileID: 2800000, guid: 384c3db3db3ea6442b4b5490f3c0426c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _BUILTIN_QueueControl: 0
     - _BUILTIN_QueueOffset: 0
-    - _BorderSize: 0.001
+    - _BorderSize: 0.0001
     - _BumpScale: 1
     - _CountryVision: 0.2
     - _Cutoff: 0.5

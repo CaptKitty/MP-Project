@@ -2,11 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class UIElement : MonoBehaviour
 {
     public static UIElement NationHost;
     public static UIElement ProvinceHost;
+    public static UIElement TopBarHost;
     // Start is called before the first frame update
     void Start()
     {
@@ -17,6 +19,10 @@ public class UIElement : MonoBehaviour
         if(gameObject.name == "ProvinceHost")
         {
             ProvinceHost = this;
+        }
+        if(gameObject.name == "TopBarHost")
+        {
+            TopBarHost = this;
         }
     }
     public void UpdateTitle(string text)
@@ -81,5 +87,9 @@ public class UIElement : MonoBehaviour
     public void Updatethird(string text)
     {
         transform.GetChild(2).gameObject.GetComponent<Text>().text = text;
+    }
+    public void UpdateFourth(string text)
+    {
+        transform.GetChild(3).gameObject.GetComponent<TextMeshProUGUI>().text = text;
     }
 }

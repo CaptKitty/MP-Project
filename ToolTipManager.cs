@@ -100,13 +100,14 @@ public class ToolTipManager : MonoBehaviour
     //     textComponent.text = message;
     // }
 
-    public void SetAndShowToolTip(string message, Vector3 position, bool potato, Vector2 size = new Vector2())
+    public void SetAndShowToolTip(string message, Vector3 position, bool potato = false, Vector2 size = new Vector2())
     {
         SetSize();
         gameObject.SetActive(true);
         GetComponent<Canvas>().enabled = true;
 
-        transform.position = position;
+        //transform.position = position;
+        this.transform.GetChild(0).position = position;
         if(textComponent != null)
         {
             textComponent.text = message;

@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(BoxCollider2D))]
 [System.Serializable]
-public class Tooltip : MonoBehaviour
+public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public string message;
     public bool armory = true;
@@ -13,6 +14,17 @@ public class Tooltip : MonoBehaviour
     public bool resize = false;
     public Vector2 resizesize;
     public Vector3 positions;
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        //OnMouseEnter();
+        ////ToolTipManager._instance.SetAndShowToolTip(message, positions);
+    }
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        //OnMouseExit();
+        ////ToolTipManager._instance.SetAndShowToolTip(message, positions);
+    }
 
     void OnMouseEnter()
     {

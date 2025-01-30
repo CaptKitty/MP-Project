@@ -148,6 +148,7 @@ public class ArmyMovement : MonoBehaviour
         Mapshower.Instance.ChangeProvinceOwner(province, nation);
 
         Owners.Instance.statelist.Find(x => x.name == Owners.Instance.provincelist.Find(x => x.name == province).state).Capitol.AddTroops(troops);
+        troops = 0;
         // if(Owners.Instance.provincelist.Find(x => x.name == province).Drafty != null)
         // {
         //     Owners.Instance.provincelist.Find(x => x.name == province).Drafty.GetComponent<ArmyMovement>().SetTroopsMarker();

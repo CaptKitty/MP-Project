@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Mairez_4
+}
+Color ={
+153
+137
+163
+}
+Location ={
+491
+1473
+}
+Population ={
+5
+Kerkassan
+}
+Owner ={
+Normal ={
+Mairez
+}
+}
+State ={
+
+}

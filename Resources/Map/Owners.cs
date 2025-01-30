@@ -121,7 +121,7 @@ public class Owners : MonoBehaviour
         // {
         //     RPC.GetComponent<RpcTest>().HandleUpdate();
         // }
-        if(RpcTest.Serverchecker.IsServer)
+        if(RpcTest.Serverchecker != null && RpcTest.Serverchecker.IsServer)
         {
             ServerUpdateHandler();
         }
@@ -138,6 +138,7 @@ public class Owners : MonoBehaviour
 
     public void ServerUpdateHandler()
     {
+
         Turn++;
         if(Turn % 250 == 0) //OncePerFiveSeconds
         {
@@ -145,10 +146,12 @@ public class Owners : MonoBehaviour
             {
                 if(a.Drafty != null)
                 {
-                    if(a.Drafty.transform.GetChild(0).GetChild(0).GetComponent<Text>().text == "0")
+                    //if(a.Drafty.transform.GetChild(0).GetChild(0).GetComponent<Text>().text == "0" || a.Drafty.transform.GetChild(0).GetChild(0).GetComponent<Text>().text == "-1")
+                    if(a.troops < 1);
                     {
                         a.Drafty.GetComponent<Image>().enabled = false;
                         a.Drafty.transform.GetChild(0).GetChild(0).GetComponent<Text>().text = "";
+                        a.Drafty.transform.position = new Vector2(a.position.x - Mapshower.Instance.Offset.x, a.position.y - Mapshower.Instance.Offset.y);
                     }
                 }
                 var b = Owners.Instance.statelist.Find(x => x.name == a.state);
@@ -157,7 +160,6 @@ public class Owners : MonoBehaviour
                     b.Capitol.AddTroops(a.GrabTroopstoAdd());
                 }
             }
-            
             UIElement.ProvinceHost.Updatethird(Mapshower.Instance.SelectedProvince.troops.ToString());
         }
         if(Turn % 50 == 0) //OncePerOneSecond
@@ -177,6 +179,32 @@ public class Owners : MonoBehaviour
                     a.RemoveModifier(item);
                 }
             }
+            
+            foreach (var item in statelist)
+            {
+                item.GrabStateOutput();
+                var a = nationlist.Find(x => x.name == item.nation.name);
+                foreach (var items in item.stateoutput)
+                {
+                    if(a.nationalTreasury.Find(x => x.resource == items.resource) != null)
+                    {
+                        a.nationalTreasury.Find(x => x.resource == items.resource).amount += items.amount;
+                    }
+                    else
+                    {
+                        EcoData tomato = items.GrabEcoData();
+                        a.nationalTreasury.Add(tomato);
+                    }
+                }
+            }
+            var aaa = CallPlayer();
+            string c = "";
+            if(aaa.nationalTreasury.Find(x => x.resource.name == "Coin") != null)
+            {
+                c = Math.Round(aaa.nationalTreasury.Find(x => x.resource.name == "Coin").amount, 2).ToString();
+            }
+            UIElement.TopBarHost.UpdateTitle(aaa.name);
+            UIElement.TopBarHost.UpdateDescription("Coin: " + c);
 
             var b = new List<GameObject>();
             foreach(var a in armylist)
@@ -245,6 +273,7 @@ public class State : Province
     public List<Province> provincelist;
     public Province Capitol;
     public Color32 stateIdentity; 
+    public List<EcoData> stateoutput = new List<EcoData>();
 
     public override int GrabMaxTroops()
     {
@@ -279,6 +308,54 @@ public class State : Province
         }
         Piechart.Instance.SetValues(cultures);
     }
+    public List<EcoData> GrabStateOutput()
+    {
+        var potato = new List<EcoData>();
+        foreach (var provvy in provincelist)
+        {
+            provvy.ResetJobs();
+            foreach (var items in provvy.cultures)
+            {
+                foreach (var item in items.GrabIncome(this, provvy))
+                {
+                    if(potato.Find(x => x.resource == item.resource) != null)
+                    {
+                        potato.Find(x => x.resource == item.resource).amount += item.amount;
+                    }
+                    else
+                    {
+                        EcoData tomato = item.GrabEcoData();
+                        potato.Add(tomato);
+                    }
+                }
+            }
+        }
+        stateoutput = potato;
+        return potato;
+    }
+    public List<EcoData> GrabJobModifier(string jobname, List<EcoData> inputlist)
+    {
+        if(jobname == "Farmer")
+        {
+            foreach (var provvy in provincelist)
+            {
+                foreach (var items in provvy.cultures)
+                {
+                    foreach (var jobbies in items.jobs)
+                    {
+                        if(jobbies.name == "Baker")
+                        {
+                            foreach (var item in inputlist)
+                            {
+                                item.amount += 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return inputlist;
+    }
 }
 [System.Serializable]
 public class Province
@@ -291,13 +368,10 @@ public class Province
     public int population = 1000;
     public int troops = 0;
     public List<Culture> cultures = new List<Culture>();
-    // public int taxincome;
-    // public int taxpercentage;
-    // public int levyincome;
-    // public int levypercentage;
-    // public int unrest;
     public List<ProvinceModifier> provincemodifiers = new List<ProvinceModifier>();
     public GameObject Drafty = null;
+    public List<Buildings> BuildingList = new List<Buildings>();
+    public List<Jobs> jobbies = new List<Jobs>();
     public List<Vector3Int> ProvincialTileList = new List<Vector3Int>();
     
     public void AddModifier(ProvinceModifier moddie)
@@ -422,7 +496,8 @@ public class Province
             GameObject Corn = Owners.Instance.gameObject;
             GameObject tomato = GameObject.Instantiate(potato, GameObject.Find("Map").transform.GetChild(2));
             Vector2 location = position;
-            location = new Vector2(location.x-993,location.y-440);
+            //location = new Vector2(location.x-993,location.y-440); //930,2234 1794
+            location = new Vector2(position.x - Mapshower.Instance.Offset.x, position.y - Mapshower.Instance.Offset.y);
             tomato.transform.position = location;
             tomato.name = troops.ToString();
             tomato.transform.GetChild(0).GetChild(0).GetComponent<Text>().text = troops.ToString();
@@ -432,6 +507,7 @@ public class Province
             Drafty = tomato;
         }
         Drafty.transform.GetChild(0).GetChild(0).GetComponent<Text>().text = troops.ToString();
+        Drafty.GetComponent<RectTransform>().localScale = new Vector2(Camera.main.orthographicSize/300,Camera.main.orthographicSize/300);
     }
     public void UpdatePopulation()
     {
@@ -448,6 +524,45 @@ public class Province
             culture.population -= (int)(culture.population*percentage/100);
         }
         UpdatePopulation();
+    }
+    public void ResetJobs()
+    {
+        //var a = Resources.Load<Buildings>("EcoTime/Farm");
+        //BuildingList.Add(a);
+
+        //Debug.Log(jobbies.Count);
+        jobbies.Clear();
+        foreach (var item in BuildingList)
+        {
+            foreach (var items in item.BuildingJobs)
+            {
+                jobbies.Add(items);
+            }
+        }
+        foreach (var item in cultures)
+        {
+            item.ResetJobs(jobbies);
+        }
+    }
+    public List<EcoData> GrabProvincialOutput()
+    {
+        var potato = new List<EcoData>();
+        foreach (var items in cultures)
+        {
+            foreach (var item in items.GrabIncome())
+            {
+                if(potato.Find(x => x.resource == item.resource) != null)
+                {
+                    potato.Find(x => x.resource == item.resource).amount += item.amount;
+                }
+                else
+                {
+                    EcoData tomato = item.GrabEcoData();
+                    potato.Add(tomato);
+                }
+            }
+        }
+        return potato;
     }
 }
 [System.Serializable]
@@ -468,6 +583,7 @@ public class Nation
     public List<Armor> unlockedarmor;
     public List<Regiment> regimentdesigns;
     public List<GameObject> armies;
+    public List<EcoData> nationalTreasury = new List<EcoData>();
     public List<Diplomacy> Diplomacystuff = new List<Diplomacy>();
     public Faction faction;
     public List<ProvinceModifier> NationModifier = new List<ProvinceModifier>();
@@ -665,21 +781,10 @@ public class Nation
         return false;
     }
 }
-[System.Serializable]
-public class Culture
-{
-    public string name;
-    public Color32 ownerIdentity;
-    public int population;
-    public Culture GrabCulture()
-    {
-        Culture cult = new Culture();
-        cult.name = name;
-        cult.ownerIdentity = ownerIdentity;
-        cult.population = population;
-        return cult;
-    }
-}
+
+
+
+
 [System.Serializable]
 public class General
 {
@@ -732,11 +837,11 @@ public class Unit
 {
     public string name;
 }
-[System.Serializable]
-public class Trait
-{
-    public string traitname;
-}
+// [System.Serializable]
+// public class Trait
+// {
+//     public string traitname;
+// }
 public enum Formation
 {
     None,

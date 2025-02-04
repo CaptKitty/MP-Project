@@ -24,6 +24,7 @@ public class Owners : MonoBehaviour
     //How Long does a Turn last ingame?
     public float TimeScale = 1f;
     // public List<Province> provincelists;
+    public NationalBrain ActiveBrain;
 
     // Start is called before the first frame update
     void Awake()
@@ -54,6 +55,9 @@ public class Owners : MonoBehaviour
             {
                 nation.IsPlayer = true;
             }
+            nation.Brain = new NationalBrain();
+            //nation.Brain.Start();
+            nation.Brain.Startie(nation);
         }
         
         provincedict = new Dictionary<string, Province>();
@@ -161,6 +165,17 @@ public class Owners : MonoBehaviour
                 }
             }
             UIElement.ProvinceHost.Updatethird(Mapshower.Instance.SelectedProvince.troops.ToString());
+        }
+        if(Turn % 100 == 0) //OncePerTwoSecond
+        {
+            foreach(var a in nationlist)
+            {
+                if(a.IsAlive && !a.IsPlayer)
+                {
+                    ActiveBrain = a.Brain;
+                    a.Brain.Think();
+                }
+            }
         }
         if(Turn % 50 == 0) //OncePerOneSecond
         {
@@ -569,7 +584,7 @@ public class Province
 public class Diplomacy
 {
     public string othernation;
-    public string relationship = "peace";
+    public string relationship = "peace";//"peace";
 }
 [System.Serializable]
 public class Nation
@@ -577,6 +592,7 @@ public class Nation
     public string name;
     public Color32 ownerIdentity;
     public bool IsPlayer;
+    public bool IsAlive;
     public int manpower;
     public int treasury;
     public List<Weapon> unlockedweapons;
@@ -587,6 +603,7 @@ public class Nation
     public List<Diplomacy> Diplomacystuff = new List<Diplomacy>();
     public Faction faction;
     public List<ProvinceModifier> NationModifier = new List<ProvinceModifier>();
+    public NationalBrain Brain;
 
     public bool CanIDoThis(string othernation, string goal = "movement")
     {

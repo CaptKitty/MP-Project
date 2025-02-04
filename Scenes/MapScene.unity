@@ -5656,6 +5656,7 @@ MonoBehaviour:
         serializedVersion: 2
         rgba: 0
       IsPlayer: 0
+      IsAlive: 0
       manpower: 0
       treasury: 0
       unlockedweapons: []
@@ -5666,6 +5667,7 @@ MonoBehaviour:
       Diplomacystuff: []
       faction: {fileID: 0}
       NationModifier: []
+      Brain: {fileID: 0}
     state: 
     position: {x: 0, y: 0}
     population: 1000
@@ -7390,6 +7392,7 @@ MonoBehaviour:
       serializedVersion: 2
       rgba: 0
     IsPlayer: 0
+    IsAlive: 0
     manpower: 0
     treasury: 0
     unlockedweapons: []
@@ -7400,6 +7403,7 @@ MonoBehaviour:
     Diplomacystuff: []
     faction: {fileID: 0}
     NationModifier: []
+    Brain: {fileID: 0}
   SelectedProvince:
     name: 
     identity:
@@ -7411,6 +7415,7 @@ MonoBehaviour:
         serializedVersion: 2
         rgba: 0
       IsPlayer: 0
+      IsAlive: 0
       manpower: 0
       treasury: 0
       unlockedweapons: []
@@ -7421,6 +7426,7 @@ MonoBehaviour:
       Diplomacystuff: []
       faction: {fileID: 0}
       NationModifier: []
+      Brain: {fileID: 0}
     state: 
     position: {x: 0, y: 0}
     population: 1000
@@ -7467,6 +7473,7 @@ MonoBehaviour:
       serializedVersion: 2
       rgba: 4279639711
     IsPlayer: 1
+    IsAlive: 0
     manpower: 0
     treasury: 0
     unlockedweapons: []
@@ -7478,11 +7485,13 @@ MonoBehaviour:
     faction: {fileID: 11400000, guid: dcbee4453ff2def43ba4aa0f3d4f9d86, type: 2}
     NationModifier:
     - {fileID: 11400000, guid: 3f42eeb5f7f2e594fa4f175861d050f2, type: 2}
+    Brain: {fileID: 0}
   - name: Carthage
     ownerIdentity:
       serializedVersion: 2
       rgba: 4289572971
     IsPlayer: 0
+    IsAlive: 0
     manpower: 0
     treasury: 0
     unlockedweapons: []
@@ -7493,11 +7502,13 @@ MonoBehaviour:
     Diplomacystuff: []
     faction: {fileID: 11400000, guid: 47009c7e621a59349a826c3c4d238a6d, type: 2}
     NationModifier: []
+    Brain: {fileID: 0}
   - name: Gaul
     ownerIdentity:
       serializedVersion: 2
       rgba: 4278993696
     IsPlayer: 0
+    IsAlive: 0
     manpower: 0
     treasury: 0
     unlockedweapons: []
@@ -7509,11 +7520,13 @@ MonoBehaviour:
     faction: {fileID: 11400000, guid: 985566123e0662b44ad1cd7852a4767d, type: 2}
     NationModifier:
     - {fileID: 11400000, guid: fc402f9eaf97ab8489e0f4a1bb420443, type: 2}
+    Brain: {fileID: 0}
   - name: Spain
     ownerIdentity:
       serializedVersion: 2
       rgba: 4278213300
     IsPlayer: 0
+    IsAlive: 0
     manpower: 0
     treasury: 0
     unlockedweapons: []
@@ -7524,11 +7537,13 @@ MonoBehaviour:
     Diplomacystuff: []
     faction: {fileID: 11400000, guid: 985566123e0662b44ad1cd7852a4767d, type: 2}
     NationModifier: []
+    Brain: {fileID: 0}
   - name: League of Exiles
     ownerIdentity:
       serializedVersion: 2
       rgba: 4278198165
     IsPlayer: 0
+    IsAlive: 1
     manpower: 0
     treasury: 0
     unlockedweapons: []
@@ -7539,11 +7554,13 @@ MonoBehaviour:
     Diplomacystuff: []
     faction: {fileID: 11400000, guid: 985566123e0662b44ad1cd7852a4767d, type: 2}
     NationModifier: []
+    Brain: {fileID: 0}
   - name: Eupessa
     ownerIdentity:
       serializedVersion: 2
       rgba: 4283902989
     IsPlayer: 0
+    IsAlive: 1
     manpower: 0
     treasury: 0
     unlockedweapons: []
@@ -7554,11 +7571,13 @@ MonoBehaviour:
     Diplomacystuff: []
     faction: {fileID: 11400000, guid: 985566123e0662b44ad1cd7852a4767d, type: 2}
     NationModifier: []
+    Brain: {fileID: 0}
   - name: Mairez
     ownerIdentity:
       serializedVersion: 2
       rgba: 4290816408
     IsPlayer: 0
+    IsAlive: 1
     manpower: 0
     treasury: 0
     unlockedweapons: []
@@ -7569,11 +7588,13 @@ MonoBehaviour:
     Diplomacystuff: []
     faction: {fileID: 11400000, guid: 985566123e0662b44ad1cd7852a4767d, type: 2}
     NationModifier: []
+    Brain: {fileID: 0}
   - name: Moria
     ownerIdentity:
       serializedVersion: 2
       rgba: 4281194196
     IsPlayer: 0
+    IsAlive: 1
     manpower: 0
     treasury: 0
     unlockedweapons: []
@@ -7584,6 +7605,7 @@ MonoBehaviour:
     Diplomacystuff: []
     faction: {fileID: 11400000, guid: 985566123e0662b44ad1cd7852a4767d, type: 2}
     NationModifier: []
+    Brain: {fileID: 0}
   statelist: []
   culturelist: []
   provincelist: []

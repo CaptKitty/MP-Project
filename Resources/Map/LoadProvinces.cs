@@ -243,7 +243,7 @@ public class LoadProvinces : MonoBehaviour
                 State state = new State();
                 state.name = province.state;
                 state.nation = province.nation;
-                state.stateIdentity = new Color32(0,0,0,0);
+                state.stateIdentity = province.identity;
                 state.provincelist = new List<Province>();
                 state.provincelist.Add(province);
                 state.Capitol = province;

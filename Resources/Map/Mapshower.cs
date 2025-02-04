@@ -762,18 +762,34 @@ public class Mapshower : MonoBehaviour
             }
             Owners.Instance.provincelist.Find(x => x.name == province).state = a[0].name;
             var distances = (a[0].Capitol.position - Owners.Instance.provincelist.Find(x => x.name == province).position).magnitude;
-            print(distances);
+            //print(distances);
             foreach (var item in a)
             {
                 var heading  = item.Capitol.position - Owners.Instance.provincelist.Find(x => x.name == province).position;
                 var distance = heading.magnitude;
-                print(distance + " vs " + distances);
+                //print(distance + " vs " + distances);
                 if(distance < distances)
                 {
                     Owners.Instance.provincelist.Find(x => x.name == province).state = item.name;
-                }
+                    distances = distance;
+                }   
             }
-            Owners.Instance.statelist.Find(x => x.name == Owners.Instance.provincelist.Find(x => x.name == province).state).provincelist.Add(Owners.Instance.provincelist.Find(x => x.name == province));
+            if(distances > 100)
+            {
+                State state = new State();
+                state.name = thisprovince.name + " State";
+                state.nation = thisprovince.nation;
+                state.stateIdentity = thisprovince.identity;
+                state.provincelist = new List<Province>();
+                state.provincelist.Add(thisprovince);
+                state.Capitol = thisprovince;
+                thisprovince.state = state.name;
+                Owners.Instance.statelist.Add(state);
+            }
+            else
+            {
+                Owners.Instance.statelist.Find(x => x.name == Owners.Instance.provincelist.Find(x => x.name == province).state).provincelist.Add(Owners.Instance.provincelist.Find(x => x.name == province));
+            }
             //Potato();
             RePaint();
         }

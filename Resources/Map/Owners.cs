@@ -328,7 +328,7 @@ public class State : Province
         var potato = new List<EcoData>();
         foreach (var provvy in provincelist)
         {
-            provvy.ResetJobs();
+            //provvy.ResetJobs();
             foreach (var items in provvy.cultures)
             {
                 foreach (var item in items.GrabIncome(this, provvy))

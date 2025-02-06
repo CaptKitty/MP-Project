@@ -67,6 +67,23 @@ public class GPlanner {
 
         //if a plan wasn't found
         if (!success) {
+            Debug.Log(Owners.Instance.ActiveBrain.nation);
+
+            foreach (KeyValuePair<string, int> g in goal) {
+                Debug.Log(g.Key);
+                
+            }
+
+            foreach (var item in usableActions)
+            {
+                foreach (var items in item.afterEffects)
+                {
+                    Debug.Log(items.key + item.IsAhievableGiven(goal));
+                }
+            }
+            
+            
+
 
             Debug.Log("NO PLAN");
             return null;

@@ -108,6 +108,7 @@ public class BuildingTab : MonoBehaviour
             if(canbuy)
             {
                 provinces.BuildingList.Add(BuildingList[change.value]);
+                provinces.ResetJobs();
                 foreach (var item in BuildingList[change.value].Cost)
                 {
                     if(a.nationalTreasury.Find(x => x.resource == item.resource) != null)

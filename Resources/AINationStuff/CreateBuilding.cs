@@ -17,9 +17,15 @@ public class CreateBuilding : GAction {
     }
     public override bool Execute(NationalBrain brainy)
     {
+        if(Owners.Instance.nationlist.Find(x => x.name == brainy.nation).nationalTreasury.Find(x => x.resource.name == "Coin") == null)
+        {
+            return false;
+        }
         if(Owners.Instance.nationlist.Find(x => x.name == brainy.nation).nationalTreasury.Find(x => x.resource.name == "Coin").amount > GrabCost())
         {
-            brainy.GrabSelectedProvince().BuildingList.Add(building);
+            var a = brainy.GrabSelectedProvince();
+            a.BuildingList.Add(building);
+            a.ResetJobs();
             Owners.Instance.nationlist.Find(x => x.name == brainy.nation).nationalTreasury.Find(x => x.resource.name == "Coin").amount -= building.Cost[0].amount;
             return true;
         }

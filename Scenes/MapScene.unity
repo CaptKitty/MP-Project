@@ -1149,7 +1149,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Dev Province
+  m_Text: Raise Army
 --- !u!222 &204852584
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1307,7 +1307,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Attack
+  m_Text: Settle Down
 --- !u!222 &324732798
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2774,7 +2774,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &689507524
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2839,9 +2839,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1974663639}
-        m_TargetAssemblyTypeName: Mapshower, Assembly-CSharp
-        m_MethodName: PrepBattle
+      - m_Target: {fileID: 513395795}
+        m_TargetAssemblyTypeName: UIElement, Assembly-CSharp
+        m_MethodName: SettleArmy
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -5659,6 +5659,7 @@ MonoBehaviour:
       IsAlive: 0
       manpower: 0
       treasury: 0
+      PrimaryCulture: {fileID: 0}
       unlockedweapons: []
       unlockedarmor: []
       regimentdesigns: []
@@ -5672,6 +5673,7 @@ MonoBehaviour:
     position: {x: 0, y: 0}
     population: 1000
     troops: 0
+    popgrowth: 0
     cultures: []
     provincemodifiers: []
     Drafty: {fileID: 0}
@@ -6245,7 +6247,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1801020778
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6263,7 +6265,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -220}
+  m_AnchoredPosition: {x: 0, y: -240}
   m_SizeDelta: {x: 200, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1801020779
@@ -6310,9 +6312,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1974663639}
-        m_TargetAssemblyTypeName: Mapshower, Assembly-CSharp
-        m_MethodName: DevProvince
+      - m_Target: {fileID: 513395795}
+        m_TargetAssemblyTypeName: UIElement, Assembly-CSharp
+        m_MethodName: RaiseArmy
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -7361,7 +7363,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -1}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1974663639
@@ -7395,6 +7397,7 @@ MonoBehaviour:
     IsAlive: 0
     manpower: 0
     treasury: 0
+    PrimaryCulture: {fileID: 0}
     unlockedweapons: []
     unlockedarmor: []
     regimentdesigns: []
@@ -7418,6 +7421,7 @@ MonoBehaviour:
       IsAlive: 0
       manpower: 0
       treasury: 0
+      PrimaryCulture: {fileID: 0}
       unlockedweapons: []
       unlockedarmor: []
       regimentdesigns: []
@@ -7431,12 +7435,14 @@ MonoBehaviour:
     position: {x: 0, y: 0}
     population: 1000
     troops: 1
+    popgrowth: 0
     cultures: []
     provincemodifiers: []
     Drafty: {fileID: 0}
     BuildingList: []
     jobbies: []
     ProvincialTileList: []
+  SelectedArmy: {fileID: 0}
   width: 0
   height: 0
   Offset: {x: 1920, y: 2674}
@@ -7476,6 +7482,7 @@ MonoBehaviour:
     IsAlive: 0
     manpower: 0
     treasury: 0
+    PrimaryCulture: {fileID: 11400000, guid: 64ff75411a9751240a2b37057928ebb8, type: 2}
     unlockedweapons: []
     unlockedarmor: []
     regimentdesigns: []
@@ -7494,6 +7501,7 @@ MonoBehaviour:
     IsAlive: 0
     manpower: 0
     treasury: 0
+    PrimaryCulture: {fileID: 11400000, guid: 64ff75411a9751240a2b37057928ebb8, type: 2}
     unlockedweapons: []
     unlockedarmor: []
     regimentdesigns: []
@@ -7511,6 +7519,7 @@ MonoBehaviour:
     IsAlive: 0
     manpower: 0
     treasury: 0
+    PrimaryCulture: {fileID: 11400000, guid: 64ff75411a9751240a2b37057928ebb8, type: 2}
     unlockedweapons: []
     unlockedarmor: []
     regimentdesigns: []
@@ -7529,6 +7538,7 @@ MonoBehaviour:
     IsAlive: 0
     manpower: 0
     treasury: 0
+    PrimaryCulture: {fileID: 11400000, guid: 64ff75411a9751240a2b37057928ebb8, type: 2}
     unlockedweapons: []
     unlockedarmor: []
     regimentdesigns: []
@@ -7546,6 +7556,7 @@ MonoBehaviour:
     IsAlive: 1
     manpower: 0
     treasury: 0
+    PrimaryCulture: {fileID: 11400000, guid: 10096e2dae722ce4da127bf65b7f6547, type: 2}
     unlockedweapons: []
     unlockedarmor: []
     regimentdesigns: []
@@ -7563,6 +7574,7 @@ MonoBehaviour:
     IsAlive: 1
     manpower: 0
     treasury: 0
+    PrimaryCulture: {fileID: 11400000, guid: 64ff75411a9751240a2b37057928ebb8, type: 2}
     unlockedweapons: []
     unlockedarmor: []
     regimentdesigns: []
@@ -7580,6 +7592,7 @@ MonoBehaviour:
     IsAlive: 1
     manpower: 0
     treasury: 0
+    PrimaryCulture: {fileID: 11400000, guid: 32655ea87adc0774ab768964f3e8aa77, type: 2}
     unlockedweapons: []
     unlockedarmor: []
     regimentdesigns: []
@@ -7597,6 +7610,7 @@ MonoBehaviour:
     IsAlive: 1
     manpower: 0
     treasury: 0
+    PrimaryCulture: {fileID: 11400000, guid: 64ff75411a9751240a2b37057928ebb8, type: 2}
     unlockedweapons: []
     unlockedarmor: []
     regimentdesigns: []
@@ -7612,6 +7626,7 @@ MonoBehaviour:
   armylist: []
   Turn: 0
   TimeScale: 1
+  ActiveBrain: {fileID: 0}
 --- !u!114 &1974663642
 MonoBehaviour:
   m_ObjectHideFlags: 0

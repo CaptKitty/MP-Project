@@ -27,6 +27,7 @@ public class Mapshower : MonoBehaviour
 
     public Nation SelectedNation;
     public Province SelectedProvince;
+    public ArmyMovement SelectedArmy;
 
 
     public int width;
@@ -102,6 +103,10 @@ public class Mapshower : MonoBehaviour
         // UnityEngine.Debug.LogError("Potato2");
 
         
+    }
+    public Color32[] GrabremapArr()
+    {
+        return remapArr;
     }
     void OnEnable()
     {
@@ -237,6 +242,10 @@ public class Mapshower : MonoBehaviour
             foreach(var x in Owners.Instance.nationlist)
             {
                 print(x.ownerIdentity);
+            }
+            foreach (var item in Owners.Instance.provincelist)
+            {
+                item.SetAdjacencies();
             }
         }
         var potato = 0.1f;
@@ -410,11 +419,7 @@ public class Mapshower : MonoBehaviour
                 var material = GetComponent<Renderer>().material;
                 var mainTex = material.GetTexture("_MainTex") as Texture2D;
                 
-                if(Input.GetMouseButtonDown(1))
-                {
-                    ///print(new Vector2(x,y));
-                    AddFileOfPower(new Vector2(x,y),mainTex.GetPixel(x,y));
-                }
+
 
                 // print(mainTex.GetPixel(x, y));
                 // // print(x + " + " + y);
@@ -436,9 +441,35 @@ public class Mapshower : MonoBehaviour
                 int xps = remapColor[0];
                 int yps = remapColor[1];
 
-                Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
+                if(Input.GetMouseButtonDown(1))
+                {
+                    AddFileOfPower(new Vector2(x,y),mainTex.GetPixel(x,y));
+                }
 
-                //
+                Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
+                if(Input.GetMouseButtonDown(0))
+                {
+                    //province.SetAdjacencies();
+                    foreach (var item in province.GrabAdjacentProvinces())
+                    {
+                        UnityEngine.Debug.LogError(item.name);
+                    }
+                }
+                if(Input.GetMouseButtonDown(1))
+                {
+                    if(SelectedArmy != null)
+                    {
+                        if(province.nation.GrabDiplomaticStatus(SelectedArmy.nation) != "peace")
+                        {
+                            var location = province.position;
+                            location = new Vector2(location.x-Offset.x+20,location.y-Offset.y);
+                            SelectedArmy.target = location;
+                            SelectedArmy.province = province.name;
+                        }
+                    }
+                    ///print(new Vector2(x,y));
+                    //AddFileOfPower(new Vector2(x,y),mainTex.GetPixel(x,y));
+                }
 
                 // UIElement.NationHost.UpdateTitle(province.nation.name);
                 // UIElement.ProvinceHost.UpdateTitle(province.name);
@@ -453,57 +484,57 @@ public class Mapshower : MonoBehaviour
                             Owners.Instance.statelist.Find(x => x.name == DraggedProvince.state).GrabPopulationPieCharts();
                             //print(mainTex.GetPixel(x, y) + " " + x + " " + y);
                         }
-                        if(Input.GetMouseButtonUp(0))
-                        {
-                            if(DraggedProvince != province)
-                            {
-                                if(DraggedProvince != null && DraggedProvince.nation != null)
-                                {
-                                    if(DraggedProvince.nation.IsPlayer)
-                                    {
-                                        //UnityEngine.Debug.Log(DraggedProvince.nation.GrabDiplomaticStatus(province.nation.name));
-                                        //string diplostatus = GrabDiplomaticStatus();
-                                        if(DraggedProvince.nation.CanIDoThis(province.nation.name))
-                                        {
-                                            var a = Owners.Instance.statelist.Find(x => x.name == DraggedProvince.state).Capitol;
+                        // if(Input.GetMouseButtonUp(0))
+                        // {
+                        //     if(DraggedProvince != province)
+                        //     {
+                        //         if(DraggedProvince != null && DraggedProvince.nation != null)
+                        //         {
+                        //             if(DraggedProvince.nation.IsPlayer)
+                        //             {
+                        //                 //UnityEngine.Debug.Log(DraggedProvince.nation.GrabDiplomaticStatus(province.nation.name));
+                        //                 //string diplostatus = GrabDiplomaticStatus();
+                        //                 if(DraggedProvince.nation.CanIDoThis(province.nation.name))
+                        //                 {
+                        //                     var a = Owners.Instance.statelist.Find(x => x.name == DraggedProvince.state).Capitol;
 
-                                            foreach (var RPC in TestRelay.Instance.PlayerObjects)
-                                            {
-                                                if(RPC.GetComponent<NetworkObject>().IsLocalPlayer)
-                                                {
-                                                    RPC.GetComponent<RpcTest>().SendTroops(a.name, province.name, DraggedProvince.nation.name);
-                                                }
-                                                //RPC.GetComponent<RpcTest>().ChangeProvinceOwner(province.name, DraggedProvince.nation.name);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            else//if(DraggedProvince == province)
-                            {
-                                // material.SetFloat("_ProvinceView", 1f);
-                                // // PaintSettlementsInProvince(province);
-                                // //     x = (int)province.position.x;
-                                // //     y = (int)province.position.y;
+                        //                     foreach (var RPC in TestRelay.Instance.PlayerObjects)
+                        //                     {
+                        //                         if(RPC.GetComponent<NetworkObject>().IsLocalPlayer)
+                        //                         {
+                        //                             RPC.GetComponent<RpcTest>().SendTroops(a.name, province.name, DraggedProvince.nation.name);
+                        //                         }
+                        //                         //RPC.GetComponent<RpcTest>().ChangeProvinceOwner(province.name, DraggedProvince.nation.name);
+                        //                     }
+                        //                 }
+                        //             }
+                        //         }
+                        //     }
+                        //     else//if(DraggedProvince == province)
+                        //     {
+                        //         // material.SetFloat("_ProvinceView", 1f);
+                        //         // // PaintSettlementsInProvince(province);
+                        //         // //     x = (int)province.position.x;
+                        //         // //     y = (int)province.position.y;
 
-                                // //         remapColor = remapArr[x + y * width];
-                                // //         xp = remapColor[0];
-                                // //         yp = remapColor[1];
+                        //         // //         remapColor = remapArr[x + y * width];
+                        //         // //         xp = remapColor[0];
+                        //         // //         yp = remapColor[1];
 
-                                // //         //var state = Owners.Instance.statelist.Find(x => x.name == province.state);
+                        //         // //         //var state = Owners.Instance.statelist.Find(x => x.name == province.state);
 
-                                // //         // if(province.nation == provinces.nation)
-                                // //         // {
-                                // //         //     changeColors(remapColor, new Color32(64, 64, 64, 255));//state.stateIdentity);
-                                // //         // }
-                                // //         // else
-                                // //         // {
-                                // //             print(x + " " + y + " " + remapColor);
-                                // //             changeColors(remapColor, new Color32(64, 64, 64, 255));
+                        //         // //         // if(province.nation == provinces.nation)
+                        //         // //         // {
+                        //         // //         //     changeColors(remapColor, new Color32(64, 64, 64, 255));//state.stateIdentity);
+                        //         // //         // }
+                        //         // //         // else
+                        //         // //         // {
+                        //         // //             print(x + " " + y + " " + remapColor);
+                        //         // //             changeColors(remapColor, new Color32(64, 64, 64, 255));
                                 
-                                // // ChangeProvinceOwner(DraggedProvince.name, DraggedProvince.nation.name, true);
-                            }
-                        }
+                        //         // // ChangeProvinceOwner(DraggedProvince.name, DraggedProvince.nation.name, true);
+                        //     }
+                        // }
                     }
                 
                 foreach(Province provinces in Owners.Instance.provincelist)
@@ -736,6 +767,7 @@ public class Mapshower : MonoBehaviour
         if(Owners.Instance.provincelist.Find(x => x.name == province).nation != Owners.Instance.nationlist.Find(x => x.name == owner))
         {
             var thisprovince = Owners.Instance.provincelist.Find(x => x.name == province);
+            thisprovince.KillPop();
             if(Owners.Instance.statelist.Find(x => x.name == thisprovince.state) != null)
             {
                 if(Owners.Instance.statelist.Find(x => x.name == thisprovince.state).Capitol == thisprovince && Owners.Instance.statelist.Find(x => x.name == thisprovince.state).provincelist.Count > 1)

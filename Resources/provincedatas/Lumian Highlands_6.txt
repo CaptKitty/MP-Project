@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Lumian Highlands_6
+}
+Color ={
+255
+113
+255
+}
+Location ={
+788
+1523
+}
+Population ={
+5
+Lumian
+}
+Owner ={
+Normal ={
+Lumaire
+}
+}
+State ={
+
+}

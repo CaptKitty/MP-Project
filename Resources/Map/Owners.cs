@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using System.Linq;
 
 using UnityEngine.Tilemaps;
 
@@ -21,6 +22,7 @@ public class Owners : MonoBehaviour
     public List<GameObject> armylist = new List<GameObject>();
     private float timer;
     public int Turn = 0;
+    public int AICounter;
     //How Long does a Turn last ingame?
     public float TimeScale = 1f;
     // public List<Province> provincelists;
@@ -39,6 +41,8 @@ public class Owners : MonoBehaviour
         }
         this.transform.GetComponent<LoadProvinces>().LoadinCultures();
         
+        this.transform.GetComponent<LoadProvinces>().LoadinNations();
+        
         culturedict = new Dictionary<string, Culture>();
         foreach (Culture culture in culturelist)
         {
@@ -51,6 +55,7 @@ public class Owners : MonoBehaviour
         {
             nationdict.Add(nation.name, nation);
             nation.IsPlayer = false;
+            nation.PrimaryCulture = culturelist.Find(x => x.name == nation.PrimaryCulture.name);
             if(SessionManager.Instance.HostFaction.name.Contains(nation.name))
             {
                 nation.IsPlayer = true;
@@ -79,6 +84,10 @@ public class Owners : MonoBehaviour
             }
         }
         Mapshower.Instance.Paint();
+        foreach (var item in provincelist)
+        {
+            item.SetAdjacencies();
+        }
         //Mapshower.Instance.Potato();
         // Debug.Log(nationdict["Netherlands"].manpower);
     }
@@ -144,6 +153,13 @@ public class Owners : MonoBehaviour
     {
 
         Turn++;
+        if(Turn == 1) //OncePerFiveSeconds
+        {
+            foreach (var provvy in provincelist)
+            {
+                provvy.ResetJobs();
+            }
+        }
         if(Turn % 250 == 0) //OncePerFiveSeconds
         {
             foreach(var a in provincelist)
@@ -161,21 +177,31 @@ public class Owners : MonoBehaviour
                 var b = Owners.Instance.statelist.Find(x => x.name == a.state);
                 if(b.Capitol.troops < b.GrabMaxTroops())
                 {
-                    b.Capitol.AddTroops(a.GrabTroopstoAdd());
+                    if(CallNation(a.nation.name) != null && CallNation(a.nation.name).nationalTreasury.Find(x => x.resource.name == "Manpower") != null && CallNation(a.nation.name).nationalTreasury.Find(x => x.resource.name == "Manpower").amount > 1)
+                    {
+                        CallNation(a.nation.name).nationalTreasury.Find(x => x.resource.name == "Manpower").amount -= a.GrabTroopstoAdd();
+                        b.Capitol.AddTroops(a.GrabTroopstoAdd());
+                    }
                 }
             }
             UIElement.ProvinceHost.Updatethird(Mapshower.Instance.SelectedProvince.troops.ToString());
         }
-        if(Turn % 100 == 0) //OncePerTwoSecond
+        if(Turn % 1 == 0) //OncePerTwoSecond
         {
-            foreach(var a in nationlist)
+            AICounter++;
+            if(nationlist.Count <= AICounter)
             {
-                if(a.IsAlive && !a.IsPlayer)
-                {
-                    ActiveBrain = a.Brain;
-                    a.Brain.Think();
-                }
+                AICounter = 0;
             }
+            Nation a = nationlist[AICounter];
+            // foreach(var a in nationlist)
+            // {
+            if(a.IsAlive && !a.IsPlayer)
+            {
+                ActiveBrain = a.Brain;
+                a.Brain.Think();
+            }
+            //}
         }
         if(Turn % 50 == 0) //OncePerOneSecond
         {
@@ -193,6 +219,11 @@ public class Owners : MonoBehaviour
                 {
                     a.RemoveModifier(item);
                 }
+            }
+
+            foreach (var item in provincelist)
+            {
+                item.AddPopulationGrowth(1);
             }
             
             foreach (var item in statelist)
@@ -226,7 +257,7 @@ public class Owners : MonoBehaviour
             {
                 if(a != null)
                 {
-                    a.GetComponent<ArmyMovement>().Fighty();
+                    a.GetComponent<ArmyMovement>().Combaty();
                 }
                 if(a == null)
                 {
@@ -382,12 +413,14 @@ public class Province
     public Vector2 position;
     public int population = 1000;
     public int troops = 0;
+    public int popgrowth = 0;
     public List<Culture> cultures = new List<Culture>();
     public List<ProvinceModifier> provincemodifiers = new List<ProvinceModifier>();
     public GameObject Drafty = null;
     public List<Buildings> BuildingList = new List<Buildings>();
     public List<Jobs> jobbies = new List<Jobs>();
     public List<Vector3Int> ProvincialTileList = new List<Vector3Int>();
+    public List<Color32> AdjacentProvincesByColor = new List<Color32>();
     
     public void AddModifier(ProvinceModifier moddie)
     {
@@ -407,6 +440,133 @@ public class Province
             RPC.GetComponent<RpcTest>().SendCityUpdateServerRpc(name, nation.name, troops);
         }
         UIElement.ProvinceHost.Updatethird(Mapshower.Instance.SelectedProvince.troops.ToString());
+    }
+    public void SetAdjacencies()
+    {
+        var material = Mapshower.Instance.GetComponent<Renderer>().material;
+        var mainTex = material.GetTexture("_MainTex") as Texture2D;
+        
+        for (int i = -4; i < 5; i++)
+        {
+            for (int j = -4; j < 5; j++)
+            {
+                var p = position;
+
+                var heading = position - new Vector2(position.x + (float)((float)i/4), position.y + (float)((float)j/4));
+                //Debug.LogError(heading);
+                
+                //int x = (int)Mathf.Floor(p.x);// + Mapshower.Instance.width / 2;
+                //int y = (int)Mathf.Floor(p.y);// + Mapshower.Instance.height / 2;
+
+                for (int l = 0; l < 50; l+=5)
+                {
+                    int x = (int)Mathf.Floor(p.x) + (l*(int)heading.x);// + Mapshower.Instance.width / 2;
+                    int y = (int)Mathf.Floor(p.y) + (l*(int)heading.y);// + Mapshower.Instance.height / 2;
+                    try
+                    {
+                        //Debug.LogError(Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0)).name);
+                        if(Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0)) != null)
+                        {
+                            if(Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0)) != this)
+                            {
+                                AdjacentProvincesByColor.Add(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
+                                break;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+        }
+        // foreach (var item in GrabAdjacentProvinces())
+        // {
+        //     //Debug.LogError(item.name);
+        // }
+    }
+    public List<Province> GrabAdjacentProvinces()
+    {
+        List<Province> adjacentprovinces = new List<Province>();
+        foreach (var item in AdjacentProvincesByColor)
+        {
+            if(adjacentprovinces.Contains(Owners.Instance.CallProvinceByColor(item)))
+            {
+                continue;
+            }
+            if(Owners.Instance.CallProvinceByColor(item) == this)
+            {
+                continue;
+            }
+            adjacentprovinces.Add(Owners.Instance.CallProvinceByColor(item));
+        }
+        return adjacentprovinces;
+    }
+    public void AddPopulationGrowth(int growth)
+    {
+        popgrowth++;
+        if(popgrowth > 100)
+        {
+            popgrowth -= 100;
+            SpawnPop();
+        }
+        if(popgrowth < -100)
+        {
+            popgrowth += 100;
+            KillPop();
+        }
+    }
+    public void KillPop(string whoWeKilling = "")
+    {
+        foreach (var item in cultures)
+        {
+            if(item.name == whoWeKilling)
+            {
+                item.population -= 1;
+                return;
+            }
+        }
+        if(cultures.Count == 0)
+        {
+            return;
+        }
+        cultures[UnityEngine.Random.Range(0,cultures.Count)].population -= 1;
+        Culture MarkedForDeath = null;
+        foreach (var item in cultures)
+        {
+            if(item.population < 1)
+            {
+                MarkedForDeath = item;
+            }
+        }
+        if(MarkedForDeath != null)
+        {
+            cultures.Remove(MarkedForDeath);
+        }
+    }
+    public void SpawnPop(string whoWeSpawning = "")
+    {
+        if(whoWeSpawning == "")
+        {
+            if(UnityEngine.Random.Range(0,2) == 0)
+            {
+                foreach (var item in cultures)
+                {
+                    if(item.name == nation.PrimaryCulture.name)
+                    {
+                        item.population += 1;
+                        return;
+                    }
+                }
+                Culture newculture = nation.PrimaryCulture.GrabCulture();
+                newculture.population = 1;
+                cultures.Add(newculture);
+            }
+            else
+            {
+                cultures.OrderBy(x => x.population).ToList()[0].population += 1;
+            }
+        }
     }
     public void AddLocalModifier(string moddie)
     {
@@ -595,6 +755,7 @@ public class Nation
     public bool IsAlive;
     public int manpower;
     public int treasury;
+    public Culture PrimaryCulture;
     public List<Weapon> unlockedweapons;
     public List<Armor> unlockedarmor;
     public List<Regiment> regimentdesigns;

@@ -1,0 +1,8 @@
+Name
+Moria
+Color
+212
+214
+45
+Culture
+Aldierban

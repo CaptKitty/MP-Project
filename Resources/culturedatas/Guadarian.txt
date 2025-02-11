@@ -1,0 +1,6 @@
+Name
+Guadarian
+Color
+21
+114
+160

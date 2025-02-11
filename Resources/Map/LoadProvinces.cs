@@ -22,7 +22,60 @@ public class LoadProvinces : MonoBehaviour
         AddStates();
         //LoadProvincesinStates();
     }
+    public void LoadinNations()
+    {
 
+        Owners.Instance.nationlist.Clear();
+
+        var txtarray = Resources.LoadAll("Nationdatas", typeof(TextAsset));
+        
+        // using var sr = new StringReader(txt.text);
+        int count = 0;  
+        string Lines;
+        int i = 0;
+        foreach (TextAsset item in txtarray)
+        {
+            using var sr = new StringReader(item.text);
+            string line = "potato";
+            Nation nation = new Nation();
+            while (line != null)
+            {
+                if(line.Contains("Name"))
+                {
+                    line = sr.ReadLine();
+                    nation.name = line.Trim( );
+                }
+                if(line.Contains("Color"))
+                {
+                    line = sr.ReadLine();
+                    byte red = byte.Parse(line);
+                    byte green = byte.Parse(sr.ReadLine());
+                    byte blue = byte.Parse(sr.ReadLine());
+                    nation.ownerIdentity = new Color32(red,green,blue,255);
+                }
+                if(line.Contains("Culture"))
+                {
+                    line = sr.ReadLine();
+                    Culture culturey = Owners.Instance.culturelist.Find(x => x.name == line);
+                    if(culturey != null)
+                    {
+                        nation.PrimaryCulture = culturey;
+                    }
+                }
+                // if(line.Contains("Traits"))
+                // {
+                //     line = sr.ReadLine();
+                //     Trait newtrait = (Trait)Resources.Load("EcoTime/Traits/" + line, typeof(Trait));
+                //     if(newtrait != null)
+                //     {
+                //         nation.TraitList.Add(newtrait);
+                //     }
+                // }
+                line = sr.ReadLine();
+            }
+            Owners.Instance.nationlist.Add(nation);
+        }
+    }
     public void LoadinCultures()
     {
         var txtarray = Resources.LoadAll("culturedatas", typeof(TextAsset));
@@ -53,6 +106,15 @@ public class LoadProvinces : MonoBehaviour
                     byte blue = byte.Parse(sr.ReadLine());
                     culture.ownerIdentity = new Color32(red,green,blue,255);
                     // Debug.Log(color);
+                }
+                if(line.Contains("Traits"))
+                {
+                    line = sr.ReadLine();
+                    Trait newtrait = (Trait)Resources.Load("EcoTime/Traits/" + line, typeof(Trait));
+                    if(newtrait != null)
+                    {
+                        culture.TraitList.Add(newtrait);
+                    }
                 }
                 line = sr.ReadLine();
             }
@@ -135,16 +197,18 @@ public class LoadProvinces : MonoBehaviour
                     line = sr.ReadLine();
                     population = int.Parse(line);
                     culture = new Culture();
-                    culture.population = population;
+                    //culture.population = population;
                     line = sr.ReadLine();
                     if(line == "}")
                     {
                         //line = "Dutch";
                         line = "None";
                     }
-                    culture.name = line;
-                    culture.ownerIdentity = Owners.Instance.CallCultureByName(line).ownerIdentity;
-                    culture.name = line;//Owners.Instance.CallCultureByName(line).name;
+                    //culture.name = line;
+                    //culture.ownerIdentity = Owners.Instance.CallCultureByName(line).ownerIdentity;
+                    //culture.name = line;//Owners.Instance.CallCultureByName(line).name;
+                    culture = Owners.Instance.CallCultureByName(line).GrabCulture();
+                    culture.population = population;
                     newprovince.cultures.Add(culture);
                     
                     // Debug.Log(population);
@@ -154,6 +218,7 @@ public class LoadProvinces : MonoBehaviour
                     line = sr.ReadLine();
                     line = sr.ReadLine();
                     newprovince.nation = GetNation(line.Trim( ));
+                    newprovince.nation.IsAlive = true;
                     // Debug.Log(nation);
                 }
                 if(line.Contains("State"))

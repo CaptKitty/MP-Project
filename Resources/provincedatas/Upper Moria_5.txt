@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Upper Moria_5
+}
+Color ={
+32
+35
+20
+}
+Location ={
+337
+1214
+}
+Population ={
+5
+Aldierban
+}
+Owner ={
+Normal ={
+Moria
+}
+}
+State ={
+
+}

@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Middle Lacustrina_26
+}
+Color ={
+221
+32
+155
+}
+Location ={
+316
+1734
+}
+Population ={
+5
+Lacustrine
+}
+Owner ={
+Normal ={
+Lacustrine States
+}
+}
+State ={
+
+}

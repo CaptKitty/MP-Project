@@ -12,6 +12,9 @@ public class ArmyMovement : MonoBehaviour
     public string nation;
     public int troops;
     private float timer;
+
+    public List<ArmyMovement> EnemyList = new List<ArmyMovement>();
+
     // Start is called before the first frame update
     void Start()
     {
@@ -37,6 +40,19 @@ public class ArmyMovement : MonoBehaviour
     }
     public void Movement()
     {
+        foreach (var item in EnemyList)
+        {
+            if(item != null)
+            {
+                if(item.nation != nation)
+                {
+                    if(Owners.Instance.nationlist.Find(x => x.name == nation).GrabDiplomaticStatus(item.nation) != "peace")
+                    {
+                        return;
+                    }
+                }
+            }
+        }
         var heading  = target - gameObject.transform.position;
         var distance = heading.magnitude;
         var direction = heading / distance;
@@ -50,6 +66,115 @@ public class ArmyMovement : MonoBehaviour
             {
                 gameObject.transform.position += direction * 0.02f * 25f * Owners.Instance.nationlist.Find(x => x.name == nation).GrabSpeedModifier();
             }
+        }
+    }
+    public void Combaty()
+    {
+        foreach (var item in EnemyList)
+        {
+            if(item != null)
+            {
+                if(item.nation != nation)
+                {
+                    if(Owners.Instance.nationlist.Find(x => x.name == nation).GrabDiplomaticStatus(item.nation) != "peace")
+                    {
+                        ArmyCombat(item);
+                        return;
+                    }
+                }
+            }
+        }
+        //AttackProvince
+        Fighty();
+    }
+    public void OnTriggerEnter2D(Collider2D other)
+    {
+        var a = other.gameObject.GetComponent<ArmyMovement>();
+        if(a != null)
+        {
+            Debug.LogError(a.name);
+            EnemyList.Add(a);
+        }
+    }
+    public void SettleDown()
+    {
+        var heading  = target - gameObject.transform.position;
+        var distance = heading.magnitude;
+        var direction = heading / distance;
+        if(distance < TickDistance())
+        {
+            Owners.Instance.statelist.Find(x => x.name == Owners.Instance.provincelist.Find(x => x.name == province).state).Capitol.AddTroops(troops);
+            troops = 0;
+            Die();
+        }
+    }
+    public Province CallProvince()
+    {
+        var ray = Camera.main.ScreenPointToRay(this.transform.position);
+        RaycastHit hitInfo;
+        if(Physics.Raycast(ray, out hitInfo)){
+            var p = hitInfo.point;
+            int x = (int)Mathf.Floor(p.x) + Mapshower.Instance.width / 2;
+            int y = (int)Mathf.Floor(p.y) + Mapshower.Instance.height / 2;
+
+            var remapColor = Mapshower.Instance.GrabremapArr()[x + y * Mapshower.Instance.width];
+            // print(remapColor.r + " " + x.ToString() + " " + y.ToString());
+            int xp = remapColor[0];
+            int yp = remapColor[1];
+
+            var material = GetComponent<Renderer>().material;
+            var mainTex = material.GetTexture("_MainTex") as Texture2D;
+            if(mainTex.GetPixel(x,y) == new Color32(0,0,0,0))
+            {
+                return null;
+            }
+            Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
+            return province;
+        }
+        return null;
+    }
+    public void OnMouseDown()
+    {
+        Mapshower.Instance.SelectedArmy = this;
+    }
+    // public void OnTriggerExit(Collider other)
+    // {
+    //     EnemyList.Remove()
+    // }
+    public void ArmyCombat(ArmyMovement enemyArmy)
+    {
+        int CombatWidth = GrabCombatWidth(troops);
+        for (int i = 0; i < CombatWidth; i++)
+        {
+            int ArmyDice = Random.Range(0, 7 + Owners.Instance.nationlist.Find(x => x.name == nation).GrabTroopDice(troops));
+            //MaxDice()
+            int ProvinceDice = Random.Range(0, 7 + Owners.Instance.nationlist.Find(x => x.name == enemyArmy.nation).GrabTroopDice(troops));
+            //relevantprovince.MaxDice())
+            if(ArmyDice < ProvinceDice)
+            {
+                troops -= 1;
+                SetTroopsMarker();
+                if(troops < 1)
+                {
+                    Die();
+                    break;
+                }
+            }
+            if(ArmyDice > ProvinceDice)
+            {
+                enemyArmy.troops -= 1;
+                enemyArmy.SetTroopsMarker();
+                if(enemyArmy.troops < 1)
+                {
+                    enemyArmy.Die();
+                    break;
+                }
+            }
+        }
+        foreach (var RPC in TestRelay.Instance.PlayerObjects)
+        {
+            RPC.GetComponent<RpcTest>().UpdateTroopsServerRpc(name);
+            RPC.GetComponent<RpcTest>().UpdateTroopsServerRpc(enemyArmy.name);
         }
     }
     public void Fighty()
@@ -126,7 +251,13 @@ public class ArmyMovement : MonoBehaviour
                 }
             }
         }
-        catch{}
+        catch
+        {
+            if(relevantprovince.troops < 1)
+            {
+                Victory();
+            }
+        }
         
         
     }
@@ -147,13 +278,19 @@ public class ArmyMovement : MonoBehaviour
     {
         Mapshower.Instance.ChangeProvinceOwner(province, nation);
 
-        Owners.Instance.statelist.Find(x => x.name == Owners.Instance.provincelist.Find(x => x.name == province).state).Capitol.AddTroops(troops);
-        troops = 0;
-        // if(Owners.Instance.provincelist.Find(x => x.name == province).Drafty != null)
-        // {
-        //     Owners.Instance.provincelist.Find(x => x.name == province).Drafty.GetComponent<ArmyMovement>().SetTroopsMarker();
-        // }
+        var a = Owners.Instance.nationlist.Find(x => x.name == nation);
+        if(a.IsAlive && !a.IsPlayer)
+        {
+            SettleDown();
+        }
+
+        // Owners.Instance.statelist.Find(x => x.name == Owners.Instance.provincelist.Find(x => x.name == province).state).Capitol.AddTroops(troops);
+        // troops = 0;
+        // // if(Owners.Instance.provincelist.Find(x => x.name == province).Drafty != null)
+        // // {
+        // //     Owners.Instance.provincelist.Find(x => x.name == province).Drafty.GetComponent<ArmyMovement>().SetTroopsMarker();
+        // // }
         
-        Die();
+        // Die();
     }
 }

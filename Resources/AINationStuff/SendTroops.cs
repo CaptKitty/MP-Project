@@ -19,7 +19,7 @@ public class SendTroops : GAction {
         {
             if(item.nation.name == brainy.nation && item.troops > 1)
             {
-                Debug.Log(item.nation.name + " " + brainy.nation + " " + item.troops);
+                //Debug.Log(item.nation.name + " " + brainy.nation + " " + item.troops);
                 YourProvince.Add(item);
             }
         }
@@ -30,15 +30,34 @@ public class SendTroops : GAction {
             {
                 if(item.GrabDiplomaticStatus(brainy.nation) == "war")
                 {
-                    foreach (var items in Owners.Instance.provincelist)
+                    foreach (var itemsss in Owners.Instance.statelist)
                     {
-                        if(items.nation.name == item.name)
+                        if(itemsss.nation.name == item.name)
                         {
-                            SetTargetProvinces.Add(items);
+                            foreach (var items in itemsss.provincelist)
+                            {
+                                if(items.nation.name == item.name)
+                                {
+                                    foreach (var itemss in items.GrabAdjacentProvinces())
+                                    {
+                                        if(itemss.nation.name == brainy.nation)
+                                        {
+                                            SetTargetProvinces.Add(items);
+                                        }
+                                    }
+                                }
+                            }
                         }
+                        
+                        
+                        // if(items.nation.name == item.name)
+                        // {
+                        //     SetTargetProvinces.Add(items);
+                        // }
                     }
                 }
             }
+            //Debug.Log(SetTargetProvinces.Count);
             if(SetTargetProvinces.Count > 0)
             {
                 //Debug.LogError(OriginProvince.name);

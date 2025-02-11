@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Guadarez_4
+}
+Color ={
+57
+43
+159
+}
+Location ={
+401
+1616
+}
+Population ={
+5
+Maravian
+}
+Owner ={
+Normal ={
+Araviana
+}
+}
+State ={
+
+}

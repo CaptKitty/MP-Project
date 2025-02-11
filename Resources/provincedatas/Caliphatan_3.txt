@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Caliphatan_3
+}
+Color ={
+123
+62
+103
+}
+Location ={
+876
+1307
+}
+Population ={
+5
+Aldierban
+}
+Owner ={
+Normal ={
+Caliphate
+}
+}
+State ={
+
+}

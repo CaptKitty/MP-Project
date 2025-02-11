@@ -1,0 +1,8 @@
+Name
+Santala
+Color
+012
+214
+145
+Culture
+Eupessan

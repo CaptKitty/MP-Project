@@ -1,0 +1,8 @@
+Name
+Mairez
+Color
+152
+169
+192
+Culture
+Kerkassan

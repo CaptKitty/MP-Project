@@ -23,6 +23,10 @@ public class NationalBrain : GAgent {
                     b.Add(item);
                 }
             }
+            if(b.Count == 0)
+            {
+                return null;
+            }
             a = b[Random.Range(0,b.Count)];
         }
 
@@ -37,7 +41,7 @@ public class NationalBrain : GAgent {
 
         nation = nations.name;
 
-        SubGoal s1 = new SubGoal("WinWar", 1, false);
+        SubGoal s1 = new SubGoal("WinWar", 1, false); 
         goals.Add(s1, 3);
 
         SubGoal s2 = new SubGoal("GrowEconomy", 1, false);
@@ -87,7 +91,7 @@ public class NationalBrain : GAgent {
                 return;
             }
         }
-        WarThirst++;
+        WarThirst += 3;
         return;
     }
     public void LaterUpdate() {

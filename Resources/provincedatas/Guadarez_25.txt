@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Guadarez_25
+}
+Color ={
+131
+101
+180
+}
+Location ={
+462
+1621
+}
+Population ={
+5
+Guadarian
+}
+Owner ={
+Normal ={
+Guadaria
+}
+}
+State ={
+
+}

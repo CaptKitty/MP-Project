@@ -125,18 +125,18 @@ public class GPlanner {
             queue.Enqueue(a);
         }
 
-        Debug.Log("The Plan is: ");
+        //Debug.Log("The Plan is: ");
         float potato = 0f;
         foreach (GAction a in queue) {
 
-            Debug.Log("Q: " + a.actionName);
+            //Debug.Log("Q: " + a.actionName);
             potato += a.GrabCost();
         }
 
-        Debug.Log(potato);
+        //Debug.Log(potato);
         if(potato < 0)
         {
-            Debug.LogError("Not enough score");
+            //Debug.LogError("Not enough score");
             return null;
         }
 

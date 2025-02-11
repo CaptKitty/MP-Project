@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Tellia_25
+}
+Color ={
+72
+116
+69
+}
+Location ={
+534
+1663
+}
+Population ={
+5
+Lacustrine
+}
+Owner ={
+Normal ={
+Lacustrine States
+}
+}
+State ={
+
+}

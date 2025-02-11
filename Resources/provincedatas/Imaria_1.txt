@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Imaria_1
+}
+Color ={
+44
+55
+160
+}
+Location ={
+527
+1239
+}
+Population ={
+5
+Aldierban
+}
+Owner ={
+Normal ={
+Imaria
+}
+}
+State ={
+
+}

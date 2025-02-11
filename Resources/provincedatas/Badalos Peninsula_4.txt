@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Badalos Peninsula_4
+}
+Color ={
+99
+190
+122
+}
+Location ={
+399
+1812
+}
+Population ={
+5
+Lacustrine
+}
+Owner ={
+Normal ={
+Lacustrine States
+}
+}
+State ={
+
+}

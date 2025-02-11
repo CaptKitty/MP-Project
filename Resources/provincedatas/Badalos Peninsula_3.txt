@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Badalos Peninsula_3
+}
+Color ={
+128
+232
+185
+}
+Location ={
+385
+1795
+}
+Population ={
+5
+Lacustrine
+}
+Owner ={
+Normal ={
+Lacustrine States
+}
+}
+State ={
+
+}

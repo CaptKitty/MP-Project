@@ -25,4 +25,6 @@ MonoBehaviour:
     amount: 2
   - resource: {fileID: 11400000, guid: 0cbd4b34ab5704d4f8a8bfeac82724b0, type: 2}
     amount: 1
+  - resource: {fileID: 11400000, guid: 0a5a4914ba4cb6a4f94f918f7a80a55c, type: 2}
+    amount: 0.1
   Jobpriority: 0

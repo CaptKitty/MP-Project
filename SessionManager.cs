@@ -31,21 +31,22 @@ public class SessionManager : MonoBehaviour
     }
     public void ChangePlayerFaction(string newfaction)
     {
-        HostFaction = Resources.Load<Faction>("Prefabs/Factions/" + newfaction);
+        HostFaction = Resources.Load<Faction>("Prefabs/Factions/Rome");// + newfaction);
         HostFaction = HostFaction.Init();
-        HostFaction.Set();
-        foreach (var item in HostFaction.UnitList)
-        {
-            item.GetComponent<CritterHolder>().modifierlist.Clear();
-        }
-        foreach (var item in HostFaction.BarracksUnits)
-        {
-            item.GetComponent<CritterHolder>().modifierlist.Clear();
-        }
-        foreach (var item in HostFaction.MercenaryUnits)
-        {
-            item.GetComponent<CritterHolder>().modifierlist.Clear();
-        }
+        HostFaction.name = newfaction;
+        // HostFaction.Set();
+        // foreach (var item in HostFaction.UnitList)
+        // {
+        //     item.GetComponent<CritterHolder>().modifierlist.Clear();
+        // }
+        // foreach (var item in HostFaction.BarracksUnits)
+        // {
+        //     item.GetComponent<CritterHolder>().modifierlist.Clear();
+        // }
+        // foreach (var item in HostFaction.MercenaryUnits)
+        // {
+        //     item.GetComponent<CritterHolder>().modifierlist.Clear();
+        // }
     }
     public void ChangeEnemyFaction(string newEnemy)
     {

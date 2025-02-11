@@ -1,0 +1,8 @@
+Name
+Caliphate
+Color
+222
+57
+115
+Culture
+Aldierban

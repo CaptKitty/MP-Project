@@ -26,7 +26,62 @@ public class MakeWar : GAction {
                 nationlisty.Add(item);
             }
         }
-        Nation b = nationlisty[Random.Range(0,nationlisty.Count)];
+
+        var OriginProvince = new Province();
+        foreach (var item in Owners.Instance.statelist)
+        {
+            if(item.nation.name == brainy.nation)
+            {
+                OriginProvince = item.Capitol;
+            }
+        }
+
+        //Nation b = nationlisty[Random.Range(0,nationlisty.Count)];
+        var SetTargetProvinces = new List<Province>();
+        foreach (var itemsss in Owners.Instance.statelist)
+        {
+            foreach (var items in itemsss.provincelist)
+            {
+                foreach (var itemss in items.GrabAdjacentProvinces())
+                {
+                    if(itemss.nation.name == brainy.nation)
+                    {
+                        SetTargetProvinces.Add(items);
+                    }
+                }
+            }
+        }
+        if(SetTargetProvinces.Count == 0)
+        {
+            return false;
+        }
+
+        //Debug.LogError(OriginProvince.name);
+        var TargetProvince = SetTargetProvinces[0];//SetTargetProvinces[Random.Range(0,SetTargetProvinces.Count)];
+        var currentdistance = (OriginProvince.position - TargetProvince.position).magnitude;
+        foreach (var item in Owners.Instance.provincelist)
+        {
+            if(item.nation.name != brainy.nation)
+            {
+                var distance = (item.position - OriginProvince.position).magnitude;
+                if(distance < currentdistance)
+                {
+                    TargetProvince = item;
+                    currentdistance = distance;
+                    //Debug.LogError(distance + " " + OriginProvince.name);
+                }
+            }
+        }
+        
+
+        Nation b = TargetProvince.nation;
+
+        if(a == b)
+        {
+            return false;
+        }
+
+        //Debug.LogError(a.name + " " + b.name);
         a.SetDiplomaticStatus(b.name, "war");
         
         SpawnDiplomaticEffect c = new SpawnDiplomaticEffect();
@@ -35,7 +90,7 @@ public class MakeWar : GAction {
         c.newstatus = "war";
         c.Execute();
 
-        Debug.LogError(a.name + " Declares war on " + b.name);
+        //Debug.LogError(a.name + " Declares war on " + b.name);
 
         brainy.DiplomacyCooldown = 25;
         return true;

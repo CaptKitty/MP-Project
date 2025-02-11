@@ -24,6 +24,10 @@ public class CreateBuilding : GAction {
         if(Owners.Instance.nationlist.Find(x => x.name == brainy.nation).nationalTreasury.Find(x => x.resource.name == "Coin").amount > GrabCost())
         {
             var a = brainy.GrabSelectedProvince();
+            if(a == null)
+            {
+                return false;
+            }
             a.BuildingList.Add(building);
             a.ResetJobs();
             Owners.Instance.nationlist.Find(x => x.name == brainy.nation).nationalTreasury.Find(x => x.resource.name == "Coin").amount -= building.Cost[0].amount;

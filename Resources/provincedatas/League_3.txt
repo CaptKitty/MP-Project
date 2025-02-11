@@ -17,7 +17,7 @@ Xenic
 }
 Owner ={
 Normal ={
-League of Exiles
+Santala
 }
 }
 State ={

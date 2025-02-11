@@ -36,10 +36,10 @@ public class SignPeace : GAction {
         c.Execute();
 
 
-        Debug.LogError(a.name + " Declares peace on " + b.name);
-        Debug.LogError(a.GrabDiplomaticStatus(b.name));
-        Debug.LogError(b.GrabDiplomaticStatus(a.name));
-        brainy.DiplomacyCooldown = 25;
+        //Debug.LogError(a.name + " Declares peace on " + b.name);
+        //Debug.LogError(a.GrabDiplomaticStatus(b.name));
+        //Debug.LogError(b.GrabDiplomaticStatus(a.name));
+        brainy.DiplomacyCooldown = 50;
         return true;
     }
     public override bool IsAchievable() {

@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Maravia_21
+}
+Color ={
+47
+29
+107
+}
+Location ={
+342
+1602
+}
+Population ={
+5
+Maravian
+}
+Owner ={
+Normal ={
+Araviana
+}
+}
+State ={
+
+}

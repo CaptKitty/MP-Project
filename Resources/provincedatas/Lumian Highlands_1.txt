@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Lumian Highlands_1
+}
+Color ={
+51
+180
+217
+}
+Location ={
+718
+1487
+}
+Population ={
+5
+Xenic
+}
+Owner ={
+Normal ={
+League of Exiles 
+}
+}
+State ={
+
+}

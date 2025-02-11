@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Lumian Highlands_22
+}
+Color ={
+64
+106
+217
+}
+Location ={
+720
+1521
+}
+Population ={
+5
+Lumian
+}
+Owner ={
+Normal ={
+Lumaire
+}
+}
+State ={
+
+}

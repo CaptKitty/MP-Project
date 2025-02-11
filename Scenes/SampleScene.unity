@@ -192,7 +192,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Spain
+  m_Text: Moria
 --- !u!222 &46362173
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1336,8 +1336,10 @@ MonoBehaviour:
         serializedVersion: 2
         rgba: 0
       IsPlayer: 0
+      IsAlive: 0
       manpower: 0
       treasury: 0
+      PrimaryCulture: {fileID: 0}
       unlockedweapons: []
       unlockedarmor: []
       regimentdesigns: []
@@ -1346,10 +1348,12 @@ MonoBehaviour:
       Diplomacystuff: []
       faction: {fileID: 0}
       NationModifier: []
+      Brain: {fileID: 0}
     state: 
     position: {x: 0, y: 0}
     population: 1000
     troops: 10
+    popgrowth: 0
     cultures: []
     provincemodifiers: []
     Drafty: {fileID: 0}
@@ -1914,7 +1918,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: Spain
+          m_StringArgument: Moria
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 1082436161}
@@ -2279,7 +2283,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Carthage
+  m_Text: Mairez
 --- !u!222 &1154475521
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2358,7 +2362,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Rome
+  m_Text: Observer
 --- !u!222 &1166694217
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3113,7 +3117,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Gaul
+  m_Text: Eupessa
 --- !u!222 &1420636954
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3828,7 +3832,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: Carthage
+          m_StringArgument: Mairez
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 1082436161}
@@ -4371,7 +4375,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: Gaul
+          m_StringArgument: Eupessa
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 1082436161}

@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Mairez_12
+}
+Color ={
+54
+46
+80
+}
+Location ={
+423
+1516
+}
+Population ={
+5
+Eupessan
+}
+Owner ={
+Normal ={
+Santala
+}
+}
+State ={
+
+}

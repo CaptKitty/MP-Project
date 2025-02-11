@@ -1,0 +1,8 @@
+Name
+Guadaria
+Color
+40
+175
+15
+Culture
+Guadarian

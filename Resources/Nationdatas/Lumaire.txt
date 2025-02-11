@@ -1,0 +1,8 @@
+Name
+Lumaire
+Color
+149
+31
+200
+Culture
+Lumian

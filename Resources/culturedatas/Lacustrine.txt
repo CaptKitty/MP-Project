@@ -1,0 +1,9 @@
+Name
+Lacustrine
+Color
+219
+36
+200
+Traits
+PeacefulPeasants
+PoorSoldiers

@@ -11,6 +11,7 @@ public class Culture : ScriptableObject
     public Color32 ownerIdentity = new Color32(0,0,0,255);
     public int population = 1;
     public List<Jobs> jobs = new List<Jobs>();
+    public List<Trait> TraitList = new List<Trait>();
     public Culture GrabCulture()
     {
         Culture cult = new Culture();
@@ -18,6 +19,7 @@ public class Culture : ScriptableObject
         cult.ownerIdentity = ownerIdentity;
         cult.population = population;
         cult.jobs = jobs;
+        cult.TraitList = TraitList;
         return cult;
     }
     public List<EcoData> GrabIncome(State state = null, Province province = null)
@@ -37,6 +39,24 @@ public class Culture : ScriptableObject
                     EcoData tomato = item.GrabEcoData();
                     potato.Add(tomato);
                 }
+            }
+            //Debug.LogError(TraitList.Count);
+            foreach (var item in TraitList)
+            {
+                foreach (var itemss in item.GrabOutput(items))
+                {
+                    if(potato.Find(x => x.resource == itemss.resource) != null)
+                    {
+                        potato.Find(x => x.resource == itemss.resource).amount += itemss.amount;
+                    }
+                    else
+                    {
+                        EcoData tomato = itemss.GrabEcoData();
+                        potato.Add(tomato);
+                    }
+                    
+                }
+                
             }
         }
         return potato;

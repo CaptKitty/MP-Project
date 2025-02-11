@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Southern Lacustrina_8
+}
+Color ={
+78
+35
+245
+}
+Location ={
+243
+1630
+}
+Population ={
+5
+Lacustrine
+}
+Owner ={
+Normal ={
+Lacustrine States
+}
+}
+State ={
+
+}

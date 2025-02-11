@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Southern Lacustrina_12
+}
+Color ={
+159
+172
+247
+}
+Location ={
+355
+1637
+}
+Population ={
+5
+Maravian
+}
+Owner ={
+Normal ={
+Araviana
+}
+}
+State ={
+
+}

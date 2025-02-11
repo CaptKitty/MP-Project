@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Karkessia_9
+}
+Color ={
+37
+29
+97
+}
+Location ={
+605
+1452
+}
+Population ={
+5
+Kerkassan
+}
+Owner ={
+Normal ={
+Mairez
+}
+}
+State ={
+
+}

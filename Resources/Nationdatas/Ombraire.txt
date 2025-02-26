@@ -1,0 +1,8 @@
+Name
+Ombraire
+Color
+1
+255
+255
+Culture
+Kerkassan

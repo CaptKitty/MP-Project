@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Ashiere_7
+}
+Color ={
+118
+108
+138
+}
+Location ={
+801
+1619
+}
+Population ={
+5
+Lumian
+}
+Owner ={
+Normal ={
+Laviere
+}
+}
+State ={
+
+}

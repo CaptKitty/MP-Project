@@ -17,7 +17,7 @@ Eupessan
 }
 Owner ={
 Normal ={
-Santala
+Eupessa
 }
 }
 State ={

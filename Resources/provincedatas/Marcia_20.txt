@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Marcia_20
+}
+Color ={
+153
+162
+149
+}
+Location ={
+712
+1552
+}
+Population ={
+5
+Lumian
+}
+Owner ={
+Normal ={
+Lumaire
+}
+}
+State ={
+
+}

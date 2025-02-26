@@ -1,8 +1,8 @@
 Name
 Santala
 Color
-012
-214
-145
+022
+224
+125
 Culture
 Eupessan

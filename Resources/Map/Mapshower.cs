@@ -38,6 +38,7 @@ public class Mapshower : MonoBehaviour
 
     Color32[] remapArr;
     Texture2D paletteTex;
+    Texture2D NationTex;
     Texture2D ownerTex;
 
     Color32 prevColor;
@@ -156,6 +157,12 @@ public class Mapshower : MonoBehaviour
         paletteTex.Apply(false);
         material.SetTexture("_PaletteTex", paletteTex);
 
+        NationTex = new Texture2D(256, 256, TextureFormat.RGBA32, false);
+        NationTex.filterMode = FilterMode.Point;
+        NationTex.SetPixels32(paletteArr);
+        NationTex.Apply(false);
+        material.SetTexture("_NationTex", NationTex);
+
         ownerTex = new Texture2D(256, 256, TextureFormat.RGBA32, false);
         ownerTex.filterMode = FilterMode.Point;
         ownerTex.SetPixels32(paletteArr);
@@ -217,15 +224,30 @@ public class Mapshower : MonoBehaviour
     {
         if (Input.GetKeyDown("1"))
         {
+            //GetComponent<Renderer>().material.SetFloat("_AreaSize", 0.0002f);
+            //GetComponent<Renderer>().material.SetFloat("_BorderSize", 0.000001f);
             RePaint();
         }
         if (Input.GetKeyDown("2"))
         {
+            GetComponent<Renderer>().material.SetFloat("_AreaSize", 0.00000f);
+            GetComponent<Renderer>().material.SetFloat("_BorderSize", 0.000000f);
+            GetComponent<Renderer>().material.SetFloat("_NationSize", 0.0001f);
             CulturePaint();
         }
         if (Input.GetKeyDown("3"))
         {
+            GetComponent<Renderer>().material.SetFloat("_AreaSize", 0.0001f);
+            GetComponent<Renderer>().material.SetFloat("_BorderSize", 0.0001f);
+            GetComponent<Renderer>().material.SetFloat("_NationSize", 0.0000f);
             PopPaint();
+        }
+        if (Input.GetKeyDown("4"))
+        {
+            GetComponent<Renderer>().material.SetFloat("_AreaSize", 0.0001f);
+            GetComponent<Renderer>().material.SetFloat("_BorderSize", 0.000000f);
+            GetComponent<Renderer>().material.SetFloat("_NationSize", 0.0000f);
+            AreaPaint();
         }
         if (Input.GetKeyDown("t"))
         {
@@ -259,7 +281,11 @@ public class Mapshower : MonoBehaviour
             float a = Camera.main.orthographicSize/300;
             foreach (var item in Owners.Instance.armylist)
             {
-                item.GetComponent<RectTransform>().localScale = new Vector2(a,a);
+                if(item != null)
+                {
+                    item.GetComponent<RectTransform>().localScale = new Vector2(a,a);
+                }
+                
             }
             foreach (var item in Owners.Instance.provincelist)
             {
@@ -275,7 +301,10 @@ public class Mapshower : MonoBehaviour
             float a = Camera.main.orthographicSize/300;
             foreach (var item in Owners.Instance.armylist)
             {
-                item.GetComponent<RectTransform>().localScale = new Vector2(a,a);
+                if(item != null)
+                {
+                    item.GetComponent<RectTransform>().localScale = new Vector2(a,a);
+                }
             }
             foreach (var item in Owners.Instance.provincelist)
             {
@@ -327,6 +356,9 @@ public class Mapshower : MonoBehaviour
     }
     public void RePaint()
     {
+        GetComponent<Renderer>().material.SetFloat("_AreaSize", 0.0000f);
+        GetComponent<Renderer>().material.SetFloat("_BorderSize", 0.0001f);
+        GetComponent<Renderer>().material.SetFloat("_NationSize", 0.0005f);
         //print(Owners.Instance.provincelist);
         foreach(Province province in Owners.Instance.provincelist)
         {
@@ -341,12 +373,33 @@ public class Mapshower : MonoBehaviour
                 selectAny = true;
                 prevColor = remapColor;
                 paletteTex.SetPixel(xp, yp, province.nation.ownerIdentity);
+                NationTex.SetPixel(xp,yp,province.nation.ownerIdentity);
+                paletteTex.Apply(false);
+                ownerTex.Apply(false);
+                NationTex.Apply(false);
+            }
+        }
+    }
+    public void AreaPaint()
+    {
+        foreach(Province province in Owners.Instance.provincelist)
+        {
+            int x = (int)province.position.x;
+            int y = (int)province.position.y;
+
+            var remapColor = remapArr[x + y * width];
+            int xp = remapColor[0];
+            int yp = remapColor[1];
+
+            if(!selectAny || !prevColor.Equals(remapColor)){
+                selectAny = true;
+                prevColor = remapColor;
+                paletteTex.SetPixel(xp, yp, GrabArea(x, y));//PopToColor(province.troops));
                 paletteTex.Apply(false);
                 ownerTex.Apply(false);
             }
         }
     }
-
     public void PopPaint()
     {
         foreach(Province province in Owners.Instance.provincelist)
@@ -1018,6 +1071,13 @@ public class Mapshower : MonoBehaviour
             return new Color32(255,0,0,1);
         }
         return new Color32(0,0,0,1);
+    }
+    public Color GrabArea(int x, int y)
+    {
+        var material = GetComponent<Renderer>().material;
+        var mainTex = material.GetTexture("_AreaTex") as Texture2D;
+
+        return new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b));
     }
     public Color GrabPopulation(List<Culture> culturelist, int MaxPopulation = 7)
     {

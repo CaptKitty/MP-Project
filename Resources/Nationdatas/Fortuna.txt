@@ -1,0 +1,8 @@
+Name
+Fortuna
+Color
+129
+255
+255
+Culture
+Kerkassan

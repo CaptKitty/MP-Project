@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Wine Country_33
+}
+Color ={
+198
+255
+234
+}
+Location ={
+639
+1653
+}
+Population ={
+5
+Lavian
+}
+Owner ={
+Normal ={
+Zaraya
+}
+}
+State ={
+
+}

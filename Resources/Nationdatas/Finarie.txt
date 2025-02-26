@@ -1,0 +1,8 @@
+Name
+Finarie
+Color
+092
+244
+185
+Culture
+Lavian

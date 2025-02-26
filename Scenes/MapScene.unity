@@ -4767,8 +4767,8 @@ MonoBehaviour:
     m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 1
-    m_HorizontalOverflow: 0
-    m_VerticalOverflow: 0
+    m_HorizontalOverflow: 1
+    m_VerticalOverflow: 1
     m_LineSpacing: 1
   m_Text: ProvinceName
 --- !u!222 &1318515981
@@ -5680,6 +5680,7 @@ MonoBehaviour:
     BuildingList: []
     jobbies: []
     ProvincialTileList: []
+    AdjacentProvincesByColor: []
   prefab: {fileID: 6279695560249991683, guid: 957c52b0e07eb264aa6d8c2414d746c1, type: 3}
   loadedPrefabs: []
 --- !u!1 &1664294132
@@ -7442,6 +7443,7 @@ MonoBehaviour:
     BuildingList: []
     jobbies: []
     ProvincialTileList: []
+    AdjacentProvincesByColor: []
   SelectedArmy: {fileID: 0}
   width: 0
   height: 0
@@ -7625,6 +7627,7 @@ MonoBehaviour:
   provincelist: []
   armylist: []
   Turn: 0
+  AICounter: 0
   TimeScale: 1
   ActiveBrain: {fileID: 0}
 --- !u!114 &1974663642

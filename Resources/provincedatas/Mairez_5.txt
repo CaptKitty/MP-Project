@@ -17,7 +17,7 @@ Kerkassan
 }
 Owner ={
 Normal ={
-Mairez
+Fortuna
 }
 }
 State ={

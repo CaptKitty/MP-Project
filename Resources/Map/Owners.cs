@@ -55,6 +55,8 @@ public class Owners : MonoBehaviour
         {
             nationdict.Add(nation.name, nation);
             nation.IsPlayer = false;
+            Debug.Log(nation.name);
+            Debug.Log(nation.PrimaryCulture.name);
             nation.PrimaryCulture = culturelist.Find(x => x.name == nation.PrimaryCulture.name);
             if(SessionManager.Instance.HostFaction.name.Contains(nation.name))
             {
@@ -186,7 +188,7 @@ public class Owners : MonoBehaviour
             }
             UIElement.ProvinceHost.Updatethird(Mapshower.Instance.SelectedProvince.troops.ToString());
         }
-        if(Turn % 1 == 0) //OncePerTwoSecond
+        if(Turn % 1 == 0) //OncePerTwoSecond(100)
         {
             AICounter++;
             if(nationlist.Count <= AICounter)
@@ -194,14 +196,25 @@ public class Owners : MonoBehaviour
                 AICounter = 0;
             }
             Nation a = nationlist[AICounter];
-            // foreach(var a in nationlist)
-            // {
             if(a.IsAlive && !a.IsPlayer)
             {
                 ActiveBrain = a.Brain;
                 a.Brain.Think();
             }
-            //}
+            else
+            {
+                AICounter++;
+                if(nationlist.Count <= AICounter)
+                {
+                    AICounter = 0;
+                }
+                a = nationlist[AICounter];
+                if(a.IsAlive && !a.IsPlayer)
+                {
+                    ActiveBrain = a.Brain;
+                    a.Brain.Think();
+                }
+            }
         }
         if(Turn % 50 == 0) //OncePerOneSecond
         {
@@ -470,6 +483,10 @@ public class Province
                             if(Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0)) != this)
                             {
                                 AdjacentProvincesByColor.Add(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
+                                break;
+                            }
+                            if(mainTex.GetPixel(x, y) == new Color32(0,0,0,0))
+                            {
                                 break;
                             }
                         }

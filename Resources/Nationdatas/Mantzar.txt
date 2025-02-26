@@ -1,0 +1,8 @@
+Name
+Mantzar
+Color
+129
+255
+129
+Culture
+Maravian

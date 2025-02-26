@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Wine Country_29
+}
+Color ={
+29
+117
+139
+}
+Location ={
+555
+1652
+}
+Population ={
+5
+Lavian
+}
+Owner ={
+Normal ={
+Guadar
+}
+}
+State ={
+
+}

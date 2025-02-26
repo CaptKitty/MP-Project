@@ -1,0 +1,8 @@
+Name
+Laviere
+Color
+012
+014
+145
+Culture
+Lavian

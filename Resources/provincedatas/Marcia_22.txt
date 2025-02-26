@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Marcia_22
+}
+Color ={
+207
+153
+103
+}
+Location ={
+635
+1590
+}
+Population ={
+5
+Lumian
+}
+Owner ={
+Normal ={
+Suerta
+}
+}
+State ={
+
+}

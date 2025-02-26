@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Marcia_8
+}
+Color ={
+128
+188
+122
+}
+Location ={
+686
+1637
+}
+Population ={
+5
+Lumian
+}
+Owner ={
+Normal ={
+Zaraya
+}
+}
+State ={
+
+}

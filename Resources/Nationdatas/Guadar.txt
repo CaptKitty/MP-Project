@@ -1,0 +1,8 @@
+Name
+Guadar
+Color
+182
+231
+123
+Culture
+Guadarian

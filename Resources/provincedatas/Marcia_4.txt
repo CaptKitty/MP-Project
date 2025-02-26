@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Marcia_4
+}
+Color ={
+136
+23
+133
+}
+Location ={
+621
+1607
+}
+Population ={
+5
+Lumian
+}
+Owner ={
+Normal ={
+Guadar
+}
+}
+State ={
+
+}

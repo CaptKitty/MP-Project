@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Wine Country_20
+}
+Color ={
+26
+145
+44
+}
+Location ={
+628
+1728
+}
+Population ={
+5
+Lavian
+}
+Owner ={
+Normal ={
+Finarie
+}
+}
+State ={
+
+}

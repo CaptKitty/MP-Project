@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Milardie_10
+}
+Color ={
+221
+162
+232
+}
+Location ={
+778
+1741
+}
+Population ={
+5
+Lavian
+}
+Owner ={
+Normal ={
+Laviere
+}
+}
+State ={
+
+}

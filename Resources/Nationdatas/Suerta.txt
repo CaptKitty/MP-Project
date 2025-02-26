@@ -1,0 +1,8 @@
+Name
+Suerta
+Color
+0
+163
+233
+Culture
+Guadarian

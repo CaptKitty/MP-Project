@@ -1,0 +1,8 @@
+Name
+Savio
+Color
+0
+0
+255
+Culture
+Kerkassan

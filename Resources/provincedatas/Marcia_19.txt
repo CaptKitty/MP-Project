@@ -1,23 +1,23 @@
 Province ={
 Name ={
-Guadarez_24
+Marcia_19
 }
 Color ={
-95
-250
-242
+222
+172
+88
 }
 Location ={
-513
-1603
+735
+1571
 }
 Population ={
 5
-Guadarian
+Lumian
 }
 Owner ={
 Normal ={
-Guadaria
+Lumaire
 }
 }
 State ={

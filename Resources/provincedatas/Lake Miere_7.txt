@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Lake Miere_7
+}
+Color ={
+53
+221
+208
+}
+Location ={
+709
+1822
+}
+Population ={
+5
+Lavian
+}
+Owner ={
+Normal ={
+Laviere
+}
+}
+State ={
+
+}

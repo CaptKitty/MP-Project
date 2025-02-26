@@ -1,0 +1,8 @@
+Name
+Menitor
+Color
+0
+64
+0
+Culture
+Guadarian

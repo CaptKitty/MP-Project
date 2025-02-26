@@ -17,7 +17,7 @@ Guadarian
 }
 Owner ={
 Normal ={
-Guadaria
+Suerta
 }
 }
 State ={

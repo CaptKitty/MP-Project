@@ -24,7 +24,7 @@ public class Owners : MonoBehaviour
     void Start()
     {
         this.transform.GetComponent<LoadProvinces>().LoadinCultures();
-        
+
         culturedict = new Dictionary<string, Culture>();
         foreach (Culture culture in culturelist)
         {
@@ -37,12 +37,12 @@ public class Owners : MonoBehaviour
         {
             nationdict.Add(nation.name, nation);
             nation.IsPlayer = false;
-            if(SessionManager.Instance.HostFaction.name.Contains(nation.name))
+            if (SessionManager.Instance.HostFaction.name.Contains(nation.name))
             {
                 nation.IsPlayer = true;
             }
         }
-        
+
         provincedict = new Dictionary<string, Province>();
         provincedictcolor = new Dictionary<Color32, Province>();
         foreach (Province province in provincelist)
@@ -50,7 +50,7 @@ public class Owners : MonoBehaviour
             try
             {
                 provincedict.Add(province.name, province);
-                provincedictcolor.Add(new Color32(province.identity.r, province.identity.g, province.identity.b,0), province);
+                provincedictcolor.Add(new Color32(province.identity.r, province.identity.g, province.identity.b, 0), province);
             }
             catch
             {
@@ -58,6 +58,7 @@ public class Owners : MonoBehaviour
             }
         }
         Mapshower.Instance.Paint();
+        //this.gameObject.SetActive(false);
         // Debug.Log(nationdict["Netherlands"].manpower);
     }
     public Nation CallPlayer()

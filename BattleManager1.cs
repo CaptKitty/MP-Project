@@ -21,6 +21,8 @@ public class BattleManager1 : BattleManager
 
     public Faction Playerfaction;
 
+    public Brain brainy;
+
     public delegate void DoSomething();
     public static event DoSomething OnVictory;
 
@@ -37,55 +39,150 @@ public class BattleManager1 : BattleManager
     }
     public void Start()
     {
-        SessionManager.Instance.SpawnArmy();
-        
-        TerrainTime();
+
+        // List<GameObject> units = new List<GameObject>();
+        SessionManager.Instance.ClientFaction.BarracksLevel = SessionManager.Instance.CampaignLevel; //3;
+        SessionManager.Instance.ClientFaction.Set();
+        // foreach (var item in SessionManager.Instance.ClientFaction.UnitList)
+        // {
+        //     units.Add(item);
+        // }
+
+        brainy = new Brain();
+        brainy.resources = 200 + (SessionManager.Instance.CampaignLevel * 150);
+        brainy.Startie();
+
+        //SessionManager.Instance.SpawnArmy();
+
+        //SpawnArmy();
+
+        //TerrainTime();
     }
+    public void SpawnArmy()
+    {
+        List<SpawnBait> _ClientArmy = new List<SpawnBait>();
+        foreach (var unit in SessionManager.Instance.ClientArmy)
+        {
+            _ClientArmy.Add(unit);
+        }
+        //_ClientArmy.Clear();
+
+
+        _ClientArmy = GenerateAIArmy();
+
+        //SessionManager.Instance.ClientArmy = _ClientArmy;
+
+        for (int i = 0; i < _ClientArmy.Count; i++)
+        {
+            var unit = _ClientArmy[i];
+            foreach (var RPC in TestRelay.Instance.PlayerObjects)
+            {
+                RPC.GetComponent<RpcTest>().Spawn(unit.target, unit.name, unit.AIorNot, unit.name + "" + i.ToString(), unit.ClientOrHost);
+            }
+        }
+    }
+
+    public List<SpawnBait> GenerateAIArmy()
+    {
+        List<SpawnBait> clientarmies = new List<SpawnBait>();
+        Vector3Int Corespot = new Vector3Int(4, -9, 0);
+        List<GameObject> units = new List<GameObject>();
+        SessionManager.Instance.ClientFaction.BarracksLevel = 3;
+        SessionManager.Instance.ClientFaction.Set();
+        foreach (var item in SessionManager.Instance.ClientFaction.UnitList)
+        {
+            units.Add(item);
+        }
+
+        int unitcost = units[0].GetComponent<CritterHolder>().cost.amount;
+        foreach (var item in units)
+        {
+            if (item.GetComponent<CritterHolder>().cost.amount < unitcost)
+            {
+                unitcost = item.GetComponent<CritterHolder>().cost.amount;
+            }
+        }
+        int resources = 10 + 500 + 100 * SessionManager.Instance.Escalation;
+
+        for (int i = 0; i < 10; i++)
+        {
+            Debug.LogError(resources.ToString());
+            foreach (var item in units)
+            {
+                if (item.GetComponent<CritterHolder>().cost.amount <= resources)
+                {
+                    SpawnBait unit = new SpawnBait();
+                    unit.target = new Vector3Int(Corespot.x+i, Corespot.y+i,0);
+                    i++;
+                    unit.name = item.gameObject.name;
+                    unit.AIorNot = false;
+                    //unit.name = item.name + "_" + Random.Range(0, 1000).ToString();
+                    unit.ClientOrHost = "Client";
+
+                    clientarmies.Add(unit);
+
+                    unitcost = item.GetComponent<CritterHolder>().cost.amount;
+                    resources -= unitcost;
+
+                    //break;
+                }
+            }
+            resources -= 1;
+        }
+        return clientarmies;
+    }
+    
     public void TerrainTime()
     {
         bool hasriver = false;
         foreach (Vector3Int position in ownermap.cellBounds.allPositionsWithin)
         {
-            if(ownermap.GetTile(position) == null)
+            if (ownermap.GetTile(position) == null)
             {
                 continue;
             }
-            if(ownermap.GetTile(position).name == "Grassland")
+            if (ownermap.GetTile(position).name == "Grassland")
             {
-                int a = Random.Range(0,15);
-                if(a == 0)
+                int a = Random.Range(0, 15);
+                if (a == 0)
                 {
                     foreach (var RPC in TestRelay.Instance.PlayerObjects)
                     {
                         RPC.GetComponent<RpcTest>().Spawn(position, "Foliage_Brush");
                     }
                 }
-                if(a == 1)
+                if (a == 1)
                 {
                     foreach (var RPC in TestRelay.Instance.PlayerObjects)
                     {
                         RPC.GetComponent<RpcTest>().Spawn(position, "Foliage_Tree");
+
                     }
+
                 }
+
             }
+
         }
+
     }
+    
     public void ResetBattleField(bool ResetSession = false)
     {
         SessionManager.Instance.Escalation += 1;
-        if(ResetSession == true)
+        if (ResetSession == true)
         {
             SessionManager.Instance.HostArmy.Clear();
             SessionManager.Instance.ClientArmy.Clear();
             SessionManager.Instance.CampaignLevel = 1;
             SessionManager.Instance.Escalation = 1;
         }
-        if(TestRelay.Instance.PlayerObjects.Count == 1)
+        if (TestRelay.Instance.PlayerObjects.Count == 1)
         {
             SessionManager.Instance.LoadCampaign();
         }
         SceneManager.LoadScene("FightScene 1");
-        
+
     }
     public void StartFight()
     {
@@ -94,7 +191,9 @@ public class BattleManager1 : BattleManager
     }
     void Update()
     {
-        if(Input.GetKeyDown("5"))
+        brainy.Think();
+        
+        if (Input.GetKeyDown("5"))
         {
             OnVictory?.Invoke();
         }

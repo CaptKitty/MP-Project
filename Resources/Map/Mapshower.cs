@@ -92,12 +92,12 @@ public class Mapshower : MonoBehaviour
 
         // UnityEngine.Debug.LogError("Potato2");
 
-        
+        //this.gameObject.SetActive(false);
     }
     void OnEnable()
     {
-        //Paint();
-        RePaint();
+        Paint();
+        //RePaint();
     }
     // Start is called before the first frame update
     void Start()

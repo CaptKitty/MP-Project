@@ -29,7 +29,7 @@ public class MainMenu : MonoBehaviour
     }
     public void ChangePick(int whichone)
     {
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 5; i++)
         {
             string a = transform.GetChild(1).GetChild(i).GetChild(0).GetComponent<Text>().text;
             a = a.Replace("\n(Current)", "");
@@ -40,7 +40,7 @@ public class MainMenu : MonoBehaviour
     }
     public void ChangeEnemy(int whichone)
     {
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 5; i++)
         {
             string a = transform.GetChild(2).GetChild(i).GetChild(0).GetComponent<Text>().text;
             a = a.Replace("\n(Current)", "");
@@ -48,5 +48,17 @@ public class MainMenu : MonoBehaviour
             transform.GetChild(2).GetChild(i).GetChild(0).GetComponent<Text>().text = a;
         }
         transform.GetChild(2).GetChild(whichone).GetChild(0).GetComponent<Text>().text += "\n(Current)";
+    }
+    public void SetDifficulty(int whichone)
+    {
+        for (int i = 5; i < 8; i++)
+        {
+            string a = transform.GetChild(1).GetChild(i).GetChild(0).GetComponent<Text>().text;
+            a = a.Replace("\n(Current)", "");
+            a = a.Replace("\n(Default)", "");
+            transform.GetChild(1).GetChild(i).GetChild(0).GetComponent<Text>().text = a;
+        }
+        SessionManager.Instance.CampaignLevel = whichone;
+        transform.GetChild(1).GetChild(whichone+4).GetChild(0).GetComponent<Text>().text += "\n(Current)";
     }
 }

@@ -16,6 +16,7 @@ public class SessionManager : MonoBehaviour
     public bool Campaign = false;
     public int CampaignLevel = 1;
     public int Escalation = 1;
+    public string enemies;
     // Start is called before the first frame update
     void Awake()
     {
@@ -105,8 +106,9 @@ public class SessionManager : MonoBehaviour
                 RPC.GetComponent<RpcTest>().Spawn(unit.target, unit.name, unit.AIorNot, unit.futurename, unit.ClientOrHost);
             }
         }
+        return;
         List<SpawnBait> _ClientArmy = new List<SpawnBait>();
-        foreach(var unit in ClientArmy)
+        foreach (var unit in ClientArmy)
         {
             _ClientArmy.Add(unit);
         }
@@ -115,46 +117,46 @@ public class SessionManager : MonoBehaviour
             var unit = _ClientArmy[i];
             foreach (var RPC in TestRelay.Instance.PlayerObjects)
             {
-                RPC.GetComponent<RpcTest>().Spawn(unit.target, unit.name, unit.AIorNot, unit.name+""+i.ToString(), unit.ClientOrHost);
+                RPC.GetComponent<RpcTest>().Spawn(unit.target, unit.name, unit.AIorNot, unit.name + "" + i.ToString(), unit.ClientOrHost);
             }
         }
     }
     public void LoadCampaign(string enemy = "Carthage")
     {
         string Campaignstring = "CarthageCampaign";
-        if(enemy.Contains("Rome"))
+        enemies = enemy;
+        if (enemy.Contains("Rome"))
         {
             Campaignstring = "RomeCampaign";
         }
-        if(enemy.Contains("Spain"))
+        if (enemy.Contains("Spain"))
         {
             Campaignstring = "SpainCampaign";
         }
-        if(enemy.Contains("Gaul"))
+        if (enemy.Contains("Gaul"))
         {
             Campaignstring = "GaulCampaign";
         }
-        
         Campaign = true;
         int phase = CampaignLevel;
         var a = Instantiate(Resources.Load<Campaign>(Campaignstring));
-        if(phase == 1)
+        if (phase == 1)
         {
             ClientArmy = a.Layout1;
         }
-        if(phase == 2)
+        if (phase == 2)
         {
             ClientArmy = a.Layout2;
         }
-        if(phase == 3)
+        if (phase == 3)
         {
             ClientArmy = a.Layout3;
         }
-        if(phase == 4)
+        if (phase == 4)
         {
             ClientArmy = a.Layout4;
         }
-        if(phase >= 5)
+        if (phase >= 5)
         {
             ClientArmy = a.Layout5;
         }

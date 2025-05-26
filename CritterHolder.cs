@@ -7,6 +7,7 @@ public class CritterHolder : MonoBehaviour
 {
     public Vector3Int spot;
     public string name;
+    public UnitTypes unittype;
     public List<string> nametype;
     public Resource cost;
     public bool DoesThisgoOnTheCity = false;
@@ -439,4 +440,13 @@ public class CritterHolder : MonoBehaviour
         }
 
     }
+}
+public enum UnitTypes
+{
+    None,
+    LightInfantry,
+    HeavyInfantry,
+    Ranged,
+    LightCavalry,
+    HeavyCavalry,
 }

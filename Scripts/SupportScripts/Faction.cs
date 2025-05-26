@@ -50,14 +50,23 @@ public class Faction: ScriptableObject
         UnitList.Clear();
         for (int i = 0; i < BarracksLevel; i++)
         {
-            UnitList.Add(BarracksUnits[i]);
+            try
+            {
+                UnitList.Add(BarracksUnits[i]);
+            }
+            catch{}
+            
         }
         for (int i = 0; i < MercLevel; i++)
         {
-            var potato = MercenaryUnits[Random.Range(0, MercenaryUnits.Count)];
-            potato.GetComponent<TestCritter>().Mercenary = true;
-            UnitList.Add(potato);
-            MercenaryUnits.Remove(potato);
+            try
+            {
+                var potato = MercenaryUnits[Random.Range(0, MercenaryUnits.Count)];
+                potato.GetComponent<TestCritter>().Mercenary = true;
+                UnitList.Add(potato);
+                MercenaryUnits.Remove(potato);
+            }
+            catch{}
         }
         Income = 500 + FarmLevel * 100;
     }

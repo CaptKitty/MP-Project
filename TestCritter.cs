@@ -20,6 +20,8 @@ public class TestCritter : MonoBehaviour
     public bool DoesThisHaveSpear = false;
     public bool DoesThisHaveJavelin = false;
     public bool DoesThisHaveSlinger = false;
+    public bool DoesThisHaveAxe = false;
+
     public Modifier Upgrade;
     public GameObject UpgradeButtons;
     public bool Mercenary = false;
@@ -42,6 +44,7 @@ public class TestCritter : MonoBehaviour
         GetComponent<Animator>().SetBool("Spear", DoesThisHaveSpear);
         GetComponent<Animator>().SetBool("Javelin", DoesThisHaveJavelin);
         GetComponent<Animator>().SetBool("Slinger", DoesThisHaveSlinger);
+        GetComponent<Animator>().SetBool("Axe", DoesThisHaveAxe);
         foreach (var item in listy)
         {
             item.GetComponent<SpriteRenderer>().material = material;

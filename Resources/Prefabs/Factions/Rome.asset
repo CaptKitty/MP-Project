@@ -16,7 +16,7 @@ MonoBehaviour:
   color2: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 0}
   color3: {r: 1, g: 0.5529412, b: 0.39607844, a: 0}
   UnitList: []
-  BarracksLevel: 1
+  BarracksLevel: 2
   MercLevel: 0
   FarmLevel: 0
   BarracksUnits:

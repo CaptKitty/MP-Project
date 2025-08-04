@@ -295,6 +295,7 @@ public class BattleManager1 : BattleManager
                                 item.GetComponent<CritterHolder>().online = true;
                             }
                         }
+                        Debug.LogError("Letsgo");
                         FightIsOn = true;
                         //ChangeReserves(0);
                     }

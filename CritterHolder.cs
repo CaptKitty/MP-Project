@@ -22,6 +22,9 @@ public class CritterHolder : MonoBehaviour
     public bool IsthisAI = false;
     public bool IsThisAlive = true;
     public bool online = false;
+
+    public UnitBrain unitbrain;
+
     public base_AI_Script AIScript;
     public List<base_AI_Script> scriptlist = new List<base_AI_Script>();
 
@@ -219,13 +222,14 @@ public class CritterHolder : MonoBehaviour
     }
     public void GrabAIScripts()
     {
+        return;
         foreach (var item in modifierlist)
         {
-            if(item == null)
+            if (item == null)
             {
 
             }
-            if(item.aiscripts != null)
+            if (item.aiscripts != null)
             {
                 var a = item.aiscripts.Init();
                 AIScript = a;
@@ -252,15 +256,20 @@ public class CritterHolder : MonoBehaviour
         {
             Wakey();
         }
-        if(scriptlist.Count == 0)
-        {
-            scriptlist.Add(AIScript.Init());
-            GrabNewScript();         
-        }
-        AIScript = Instantiate(AIScript);
+
+        unitbrain = new UnitBrain();
+        unitbrain.critter = this;
+        unitbrain.Startie();
+
+        // if(scriptlist.Count == 0)
+        // {
+        //     scriptlist.Add(AIScript.Init());
+        //     GrabNewScript();         
+        // }
+        //AIScript = Instantiate(AIScript);
         BattleManager1.OnVictory += Cheer;
         population = GrabHealth();
-        GrabAIScripts();
+        //GrabAIScripts();
         Cheer();
     }
 
@@ -287,7 +296,8 @@ public class CritterHolder : MonoBehaviour
         {
             if(CanIAct())
             {
-                AIScript.Execute(this);
+                unitbrain.Think();
+                //AIScript.Execute(this);
             }
             HandleModifiers();
         }
@@ -344,6 +354,7 @@ public class CritterHolder : MonoBehaviour
         {
             if(CanIAct())
             {
+                unitbrain.Think();
                 Abilitie.Execute(this);
             }
             

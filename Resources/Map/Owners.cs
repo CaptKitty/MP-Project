@@ -137,7 +137,7 @@ public class Nation
     public bool IsPlayer;
     public int manpower;
     public int treasury;
-    public List<Weapon> unlockedweapons;
+    public List<Weapons> unlockedWeaponss;
     public List<Armor> unlockedarmor;
     public List<Regiment> regimentdesigns;
     public List<GameObject> armies;
@@ -205,11 +205,11 @@ public class Regiment
 [System.Serializable]
 public class Equipment
 {
-    public Weapon weapon;
+    public Weapons Weapons;
     public Armor armor;
 }
 [System.Serializable]
-public class Weapon
+public class Weapons
 {
     public string name;
     public int range;

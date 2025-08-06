@@ -103,10 +103,13 @@ MonoBehaviour:
   IsthisAI: 0
   IsThisAlive: 1
   online: 0
+  unitbrain: {fileID: 0}
+  weaponlist: []
+  EquippedWeapon: {fileID: 11400000, guid: b20748d8d39bc7144ab514e36638e93d, type: 2}
   AIScript: {fileID: 11400000, guid: 663bf2c7e0d495e41abbd80b4b681f9f, type: 2}
   scriptlist:
   - {fileID: 11400000, guid: d53efe19b95251748a92cedd3666b19f, type: 2}
-  combatdistance: 1
+  combatdistance: 3
   speed: 2
   attack: 15
   attacktime: 1

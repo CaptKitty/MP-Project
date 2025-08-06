@@ -9,11 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a702462ccb7c0da469a32caf78e11b7a, type: 3}
-  m_Name: Move
+  m_Script: {fileID: 11500000, guid: 93f482eca53422d47bc0e9d86d9f934a, type: 3}
+  m_Name: MoveAway
   m_EditorClassIdentifier: 
   actionName: Action
-  cost: 10
+  cost: 1
   target: {fileID: 0}
   targetTag: 
   duration: 0

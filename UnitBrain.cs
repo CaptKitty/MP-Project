@@ -7,14 +7,15 @@ using System.Linq;
 public class UnitBrain : GAgent
 {
     public CritterHolder critter;
+    public GameObject TargetEnemy;
     public List<Unit_GAction> actionss = new List<Unit_GAction>();
     public Queue<GAction> actionQueues;
     public void Startie()
     {
-        SubGoal s1 = new SubGoal("DeploySoldiers", 0, false);
+        SubGoal s1 = new SubGoal("DealDamage", 0, false);
         goals.Add(s1, 2);
 
-        SubGoal s2 = new SubGoal("RemoveGoals", 0, false);
+        SubGoal s2 = new SubGoal("MoveToEnemy", 0, false);
         goals.Add(s2, 1);
 
         var acts = Resources.LoadAll<Unit_GAction>("AIUnitStuff/Actions/");
@@ -30,22 +31,51 @@ public class UnitBrain : GAgent
     {
         if (goals.Count == 0)
         {
-            Debug.LogError("No Goals");
+            //Debug.LogError("No Goals");
             return;
         }
         LaterUpdate();
     }
+    public void GrabTarget()
+    {
+        List<GameObject> enemylists = new List<GameObject>();
+        foreach (var item in BattleManager1.Instance.enemylist)
+        {
+            if(item == null)
+            {
+                continue;
+            }
+            if(item.GetComponent<CritterHolder>().IsthisAI != critter.IsthisAI)
+            {
+                enemylists.Add(item);
+            }
+        }
+        if(enemylists.Count > 0)
+        {
+            TargetEnemy = enemylists[0];
+            foreach (var item in enemylists)
+            {
+                var heading  = item.transform.position - critter.gameObject.transform.position;
+                var distance = heading.magnitude;
+
+                var heading2  = TargetEnemy.transform.position - critter.gameObject.transform.position;
+                var distance2 = heading2.magnitude;
+                
+                if(distance < distance2)
+                {
+                    TargetEnemy = item;
+                }
+            }
+        }
+    }
     public void LaterUpdate()
-    {   
-        Debug.LogError("Thinking");
+    {
         if (currentAction != null && currentAction.running)
         {
 
             currentAction.Execute();
             return;
         }
-        Debug.LogError("Thinking2");
-
         // Check we have a planner and an actionQueues
         if (planner == null || actionQueues == null)
         {
@@ -95,13 +125,15 @@ public class UnitBrain : GAgent
                     break;
                 }
             }
+            GrabTarget();
         }
-        Debug.LogError("Thinking3");
         // Have we an actionQueues
-        if (actionQueues != null && actionQueues.Count == 0) {
+        if (actionQueues != null && actionQueues.Count == 0)
+        {
 
             // Check if currentGoal is removable
-            if (currentGoal.remove) {
+            if (currentGoal.remove)
+            {
 
                 // Remove it
                 goals.Remove(currentGoal);
@@ -109,32 +141,35 @@ public class UnitBrain : GAgent
             // Set planner = null so it will trigger a new one
             planner = null;
         }
-        Debug.LogError("Thinking4");
         // Do we still have actions
-        if (actionQueues != null && actionQueues.Count > 0) {
-            Debug.LogError("Thinking5");
+        if (actionQueues != null && actionQueues.Count > 0)
+        {
             // Remove the top action of the queue and put it in currentAction
             currentAction = actionQueues.Dequeue();
 
-            if (currentAction.PrePerform()) {
+            if (currentAction.PrePerform())
+            {
 
                 // Get our current object
-                if (currentAction.target == null && currentAction.targetTag != "") {
+                if (currentAction.target == null && currentAction.targetTag != "")
+                {
 
                     currentAction.target = GameObject.FindWithTag(currentAction.targetTag);
                 }
-                Debug.LogError("Thinking6");
                 currentAction.Execute();
 
-                if (currentAction.target != null) {
+                if (currentAction.target != null)
+                {
 
                     // Activate the current action
                     currentAction.running = true;
                     // Pass Unities AI the destination for the agent
                     //currentAction.agent.SetDestination(currentAction.target.transform.position);
                 }
-            } else {
- 
+            }
+            else
+            {
+
                 // Force a new plan
                 actionQueues = null;
             }

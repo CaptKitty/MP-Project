@@ -4,14 +4,27 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "BaseUnitActions/Move")]
-public class MoveAction : Unit_GAction
+[CreateAssetMenu(menuName = "BaseUnitActions/MoveAway")]
+public class MoveAwayAction : Unit_GAction
 {
     public Vector3Int TargetPosition;
 
     public override bool IsAchievable()
     {
-        return true;
+        if(critter.unittype == UnitTypes.Ranged || critter.unittype == UnitTypes.LightCavalry)
+        {
+            return true;
+        }
+        // var heading = TargetPosition - critter.gameObject.transform.position;
+        // var distance = heading.magnitude;
+        // var direction = heading / distance;
+
+        // if (distance < (critter.GrabCombatDistance()/2))
+        // {
+        //     return true;
+        // }
+
+        return false;
     }
     // public override bool PrePerform()
     // {
@@ -26,13 +39,12 @@ public class MoveAction : Unit_GAction
     }
     public override bool Execute()
     {
-        //TargetPosition = new Vector3Int((int)critter.gameObject.transform.position.x - 1, (int)critter.gameObject.transform.position.y, 0);
         TargetPosition = GrabNewspot();
-        //Debug.LogError("executed");
         var heading = TargetPosition - critter.gameObject.transform.position;
         var distance = heading.magnitude;
         var direction = heading / distance;
 
+        //Direction
         if (direction.x > -0.5)
         {
             critter.gameObject.transform.LookAt(new Vector3(critter.gameObject.transform.position.x + 1, critter.gameObject.transform.position.y, 360));//, new Vector3(0,0,0));
@@ -44,15 +56,29 @@ public class MoveAction : Unit_GAction
                 critter.gameObject.transform.LookAt(new Vector3(critter.gameObject.transform.position.x - 1, critter.gameObject.transform.position.y, -360));//, new Vector3(0,0,0));
             }
         }
-        critter.gameObject.transform.position += direction * Time.deltaTime * (float)critter.GrabSpeed();
 
-        if (distance < critter.GrabCombatDistance())
+        //Movement
+        if(distance < critter.GrabCombatDistance())
         {
-            running = false;
+            if(distance < critter.GrabCombatDistance()/2)
+            {
+                critter.gameObject.transform.position += new Vector3(-direction.x, -direction.y,-direction.z) * Time.deltaTime * (float)critter.GrabSpeed();
+            }
+        }
+        else
+        {
+            critter.gameObject.transform.position += direction * Time.deltaTime * (float)critter.GrabSpeed();
+        }
+
+
+        //EndCondition
+        if (distance < critter.GrabCombatDistance()/2)
+        {
+            running = true;
             return true;
         }
 
-        running = true;
+        running = false;
 
         return true;
     }

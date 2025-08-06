@@ -9,20 +9,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a702462ccb7c0da469a32caf78e11b7a, type: 3}
-  m_Name: Potato
+  m_Script: {fileID: 11500000, guid: 92410d9f4cddbbc4889127f88a2b431b, type: 3}
+  m_Name: Attack
   m_EditorClassIdentifier: 
   actionName: Action
-  cost: 1
+  cost: 10
   target: {fileID: 0}
   targetTag: 
   duration: 0
-  preConditions: []
+  preConditions:
+  - key: MoveToEnemy
+    value: 0
   afterEffects:
-  - key: Potato
+  - key: DealDamage
     value: 0
   running: 0
   brainy: {fileID: 0}
   unitBrainy: {fileID: 0}
   critter: {fileID: 0}
-  TargetPosition: {x: 0, y: 0, z: 0}

@@ -24,6 +24,8 @@ public class CritterHolder : MonoBehaviour
     public bool online = false;
 
     public UnitBrain unitbrain;
+    public List<Weapon> weaponlist;
+    public Weapon EquippedWeapon;
 
     public base_AI_Script AIScript;
     public List<base_AI_Script> scriptlist = new List<base_AI_Script>();
@@ -257,6 +259,12 @@ public class CritterHolder : MonoBehaviour
             Wakey();
         }
 
+        if (EquippedWeapon != null)
+        {
+            EquippedWeapon = EquippedWeapon.GrabCopy();
+        }
+        EquipWeapon();
+
         unitbrain = new UnitBrain();
         unitbrain.critter = this;
         unitbrain.Startie();
@@ -272,10 +280,26 @@ public class CritterHolder : MonoBehaviour
         //GrabAIScripts();
         Cheer();
     }
+    public void EquipWeapon()
+    {
+        Debug.LogError("equipping weapon");
+        if (EquippedWeapon != null)
+        {
+            Debug.LogError("equipping " + EquippedWeapon.name);
+            combatdistance = EquippedWeapon.combatdistance;
+            attack = EquippedWeapon.attack;
+            attacktime = EquippedWeapon.attacktime;
+            if (EquippedWeapon.sprite != null)
+            {
+                Debug.LogError("equipping " + EquippedWeapon.sprite.name);
+                gameObject.GetComponent<TestCritter>().listy[2].GetComponent<SpriteRenderer>().sprite = EquippedWeapon.sprite;
+            }
+        }
+    }
 
     public void GrabNewScript()
     {
-        AIScript = scriptlist[Random.Range(0,scriptlist.Count)].Init();
+        AIScript = scriptlist[Random.Range(0, scriptlist.Count)].Init();
     }
     public void Wakey()
     {
@@ -396,23 +420,39 @@ public class CritterHolder : MonoBehaviour
             modifierlist.Remove(item);
         }
     }
+    // public void Throw()
+    // {
+    //     if(AIScript.GetType() == typeof(basic_Ranged_AI_script))
+    //     {
+    //         var a = (basic_Ranged_AI_script)AIScript;
+    //         a.Throw(this);
+    //     }
+    //     if(AIScript.GetType() == typeof(basic_Ranged_AI_script_ammo))
+    //     {
+    //         var a = (basic_Ranged_AI_script_ammo)AIScript;
+    //         a.Throw(this);
+    //     }
+    //     if(AIScript.GetType() == typeof(basic_Skirmish_Ranged_AI_script_ammo))
+    //     {
+    //         var a = (basic_Skirmish_Ranged_AI_script_ammo)AIScript;
+    //         a.Throw(this);
+    //     }
+    // }
     public void Throw()
     {
-        if(AIScript.GetType() == typeof(basic_Ranged_AI_script))
+        if(BattleManager1.Instance == null)
         {
-            var a = (basic_Ranged_AI_script)AIScript;
-            a.Throw(this);
+            return;
         }
-        if(AIScript.GetType() == typeof(basic_Ranged_AI_script_ammo))
+        if (EquippedWeapon.Throwable == null)
         {
-            var a = (basic_Ranged_AI_script_ammo)AIScript;
-            a.Throw(this);
+            return;
         }
-        if(AIScript.GetType() == typeof(basic_Skirmish_Ranged_AI_script_ammo))
-        {
-            var a = (basic_Skirmish_Ranged_AI_script_ammo)AIScript;
-            a.Throw(this);
-        }
+        var potato = Instantiate(EquippedWeapon.Throwable, BattleManager1.Instance.transform);
+        EquippedWeapon.ammo -= 1;
+        potato.transform.position = this.gameObject.transform.GetChild(2).position;
+        potato.transform.LookAt(new Vector3(unitbrain.TargetEnemy.gameObject.transform.position.x,unitbrain.TargetEnemy.gameObject.transform.position.y,-90),Vector3.forward );
+        potato.GetComponent<Projectile>().TargetEnemy = unitbrain.TargetEnemy;
     }
     public void Attack()
     {

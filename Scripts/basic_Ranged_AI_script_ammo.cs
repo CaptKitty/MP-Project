@@ -126,8 +126,6 @@ public class basic_Ranged_AI_script_ammo : base_AI_Script
         //potato.transform.rotation = critter.gameObject.transform.GetChild(2).rotation;
         potato.transform.LookAt(new Vector3(TargetEnemy.gameObject.transform.position.x,TargetEnemy.gameObject.transform.position.y,-90),Vector3.forward );
         potato.GetComponent<Projectile>().TargetEnemy = TargetEnemy;
-        
-
     }
     public override void FindTarget(CritterHolder critter)
     {

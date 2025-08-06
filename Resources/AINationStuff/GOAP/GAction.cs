@@ -82,7 +82,7 @@ public class GAction : ScriptableObject {
         // beliefs = this.GetComponent<GAgent>().beliefs;
     }
 
-    public virtual float GrabCost(){return 0f;}
+    public virtual float GrabCost(){ return cost; }
     public virtual bool Execute(){return true;}
     //public virtual bool SetTarget(Nation nation = null){return false;}
 

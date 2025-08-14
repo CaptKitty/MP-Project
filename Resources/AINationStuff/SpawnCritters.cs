@@ -9,13 +9,19 @@ public class SpawnCritters : GAction
 {
     public Vector3Int Corespot;
     public GameObject unitToSpawn;
+    public UnitSaveData unitDataToSpawn;
     public override bool IsAchievable()
     {
 
         Corespot = brainy.PrimaryLineSpot;
-        
+
         var a = SessionManager.Instance.ClientFaction.UnitList;
-        unitToSpawn = a[Random.Range(0, a.Count)];
+        //unitToSpawn = a[Random.Range(0, a.Count)];
+
+        var b = SessionManager.Instance.ClientFaction.UnitDataList;
+        var c = b[Random.Range(0, b.Count)];
+        c.NewCritterHolder(unitToSpawn.GetComponent<CritterHolder>());
+        unitToSpawn.gameObject.name = c.name;
 
         if (unitToSpawn.GetComponent<CritterHolder>().unittype == UnitTypes.Ranged)
         {

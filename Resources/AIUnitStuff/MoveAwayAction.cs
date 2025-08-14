@@ -13,17 +13,14 @@ public class MoveAwayAction : Unit_GAction
     {
         if(critter.unittype == UnitTypes.Ranged || critter.unittype == UnitTypes.LightCavalry)
         {
-            return true;
+            var heading = TargetPosition - critter.gameObject.transform.position;
+            var distance = heading.magnitude;
+            var direction = heading / distance;
+            if (distance < (critter.GrabCombatDistance() / 2))
+            {
+                return true;
+            }
         }
-        // var heading = TargetPosition - critter.gameObject.transform.position;
-        // var distance = heading.magnitude;
-        // var direction = heading / distance;
-
-        // if (distance < (critter.GrabCombatDistance()/2))
-        // {
-        //     return true;
-        // }
-
         return false;
     }
     // public override bool PrePerform()

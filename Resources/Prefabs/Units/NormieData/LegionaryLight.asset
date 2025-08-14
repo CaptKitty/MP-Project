@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0328358a590af594aabff3322a37048d, type: 3}
+  m_Name: LegionaryLight
+  m_EditorClassIdentifier: 
+  spot: {x: 0, y: 0, z: 0}
+  unitname: LegionaryLight
+  unittype: 1
+  cost: 100
+  health: 400
+  flaglist: []
+  RangedWeapon: {fileID: 0}
+  MeleeWeapon: {fileID: 11400000, guid: dd27822988f93bc469b2fe10ae3c23ca, type: 2}
+  modifierlist: []
+  color: {r: 0.53333336, g: 0, b: 0, a: 0}
+  color2: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 0}
+  color3: {r: 1, g: 0.5529412, b: 0.39607844, a: 0}
+  faction: {fileID: 0}
+  upgradeModules:
+  - {fileID: 11400000, guid: 9323025428561e94bb9bb3bec967c45f, type: 2}
+  bodyparts:
+  - {fileID: 21300000, guid: b0f6d172f4b245b47b49a0ef856267d1, type: 3}
+  - {fileID: 21300000, guid: 16ba57bdaddde4a4d84a2e70a94b9dfb, type: 3}
+  - {fileID: 21300000, guid: 2a17cfdacd044a541970e4e76ba4245d, type: 3}
+  Mercenary: 0

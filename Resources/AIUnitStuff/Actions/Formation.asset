@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5469fd9de8618b3469d57b62520f8c19, type: 3}
+  m_Name: Formation
+  m_EditorClassIdentifier: 
+  actionName: Action
+  cost: 0
+  target: {fileID: 0}
+  targetTag: 
+  duration: 0
+  preConditions: []
+  afterEffects:
+  - key: MoveToEnemy
+    value: 0
+  running: 0
+  brainy: {fileID: 0}
+  unitBrainy: {fileID: 0}
+  critter: {fileID: 0}
+  TargetPosition: {x: 0, y: 0, z: 0}
+  modifier: {fileID: 11400000, guid: a0d13515ef5e8aa4c843a66d2720bad3, type: 2}
+  CommandDistance: 1
+  CommandType: Formation
+  subjects: []
+  subjectrelation: []
+  HasExecuted: 0

@@ -105,7 +105,7 @@ public class basic_AI_Follower_Script : base_AI_Script
         if(critter.NextAvailableAttack < Time.time)
         {
             critter.NextAvailableAttack = Time.time + critter.GrabAttackTime();
-            TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(critter.GrabAttack());
+            TargetEnemy.GetComponent<CritterHolder>().LoseHealth(critter.GrabAttack());
             RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");
         }
         

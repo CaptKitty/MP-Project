@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+[System.Serializable]
 public class CritterHolder : MonoBehaviour
 {
     public Vector3Int spot;
@@ -25,7 +26,9 @@ public class CritterHolder : MonoBehaviour
 
     public UnitBrain unitbrain;
     public List<Weapon> weaponlist;
-    public Weapon EquippedWeapon;
+    public List<string> flaglist;
+    public Weapon RangedWeapon;
+    public Weapon MeleeWeapon;
 
     public base_AI_Script AIScript;
     public List<base_AI_Script> scriptlist = new List<base_AI_Script>();
@@ -37,7 +40,7 @@ public class CritterHolder : MonoBehaviour
     public double NextAvailableAttack = 0;
     public List<Modifier> modifierlist = new List<Modifier>();
 
-    
+
     public delegate void OnDeath();
     public OnDeath onDeath;
 
@@ -46,11 +49,11 @@ public class CritterHolder : MonoBehaviour
         List<Modifier> _modifierlist = new List<Modifier>();
         foreach (var item in modifierlist)
         {
-            if(item == null)
+            if (item == null)
             {
                 continue;
             }
-            if(_modifierlist.Find(x => x.name == item.name))
+            if (_modifierlist.Find(x => x.name == item.name))
             {
                 continue;
             }
@@ -59,21 +62,21 @@ public class CritterHolder : MonoBehaviour
         int newvariable = population;
         foreach (var item in _modifierlist)
         {
-            if(item.base_combatdistance != 0)
+            if (item.base_health != 0)
             {
                 newvariable = item.base_health;
             }
         }
         foreach (var item in _modifierlist)
         {
-            if(item.bonus_health != 0)
+            if (item.bonus_health != 0)
             {
                 newvariable += item.bonus_health;
             }
         }
         foreach (var item in _modifierlist)
         {
-            if(item.combatdistance_modifier != 1)
+            if (item.combatdistance_modifier != 1)
             {
                 newvariable = (int)(newvariable * item.health_modifier);
             }
@@ -85,34 +88,34 @@ public class CritterHolder : MonoBehaviour
         List<Modifier> _modifierlist = new List<Modifier>();
         foreach (var item in modifierlist)
         {
-            if(item == null)
+            if (item == null)
             {
                 continue;
             }
-            if(_modifierlist.Find(x => x.name == item.name))
+            if (_modifierlist.Find(x => x.name == item.name))
             {
                 continue;
             }
             _modifierlist.Add(item);
         }
-        double newvariable = combatdistance;
+        double newvariable = RangedWeapon.combatdistance;
         foreach (var item in _modifierlist)
         {
-            if(item.base_combatdistance != 0)
+            if (item.base_combatdistance != 0)
             {
                 newvariable = item.base_combatdistance;
             }
         }
         foreach (var item in _modifierlist)
         {
-            if(item.bonus_combatdistance != 0)
+            if (item.bonus_combatdistance != 0)
             {
                 newvariable += item.bonus_combatdistance;
             }
         }
         foreach (var item in _modifierlist)
         {
-            if(item.combatdistance_modifier != 1)
+            if (item.combatdistance_modifier != 1)
             {
                 newvariable *= item.combatdistance_modifier;
             }
@@ -124,34 +127,34 @@ public class CritterHolder : MonoBehaviour
         List<Modifier> _modifierlist = new List<Modifier>();
         foreach (var item in modifierlist)
         {
-            if(item == null)
+            if (item == null)
             {
                 continue;
             }
-            if(_modifierlist.Find(x => x.name == item.name))
+            if (_modifierlist.Find(x => x.name == item.name))
             {
                 continue;
             }
             _modifierlist.Add(item);
         }
-        double newvariable = (double)attack;
+        double newvariable = (double)RangedWeapon.attack;
         foreach (var item in _modifierlist)
         {
-            if(item.base_attack != 0)
+            if (item.base_attack != 0)
             {
                 newvariable = item.base_attack;
             }
         }
         foreach (var item in _modifierlist)
         {
-            if(item.bonus_attack != 0)
+            if (item.bonus_attack != 0)
             {
                 newvariable += item.bonus_attack;
             }
         }
         foreach (var item in _modifierlist)
         {
-            if(item.attack_modifier != 1)
+            if (item.attack_modifier != 1)
             {
                 newvariable *= item.attack_modifier;
             }
@@ -163,11 +166,11 @@ public class CritterHolder : MonoBehaviour
         List<Modifier> _modifierlist = new List<Modifier>();
         foreach (var item in modifierlist)
         {
-            if(item == null)
+            if (item == null)
             {
                 continue;
             }
-            if(_modifierlist.Find(x => x.name == item.name))
+            if (_modifierlist.Find(x => x.name == item.name))
             {
                 continue;
             }
@@ -176,14 +179,14 @@ public class CritterHolder : MonoBehaviour
         double newvariable = speed;
         foreach (var item in _modifierlist)
         {
-            if(item.base_speed != 0)
+            if (item.base_speed != 0)
             {
                 newvariable = item.base_speed;
             }
         }
         foreach (var item in _modifierlist)
         {
-            if(item.speed_modifier != 1)
+            if (item.speed_modifier != 1)
             {
                 newvariable *= item.speed_modifier;
             }
@@ -195,27 +198,27 @@ public class CritterHolder : MonoBehaviour
         List<Modifier> _modifierlist = new List<Modifier>();
         foreach (var item in modifierlist)
         {
-            if(item == null)
+            if (item == null)
             {
                 continue;
             }
-            if(_modifierlist.Find(x => x.name == item.name))
+            if (_modifierlist.Find(x => x.name == item.name))
             {
                 continue;
             }
             _modifierlist.Add(item);
         }
-        double newvariable = attacktime;
+        double newvariable = RangedWeapon.attacktime;
         foreach (var item in _modifierlist)
         {
-            if(item.base_attacktime != 0)
+            if (item.base_attacktime != 0)
             {
                 newvariable = item.base_attacktime;
             }
         }
         foreach (var item in _modifierlist)
         {
-            if(item.attacktime_modifier != 1)
+            if (item.attacktime_modifier != 1)
             {
                 newvariable *= item.attacktime_modifier;
             }
@@ -239,12 +242,33 @@ public class CritterHolder : MonoBehaviour
         }
     }
 
+    public void FixWeapons()
+    {
+        //Debug.LogError("Fixed Weapons");
+        if (RangedWeapon != null)
+        {
+            RangedWeapon = RangedWeapon.GrabCopy();
+            EquipWeapon(RangedWeapon);
+        }
+        if (MeleeWeapon != null)
+        {
+            MeleeWeapon = MeleeWeapon.GrabCopy();
+        }
+        if (RangedWeapon == null && MeleeWeapon != null)
+        {
+            MeleeWeapon = MeleeWeapon.GrabCopy();
+            EquipWeapon(MeleeWeapon);
+        }
+        gameObject.GetComponent<TestCritter>().SetWeapon(RangedWeapon.animationtype);
+    }
+
     public void Awake()
     {
+
         List<Modifier> deletelist = new List<Modifier>();
         foreach (var item in modifierlist)
         {
-            if(item == null)
+            if (item == null)
             {
                 deletelist.Add(item);
             }
@@ -254,16 +278,13 @@ public class CritterHolder : MonoBehaviour
             modifierlist.Remove(item);
         }
 
-        if(AbilityList.Count == 0)
+        if (AbilityList.Count == 0)
         {
             Wakey();
         }
 
-        if (EquippedWeapon != null)
-        {
-            EquippedWeapon = EquippedWeapon.GrabCopy();
-        }
-        EquipWeapon();
+        
+
 
         unitbrain = new UnitBrain();
         unitbrain.critter = this;
@@ -276,24 +297,25 @@ public class CritterHolder : MonoBehaviour
         // }
         //AIScript = Instantiate(AIScript);
         BattleManager1.OnVictory += Cheer;
-        population = GrabHealth();
+        
         //GrabAIScripts();
         Cheer();
     }
-    public void EquipWeapon()
+    public void EquipWeapon(Weapon newRangedWeapon)
     {
-        Debug.LogError("equipping weapon");
-        if (EquippedWeapon != null)
+        //Debug.LogError("equipping " + newRangedWeapon.name);
+        combatdistance = newRangedWeapon.combatdistance;
+        attack = newRangedWeapon.attack;
+        attacktime = newRangedWeapon.attacktime;
+        if (newRangedWeapon.sprite != null)
         {
-            Debug.LogError("equipping " + EquippedWeapon.name);
-            combatdistance = EquippedWeapon.combatdistance;
-            attack = EquippedWeapon.attack;
-            attacktime = EquippedWeapon.attacktime;
-            if (EquippedWeapon.sprite != null)
-            {
-                Debug.LogError("equipping " + EquippedWeapon.sprite.name);
-                gameObject.GetComponent<TestCritter>().listy[2].GetComponent<SpriteRenderer>().sprite = EquippedWeapon.sprite;
-            }
+            //Debug.LogError("equipping " + newRangedWeapon.sprite.name);
+            gameObject.GetComponent<TestCritter>().listy[2].GetComponent<SpriteRenderer>().sprite = newRangedWeapon.sprite;
+        }
+        RangedWeapon = newRangedWeapon;
+        if (MeleeWeapon == newRangedWeapon)
+        {
+            MeleeWeapon = null;
         }
     }
 
@@ -309,16 +331,21 @@ public class CritterHolder : MonoBehaviour
             Debug.Log(item.name);
             AbilityList.Add(item.Init());
         }
+        FixWeapons();
     }
     public void FixedUpdate()
     {
-        if(!RpcTest.Serverchecker.ServerCheck())
+        if (gameObject.name == "Stabby")
+        {
+            return;
+        }
+        if (!RpcTest.Serverchecker.ServerCheck())
         {
             AIScript.Direction(this);
         }
-        if(online)
+        if (online)
         {
-            if(CanIAct())
+            if (CanIAct())
             {
                 unitbrain.Think();
                 //AIScript.Execute(this);
@@ -326,27 +353,20 @@ public class CritterHolder : MonoBehaviour
             HandleModifiers();
         }
     }
-    public void Update()
-    {
-        // if(Input.GetKeyDown("1"))
-        // {
-        //     Debug.LogError(name);
-        // }
-    }
     public bool IsThisViable(string potato)
     {
         foreach (var item in nametype)
         {
-            if(potato == item)
+            if (potato == item)
             {
                 return true;
             }
         }
-        if(potato == name)
+        if (potato == name)
         {
             return true;
         }
-        if(potato == "any")
+        if (potato == "any")
         {
             return true;
         }
@@ -354,34 +374,36 @@ public class CritterHolder : MonoBehaviour
     }
     public void Start()
     {
-        if(SpriteList.Count > 0)
+        FixWeapons();
+        population = GrabHealth();
+        if (SpriteList.Count > 0)
         {
-            var a = SpriteList[Random.Range(0,SpriteList.Count)];
+            var a = SpriteList[Random.Range(0, SpriteList.Count)];
             transform.GetComponent<SpriteRenderer>().sprite = a;
         }
-        if(BattleManager1.Instance)
+        if (BattleManager1.Instance)
         {
             BattleManager1.Instance.enemylist.Add(this.gameObject);
         }
 
         //Turn();
-        if(GeneralManager.Instance)
+        if (GeneralManager.Instance)
         {
             GeneralManager.Instance.highlight = false;
         }
         gameObject.name = name;
-        
+
     }
     public void Turn()
     {
-        foreach(var Abilitie in AbilityList)
+        foreach (var Abilitie in AbilityList)
         {
-            if(CanIAct())
+            if (CanIAct())
             {
                 unitbrain.Think();
-                Abilitie.Execute(this);
+                //Abilitie.Execute(this);
             }
-            
+
         }
         //HandleModifiers();
     }
@@ -389,7 +411,7 @@ public class CritterHolder : MonoBehaviour
     {
         foreach (var item in modifierlist)
         {
-            if(item.StunEffect == true)
+            if (item.StunEffect == true)
             {
                 return false;
             }
@@ -401,15 +423,15 @@ public class CritterHolder : MonoBehaviour
         List<Modifier> listy = new List<Modifier>();
         foreach (var item in modifierlist)
         {
-            if(item.duration != 0)
+            if (item.duration != 0)
             {
-                if(item.EndDuration < Time.time)
+                if (item.EndDuration < Time.time)
                 {
                     item.DestroyAura();
                     item.DestroyThis();
                     listy.Add(item);
                 }
-                if(item == null)
+                if (item == null)
                 {
                     listy.Add(item);
                 }
@@ -440,19 +462,24 @@ public class CritterHolder : MonoBehaviour
     // }
     public void Throw()
     {
-        if(BattleManager1.Instance == null)
+        if (BattleManager1.Instance == null)
         {
             return;
         }
-        if (EquippedWeapon.Throwable == null)
+        if (RangedWeapon.Throwable == null)
         {
             return;
         }
-        var potato = Instantiate(EquippedWeapon.Throwable, BattleManager1.Instance.transform);
-        EquippedWeapon.ammo -= 1;
+        var potato = Instantiate(RangedWeapon.Throwable, BattleManager1.Instance.transform);
+        RangedWeapon.ammo -= 1;
         potato.transform.position = this.gameObject.transform.GetChild(2).position;
-        potato.transform.LookAt(new Vector3(unitbrain.TargetEnemy.gameObject.transform.position.x,unitbrain.TargetEnemy.gameObject.transform.position.y,-90),Vector3.forward );
+        potato.transform.LookAt(new Vector3(unitbrain.TargetEnemy.gameObject.transform.position.x, unitbrain.TargetEnemy.gameObject.transform.position.y, -90), Vector3.forward);
         potato.GetComponent<Projectile>().TargetEnemy = unitbrain.TargetEnemy;
+
+        if (RangedWeapon != null && RangedWeapon.ammo < 1)
+        {
+            EquipWeapon(MeleeWeapon);
+        }
     }
     public void Attack()
     {
@@ -462,20 +489,20 @@ public class CritterHolder : MonoBehaviour
     {
         GetComponent<Animator>().SetTrigger("Cheer");
     }
-    public void ReducePopulation(int a)
+    public void LoseHealth(int a)
     {
         GetComponent<Animator>().SetTrigger("Hurt");
         population -= a;
-        if(population < 1)
+        if (population < 1)
         {
             IsThisAlive = false;
             IsthisAI = false;
-            
+
             onDeath?.Invoke();
-            
+
 
             this.gameObject.SetActive(false);
-            
+
             // if(AIScript.GetType() == typeof(basic_AI_Command_Script))
             // {
             //     var b = (basic_AI_Command_Script)AIScript;
@@ -486,7 +513,7 @@ public class CritterHolder : MonoBehaviour
             //         item.GetComponent<CritterHolder>().modifierlist.Remove(b.modifier);
             //     }
             // }
-            
+
 
         }
 

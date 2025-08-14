@@ -10,6 +10,10 @@ public class AttackAction : Unit_GAction
 
     public override bool IsAchievable()
     {
+        if (critter.RangedWeapon != null && critter.RangedWeapon.Throwable != null && critter.RangedWeapon.ammo >= 1)
+        {
+            return false;
+        }
         return true;
     }
     public override bool PrePerform()
@@ -31,9 +35,9 @@ public class AttackAction : Unit_GAction
 
         if (critter.NextAvailableAttack < Time.time)
         {
-            if(critter.EquippedWeapon.modifier != null)
+            if (critter.RangedWeapon != null && critter.RangedWeapon.modifier != null)
             {
-                var moddy = Instantiate(critter.EquippedWeapon.modifier);
+                var moddy = Instantiate(critter.RangedWeapon.modifier);
                 moddy.SetTimer();
                 unitBrainy.TargetEnemy.GetComponent<CritterHolder>().modifierlist.Add(moddy);
                 foreach (var items in unitBrainy.TargetEnemy.GetComponent<CritterHolder>().modifierlist)
@@ -45,7 +49,7 @@ public class AttackAction : Unit_GAction
                 }
             }
             critter.NextAvailableAttack = Time.time + critter.GrabAttackTime();
-            unitBrainy.TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(critter.GrabAttack());
+            unitBrainy.TargetEnemy.GetComponent<CritterHolder>().LoseHealth(critter.GrabAttack());
             RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");
         }
         return false;

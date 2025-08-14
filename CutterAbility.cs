@@ -100,7 +100,7 @@ public class CutterAbility : Ability
     }
     public void DoTheThing(CritterHolder critter, Vector3Int target)
     {
-        BattleManager1.Instance.dicty[target].GetComponent<CritterHolder>().ReducePopulation(damage);
+        BattleManager1.Instance.dicty[target].GetComponent<CritterHolder>().LoseHealth(damage);
         GeneralManager.Instance.ChangeScore(score);
         BattleManager1.Instance.ChangeScore(score);
     }

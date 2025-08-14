@@ -67,6 +67,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 1
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!114 &-1170439232849311746
@@ -93,7 +96,7 @@ MonoBehaviour:
   ViablePlacingSpots:
   - Grassland
   targetlists: []
-  population: 300
+  population: 350
   AbilityList:
   - {fileID: 0}
   PrivateAbilityList:
@@ -103,6 +106,11 @@ MonoBehaviour:
   IsthisAI: 0
   IsThisAlive: 1
   online: 0
+  unitbrain: {fileID: 0}
+  weaponlist: []
+  flaglist: []
+  RangedWeapon: {fileID: 11400000, guid: 435f3f6602879a84884483e9287f600d, type: 2}
+  MeleeWeapon: {fileID: 0}
   AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
   scriptlist:
   - {fileID: 11400000, guid: 15c846fa5a71b51478fbeffc0c805451, type: 2}

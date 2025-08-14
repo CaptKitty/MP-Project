@@ -23,23 +23,33 @@ public class TestCritter : MonoBehaviour
     public bool DoesThisHaveAxe = false;
 
     public Modifier Upgrade;
+    public UpgradeModule upgradeModule;
+    public List<UpgradeModule> __upgradeModules = new List<UpgradeModule>();
+    public List<UpgradeModule> upgradeModules = new List<UpgradeModule>();
     public GameObject UpgradeButtons;
     public bool Mercenary = false;
-    
+
+    public void Awake()
+    {
+        //Debug.Log("Initialstuff");
+        InitialStuff();
+    }
+
     // Start is called before the first frame update
     public void Start()
     {
+
         // faction = BattleManager1.Instance.Playerfaction;
         material = Instantiate(this.GetComponent<SpriteRenderer>().material);
         material.SetColor("_FactionColor", faction.color);
         material.SetColor("_FactionColor2", faction.color2);
         material.SetColor("_FactionColor3", faction.color3);
-        if(Mercenary == true)
+        if (Mercenary == true)
         {
             material.SetColor("_FactionColor3", color3);
         }
-        
-        
+
+
         GetComponent<Animator>().SetBool("Sword", DoesThisHaveSword);
         GetComponent<Animator>().SetBool("Spear", DoesThisHaveSpear);
         GetComponent<Animator>().SetBool("Javelin", DoesThisHaveJavelin);
@@ -50,6 +60,65 @@ public class TestCritter : MonoBehaviour
             item.GetComponent<SpriteRenderer>().material = material;
         }
     }
+    public void SetWeapon(string weapontype)
+    {
+        DoesThisHaveSword = false;
+        DoesThisHaveSpear = false;
+        DoesThisHaveJavelin = false;
+        DoesThisHaveSlinger = false;
+        DoesThisHaveAxe = false;
+
+        if (weapontype.Contains("Sword"))
+        {
+            DoesThisHaveSword = true;
+        }
+        if (weapontype.Contains("Spear"))
+        {
+            DoesThisHaveSpear = true;
+        }
+        if (weapontype.Contains("Javelin"))
+        {
+            DoesThisHaveJavelin = true;
+        }
+        if (weapontype.Contains("Slinger"))
+        {
+            DoesThisHaveSlinger = true;
+        }
+        if (weapontype.Contains("Axe"))
+        {
+            DoesThisHaveAxe = true;
+        }
+        GetComponent<Animator>().SetBool("Sword", DoesThisHaveSword);
+        GetComponent<Animator>().SetBool("Spear", DoesThisHaveSpear);
+        GetComponent<Animator>().SetBool("Javelin", DoesThisHaveJavelin);
+        GetComponent<Animator>().SetBool("Slinger", DoesThisHaveSlinger);
+        GetComponent<Animator>().SetBool("Axe", DoesThisHaveAxe);
+    }
+    public void InitialStuff()
+    {
+        upgradeModules.Clear();
+        foreach (var item in __upgradeModules)
+        {
+            upgradeModules.Add(item.GrabUpgradeModule());
+        }
+    }
+    public UpgradeModule GrabModule()
+    {
+        InitialStuff();
+        List<UpgradeModule> _upgradeModules = new List<UpgradeModule>();
+        foreach (var item in upgradeModules)
+        {
+            if (item != null && item.CanUpgrade())
+            {
+                _upgradeModules.Add(item);//Instantiate(item));
+            }
+        }
+        if (_upgradeModules.Count > 0)
+        {
+            return _upgradeModules[Random.Range(0, _upgradeModules.Count)];
+        }
+        return null;
+    }
     void FixedUpdate()
     {
         foreach (var item in listy)
@@ -57,15 +126,16 @@ public class TestCritter : MonoBehaviour
             item.GetComponent<SpriteRenderer>().material = material;
         }
     }
-    // public void OnMouseEnter()
-    // {
-    //     if(UpgradeButtons != null && Upgrade != null)
-    //     {
-    //         var a = Instantiate(UpgradeButtons, position:new Vector3(transform.position.x, transform.position.y + 0.5f, 0),transform.rotation, BattleManager1.Instance.gameObject.transform);
-    //         a.GetComponent<UpgradeButton>().testy = this;
-    //     }
-        
-    // }
+    public void OnMouseEnter()
+    {
+        UnitStatDisplayMenu.Instance.LoadNewUnit(gameObject.GetComponent<CritterHolder>());
+        // if(UpgradeButtons != null && Upgrade != null)
+        // {
+        //     var a = Instantiate(UpgradeButtons, position:new Vector3(transform.position.x, transform.position.y + 0.5f, 0),transform.rotation, BattleManager1.Instance.gameObject.transform);
+        //     a.GetComponent<UpgradeButton>().testy = this;
+        // }
+
+    }
     // public void OnMouseDown()
     // {
         

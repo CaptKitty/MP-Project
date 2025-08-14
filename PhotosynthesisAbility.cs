@@ -22,6 +22,6 @@ public class PhotosynthesisAbility : Ability
 
     public override void Turn(CritterHolder critter)
     {
-        critter.ReducePopulation(-amount);
+        critter.LoseHealth(-amount);
     }
 }

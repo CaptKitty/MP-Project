@@ -68,6 +68,10 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 30264ee2eeeaac547959aa1d5920153f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules:
+  - {fileID: 11400000, guid: 9323025428561e94bb9bb3bec967c45f, type: 2}
+  upgradeModules: []
   UpgradeButtons: {fileID: 8806944245139361706, guid: 36b886d4ea7b4564588b86d50d2ea887, type: 3}
   Mercenary: 0
 --- !u!114 &-1170439232849311746
@@ -106,7 +110,9 @@ MonoBehaviour:
   online: 0
   unitbrain: {fileID: 0}
   weaponlist: []
-  EquippedWeapon: {fileID: 11400000, guid: dd27822988f93bc469b2fe10ae3c23ca, type: 2}
+  flaglist: []
+  RangedWeapon: {fileID: 0}
+  MeleeWeapon: {fileID: 11400000, guid: dd27822988f93bc469b2fe10ae3c23ca, type: 2}
   AIScript: {fileID: 11400000, guid: 2d7ce668646ce0147a880409da096a1d, type: 2}
   scriptlist:
   - {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}

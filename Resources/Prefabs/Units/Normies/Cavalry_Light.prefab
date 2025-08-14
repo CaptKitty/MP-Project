@@ -103,6 +103,11 @@ MonoBehaviour:
   IsthisAI: 0
   IsThisAlive: 1
   online: 0
+  unitbrain: {fileID: 0}
+  weaponlist: []
+  flaglist: []
+  RangedWeapon: {fileID: 11400000, guid: dd27822988f93bc469b2fe10ae3c23ca, type: 2}
+  MeleeWeapon: {fileID: 0}
   AIScript: {fileID: 11400000, guid: 582ec410f3b07c24faef4c8e23416a2f, type: 2}
   scriptlist:
   - {fileID: 11400000, guid: 582ec410f3b07c24faef4c8e23416a2f, type: 2}

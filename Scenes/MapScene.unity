@@ -389,7 +389,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -984.8, y: -434.6}
+  m_AnchoredPosition: {x: -123.90013, y: 105.40001}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &56958536
@@ -440,6 +440,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &74242652
@@ -657,7 +660,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -767, y: -404.3}
+  m_AnchoredPosition: {x: 93.89986, y: 135.70003}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &83101889
@@ -708,6 +711,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &85247142
@@ -1024,9 +1030,9 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 1.3186811, y: 1.1842105}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: -0.5, y: 0.5}
 --- !u!1 &158091671
 GameObject:
   m_ObjectHideFlags: 0
@@ -1064,7 +1070,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -724.5, y: -493.5}
+  m_AnchoredPosition: {x: 136.39986, y: 46.500015}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &158091673
@@ -1115,6 +1121,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &192260823
@@ -1251,7 +1260,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -1070.2, y: -518.3}
+  m_AnchoredPosition: {x: -209.3001, y: 21.700027}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &220690625
@@ -1302,6 +1311,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &266419874
@@ -1438,7 +1450,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -683, y: -528.6}
+  m_AnchoredPosition: {x: 177.89984, y: 11.40004}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &272982910
@@ -1489,6 +1501,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &324732795
@@ -1607,7 +1622,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -829.60004, y: -646.3}
+  m_AnchoredPosition: {x: 31.29982, y: -106.29997}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &347895535
@@ -1658,6 +1673,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &363711159
@@ -2889,7 +2907,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -1210.5, y: -592.3}
+  m_AnchoredPosition: {x: -349.60016, y: -52.299973}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &515433439
@@ -2940,6 +2958,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &689507523
@@ -3306,7 +3327,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -1195.3999, y: -610.6}
+  m_AnchoredPosition: {x: -334.50006, y: -70.59996}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &725713416
@@ -3357,6 +3378,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &727433703
@@ -4172,7 +4196,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -722.8, y: -475.3}
+  m_AnchoredPosition: {x: 138.09987, y: 64.70003}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &969087895
@@ -4223,6 +4247,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &987237451
@@ -4783,7 +4810,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -1097.9, y: -515.5}
+  m_AnchoredPosition: {x: -237.00017, y: 24.500015}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &1113805408
@@ -4834,6 +4861,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &1116986716
@@ -4873,7 +4903,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -1085.3, y: -500}
+  m_AnchoredPosition: {x: -224.40019, y: 40.000015}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &1116986718
@@ -4924,6 +4954,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &1117470999
@@ -5617,7 +5650,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -1223.1, y: -607.8}
+  m_AnchoredPosition: {x: -362.20013, y: -67.79997}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &1280472534
@@ -5668,6 +5701,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &1318515978
@@ -6950,7 +6986,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -821.5, y: -628.6}
+  m_AnchoredPosition: {x: 39.399857, y: -88.59996}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &1525461076
@@ -7001,6 +7037,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &1555175412
@@ -7891,7 +7930,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -1020.30005, y: -443.00003}
+  m_AnchoredPosition: {x: -159.40019, y: 96.999985}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &1697848601
@@ -7942,6 +7981,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &1720698765
@@ -8796,7 +8838,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -802.5, y: -412.7}
+  m_AnchoredPosition: {x: 58.4, y: 127.3}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &1928203764
@@ -8847,6 +8889,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &1961014683
@@ -8983,7 +9028,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -775.1, y: -422}
+  m_AnchoredPosition: {x: 85.79988, y: 118.000015}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &1972267673
@@ -9034,6 +9079,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &1974663632
@@ -9190,7 +9238,7 @@ MonoBehaviour:
     IsPlayer: 0
     manpower: 0
     treasury: 0
-    unlockedweapons: []
+    unlockedWeaponss: []
     unlockedarmor: []
     regimentdesigns: []
     armies: []
@@ -9208,7 +9256,7 @@ MonoBehaviour:
       IsPlayer: 0
       manpower: 0
       treasury: 0
-      unlockedweapons: []
+      unlockedWeaponss: []
       unlockedarmor: []
       regimentdesigns: []
       armies: []
@@ -9259,7 +9307,7 @@ MonoBehaviour:
     IsPlayer: 1
     manpower: 0
     treasury: 0
-    unlockedweapons: []
+    unlockedWeaponss: []
     unlockedarmor: []
     regimentdesigns: []
     armies: []
@@ -9271,7 +9319,7 @@ MonoBehaviour:
     IsPlayer: 0
     manpower: 0
     treasury: 0
-    unlockedweapons: []
+    unlockedWeaponss: []
     unlockedarmor: []
     regimentdesigns: []
     armies: []
@@ -9283,7 +9331,7 @@ MonoBehaviour:
     IsPlayer: 0
     manpower: 0
     treasury: 0
-    unlockedweapons: []
+    unlockedWeaponss: []
     unlockedarmor: []
     regimentdesigns: []
     armies: []
@@ -9295,7 +9343,7 @@ MonoBehaviour:
     IsPlayer: 0
     manpower: 0
     treasury: 0
-    unlockedweapons: []
+    unlockedWeaponss: []
     unlockedarmor: []
     regimentdesigns: []
     armies: []
@@ -9308,6 +9356,7 @@ MonoBehaviour:
       rgba: 0
     population: 0
   provincelist: []
+  CityObject: {fileID: 1002579342033724372, guid: 13fc9da4a15d79c409d3019996568036, type: 3}
 --- !u!1 &1997597917
 GameObject:
   m_ObjectHideFlags: 0
@@ -9523,7 +9572,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -992.9, y: -452.30002}
+  m_AnchoredPosition: {x: -132.00017, y: 87.7}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &2050965868
@@ -9574,6 +9623,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &2076830417
@@ -9710,7 +9762,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -690, y: -498.2}
+  m_AnchoredPosition: {x: 170.89984, y: 41.800003}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &2094126325
@@ -9761,6 +9813,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &2095247387
@@ -9897,7 +9952,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -655.3, y: -531.4}
+  m_AnchoredPosition: {x: 205.59985, y: 8.599991}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &2109897252
@@ -9948,6 +10003,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &2134888564
@@ -9987,7 +10045,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -857.00006, y: -636.99994}
+  m_AnchoredPosition: {x: 3.8997955, y: -96.99992}
   m_SizeDelta: {x: 10, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &2134888566
@@ -10038,6 +10096,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1660057539 &9223372036854775807

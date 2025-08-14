@@ -17,6 +17,7 @@ public class SessionManager : MonoBehaviour
     public int CampaignLevel = 1;
     public int Escalation = 1;
     public string enemies;
+
     // Start is called before the first frame update
     void Awake()
     {
@@ -99,7 +100,7 @@ public class SessionManager : MonoBehaviour
     }
     public void SpawnArmy()
     {
-        foreach(var unit in HostArmy)
+        foreach (var unit in HostArmy)
         {
             foreach (var RPC in TestRelay.Instance.PlayerObjects)
             {

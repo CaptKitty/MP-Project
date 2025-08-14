@@ -191,9 +191,9 @@ public class RpcTest : NetworkBehaviour
             a.transform.position = new Vector2((float)value, (float)value2);
             if(a.GetComponent<CritterHolder>().population != (int)value3)
             {
-                //a.GetComponent<CritterHolder>().ReducePopulation(0);
+                //a.GetComponent<CritterHolder>().LoseHealth(0);
                 a.GetComponent<CritterHolder>().population = (int)value3;
-                a.GetComponent<CritterHolder>().ReducePopulation(0);
+                a.GetComponent<CritterHolder>().LoseHealth(0);
             }
             if(a.GetComponent<CritterHolder>().population < 0)
             {
@@ -214,7 +214,7 @@ public class RpcTest : NetworkBehaviour
             {
                 
                 a.GetComponent<CritterHolder>().population = (int)value3;
-                a.GetComponent<CritterHolder>().ReducePopulation(0);
+                a.GetComponent<CritterHolder>().LoseHealth(0);
             }
             if(a.GetComponent<CritterHolder>().population < 0)
             {

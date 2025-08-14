@@ -80,7 +80,7 @@ public class basic_Ranged_AI_script : base_AI_Script
             if(critter.NextAvailableAttack < Time.time)
             {
                 critter.NextAvailableAttack = Time.time + critter.GrabAttackTime();
-                TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(critter.GrabAttack());
+                TargetEnemy.GetComponent<CritterHolder>().LoseHealth(critter.GrabAttack());
                 
                 //critter.gameObject.GetComponent<Animator>().SetTrigger("Attack");
                 RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");

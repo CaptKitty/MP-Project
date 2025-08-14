@@ -1,0 +1,66 @@
+{
+    "data": {
+        "name": "Tribesman_SpearChucker",
+        "components": [
+            {
+                "typeName": "UnityEngine.Transform"
+            },
+            {
+                "typeName": "TestCritter"
+            },
+            {
+                "typeName": "CritterHolder"
+            },
+            {
+                "typeName": "UnityEngine.SpriteRenderer"
+            },
+            {
+                "typeName": "UnityEngine.Animator"
+            },
+            {
+                "typeName": "UnityEngine.CircleCollider2D"
+            },
+            {
+                "typeName": "UnityEngine.Rigidbody2D"
+            }
+        ],
+        "children": [
+            {
+                "name": "bone_1",
+                "components": [
+                    {
+                        "typeName": "UnityEngine.Transform"
+                    },
+                    {
+                        "typeName": "UnityEngine.SpriteRenderer"
+                    }
+                ],
+                "children": []
+            },
+            {
+                "name": "bone_2",
+                "components": [
+                    {
+                        "typeName": "UnityEngine.Transform"
+                    },
+                    {
+                        "typeName": "UnityEngine.SpriteRenderer"
+                    }
+                ],
+                "children": []
+            },
+            {
+                "name": "bone_3",
+                "components": [
+                    {
+                        "typeName": "UnityEngine.Transform"
+                    },
+                    {
+                        "typeName": "UnityEngine.SpriteRenderer"
+                    }
+                ],
+                "children": []
+            }
+        ]
+    }
+}

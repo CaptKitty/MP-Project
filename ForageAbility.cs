@@ -45,7 +45,7 @@ public class ForageAbility : Ability
                         if(GeneralManager.Instance.dicty[target].name == food)
                         {
                             GeneralManager.Instance.ChangeScore(score);
-                            GeneralManager.Instance.dicty[target].GetComponent<CritterHolder>().ReducePopulation(1);
+                            GeneralManager.Instance.dicty[target].GetComponent<CritterHolder>().LoseHealth(1);
                             //viabletargets.Add(target);
                         }
                     }

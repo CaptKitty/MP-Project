@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0328358a590af594aabff3322a37048d, type: 3}
+  m_Name: Velite
+  m_EditorClassIdentifier: 
+  spot: {x: 0, y: 0, z: 0}
+  unitname: Velite
+  unittype: 3
+  cost: 50
+  health: 100
+  flaglist: []
+  RangedWeapon: {fileID: 11400000, guid: b20748d8d39bc7144ab514e36638e93d, type: 2}
+  MeleeWeapon: {fileID: 11400000, guid: 376d425d6e9214e47b8ecbfadc0641cb, type: 2}
+  modifierlist: []
+  color: {r: 0.53333336, g: 0, b: 0, a: 0}
+  color2: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 0}
+  color3: {r: 1, g: 0.5529412, b: 0.39607844, a: 0}
+  faction: {fileID: 0}
+  upgradeModules:
+  - {fileID: 11400000, guid: 863807df6ad4e3642bc9e2adedef60b9, type: 2}
+  bodyparts:
+  - {fileID: 21300000, guid: b0f6d172f4b245b47b49a0ef856267d1, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 9551fde8601a24e4bba887117b0717b1, type: 3}
+  Mercenary: 0

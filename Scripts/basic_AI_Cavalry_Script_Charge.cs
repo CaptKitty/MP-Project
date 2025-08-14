@@ -95,11 +95,11 @@ public class basic_AI_Cavalry_Script_Charge : base_AI_Script
         {
             if(critter.NextAvailableAttack + ChargeTime < Time.time)
             {
-                TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(ChargeDamage);
+                TargetEnemy.GetComponent<CritterHolder>().LoseHealth(ChargeDamage);
             }
 
             critter.NextAvailableAttack = Time.time + critter.GrabAttackTime();
-            TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(critter.GrabAttack());
+            TargetEnemy.GetComponent<CritterHolder>().LoseHealth(critter.GrabAttack());
             RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");
         }
         

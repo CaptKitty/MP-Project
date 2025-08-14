@@ -16,17 +16,24 @@ MonoBehaviour:
   color2: {r: 0.3207547, g: 0.3115213, b: 0.21484514, a: 0}
   color3: {r: 1, g: 0.6829454, b: 0.57169807, a: 0}
   UnitList: []
-  BarracksLevel: 1
+  UnitDataList: []
+  BarracksLevel: 2
   MercLevel: 0
   FarmLevel: 1
   BarracksUnits:
   - {fileID: 1002579342033724372, guid: c4768673248ce4e49babf3295139292b, type: 3}
   - {fileID: 5815002448955544719, guid: ee2a0342b3d10a849bea2717893c1cb1, type: 3}
   - {fileID: 1002579342033724372, guid: 29665083b747bd54aa900a8285ed01a6, type: 3}
+  BarracksDataList:
+  - {fileID: 11400000, guid: 57eb2d5207ea83d429b585109863402b, type: 2}
+  - {fileID: 11400000, guid: 288334bf104fae5448e61506ac62b986, type: 2}
+  - {fileID: 11400000, guid: d53fa0f4fda48eb4cba5304610ce3476, type: 2}
+  - {fileID: 11400000, guid: fa4a84c0cf334da40bb64d728942e382, type: 2}
   MercenaryUnits:
   - {fileID: 1002579342033724372, guid: e20ae5212fbd75843aaefae8cc3d4c71, type: 3}
   - {fileID: 1002579342033724372, guid: 29665083b747bd54aa900a8285ed01a6, type: 3}
   - {fileID: 1002579342033724372, guid: dc0ec296db2ed5543b6f4b990fb0f74d, type: 3}
   - {fileID: 1002579342033724372, guid: d71592f662aacdd478c8937d36798e52, type: 3}
   - {fileID: 1002579342033724372, guid: dce30088f80515b49bc5661b6f2e9c00, type: 3}
+  MercenaryDataList: []
   Income: 500

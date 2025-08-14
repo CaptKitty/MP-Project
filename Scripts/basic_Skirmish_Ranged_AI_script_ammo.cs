@@ -104,7 +104,7 @@ public class basic_Skirmish_Ranged_AI_script_ammo : basic_Ranged_AI_script_ammo
                 }
                 ammo -= 1;
 
-                TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(critter.GrabAttack());
+                TargetEnemy.GetComponent<CritterHolder>().LoseHealth(critter.GrabAttack());
                 //critter.gameObject.GetComponent<Animator>().SetTrigger("Attack");
                 RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");
                 RpcTest.Serverchecker.ExecuteAnimation(critter, "Throw"); //Throw(critter);

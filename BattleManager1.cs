@@ -39,24 +39,12 @@ public class BattleManager1 : BattleManager
     }
     public void Start()
     {
-
-        // List<GameObject> units = new List<GameObject>();
-        SessionManager.Instance.ClientFaction.BarracksLevel = SessionManager.Instance.CampaignLevel; //3;
+        SessionManager.Instance.ClientFaction.BarracksLevel = SessionManager.Instance.CampaignLevel;
         SessionManager.Instance.ClientFaction.Set();
-        // foreach (var item in SessionManager.Instance.ClientFaction.UnitList)
-        // {
-        //     units.Add(item);
-        // }
 
         brainy = new Brain();
         brainy.resources = 200 + (SessionManager.Instance.CampaignLevel * 150);
         brainy.Startie();
-
-        //SessionManager.Instance.SpawnArmy();
-
-        //SpawnArmy();
-
-        //TerrainTime();
     }
     public void SpawnArmy()
     {
@@ -69,8 +57,6 @@ public class BattleManager1 : BattleManager
 
 
         _ClientArmy = GenerateAIArmy();
-
-        //SessionManager.Instance.ClientArmy = _ClientArmy;
 
         for (int i = 0; i < _ClientArmy.Count; i++)
         {
@@ -87,21 +73,18 @@ public class BattleManager1 : BattleManager
         List<SpawnBait> clientarmies = new List<SpawnBait>();
         Vector3Int Corespot = new Vector3Int(4, -9, 0);
         List<GameObject> units = new List<GameObject>();
+        List<UnitSaveData> unitsData = new List<UnitSaveData>();
         SessionManager.Instance.ClientFaction.BarracksLevel = 3;
         SessionManager.Instance.ClientFaction.Set();
         foreach (var item in SessionManager.Instance.ClientFaction.UnitList)
         {
             units.Add(item);
         }
-
-        int unitcost = units[0].GetComponent<CritterHolder>().cost.amount;
-        foreach (var item in units)
+        foreach (var item in SessionManager.Instance.ClientFaction.UnitDataList)
         {
-            if (item.GetComponent<CritterHolder>().cost.amount < unitcost)
-            {
-                unitcost = item.GetComponent<CritterHolder>().cost.amount;
-            }
+            unitsData.Add(item);
         }
+
         int resources = 10 + 500 + 100 * SessionManager.Instance.Escalation;
 
         for (int i = 0; i < 10; i++)
@@ -116,15 +99,10 @@ public class BattleManager1 : BattleManager
                     i++;
                     unit.name = item.gameObject.name;
                     unit.AIorNot = false;
-                    //unit.name = item.name + "_" + Random.Range(0, 1000).ToString();
                     unit.ClientOrHost = "Client";
 
                     clientarmies.Add(unit);
-
-                    unitcost = item.GetComponent<CritterHolder>().cost.amount;
-                    resources -= unitcost;
-
-                    //break;
+                    resources -= item.GetComponent<CritterHolder>().cost.amount;
                 }
             }
             resources -= 1;
@@ -203,7 +181,8 @@ public class BattleManager1 : BattleManager
             {
                 if(TestRelay.Instance.PlayerObjects.Count == 2)
                 {
-                    if(RpcTest.Serverchecker.ServerCheck())
+                    Starter = false;
+                    if (RpcTest.Serverchecker.ServerCheck())
                     {
                         a.SetActive(false);
                     }
@@ -231,6 +210,7 @@ public class BattleManager1 : BattleManager
                 }
                 if(TestRelay.Instance.PlayerObjects.Count == 1 && SessionManager.Instance.Campaign == true)
                 {
+                    Starter = false;
                     a.SetActive(false);
                     RpcTest.Serverchecker.ServerCheck();
                     // foreach (var RPC in TestRelay.Instance.PlayerObjects)
@@ -255,11 +235,11 @@ public class BattleManager1 : BattleManager
         }
         try
         {
-            if(RpcTest.Serverchecker.ServerCheck())
+            if (RpcTest.Serverchecker.ServerCheck())
             {
-                if(Input.GetKeyDown("escape") && SessionManager.Instance.Campaign == false)
+                if (Input.GetKeyDown("escape") && SessionManager.Instance.Campaign == false)
                 {
-                    if(Input.GetKey("space"))
+                    if (Input.GetKey("space"))
                     {
                         RpcTest.Serverchecker.ExecuteReset(true);
                         return;
@@ -267,39 +247,23 @@ public class BattleManager1 : BattleManager
                     RpcTest.Serverchecker.ExecuteReset(false);
                 }
                 RpcTest.Serverchecker.UpdateCritters();
-                
-                if(Input.GetKeyDown("space"))
+
+                if (Input.GetKeyDown("space"))
                 {
-                    foreach (var item in enemylist)
+                    StartGame();
+                    if (FightIsOn)
                     {
-                        item.GetComponent<CritterHolder>().AIScript.FindTarget(item.GetComponent<CritterHolder>());
-                    }
-                    
-                    RpcTest.Serverchecker.StartBattle();
-                    
-                    MousePet.SetActive(false);
-                    if(!FightIsOn)
-                    {
-                        foreach (var item in enemylist)
+                        if (Time.timeScale == 1)
                         {
-                            if(item == null)
-                            {
-                                continue;
-                            }
-                            if(item.GetComponent<CritterMovement>())
-                            {
-                                item.GetComponent<CritterMovement>().online = true;
-                            }
-                            if(item.GetComponent<CritterHolder>())
-                            {
-                                item.GetComponent<CritterHolder>().online = true;
-                            }
+                            Time.timeScale = 0;
                         }
-                        Debug.LogError("Letsgo");
-                        FightIsOn = true;
-                        //ChangeReserves(0);
+                        else
+                        {
+                            Time.timeScale = 1;
+                        }
                     }
                 }
+                
                 
                 
             }
@@ -487,6 +451,38 @@ public class BattleManager1 : BattleManager
         // }
 
     }
+    public void StartGame()
+    {
+        foreach (var item in enemylist)
+        {
+            item.GetComponent<CritterHolder>().AIScript.FindTarget(item.GetComponent<CritterHolder>());
+        }
+        
+        RpcTest.Serverchecker.StartBattle();
+        
+        MousePet.SetActive(false);
+        if(!FightIsOn)
+        {
+            foreach (var item in enemylist)
+            {
+                if(item == null)
+                {
+                    continue;
+                }
+                if(item.GetComponent<CritterMovement>())
+                {
+                    item.GetComponent<CritterMovement>().online = true;
+                }
+                if(item.GetComponent<CritterHolder>())
+                {
+                    item.GetComponent<CritterHolder>().online = true;
+                }
+            }
+            //Debug.LogError("Letsgo");
+            FightIsOn = true;
+            //ChangeReserves(0);
+        }
+    }
     public override void ChangeReserves(int testy)
     {
         //Reserves = CityManager.Instance.ResourceList.Find(x => x.name == "Piety").amount;
@@ -494,9 +490,9 @@ public class BattleManager1 : BattleManager
         //Rtexty.text = (CityManager.Instance.ResourceList.Find(x => x.name == "Manpower").amount/100) + " Friendly Lances Remaining.";
         //CityManager.Instance.ResourceList.Find(x => x.name == "Manpower").amount -= testy;
         //Rtexty.text = CityManager.Instance.ResourceList.Find(x => x.name == "Manpower") + " Friendly Manpower Remaining.";
-        
+
         //if(Score > 0 && Reserves <= 0 && FightIsOn == true)
-        if(Score > 0 && FriendlyCounter <= 0 && FightIsOn == true)
+        if (Score > 0 && FriendlyCounter <= 0 && FightIsOn == true)
         {
             Banner.SetActive(true);
             Banner.transform.GetChild(0).GetComponent<Text>().text = "WE ARE OUTMANOUVERED, FALL BACK!";
@@ -556,48 +552,74 @@ public class BattleManager1 : BattleManager
         // {
             if(dicty[target] == null)
             {
-                GameObject spawner = Resources.Load<GameObject>("Prefabs/Units/Normies/" + name);
-                GameObject trader = Instantiate(spawner, ownermap.transform);
-
-                
-                trader.transform.position = new Vector3(ownermap.CellToWorld(target).x + 0.0f, ownermap.CellToWorld(target).y +0.25f, 0);
-                if(trader.GetComponent<CritterHolder>() != null)
+                try
                 {
-                    trader.GetComponent<CritterHolder>().spot = target;
+                    //GameObject spawner = Resources.Load<GameObject>("Prefabs/Units/Normies/" + name);
 
-                    trader.GetComponent<CritterHolder>().IsthisAI = AIorNot;
-
-                    trader.GetComponent<CritterHolder>().name = futurename;
-
-                    if(ClientOrHost == "Host")
-                    {
-                        if(RpcTest.Serverchecker.ServerCheck())
-                        {
-                            trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction;
-                        }
-                        else
-                        {
-                            trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction_client;
-                        }
-                        
-                    }
-                    else
-                    {
-                        if(RpcTest.Serverchecker.ServerCheck())
-                        {
-                            trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction_client;
-                        }
-                        else
-                        {
-                            trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction;
-                        }
-                        //trader.GetComponent<TestCritter>().faction = Playerfaction;
-                    }
-
-                    trader.name = futurename;
+                    GameObject spawner = Resources.Load<GameObject>("Prefabs/Units/Normies/BlankCritterPrefab");
                     
-                    Destroy(dicty[target]);
-                    dicty[target] = trader; 
+                    GameObject trader = Instantiate(spawner, ownermap.transform);
+
+                    
+
+
+                    trader.transform.position = new Vector3(ownermap.CellToWorld(target).x + 0.0f, ownermap.CellToWorld(target).y + 0.25f, 0);
+                    if (trader.GetComponent<CritterHolder>() != null)
+                    {
+                        trader.GetComponent<CritterHolder>().spot = target;
+
+                        trader.GetComponent<CritterHolder>().IsthisAI = AIorNot;
+
+                        trader.GetComponent<CritterHolder>().name = futurename;
+
+                        if (ClientOrHost == "Host")
+                        {
+                            if (RpcTest.Serverchecker.ServerCheck())
+                            {
+                                trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction;
+                            }
+                            else
+                            {
+                                trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction_client;
+                            }
+
+                        }
+                        else
+                        {
+                            if (RpcTest.Serverchecker.ServerCheck())
+                            {
+                                trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction_client;
+                            }
+                            else
+                            {
+                                trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction;
+                            }
+                            //trader.GetComponent<TestCritter>().faction = Playerfaction;
+                        }
+
+                        try
+                        {
+                            UnitSaveData unitsavedata = trader.GetComponent<TestCritter>().faction.UnitDataList.Find(x => x.name == name);
+                            unitsavedata.NewTestCritter(trader.GetComponent<TestCritter>());
+                            unitsavedata.NewCritterHolder(trader.GetComponent<CritterHolder>());
+                        }
+                        catch
+                        {
+                            Debug.LogError("Did not find " + name + " Unit Save Data");
+                        }
+
+                        trader.GetComponent<CritterHolder>().name = futurename;
+                    
+
+                        trader.name = futurename;
+
+                        Destroy(dicty[target]);
+                        dicty[target] = trader;
+                    }
+                }
+                catch
+                {
+                    Debug.LogError("Did not find " + name);
                 }
             }
         // }

@@ -24,5 +24,4 @@ MonoBehaviour:
   running: 0
   brainy: {fileID: 0}
   Corespot: {x: 0, y: 0, z: 0}
-  i: 0
-  unitToSpawn: {fileID: 0}
+  unitToSpawn: {fileID: 1002579342033724372, guid: 96441ff182a5ae6419e9248bb3223d72, type: 3}

@@ -171,24 +171,30 @@ public class Mapshower : MonoBehaviour
     public void Paint()
     {
         int i = 0;
-        foreach(Province province in Owners.Instance.provincelist)
+        try
         {
-            i = i+1;
-            int x = (int)province.position.x;
-            int y = (int)province.position.y;
+            foreach (Province province in Owners.Instance.provincelist)
+            {
+                i = i + 1;
+                int x = (int)province.position.x;
+                int y = (int)province.position.y;
 
-            var remapColor = remapArr[x + y * width];
-            int xp = remapColor[0];
-            int yp = remapColor[1];
+                var remapColor = remapArr[x + y * width];
+                int xp = remapColor[0];
+                int yp = remapColor[1];
 
-            if(!selectAny || !prevColor.Equals(remapColor)){
-                selectAny = true;
-                prevColor = remapColor;
-                paletteTex.SetPixel(xp, yp, province.nation.ownerIdentity);
-                paletteTex.Apply(false);
-                ownerTex.Apply(false);
+                if (!selectAny || !prevColor.Equals(remapColor))
+                {
+                    selectAny = true;
+                    prevColor = remapColor;
+                    paletteTex.SetPixel(xp, yp, province.nation.ownerIdentity);
+                    paletteTex.Apply(false);
+                    ownerTex.Apply(false);
+                }
             }
         }
+        catch { }
+        
     }
     public void RePaint()
     {

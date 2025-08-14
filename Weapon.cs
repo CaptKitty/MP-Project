@@ -12,6 +12,7 @@ public class Weapon : ScriptableObject
     public int attack = 1;
     public double attacktime = 1;
     public double NextAvailableAttack = 0;
+    public string animationtype;
 
     public GameObject Throwable;
     public int ammo;
@@ -20,6 +21,7 @@ public class Weapon : ScriptableObject
     public Weapon GrabCopy()
     {
         Weapon potato = new Weapon();
+        potato.name = name;
         potato.sprite = sprite;
         potato.combatdistance = combatdistance;
         potato.speed = speed;
@@ -28,6 +30,23 @@ public class Weapon : ScriptableObject
         potato.Throwable = Throwable;
         potato.ammo = ammo;
         potato.modifier = modifier;
+        potato.animationtype = animationtype;
         return potato;
+    }
+    public string GrabWeaponInformation()
+    {
+        string newstring = "";
+        newstring += attack + " attack\n";
+        newstring += combatdistance + " range\n";
+        newstring += attacktime + " atk spd";
+        if (Throwable != null)
+        {
+            newstring += "\n" + ammo + " ammo";
+        }
+        if (modifier != null)
+        {
+            newstring += "\n" + modifier.name;
+        }
+        return newstring;
     }
 }

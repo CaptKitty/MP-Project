@@ -127,7 +127,7 @@ public class HarvesterAbility : Ability
     public void DoTheThing(CritterHolder critter, Vector3Int target)
     {
         GeneralManager.Instance.ChangeScore(score);
-        GeneralManager.Instance.dicty[target].GetComponent<CritterHolder>().ReducePopulation(damage);
+        GeneralManager.Instance.dicty[target].GetComponent<CritterHolder>().LoseHealth(damage);
         CityManager.Instance.AddResource(resource:output);
     }
 }

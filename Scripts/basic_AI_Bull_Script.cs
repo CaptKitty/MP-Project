@@ -99,7 +99,7 @@ public class basic_AI_Bull_Script : base_AI_Script
             }
             
             critter.NextAvailableAttack = Time.time + critter.GrabAttackTime();
-            TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(critter.GrabAttack());
+            TargetEnemy.GetComponent<CritterHolder>().LoseHealth(critter.GrabAttack());
             RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");
         }
         

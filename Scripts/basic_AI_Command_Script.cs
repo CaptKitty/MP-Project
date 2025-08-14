@@ -66,7 +66,6 @@ public class basic_AI_Command_Script : base_AI_Script
                 {
                     items.potato = item;
                     items.LoadAura();
-                    //critter.onDeath += items.DestroyAura;
                 }
                 continue;
             }
@@ -95,20 +94,10 @@ public class basic_AI_Command_Script : base_AI_Script
                     critter.onDeath += item.GetComponent<CritterHolder>().GrabNewScript;
                     critter.onDeath += moddy.DestroyAura;
                     critter.onDeath += moddy.DestroyThis;
-                    //item.GetComponent<CritterHolder>().modifierlist.Remove(b.modifier);
 
                     subjectrelation.Add(heading);
                 }
             }
-            // foreach (var item in frenlists)
-            // {
-            //     foreach (var items in item.GetComponent<CritterHolder>().modifierlist)
-            //     {
-            //         items.potato = item;
-            //         items.LoadAura();
-                    
-            //     }
-            // }
         }
     }
     public override void Execute(CritterHolder critter)
@@ -172,7 +161,7 @@ public class basic_AI_Command_Script : base_AI_Script
         if(critter.NextAvailableAttack < Time.time)
         {
             critter.NextAvailableAttack = Time.time + critter.GrabAttackTime();
-            TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(critter.GrabAttack());
+            TargetEnemy.GetComponent<CritterHolder>().LoseHealth(critter.GrabAttack());
             RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");
         }
         

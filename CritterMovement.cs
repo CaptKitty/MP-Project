@@ -28,7 +28,7 @@ public class CritterMovement : MonoBehaviour
         if(distance < combatdistance)
         {
             // Destroy(TargetEnemy);
-            TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(1);
+            TargetEnemy.GetComponent<CritterHolder>().LoseHealth(1);
         }
     }
     public void FindTarget()

@@ -14,6 +14,10 @@ public class RangedAttack : Unit_GAction
         {
             return true;
         }
+        if (critter.RangedWeapon != null && critter.RangedWeapon.Throwable != null)
+        {
+            return true;
+        }
         return false;
     }
     public override bool PrePerform()
@@ -36,9 +40,10 @@ public class RangedAttack : Unit_GAction
         if (critter.NextAvailableAttack < Time.time)
         {
             critter.NextAvailableAttack = Time.time + critter.GrabAttackTime();
-            unitBrainy.TargetEnemy.GetComponent<CritterHolder>().ReducePopulation(critter.GrabAttack());
+            unitBrainy.TargetEnemy.GetComponent<CritterHolder>().LoseHealth(critter.GrabAttack());
             RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");
             RpcTest.Serverchecker.ExecuteAnimation(critter, "Throw");
+
         }
         return false;
     }

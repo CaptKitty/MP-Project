@@ -12,6 +12,7 @@ public class Owners : MonoBehaviour
     public List<Culture> culturelist;
     public Dictionary<string, Culture> culturedict;
     public List<Province> provincelist;
+    public GameObject CityObject;
     public Dictionary<string, Province> provincedict;
     public Dictionary<Color32, Province> provincedictcolor;
     // public List<Province> provincelists;
@@ -58,14 +59,23 @@ public class Owners : MonoBehaviour
             }
         }
         Mapshower.Instance.Paint();
-        //this.gameObject.SetActive(false);
-        // Debug.Log(nationdict["Netherlands"].manpower);
+
+        PlantCities();
+    }
+    public void PlantCities()
+    {
+        foreach (var province in provincelist)
+        {
+            var a = Instantiate(CityObject, this.transform.GetChild(2));
+            a.transform.localScale = new Vector3(50f,50f,50f);
+            a.transform.localPosition = new Vector3(province.position.x*1f-364f, province.position.y*1f-228f, 0);
+        }
     }
     public Nation CallPlayer()
     {
         foreach (Nation Nation in Owners.Instance.nationlist)
         {
-            if(Nation.IsPlayer == true)
+            if (Nation.IsPlayer == true)
             {
                 Nation nation = Nation;
                 return Nation;

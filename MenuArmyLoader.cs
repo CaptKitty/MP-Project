@@ -29,4 +29,11 @@ public class MenuArmyLoader : MonoBehaviour
             objectList.Add(menu);
         }
     }
+    public void UpdateSprites()
+    {
+        foreach (var item in objectList)
+        {
+            item.GetComponent<SelectMilitaryCritter>().UpdateSprite();
+        }
+    }
 }

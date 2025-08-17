@@ -87,18 +87,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spot: {x: 0, y: 0, z: 0}
-  name: Iberian Light
-  unittype: 1
+  name: Phoenician Spear
+  typename: 
+  unittype: 2
   nametype: []
   cost:
     name: 
-    amount: 50
+    amount: 150
     sprite: {fileID: 0}
   DoesThisgoOnTheCity: 0
   ViablePlacingSpots:
   - Grassland
   targetlists: []
-  population: 200
+  population: 600
   AbilityList:
   - {fileID: 0}
   PrivateAbilityList:

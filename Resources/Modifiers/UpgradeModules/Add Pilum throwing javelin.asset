@@ -10,9 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5d5eb853a7d8c4045a9e582fc98f8b34, type: 3}
-  m_Name: LegionaryUpgradeOne
+  m_Name: Add Pilum throwing javelin
   m_EditorClassIdentifier: 
-  name: Add Pilum
+  name: Add Pilum throwing javelin
   modifier: {fileID: 0}
   NewRangedWeapon: {fileID: 11400000, guid: e3f352d3edadd6d469574d53c5fe5276, type: 2}
   NewMeleeWeapon: {fileID: 0}
+  NewArmor: {fileID: 0}
+  NewShield: {fileID: 0}

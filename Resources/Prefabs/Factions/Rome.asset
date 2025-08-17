@@ -19,7 +19,7 @@ MonoBehaviour:
   UnitDataList: []
   BarracksLevel: 2
   MercLevel: 0
-  FarmLevel: 0
+  FarmLevel: 5
   BarracksUnits:
   - {fileID: 1002579342033724372, guid: 7dd13ec852e6dd14985d4d7b2b14348f, type: 3}
   - {fileID: 1002579342033724372, guid: c373d7a5ff883a544b2de2546327f11a, type: 3}

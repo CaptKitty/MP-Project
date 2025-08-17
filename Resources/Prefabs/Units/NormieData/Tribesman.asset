@@ -17,7 +17,9 @@ MonoBehaviour:
   unittype: 1
   cost: 75
   health: 300
-  flaglist: []
+  speed: 1
+  flaglist:
+  - Forestry_Immunity
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 11400000, guid: 5687f1ea8a99c2d4cb4382d3b12854b2, type: 2}
   modifierlist: []
@@ -28,6 +30,6 @@ MonoBehaviour:
   upgradeModules: []
   bodyparts:
   - {fileID: 21300000, guid: 578aa4cd40cc64b4380327009a5f0cbc, type: 3}
-  - {fileID: 29355853082399451, guid: 7d4129044290ed64183e95973a8828f6, type: 3}
+  - {fileID: 21300000, guid: fce9cd9c7a2aaac4d88d13c49a6ea115, type: 3}
   - {fileID: 21300000, guid: 81cb0454a27daf34d9b550739b4e5b88, type: 3}
   Mercenary: 0

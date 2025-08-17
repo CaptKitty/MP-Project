@@ -21,4 +21,4 @@ MonoBehaviour:
   animationtype: Sword
   Throwable: {fileID: 0}
   ammo: 5
-  modifier: {fileID: 11400000, guid: 69abefe18f7d1a3479e2be64be261855, type: 2}
+  modifier: {fileID: 0}

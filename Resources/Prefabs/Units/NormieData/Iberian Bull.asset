@@ -17,6 +17,7 @@ MonoBehaviour:
   unittype: 1
   cost: 50
   health: 200
+  speed: 1
   flaglist: []
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 11400000, guid: 64bbb12b8f545f64ba9cf60d6f2fa2b6, type: 2}
@@ -29,5 +30,5 @@ MonoBehaviour:
   bodyparts:
   - {fileID: 21300000, guid: 79eb0efc79bb288418846be652e47dd1, type: 3}
   - {fileID: 21300000, guid: fce9cd9c7a2aaac4d88d13c49a6ea115, type: 3}
-  - {fileID: 0}
+  - {fileID: 21300000, guid: 2a17cfdacd044a541970e4e76ba4245d, type: 3}
   Mercenary: 0

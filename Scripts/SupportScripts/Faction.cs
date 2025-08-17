@@ -59,9 +59,9 @@ public class Faction : ScriptableObject
     }
     public void UpgradeBarracks()
     {
-        var potato = BarracksUnits[BarracksLevel];
-        potato.GetComponent<TestCritter>().Mercenary = false;
-        UnitList.Add(potato);
+        // var potato = BarracksUnits[BarracksLevel];
+        // potato.GetComponent<TestCritter>().Mercenary = false;
+        // UnitList.Add(potato);
         UnitDataList.Add(BarracksDataList[BarracksLevel]);
 
         BarracksLevel++;
@@ -69,17 +69,21 @@ public class Faction : ScriptableObject
     public void UpgradeMercenaries()
     {
         var MercenaryLevel = UnityEngine.Random.Range(0, MercenaryUnits.Count);
-        var potato = MercenaryUnits[MercenaryLevel];
-        potato.GetComponent<TestCritter>().Mercenary = true;
-        UnitList.Add(potato);
-        MercenaryDataList[MercenaryLevel].Mercenary = true;
-        UnitDataList.Add(MercenaryDataList[MercenaryLevel]);
+        // // var potato = MercenaryUnits[MercenaryLevel];
+        // // potato.GetComponent<TestCritter>().Mercenary = true;
+        // // UnitList.Add(potato);
+        // MercenaryDataList[MercenaryLevel].Mercenary = true;
+        // UnitDataList.Add(MercenaryDataList[MercenaryLevel]);
+        var a = MercenaryDataList[MercenaryLevel];
+        a.Mercenary = true;
+        MercenaryDataList.Remove(a);
+        UnitDataList.Add(a);
 
-        MercenaryUnits.Remove(potato);
+        //MercenaryUnits.Remove(potato);
     }
     public int GrabIncome()
     {
-        return Income = 500 + FarmLevel * 100;
+        return Income = FarmLevel * 100; //500 +
     }
     public void Set()
     {
@@ -88,7 +92,7 @@ public class Faction : ScriptableObject
         {
             try
             {
-                UnitList.Add(BarracksUnits[i]);
+                //UnitList.Add(BarracksUnits[i]);
                 UnitDataList.Add(BarracksDataList[i]);
             }
             catch { }
@@ -97,11 +101,14 @@ public class Faction : ScriptableObject
         {
             try
             {
-                var potato = MercenaryUnits[UnityEngine.Random.Range(0, MercenaryUnits.Count)];
-                potato.GetComponent<TestCritter>().Mercenary = true;
-                UnitList.Add(potato);
-                MercenaryUnits.Remove(potato);
-                UnitDataList.Add(MercenaryDataList[i]);
+                //var potato = MercenaryUnits[UnityEngine.Random.Range(0, MercenaryUnits.Count)];
+                //potato.GetComponent<TestCritter>().Mercenary = true;
+                //UnitList.Add(potato);
+                //MercenaryUnits.Remove(potato);
+                var a = MercenaryDataList[i];
+                a.Mercenary = true;
+                MercenaryDataList.Remove(a);
+                UnitDataList.Add(a);
             }
             catch { }
             

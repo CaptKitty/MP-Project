@@ -176,6 +176,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   heldcritter: {fileID: 1002579342033724372, guid: 217317507daa4c844a36b65fe44e647b, type: 3}
+  NewCritter: {fileID: 0}
+  NewTestCritter: {fileID: 0}
+  unitSaveData: {fileID: 0}
   CanPlay: 0
   minpagans: -1
 --- !u!61 &83071394
@@ -458,6 +461,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spot: {x: 6, y: 3, z: 0}
   name: Stabby
+  typename: 
   unittype: 0
   nametype: []
   cost:
@@ -480,6 +484,7 @@ MonoBehaviour:
   online: 0
   unitbrain: {fileID: 0}
   weaponlist: []
+  flaglist: []
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 0}
   AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
@@ -517,6 +522,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 0}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!95 &197566478
@@ -1246,6 +1254,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   heldcritter: {fileID: 1002579342033724372, guid: 7dd13ec852e6dd14985d4d7b2b14348f, type: 3}
+  NewCritter: {fileID: 0}
+  NewTestCritter: {fileID: 0}
+  unitSaveData: {fileID: 0}
   CanPlay: 0
   minpagans: -1
 --- !u!1 &512504179
@@ -2678,6 +2689,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   heldcritter: {fileID: 1002579342033724372, guid: c4768673248ce4e49babf3295139292b, type: 3}
+  NewCritter: {fileID: 0}
+  NewTestCritter: {fileID: 0}
+  unitSaveData: {fileID: 0}
   CanPlay: 0
   minpagans: -1
 --- !u!61 &709257615
@@ -12372,6 +12386,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   heldcritter: {fileID: 1002579342033724372, guid: 5333515deaf5683439d613c37b184ef1, type: 3}
+  NewCritter: {fileID: 0}
+  NewTestCritter: {fileID: 0}
+  unitSaveData: {fileID: 0}
   CanPlay: 0
   minpagans: -1
 --- !u!1 &1573187121
@@ -12490,6 +12507,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spot: {x: 6, y: 3, z: 0}
   name: Stabby
+  typename: 
   unittype: 0
   nametype: []
   cost:
@@ -12512,6 +12530,7 @@ MonoBehaviour:
   online: 0
   unitbrain: {fileID: 0}
   weaponlist: []
+  flaglist: []
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 0}
   AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
@@ -12549,6 +12568,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 0}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!95 &1573187127
@@ -13146,6 +13168,7 @@ GameObject:
   - component: {fileID: 1793597489}
   - component: {fileID: 1793597488}
   - component: {fileID: 1793597487}
+  - component: {fileID: 1793597490}
   m_Layer: 5
   m_Name: Image (8)
   m_TagString: Untagged
@@ -13242,6 +13265,29 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1793597485}
   m_CullTransparentMesh: 1
+--- !u!223 &1793597490
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1793597485}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 2
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 1
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 150
+  m_TargetDisplay: 0
 --- !u!1 &1798448947
 GameObject:
   m_ObjectHideFlags: 0
@@ -13407,6 +13453,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spot: {x: 6, y: 3, z: 0}
   name: Stabby
+  typename: 
   unittype: 0
   nametype: []
   cost:
@@ -13429,6 +13476,7 @@ MonoBehaviour:
   online: 0
   unitbrain: {fileID: 0}
   weaponlist: []
+  flaglist: []
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 0}
   AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
@@ -13466,6 +13514,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 0}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!95 &1804922209
@@ -13753,6 +13804,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   heldcritter: {fileID: 1002579342033724372, guid: c373d7a5ff883a544b2de2546327f11a, type: 3}
+  NewCritter: {fileID: 0}
+  NewTestCritter: {fileID: 0}
+  unitSaveData: {fileID: 0}
   CanPlay: 0
   minpagans: -1
 --- !u!61 &1904530274
@@ -14510,6 +14564,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spot: {x: 6, y: 3, z: 0}
   name: Stabby
+  typename: 
   unittype: 0
   nametype: []
   cost:
@@ -14532,6 +14587,7 @@ MonoBehaviour:
   online: 0
   unitbrain: {fileID: 0}
   weaponlist: []
+  flaglist: []
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 0}
   AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
@@ -14569,6 +14625,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 0}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!95 &2046903841
@@ -14914,7 +14973,7 @@ SpriteRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 504367400704227054}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 0
   m_ReceiveShadows: 0
   m_DynamicOccludee: 1
@@ -15157,6 +15216,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 0}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!95 &1075589751928496135
@@ -15576,6 +15638,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 0
 --- !u!1 &5333547444578046668
@@ -15723,6 +15788,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spot: {x: 6, y: 3, z: 0}
   name: Stabby
+  typename: 
   unittype: 0
   nametype: []
   cost:
@@ -15745,6 +15811,7 @@ MonoBehaviour:
   online: 0
   unitbrain: {fileID: 0}
   weaponlist: []
+  flaglist: []
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 0}
   AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}

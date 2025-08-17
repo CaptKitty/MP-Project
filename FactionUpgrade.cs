@@ -25,7 +25,7 @@ public class FactionUpgrade : MonoBehaviour
         unitSaveData = SessionManager.Instance.HostFaction.UnitDataList[Random.Range(0, SessionManager.Instance.HostFaction.UnitDataList.Count)];
         mod = unitSaveData.GrabModule();
 
-        transform.GetChild(3).GetChild(0).GetComponent<Text>().text = "Upgrade " + unitSaveData.name;// + " gets " + mod.name;
+        transform.GetChild(3).GetChild(0).GetComponent<Text>().text = unitSaveData.name + " " + mod.name;//"Upgrade " +  + " gets " + mod.name;
         transform.GetChild(3).GetChild(0).GetComponent<Text>().text = transform.GetChild(3).GetChild(0).GetComponent<Text>().text.Replace("(Clone)", "");
     }
     public void PressButton(string input)

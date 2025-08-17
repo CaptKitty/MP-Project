@@ -284,8 +284,8 @@ public class Mapshower : MonoBehaviour
                 int xp = remapColor[0];
                 int yp = remapColor[1];
 
-                var material = GetComponent<Renderer>().material;
-                var mainTex = material.GetTexture("_MainTex") as Texture2D;
+                // var material = ;
+                var mainTex = GrabMaterial().GetTexture("_MainTex") as Texture2D;
                 
                 // print(mainTex.GetPixel(x, y));
                 // // print(x + " + " + y);
@@ -351,11 +351,12 @@ public class Mapshower : MonoBehaviour
                 if(Input.GetMouseButtonDown(0))
                 {
                     //Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
-                    SelectedNation = province.nation;
-                    UIElement.NationHost.UpdateTitle(province.nation.name);
+                    SelectProvince(province);
+                    // SelectedNation = province.nation;
+                    // UIElement.NationHost.UpdateTitle(province.nation.name);
 
-                    SelectedProvince = province;
-                    UIElement.ProvinceHost.UpdateTitle(province.name);
+                    // SelectedProvince = province;
+                    // UIElement.ProvinceHost.UpdateTitle(province.name);
                     
                     // if(!province.nation.IsPlayer)
                     // {
@@ -384,7 +385,7 @@ public class Mapshower : MonoBehaviour
                 // }
                 if(Input.GetMouseButtonDown(1))
                 {
-                    AddFileOfPower(new Vector2(x,y),mainTex.GetPixel(x,y));
+                    //AddFileOfPower(new Vector2(x,y),mainTex.GetPixel(x,y));
                 }
                 // 
             }
@@ -392,17 +393,49 @@ public class Mapshower : MonoBehaviour
         }
 
     }
+    public Material GrabMaterial()
+    {
+        return GetComponent<Renderer>().material;
+    }
+    public void SelectProvince(Province province)
+    {
+        SelectedNation = province.nation;
+        UIElement.NationHost.UpdateTitle(province.nation.name);
+
+        SelectedProvince = province;
+        UIElement.ProvinceHost.UpdateTitle(province.name);
+    }
+    public void SelectProvince(Vector3 spot)
+    {
+        var ray = Camera.main.ScreenPointToRay(spot);
+        RaycastHit hitInfo;
+        if (Physics.Raycast(ray, out hitInfo))
+        {
+            var p = hitInfo.point;
+            int x = (int)Mathf.Floor(p.x) + width / 2;
+            int y = (int)Mathf.Floor(p.y) + height / 2;
+
+            var mainTex = GrabMaterial().GetTexture("_MainTex") as Texture2D;
+            Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
+            SelectProvince(province);
+        }
+    }
     public void PrepBattle()
     {
-        if(SelectedProvince == null)
+        SelectProvince(FieldArmyHolder.PlayerFieldArmy.LocalProvince);
+        if (SelectedProvince == null)
         {
             return;
         }
-        if(SelectedProvince.nation.IsPlayer)
+        if (SelectedProvince.nation.IsPlayer)
         {
             return;
         }
         Province province = SelectedProvince;
+        if (province == null)
+        {
+            return;
+        }
         SessionManager.Instance.ChangeEnemyFaction(province.nation.name);
         SessionManager.Instance.ClientChangePlayerFaction(province.nation.name);
         SessionManager.Instance.savedProvince = province;

@@ -8,6 +8,7 @@ public class CritterHolder : MonoBehaviour
 {
     public Vector3Int spot;
     public string name;
+    public string typename;
     public UnitTypes unittype;
     public List<string> nametype;
     public Resource cost;

@@ -30,5 +30,5 @@ MonoBehaviour:
   bodyparts:
   - {fileID: 21300000, guid: 8fc34586aad3393449b60f6bf1b00eda, type: 3}
   - {fileID: 21300000, guid: f497242511d6c5344bfcec11b24e4ca2, type: 3}
-  - {fileID: 0}
+  - {fileID: 21300000, guid: 2a17cfdacd044a541970e4e76ba4245d, type: 3}
   Mercenary: 1

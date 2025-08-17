@@ -45,6 +45,8 @@ public class BattleManager1 : BattleManager
         brainy = new Brain();
         brainy.resources = 200 + (SessionManager.Instance.CampaignLevel * 150);
         brainy.Startie();
+
+        TerrainTime();
     }
     public void SpawnArmy()
     {
@@ -113,6 +115,8 @@ public class BattleManager1 : BattleManager
     public void TerrainTime()
     {
         bool hasriver = false;
+        int b = Random.Range(3, 10);
+        b = b * 2;
         foreach (Vector3Int position in ownermap.cellBounds.allPositionsWithin)
         {
             if (ownermap.GetTile(position) == null)
@@ -121,23 +125,38 @@ public class BattleManager1 : BattleManager
             }
             if (ownermap.GetTile(position).name == "Grassland")
             {
-                int a = Random.Range(0, 15);
-                if (a == 0)
+                int a = Random.Range(0, b);
+                //brush
+                if (a == 0 || a == 1)
                 {
-                    foreach (var RPC in TestRelay.Instance.PlayerObjects)
-                    {
-                        RPC.GetComponent<RpcTest>().Spawn(position, "Foliage_Brush");
-                    }
+                    GameObject spawner = Resources.Load<GameObject>("Prefabs/Units/Normies/Foliage_Tree 1");
+                    GameObject trader = Instantiate(spawner, ownermap.transform);
+                    trader.transform.position = new Vector3(ownermap.CellToWorld(position).x + 0.0f, ownermap.CellToWorld(position).y + 0.25f, 0);
                 }
-                if (a == 1)
+                //tree
+                if (a == 2)
                 {
-                    foreach (var RPC in TestRelay.Instance.PlayerObjects)
-                    {
-                        RPC.GetComponent<RpcTest>().Spawn(position, "Foliage_Tree");
-
-                    }
-
+                    GameObject spawner = Resources.Load<GameObject>("Prefabs/Units/Normies/Foliage_Tree");
+                    GameObject trader = Instantiate(spawner, ownermap.transform);
+                    trader.transform.position = new Vector3(ownermap.CellToWorld(position).x + 0.0f, ownermap.CellToWorld(position).y + 0.25f, 0);
                 }
+
+                // int a = Random.Range(0, 15);
+                // if (a == 0)
+                // {
+                //     foreach (var RPC in TestRelay.Instance.PlayerObjects)
+                //     {
+                //         RPC.GetComponent<RpcTest>().Spawn(position, "Foliage_Brush");
+                //     }
+                // }
+                // if (a == 1)
+                // {
+                //     foreach (var RPC in TestRelay.Instance.PlayerObjects)
+                //     {
+                //         RPC.GetComponent<RpcTest>().Spawn(position, "Foliage_Tree");
+
+                //     }
+                // }
 
             }
 
@@ -314,30 +333,29 @@ public class BattleManager1 : BattleManager
                     {
                         if(RpcTest.Serverchecker.ServerCheck() && ownermap.GetTile(target).name == "Grassland 2")
                         {
-                            if(SelectedCritter.GetComponent<CritterHolder>().cost.amount <= Reserves)
+                            if(PayForUnit(SelectedCritter))
                             {
                                 foreach (var RPC in TestRelay.Instance.PlayerObjects)
                                 {
                                     //RPC.GetComponent<RpcTest>().SendFaction();
                                     RPC.GetComponent<RpcTest>().Spawn(target, SelectedCritter);
                                 }
-                                Reserves -= SelectedCritter.GetComponent<CritterHolder>().cost.amount;
                                 texty.text = Reserves.ToString();
                             }
                         }
-                        if(!RpcTest.Serverchecker.ServerCheck() && ownermap.GetTile(target).name == "Grassland 1")
-                        {
-                            if(SelectedCritter.GetComponent<CritterHolder>().cost.amount <= Reserves)
-                            {
-                                foreach (var RPC in TestRelay.Instance.PlayerObjects)
-                                {
-                                    //RPC.GetComponent<RpcTest>().SendFaction();
-                                    RPC.GetComponent<RpcTest>().Spawn(target, SelectedCritter);
-                                }
-                                Reserves -= SelectedCritter.GetComponent<CritterHolder>().cost.amount;
-                                texty.text = Reserves.ToString();
-                            }
-                        }
+                        // if(!RpcTest.Serverchecker.ServerCheck() && ownermap.GetTile(target).name == "Grassland 1")
+                        // {
+                        //     if(SelectedCritter.GetComponent<CritterHolder>().cost.amount <= Reserves)
+                        //     {
+                        //         foreach (var RPC in TestRelay.Instance.PlayerObjects)
+                        //         {
+                        //             //RPC.GetComponent<RpcTest>().SendFaction();
+                        //             RPC.GetComponent<RpcTest>().Spawn(target, SelectedCritter);
+                        //         }
+                        //         Reserves -= SelectedCritter.GetComponent<CritterHolder>().cost.amount;
+                        //         texty.text = Reserves.ToString();
+                        //     }
+                        // }
                         
                     }
                 }
@@ -377,6 +395,15 @@ public class BattleManager1 : BattleManager
                     SessionManager.Instance.HostFaction.FarmLevel++;
                     FactionUpgrade.Instance.gameObject.SetActive(true);
                 }
+
+                foreach (var item in enemylist)
+                {
+                    if(item.GetComponent<CritterHolder>().IsthisAI && item.active)
+                    {
+                        FieldArmyHolder.PlayerFieldArmy.AddTroop(name: item.GetComponent<CritterHolder>().typename);
+                    }
+                }
+
                 SessionManager.Instance.HostArmy.Clear();
                 SessionManager.Instance.ClientArmy.Clear();
 
@@ -451,29 +478,52 @@ public class BattleManager1 : BattleManager
         // }
 
     }
+    public bool PayForUnit(GameObject SelectCritter)
+    {
+        //Debug.LogError(SelectCritter.GetComponent<CritterHolder>().name);
+        if (FieldArmyHolder.PlayerFieldArmy.fieldArmy.USDReserves.Find(x => x.name == SelectCritter.GetComponent<CritterHolder>().name) != null)
+        {
+            if (FieldArmyHolder.PlayerFieldArmy.fieldArmy.USDReserves.Find(x => x.name == SelectCritter.GetComponent<CritterHolder>().name).amount > 0)
+            {
+                if (SelectCritter.GetComponent<CritterHolder>().cost.amount <= Reserves)
+                {
+                    Reserves -= SelectCritter.GetComponent<CritterHolder>().cost.amount;
+                    FieldArmyHolder.PlayerFieldArmy.AddTroop(name: SelectCritter.GetComponent<CritterHolder>().name, amount: -1);
+                    MenuArmyLoader.Instance.UpdateSprites();
+                    return true;
+                }
+            }
+        }
+        if ((SelectCritter.GetComponent<CritterHolder>().cost.amount*2) <= Reserves)
+        {
+            Reserves -= (SelectCritter.GetComponent<CritterHolder>().cost.amount*2);
+            return true;
+        }
+        return false;
+    }
     public void StartGame()
     {
         foreach (var item in enemylist)
         {
             item.GetComponent<CritterHolder>().AIScript.FindTarget(item.GetComponent<CritterHolder>());
         }
-        
+
         RpcTest.Serverchecker.StartBattle();
-        
+
         MousePet.SetActive(false);
-        if(!FightIsOn)
+        if (!FightIsOn)
         {
             foreach (var item in enemylist)
             {
-                if(item == null)
+                if (item == null)
                 {
                     continue;
                 }
-                if(item.GetComponent<CritterMovement>())
+                if (item.GetComponent<CritterMovement>())
                 {
                     item.GetComponent<CritterMovement>().online = true;
                 }
-                if(item.GetComponent<CritterHolder>())
+                if (item.GetComponent<CritterHolder>())
                 {
                     item.GetComponent<CritterHolder>().online = true;
                 }
@@ -596,12 +646,13 @@ public class BattleManager1 : BattleManager
                             }
                             //trader.GetComponent<TestCritter>().faction = Playerfaction;
                         }
-
+                        string unitsavedataname = "";
                         try
                         {
                             UnitSaveData unitsavedata = trader.GetComponent<TestCritter>().faction.UnitDataList.Find(x => x.name == name);
                             unitsavedata.NewTestCritter(trader.GetComponent<TestCritter>());
                             unitsavedata.NewCritterHolder(trader.GetComponent<CritterHolder>());
+                            unitsavedataname = unitsavedata.name;
                         }
                         catch
                         {
@@ -609,6 +660,7 @@ public class BattleManager1 : BattleManager
                         }
 
                         trader.GetComponent<CritterHolder>().name = futurename;
+                        trader.GetComponent<CritterHolder>().typename = unitsavedataname;
                     
 
                         trader.name = futurename;

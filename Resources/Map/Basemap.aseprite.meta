@@ -8,7 +8,6 @@ ScriptedImporter:
   assetBundleName: 
   assetBundleVariant: 
   script: {fileID: 11500000, guid: 62a9f0aa5b59740cfbadc7e5f9823bb0, type: 3}
-  importerVersion: 1
   textureImporterSettings:
     alphaSource: 1
     mipMapMode: 0
@@ -22,13 +21,11 @@ ScriptedImporter:
     convertToNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
-    flipGreenChannel: 0
-    swizzle: 50462976
     isReadable: 0
     streamingMipmaps: 0
     streamingMipmapsPriority: 0
     vTOnly: 0
-    ignoreMipmapLimit: 0
+    ignoreMasterTextureLimit: 0
     nPOTScale: 1
     sRGBTexture: 1
     spriteMode: 2
@@ -133,7 +130,7 @@ ScriptedImporter:
       y: 4
       width: 711
       height: 439
-    spriteID: 08a2638883c586044a34ae0cddb247d2
+    spriteID: 06a4f0cc19e31a34d914e4a2b71dbf67
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -145,7 +142,7 @@ ScriptedImporter:
   spriteSheetImportData: []
   asepriteLayers:
   - layerIndex: 0
-    guid: 1276058281
+    guid: -211003371
     name: Basemap
     layerFlags: 0
     layerType: 0
@@ -153,13 +150,12 @@ ScriptedImporter:
     cells:
     - name: Basemap
       frameIndex: 0
-      additiveSortOrder: 0
       cellRect:
         x: 6
         y: 6
         width: 711
         height: 439
-      spriteId: 08a2638883c586044a34ae0cddb247d2
+      spriteId: 06a4f0cc19e31a34d914e4a2b71dbf67
     linkedCells: []
     parentIndex: -1
   platformSettings: []
@@ -167,4 +163,3 @@ ScriptedImporter:
   secondarySpriteTextures: []
   spritePackingTag: 
   canvasSize: {x: 729, y: 455}
-  previousTextureSize: {x: 1024, y: 512}

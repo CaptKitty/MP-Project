@@ -51,6 +51,9 @@ public class SessionManager : MonoBehaviour
     }
     public void ChangeEnemyFaction(string newEnemy)
     {
+        ClientFaction = Owners.Instance.nationlist.Find(x => x.faction.name == newEnemy).faction;
+
+        return;
         ClientFaction =  Resources.Load<Faction>("Prefabs/Factions/" + newEnemy);
         ClientFaction = ClientFaction.Init();
         ClientFaction.Set();

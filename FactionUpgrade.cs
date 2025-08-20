@@ -77,14 +77,6 @@ public class FactionUpgrade : MonoBehaviour
         {
             unitSaveData.Shield = mod.NewShields;
         }
-        // if (mod.NewShield != null)
-        // {
-        //     unitSaveData.bodyparts[1] = mod.NewShield;
-        // }
-        // if (mod.NewArmor != null)
-        // {
-        //     unitSaveData.bodyparts[0] = mod.NewArmor;
-        // }
         unitSaveData.upgradeModules.Remove(mod);
     }
 }

@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1265209c423766a429c3b11813f1e6c7, type: 3}
-  m_Name: Hello Event
+  m_Name: 08_found_magic_coin
   m_EditorClassIdentifier: 
-  Title: Potato 1
-  Message: Potato 2
+  Title: frens
+  Message: tadadadaaaaaa
   trigger: {fileID: 0}
   HasTriggered: 0
   initialOption:
@@ -22,7 +22,8 @@ MonoBehaviour:
     trigger: {fileID: 0}
     EffectList: []
   OptionList:
-  - Message: Potato 3
+  - Message: yahoo
     Tooltip: 
     trigger: {fileID: 0}
-    EffectList: []
+    EffectList:
+    - {fileID: 11400000, guid: 53774f7c7525da340b895ad56aa22420, type: 2}

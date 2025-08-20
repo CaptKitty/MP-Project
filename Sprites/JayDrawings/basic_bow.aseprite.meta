@@ -8,7 +8,6 @@ ScriptedImporter:
   assetBundleName: 
   assetBundleVariant: 
   script: {fileID: 11500000, guid: 62a9f0aa5b59740cfbadc7e5f9823bb0, type: 3}
-  importerVersion: 1
   textureImporterSettings:
     alphaSource: 1
     mipMapMode: 0
@@ -22,13 +21,11 @@ ScriptedImporter:
     convertToNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
-    flipGreenChannel: 0
-    swizzle: 50462976
     isReadable: 0
     streamingMipmaps: 0
     streamingMipmapsPriority: 0
     vTOnly: 0
-    ignoreMipmapLimit: 0
+    ignoreMasterTextureLimit: 0
     nPOTScale: 1
     sRGBTexture: 1
     spriteMode: 2
@@ -122,7 +119,7 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
   animatedSpriteImportData:
-  - name: Frame_0
+  - name: basic_bow_Frame_0
     originalName: 
     pivot: {x: -0.074074, y: -0.7741935}
     alignment: 9
@@ -133,7 +130,7 @@ ScriptedImporter:
       y: 4
       width: 27
       height: 31
-    spriteID: c2eff5bc34f0f3a4698d08f335e2675c
+    spriteID: d2eec1c928f32554eb966eb18ea1aa6a
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -142,7 +139,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 4, y: 4}
-  - name: Frame_1
+  - name: basic_bow_Frame_1
     originalName: 
     pivot: {x: 0.14814812, y: -0.7741935}
     alignment: 9
@@ -153,7 +150,7 @@ ScriptedImporter:
       y: 43
       width: 27
       height: 31
-    spriteID: d3a265dd6b396584fa7845544d5fcbc5
+    spriteID: 32bceb6ed7f39e54b80018e5d55874f5
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -162,7 +159,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 4, y: 43}
-  - name: Frame_2
+  - name: basic_bow_Frame_2
     originalName: 
     pivot: {x: -0.11764695, y: -0.7741935}
     alignment: 9
@@ -173,7 +170,7 @@ ScriptedImporter:
       y: 4
       width: 17
       height: 31
-    spriteID: bf2d3644bafda4c4caf0491a449d4917
+    spriteID: cb51a5d949471a544af94b19eb37c65c
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -185,45 +182,41 @@ ScriptedImporter:
   spriteSheetImportData: []
   asepriteLayers:
   - layerIndex: 0
-    guid: 1287029235
+    guid: -150501929
     name: basic_bow
     layerFlags: 0
     layerType: 0
     blendMode: 0
     cells:
-    - name: Frame_0
+    - name: basic_bow_Frame_0
       frameIndex: 0
-      additiveSortOrder: 0
       cellRect:
         x: 52
         y: 24
         width: 27
         height: 31
-      spriteId: c2eff5bc34f0f3a4698d08f335e2675c
-    - name: Frame_1
+      spriteId: d2eec1c928f32554eb966eb18ea1aa6a
+    - name: basic_bow_Frame_1
       frameIndex: 1
-      additiveSortOrder: 0
       cellRect:
         x: 46
         y: 24
         width: 27
         height: 31
-      spriteId: d3a265dd6b396584fa7845544d5fcbc5
-    - name: Frame_2
+      spriteId: 32bceb6ed7f39e54b80018e5d55874f5
+    - name: basic_bow_Frame_2
       frameIndex: 2
-      additiveSortOrder: 0
       cellRect:
         x: 52
         y: 24
         width: 17
         height: 31
-      spriteId: bf2d3644bafda4c4caf0491a449d4917
+      spriteId: cb51a5d949471a544af94b19eb37c65c
     linkedCells: []
     parentIndex: -1
   platformSettings:
   - name: Default
     overridden: 0
-    ignorePlatformSupport: 0
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -237,4 +230,3 @@ ScriptedImporter:
   secondarySpriteTextures: []
   spritePackingTag: 
   canvasSize: {x: 100, y: 100}
-  previousTextureSize: {x: 64, y: 128}

@@ -8,7 +8,6 @@ ScriptedImporter:
   assetBundleName: 
   assetBundleVariant: 
   script: {fileID: 11500000, guid: 62a9f0aa5b59740cfbadc7e5f9823bb0, type: 3}
-  importerVersion: 1
   textureImporterSettings:
     alphaSource: 1
     mipMapMode: 0
@@ -22,13 +21,11 @@ ScriptedImporter:
     convertToNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
-    flipGreenChannel: 0
-    swizzle: 50462976
     isReadable: 0
     streamingMipmaps: 0
     streamingMipmapsPriority: 0
     vTOnly: 0
-    ignoreMipmapLimit: 0
+    ignoreMasterTextureLimit: 0
     nPOTScale: 1
     sRGBTexture: 1
     spriteMode: 2
@@ -133,7 +130,7 @@ ScriptedImporter:
       y: 4
       width: 67
       height: 57
-    spriteID: 4185f07a8a3ce604aa335496cafcd655
+    spriteID: 78e89f180880aee449ac9db62aa581b0
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -145,7 +142,7 @@ ScriptedImporter:
   spriteSheetImportData: []
   asepriteLayers:
   - layerIndex: 0
-    guid: 779017941
+    guid: 32477265
     name: basic_dude_farmer
     layerFlags: 0
     layerType: 0
@@ -153,13 +150,12 @@ ScriptedImporter:
     cells:
     - name: basic_dude_farmer
       frameIndex: 0
-      additiveSortOrder: 0
       cellRect:
         x: 16
         y: 16
         width: 67
         height: 57
-      spriteId: 4185f07a8a3ce604aa335496cafcd655
+      spriteId: 78e89f180880aee449ac9db62aa581b0
     linkedCells: []
     parentIndex: -1
   platformSettings: []
@@ -167,4 +163,3 @@ ScriptedImporter:
   secondarySpriteTextures: []
   spritePackingTag: 
   canvasSize: {x: 100, y: 100}
-  previousTextureSize: {x: 128, y: 128}

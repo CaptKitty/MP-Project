@@ -8,7 +8,6 @@ ScriptedImporter:
   assetBundleName: 
   assetBundleVariant: 
   script: {fileID: 11500000, guid: 62a9f0aa5b59740cfbadc7e5f9823bb0, type: 3}
-  importerVersion: 1
   textureImporterSettings:
     alphaSource: 1
     mipMapMode: 0
@@ -22,13 +21,11 @@ ScriptedImporter:
     convertToNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
-    flipGreenChannel: 0
-    swizzle: 50462976
     isReadable: 0
     streamingMipmaps: 0
     streamingMipmapsPriority: 0
     vTOnly: 0
-    ignoreMipmapLimit: 0
+    ignoreMasterTextureLimit: 0
     nPOTScale: 1
     sRGBTexture: 1
     spriteMode: 2
@@ -133,7 +130,7 @@ ScriptedImporter:
       y: 4
       width: 60
       height: 60
-    spriteID: 4fffaf92750032d4c9769c9bdbee99c2
+    spriteID: a7597f183fc9d784ca9283a2efde24a0
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -145,7 +142,7 @@ ScriptedImporter:
   spriteSheetImportData: []
   asepriteLayers:
   - layerIndex: 0
-    guid: 1950089564
+    guid: 1091443628
     name: fancy_dude
     layerFlags: 0
     layerType: 0
@@ -153,19 +150,17 @@ ScriptedImporter:
     cells:
     - name: fancy_dude
       frameIndex: 0
-      additiveSortOrder: 0
       cellRect:
         x: 18
         y: 16
         width: 60
         height: 60
-      spriteId: 4fffaf92750032d4c9769c9bdbee99c2
+      spriteId: a7597f183fc9d784ca9283a2efde24a0
     linkedCells: []
     parentIndex: -1
   platformSettings:
   - name: Default
     overridden: 0
-    ignorePlatformSupport: 0
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -179,4 +174,3 @@ ScriptedImporter:
   secondarySpriteTextures: []
   spritePackingTag: 
   canvasSize: {x: 100, y: 100}
-  previousTextureSize: {x: 128, y: 128}

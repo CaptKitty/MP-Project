@@ -8,7 +8,6 @@ ScriptedImporter:
   assetBundleName: 
   assetBundleVariant: 
   script: {fileID: 11500000, guid: 62a9f0aa5b59740cfbadc7e5f9823bb0, type: 3}
-  importerVersion: 1
   textureImporterSettings:
     alphaSource: 1
     mipMapMode: 0
@@ -22,13 +21,11 @@ ScriptedImporter:
     convertToNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
-    flipGreenChannel: 0
-    swizzle: 50462976
     isReadable: 0
     streamingMipmaps: 0
     streamingMipmapsPriority: 0
     vTOnly: 0
-    ignoreMipmapLimit: 0
+    ignoreMasterTextureLimit: 0
     nPOTScale: 1
     sRGBTexture: 1
     spriteMode: 2
@@ -133,7 +130,7 @@ ScriptedImporter:
       y: 4
       width: 44
       height: 54
-    spriteID: 370ee7b68b5c96d4a90cc2fa35ee9f37
+    spriteID: a666ac15cbcd29d46b588dbdc70c88d7
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -145,7 +142,7 @@ ScriptedImporter:
   spriteSheetImportData: []
   asepriteLayers:
   - layerIndex: 0
-    guid: -419373361
+    guid: 1012500227
     name: basic_dude_crusader
     layerFlags: 0
     layerType: 0
@@ -153,13 +150,12 @@ ScriptedImporter:
     cells:
     - name: basic_dude_crusader
       frameIndex: 0
-      additiveSortOrder: 0
       cellRect:
         x: 31
         y: 16
         width: 44
         height: 54
-      spriteId: 370ee7b68b5c96d4a90cc2fa35ee9f37
+      spriteId: a666ac15cbcd29d46b588dbdc70c88d7
     linkedCells: []
     parentIndex: -1
   platformSettings: []
@@ -167,4 +163,3 @@ ScriptedImporter:
   secondarySpriteTextures: []
   spritePackingTag: 
   canvasSize: {x: 100, y: 100}
-  previousTextureSize: {x: 64, y: 64}

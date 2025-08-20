@@ -30,7 +30,8 @@ public class BattleManager1 : BattleManager
     public override void Awake()
     {
         Instance = this;
-        Reserves = SessionManager.Instance.HostFaction.GrabIncome();
+        // Reserves = SessionManager.Instance.HostFaction.GrabIncome();
+        Reserves = FieldArmyHolder.PlayerFieldArmy.fieldArmy.ArmySupply;
         texty.text = Reserves.ToString();
         foreach (Vector3Int position in ownermap.cellBounds.allPositionsWithin)
         {
@@ -115,7 +116,7 @@ public class BattleManager1 : BattleManager
     public void TerrainTime()
     {
         bool hasriver = false;
-        int b = Random.Range(3, 10);
+        int b = Random.Range(50, 100);
         b = b * 2;
         foreach (Vector3Int position in ownermap.cellBounds.allPositionsWithin)
         {
@@ -123,22 +124,31 @@ public class BattleManager1 : BattleManager
             {
                 continue;
             }
-            if (ownermap.GetTile(position).name == "Grassland")
+            if (ownermap.GetTile(position).name == "Grassland" || ownermap.GetTile(position).name == "Grassland 1" || ownermap.GetTile(position).name == "Grassland 2")
             {
                 int a = Random.Range(0, b);
-                //brush
-                if (a == 0 || a == 1)
+                //hill
+                if (a < 1)// || a == 1)
                 {
-                    GameObject spawner = Resources.Load<GameObject>("Prefabs/Units/Normies/Foliage_Tree 1");
+                    GameObject spawner = Resources.Load<GameObject>("Prefabs/Units/TerrainFeatures/Hill");
+                    GameObject trader = Instantiate(spawner, ownermap.transform);
+                    trader.transform.position = new Vector3(ownermap.CellToWorld(position).x + 0.0f, ownermap.CellToWorld(position).y + 0.25f, 0);
+                    continue;
+                }
+                //tree
+                if (a < 3)
+                {
+                    GameObject spawner = Resources.Load<GameObject>("Prefabs/Units/TerrainFeatures/Tree");
                     GameObject trader = Instantiate(spawner, ownermap.transform);
                     trader.transform.position = new Vector3(ownermap.CellToWorld(position).x + 0.0f, ownermap.CellToWorld(position).y + 0.25f, 0);
                 }
-                //tree
-                if (a == 2)
+                //brush
+                if (a < 10)//|| a == 1)
                 {
-                    GameObject spawner = Resources.Load<GameObject>("Prefabs/Units/Normies/Foliage_Tree");
+                    GameObject spawner = Resources.Load<GameObject>("Prefabs/Units/TerrainFeatures/Brush");
                     GameObject trader = Instantiate(spawner, ownermap.transform);
                     trader.transform.position = new Vector3(ownermap.CellToWorld(position).x + 0.0f, ownermap.CellToWorld(position).y + 0.25f, 0);
+                    continue;
                 }
 
                 // int a = Random.Range(0, 15);
@@ -215,7 +225,8 @@ public class BattleManager1 : BattleManager
                         RPC.GetComponent<RpcTest>().SendFaction();
                     }
                     Playerfaction = SessionManager.Instance.HostFaction;
-                    Reserves = SessionManager.Instance.HostFaction.GrabIncome();
+                    // Reserves = SessionManager.Instance.HostFaction.GrabIncome();
+                    Reserves = FieldArmyHolder.PlayerFieldArmy.fieldArmy.ArmySupply;
                     // if(RpcTest.Serverchecker.ServerCheck())
                     // {
                     //     Playerfaction = SessionManager.Instance.HostFaction;
@@ -237,7 +248,8 @@ public class BattleManager1 : BattleManager
                     //     RPC.GetComponent<RpcTest>().SendFaction();
                     // }
                     Playerfaction = SessionManager.Instance.HostFaction;
-                    Reserves = SessionManager.Instance.HostFaction.GrabIncome();
+                    // Reserves = SessionManager.Instance.HostFaction.GrabIncome();
+                    Reserves = FieldArmyHolder.PlayerFieldArmy.fieldArmy.ArmySupply;
                     // if(RpcTest.Serverchecker.ServerCheck())
                     // {
                     //     Playerfaction = SessionManager.Instance.HostFaction;
@@ -494,11 +506,12 @@ public class BattleManager1 : BattleManager
                 }
             }
         }
-        if ((SelectCritter.GetComponent<CritterHolder>().cost.amount*2) <= Reserves)
-        {
-            Reserves -= (SelectCritter.GetComponent<CritterHolder>().cost.amount*2);
-            return true;
-        }
+        // //CanYouPayDoubleForMercs? //No
+        // if ((SelectCritter.GetComponent<CritterHolder>().cost.amount * 2) <= Reserves)
+        // {
+        //     Reserves -= (SelectCritter.GetComponent<CritterHolder>().cost.amount * 2);
+        //     return true;
+        // }
         return false;
     }
     public void StartGame()
@@ -630,7 +643,8 @@ public class BattleManager1 : BattleManager
                             }
                             else
                             {
-                                trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction_client;
+                            trader.GetComponent<TestCritter>().faction = SessionManager.Instance.ClientFaction; //HostFaction_client;
+                                
                             }
 
                         }
@@ -638,7 +652,7 @@ public class BattleManager1 : BattleManager
                         {
                             if (RpcTest.Serverchecker.ServerCheck())
                             {
-                                trader.GetComponent<TestCritter>().faction = SessionManager.Instance.HostFaction_client;
+                                trader.GetComponent<TestCritter>().faction = SessionManager.Instance.ClientFaction; //HostFaction_client;
                             }
                             else
                             {
@@ -647,24 +661,36 @@ public class BattleManager1 : BattleManager
                             //trader.GetComponent<TestCritter>().faction = Playerfaction;
                         }
                         string unitsavedataname = "";
+                        UnitSaveData unitsavedata = null;
                         try
                         {
-                            UnitSaveData unitsavedata = trader.GetComponent<TestCritter>().faction.UnitDataList.Find(x => x.name == name);
-                            unitsavedata.NewTestCritter(trader.GetComponent<TestCritter>());
-                            unitsavedata.NewCritterHolder(trader.GetComponent<CritterHolder>());
-                            unitsavedataname = unitsavedata.name;
+                            unitsavedata = FieldArmyHolder.PlayerFieldArmy.fieldArmy.USDReserves.Find(x => x.name == name).USD;
                         }
                         catch
                         {
-                            Debug.LogError("Did not find " + name + " Unit Save Data");
+                            try
+                            {
+                                unitsavedata = trader.GetComponent<TestCritter>().faction.UnitDataList.Find(x => x.name == name);
+
+                            }
+                            catch
+                            {
+                                Debug.LogError("Did not find " + name + " Unit Save Data");
+                            }
                         }
+
+                        unitsavedata.NewTestCritter(trader.GetComponent<TestCritter>());
+                        unitsavedata.NewCritterHolder(trader.GetComponent<CritterHolder>());
+                        unitsavedataname = unitsavedata.name;
 
                         trader.GetComponent<CritterHolder>().name = futurename;
                         trader.GetComponent<CritterHolder>().typename = unitsavedataname;
+
+                        
                     
 
                         trader.name = futurename;
-
+            
                         Destroy(dicty[target]);
                         dicty[target] = trader;
                     }

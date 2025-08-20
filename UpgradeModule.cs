@@ -10,6 +10,8 @@ public class UpgradeModule : ScriptableObject
     public Modifier modifier;
     public Weapon NewRangedWeapon;
     public Weapon NewMeleeWeapon;
+    public Weapon NewArmors;
+    public Weapon NewShields;
     public Sprite NewArmor;
     public Sprite NewShield;
     public UpgradeModule GrabUpgradeModule()
@@ -19,6 +21,9 @@ public class UpgradeModule : ScriptableObject
         potato.modifier = modifier;
         potato.NewRangedWeapon = NewRangedWeapon;
         potato.NewMeleeWeapon = NewMeleeWeapon;
+        potato.NewArmors = NewArmors;
+        potato.NewShields = NewShields;
+        
         potato.NewArmor = NewArmor;
         potato.NewShield = NewShield;
         return potato;

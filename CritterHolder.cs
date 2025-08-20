@@ -30,6 +30,8 @@ public class CritterHolder : MonoBehaviour
     public List<string> flaglist;
     public Weapon RangedWeapon;
     public Weapon MeleeWeapon;
+    public Weapon Armor;
+    public Weapon Shield;
 
     public base_AI_Script AIScript;
     public List<base_AI_Script> scriptlist = new List<base_AI_Script>();
@@ -245,7 +247,7 @@ public class CritterHolder : MonoBehaviour
 
     public void FixWeapons()
     {
-        //Debug.LogError("Fixed Weapons");
+        
         if (RangedWeapon != null)
         {
             RangedWeapon = RangedWeapon.GrabCopy();
@@ -260,12 +262,36 @@ public class CritterHolder : MonoBehaviour
             MeleeWeapon = MeleeWeapon.GrabCopy();
             EquipWeapon(MeleeWeapon);
         }
+        try
+        {
+            transform.GetChild(2).GetComponent<SpriteRenderer>().sprite = RangedWeapon.sprite;
+        }
+        catch
+        {
+            transform.GetChild(2).GetComponent<SpriteRenderer>().sprite = MeleeWeapon.sprite;
+        }
+        if (Armor != null)
+        {
+            if (Armor.sprite != null)
+            {
+                gameObject.GetComponent<TestCritter>().listy[0].GetComponent<SpriteRenderer>().sprite = Armor.sprite;
+            }
+        }
+        if (Shield != null)
+        {
+            if (Shield.sprite != null)
+            {
+                gameObject.GetComponent<TestCritter>().listy[1].GetComponent<SpriteRenderer>().sprite = Shield.sprite;
+            }
+        }
         gameObject.GetComponent<TestCritter>().SetWeapon(RangedWeapon.animationtype);
+        
     }
 
     public void Awake()
     {
 
+        modifierlist = new List<Modifier>();
         List<Modifier> deletelist = new List<Modifier>();
         foreach (var item in modifierlist)
         {
@@ -284,40 +310,27 @@ public class CritterHolder : MonoBehaviour
             Wakey();
         }
 
-        
-
-
         unitbrain = new UnitBrain();
         unitbrain.critter = this;
         unitbrain.Startie();
 
-        // if(scriptlist.Count == 0)
-        // {
-        //     scriptlist.Add(AIScript.Init());
-        //     GrabNewScript();         
-        // }
-        //AIScript = Instantiate(AIScript);
         BattleManager1.OnVictory += Cheer;
-        
-        //GrabAIScripts();
+
         Cheer();
     }
     public void EquipWeapon(Weapon newRangedWeapon)
     {
-        //Debug.LogError("equipping " + newRangedWeapon.name);
+        
         combatdistance = newRangedWeapon.combatdistance;
         attack = newRangedWeapon.attack;
         attacktime = newRangedWeapon.attacktime;
-        if (newRangedWeapon.sprite != null)
-        {
-            //Debug.LogError("equipping " + newRangedWeapon.sprite.name);
-            gameObject.GetComponent<TestCritter>().listy[2].GetComponent<SpriteRenderer>().sprite = newRangedWeapon.sprite;
-        }
         RangedWeapon = newRangedWeapon;
+        gameObject.GetComponent<TestCritter>().listy[2].GetComponent<SpriteRenderer>().sprite = newRangedWeapon.sprite;
         if (MeleeWeapon == newRangedWeapon)
         {
             MeleeWeapon = null;
         }
+        
     }
 
     public void GrabNewScript()
@@ -329,10 +342,10 @@ public class CritterHolder : MonoBehaviour
         AbilityList.Clear();
         foreach (var item in PrivateAbilityList)
         {
-            Debug.Log(item.name);
             AbilityList.Add(item.Init());
         }
         FixWeapons();
+        
     }
     public void FixedUpdate()
     {
@@ -346,6 +359,7 @@ public class CritterHolder : MonoBehaviour
         }
         if (online)
         {
+            
             if (CanIAct())
             {
                 unitbrain.Think();
@@ -375,13 +389,14 @@ public class CritterHolder : MonoBehaviour
     }
     public void Start()
     {
+
         FixWeapons();
         population = GrabHealth();
-        if (SpriteList.Count > 0)
-        {
-            var a = SpriteList[Random.Range(0, SpriteList.Count)];
-            transform.GetComponent<SpriteRenderer>().sprite = a;
-        }
+        // if (SpriteList.Count > 0)
+        // {
+        //     var a = SpriteList[Random.Range(0, SpriteList.Count)];
+        //     transform.GetComponent<SpriteRenderer>().sprite = a;
+        // }
         if (BattleManager1.Instance)
         {
             BattleManager1.Instance.enemylist.Add(this.gameObject);
@@ -393,7 +408,7 @@ public class CritterHolder : MonoBehaviour
             GeneralManager.Instance.highlight = false;
         }
         gameObject.name = name;
-
+        FixWeapons();
     }
     public void Turn()
     {
@@ -490,10 +505,36 @@ public class CritterHolder : MonoBehaviour
     {
         GetComponent<Animator>().SetTrigger("Cheer");
     }
-    public void LoseHealth(int a)
+    public double GrabArmor(string attacktype = "attack")
     {
+        int a = 0;//zero armor;
+        if (attacktype == "attack")
+        {
+            a += Shield.armor.armor;
+            a += Armor.armor.armor;
+        }
+        if (attacktype == "ranged")
+        {
+            a += Shield.armor.rangedarmor;
+            a += Armor.armor.rangedarmor;
+        }
+        if (attacktype == "pierce")
+        {
+        }
+        if (a > 80)
+        {
+            a = 80;
+        }
+        //Debug.LogError(attacktype + " " + a);
+        return a;
+    }
+    public void LoseHealth(int incoming, string attacktype = "attack")
+    {
+        double armorreduction = 1 - (GrabArmor(attacktype)/100);
+        int damage = (int)(armorreduction * incoming);
+
         GetComponent<Animator>().SetTrigger("Hurt");
-        population -= a;
+        population -= damage;
         if (population < 1)
         {
             IsThisAlive = false;

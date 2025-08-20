@@ -20,7 +20,7 @@ MonoBehaviour:
   UnitDataList: []
   BarracksLevel: 2
   MercLevel: 0
-  FarmLevel: 5
+  FarmLevel: 10
   BarracksUnits:
   - {fileID: 1002579342033724372, guid: a4a249699bf4d8e4195b4f24a290938c, type: 3}
   - {fileID: 5815002448955544719, guid: ee2a0342b3d10a849bea2717893c1cb1, type: 3}
@@ -36,4 +36,6 @@ MonoBehaviour:
   - {fileID: 1002579342033724372, guid: d71592f662aacdd478c8937d36798e52, type: 3}
   - {fileID: 1002579342033724372, guid: dce30088f80515b49bc5661b6f2e9c00, type: 3}
   MercenaryDataList: []
+  Flaglist:
+  - EqualOpportunityPillagers
   Income: 600

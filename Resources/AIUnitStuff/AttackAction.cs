@@ -49,7 +49,7 @@ public class AttackAction : Unit_GAction
                 }
             }
             critter.NextAvailableAttack = Time.time + critter.GrabAttackTime();
-            unitBrainy.TargetEnemy.GetComponent<CritterHolder>().LoseHealth(critter.GrabAttack());
+            unitBrainy.TargetEnemy.GetComponent<CritterHolder>().LoseHealth(critter.GrabAttack(), critter.RangedWeapon.attacktype);
             RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");
         }
         return false;

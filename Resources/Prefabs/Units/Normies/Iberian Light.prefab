@@ -66,7 +66,8 @@ MonoBehaviour:
   DoesThisHaveJavelin: 0
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
-  Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
+  DoesThisHaveBasicBow: 0
+  Upgrade: {fileID: 0}
   upgradeModule: {fileID: 0}
   __upgradeModules: []
   upgradeModules:
@@ -87,6 +88,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spot: {x: 0, y: 0, z: 0}
   name: 
+  typename: 
   unittype: 1
   nametype: []
   cost:
@@ -112,6 +114,8 @@ MonoBehaviour:
   flaglist: []
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 11400000, guid: 435f3f6602879a84884483e9287f600d, type: 2}
+  Armor: {fileID: 0}
+  Shield: {fileID: 0}
   AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
   scriptlist:
   - {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}

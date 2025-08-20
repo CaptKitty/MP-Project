@@ -21,6 +21,7 @@ public class TestCritter : MonoBehaviour
     public bool DoesThisHaveJavelin = false;
     public bool DoesThisHaveSlinger = false;
     public bool DoesThisHaveAxe = false;
+    public bool DoesThisHaveBasicBow = false;
 
     public Modifier Upgrade;
     public UpgradeModule upgradeModule;
@@ -40,7 +41,7 @@ public class TestCritter : MonoBehaviour
     {
 
         // faction = BattleManager1.Instance.Playerfaction;
-        material = Instantiate(this.GetComponent<SpriteRenderer>().material);
+        material = Instantiate(material); //this.GetComponent<SpriteRenderer>().material);
         material.SetColor("_FactionColor", faction.color);
         material.SetColor("_FactionColor2", faction.color2);
         material.SetColor("_FactionColor3", faction.color3);
@@ -55,6 +56,8 @@ public class TestCritter : MonoBehaviour
         GetComponent<Animator>().SetBool("Javelin", DoesThisHaveJavelin);
         GetComponent<Animator>().SetBool("Slinger", DoesThisHaveSlinger);
         GetComponent<Animator>().SetBool("Axe", DoesThisHaveAxe);
+        GetComponent<Animator>().SetBool("BasicBow", DoesThisHaveBasicBow);
+        
         foreach (var item in listy)
         {
             item.GetComponent<SpriteRenderer>().material = material;
@@ -67,6 +70,7 @@ public class TestCritter : MonoBehaviour
         DoesThisHaveJavelin = false;
         DoesThisHaveSlinger = false;
         DoesThisHaveAxe = false;
+        DoesThisHaveBasicBow = false;
 
         if (weapontype.Contains("Sword"))
         {
@@ -88,11 +92,21 @@ public class TestCritter : MonoBehaviour
         {
             DoesThisHaveAxe = true;
         }
+        if (weapontype.Contains("BasicBow"))
+        {
+            DoesThisHaveBasicBow = true;
+        }
         GetComponent<Animator>().SetBool("Sword", DoesThisHaveSword);
         GetComponent<Animator>().SetBool("Spear", DoesThisHaveSpear);
         GetComponent<Animator>().SetBool("Javelin", DoesThisHaveJavelin);
         GetComponent<Animator>().SetBool("Slinger", DoesThisHaveSlinger);
         GetComponent<Animator>().SetBool("Axe", DoesThisHaveAxe);
+        GetComponent<Animator>().SetBool("BasicBow", DoesThisHaveBasicBow);
+
+        // foreach (var item in listy)
+        // {
+        //     item.GetComponent<SpriteRenderer>().material = material;
+        // }
     }
     public void InitialStuff()
     {
@@ -129,6 +143,7 @@ public class TestCritter : MonoBehaviour
     public void OnMouseEnter()
     {
         UnitStatDisplayMenu.Instance.LoadNewUnit(gameObject.GetComponent<CritterHolder>());
+        // gameObject.GetComponent<CritterHolder>().FixWeapons();
         // if(UpgradeButtons != null && Upgrade != null)
         // {
         //     var a = Instantiate(UpgradeButtons, position:new Vector3(transform.position.x, transform.position.y + 0.5f, 0),transform.rotation, BattleManager1.Instance.gameObject.transform);

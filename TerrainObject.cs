@@ -6,13 +6,27 @@ public class TerrainObject : MonoBehaviour
 {
     public Modifier modifier;
     public string immunityflag;
-    public string EffectFlag = "";
+    public bool reverseimmunity = false;
     void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.GetComponent<CritterHolder>() != null)
         {
-            //if (EffectFlag == "")
-            //{
+            if (reverseimmunity)
+            {
+                if (IsEffect(collision))
+                {
+                    collision.gameObject.GetComponent<CritterHolder>().modifierlist.Add(modifier);
+                    foreach (var items in collision.gameObject.GetComponent<CritterHolder>().modifierlist)
+                    {
+                        items.potato = collision.gameObject;
+                        items.DestroyAura();
+                        items.LoadAura();
+                        collision.gameObject.GetComponent<CritterHolder>().onDeath += items.DestroyAura;
+                    }
+                }
+            }
+            else
+            {
                 foreach (var item in collision.gameObject.GetComponent<CritterHolder>().flaglist)
                 {
                     if (item == immunityflag)
@@ -29,35 +43,19 @@ public class TerrainObject : MonoBehaviour
                     items.LoadAura();
                     collision.gameObject.GetComponent<CritterHolder>().onDeath += items.DestroyAura;
                 }
-            // }
-            // else
-            // {
-                // foreach (var item in collision.gameObject.GetComponent<CritterHolder>().flaglist)
-                // {
-                //     if (IsEffect(item, collision))
-                //     {
-                //         collision.gameObject.GetComponent<CritterHolder>().modifierlist.Add(modifier);
-                //         foreach (var items in collision.gameObject.GetComponent<CritterHolder>().modifierlist)
-                //         {
-                //             items.potato = collision.gameObject;
-                //             items.DestroyAura();
-                //             items.LoadAura();
-                //             collision.gameObject.GetComponent<CritterHolder>().onDeath += items.DestroyAura;
-                //         }
-                //         return;
-                //     }
-                // }
-            //}
-            
+            }
         }
     }
-    public bool IsEffect(string item, Collider2D collision)
+    public bool IsEffect(Collider2D collision)
     {
-        if (EffectFlag == item)
+        foreach (var item in collision.gameObject.GetComponent<CritterHolder>().flaglist)
         {
-            return true;
+            if (immunityflag == item)
+            {
+                return true;
+            }
         }
-        if (EffectFlag == "Ranged")
+        if (immunityflag == "Ranged")
         {
             if (collision.gameObject.GetComponent<CritterHolder>().RangedWeapon.ammo > 0)
             {

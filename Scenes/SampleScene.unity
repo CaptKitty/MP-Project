@@ -1471,7 +1471,7 @@ MonoBehaviour:
       IsPlayer: 0
       manpower: 0
       treasury: 0
-      unlockedweapons: []
+      unlockedWeaponss: []
       unlockedarmor: []
       regimentdesigns: []
       armies: []
@@ -1479,6 +1479,7 @@ MonoBehaviour:
     state: 
     position: {x: 0, y: 0}
     population: 1000
+    supply: 1000
     cultures: []
     taxincome: 0
     taxpercentage: 0

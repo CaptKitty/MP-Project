@@ -159,6 +159,22 @@ public class Mapshower : MonoBehaviour
             RePaint();
             //Application.Quit();
         }
+        if (Input.GetKey("1"))
+        {
+            PopPaint();
+        }
+        if (Input.GetKey("2"))
+        {
+            RePaint();
+        }
+        if (Input.GetKey("3"))
+        {
+            CulturePaint();
+        }
+        if (Input.GetKey("4"))
+        {
+            SupplyPaint();
+        }
         if (Input.GetKey("q"))
         {
             Camera.main.orthographicSize += 0.1f;
@@ -236,7 +252,7 @@ public class Mapshower : MonoBehaviour
             }
         }
     }
-    public void CulturePaint()
+    public void SupplyPaint()
     {
         foreach(Province province in Owners.Instance.provincelist)
         {
@@ -248,6 +264,27 @@ public class Mapshower : MonoBehaviour
             int yp = remapColor[1];
 
             if(!selectAny || !prevColor.Equals(remapColor)){
+                selectAny = true;
+                prevColor = remapColor;
+                paletteTex.SetPixel(xp, yp, PopToColor(province.supply));
+                paletteTex.Apply(false);
+                ownerTex.Apply(false);
+            }
+        }
+    }
+    public void CulturePaint()
+    {
+        foreach (Province province in Owners.Instance.provincelist)
+        {
+            int x = (int)province.position.x;
+            int y = (int)province.position.y;
+
+            var remapColor = remapArr[x + y * width];
+            int xp = remapColor[0];
+            int yp = remapColor[1];
+
+            if (!selectAny || !prevColor.Equals(remapColor))
+            {
                 selectAny = true;
                 prevColor = remapColor;
                 paletteTex.SetPixel(xp, yp, province.cultures[0].ownerIdentity);
@@ -347,17 +384,20 @@ public class Mapshower : MonoBehaviour
 
                 ownerTex.Apply(true);
                 paletteTex.Apply(true);
-                
-                if(Input.GetMouseButtonDown(0))
+
+                if (Input.GetMouseButtonDown(0))
                 {
                     //Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
                     SelectProvince(province);
+
+                    EventManager.eventManager.TriggerEvent("Hello Event");
+                    
                     // SelectedNation = province.nation;
                     // UIElement.NationHost.UpdateTitle(province.nation.name);
 
                     // SelectedProvince = province;
                     // UIElement.ProvinceHost.UpdateTitle(province.name);
-                    
+
                     // if(!province.nation.IsPlayer)
                     // {
                     //     PrepBattle(province);
@@ -403,7 +443,7 @@ public class Mapshower : MonoBehaviour
         UIElement.NationHost.UpdateTitle(province.nation.name);
 
         SelectedProvince = province;
-        UIElement.ProvinceHost.UpdateTitle(province.name);
+        UIElement.ProvinceHost.UpdateTitle(province.name, province.supply.ToString());
     }
     public void SelectProvince(Vector3 spot)
     {
@@ -417,6 +457,11 @@ public class Mapshower : MonoBehaviour
 
             var mainTex = GrabMaterial().GetTexture("_MainTex") as Texture2D;
             Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
+            if (province == null)
+            {
+                SelectedProvince = null;
+                return;
+            }
             SelectProvince(province);
         }
     }
@@ -510,17 +555,21 @@ public class Mapshower : MonoBehaviour
         {
             return new Color32(0,255,33,1);
         }
-        if(population >= 2000)
+        if (population >= 2000)
         {
-            return new Color32(76,255,0,1);
+            return new Color32(76, 255, 0, 1);
         }
-        if(population >= 1500)
+        if (population >= 1500)
         {
-            return new Color32(182,255,0,1);
+            return new Color32(182, 255, 0, 1);
         }
-        if(population >= 1000)
+        double a = (double)population / 2000f;
+        byte b = (byte)(255 * a);
+        return new Color32(255, b, 0, 1);
+
+        if (population >= 1000)
         {
-            return new Color32(255,216,0,1);
+            return new Color32(255, 216, 0, 1);
         }
         if(population >= 750)
         {

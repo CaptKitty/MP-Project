@@ -40,7 +40,7 @@ public class RangedAttack : Unit_GAction
         if (critter.NextAvailableAttack < Time.time)
         {
             critter.NextAvailableAttack = Time.time + critter.GrabAttackTime();
-            unitBrainy.TargetEnemy.GetComponent<CritterHolder>().LoseHealth(critter.GrabAttack());
+            unitBrainy.TargetEnemy.GetComponent<CritterHolder>().LoseHealth(critter.GrabAttack(), critter.RangedWeapon.attacktype);
             RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");
             RpcTest.Serverchecker.ExecuteAnimation(critter, "Throw");
 

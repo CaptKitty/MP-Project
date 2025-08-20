@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0328358a590af594aabff3322a37048d, type: 3}
+  m_Name: Falxman
+  m_EditorClassIdentifier: 
+  spot: {x: 0, y: 0, z: 0}
+  unitname: Falxman
+  unittype: 1
+  cost: 75
+  health: 200
+  speed: 1
+  flaglist:
+  - Forestry_Immunity
+  RangedWeapon: {fileID: 0}
+  MeleeWeapon: {fileID: 11400000, guid: dc610ed581d212b4ab2f3c7ad7f8d1bb, type: 2}
+  Armor: {fileID: 11400000, guid: c6fe3a90079e386418f1370598f70a5f, type: 2}
+  Shield: {fileID: 11400000, guid: 1bd00b1d3809b2e45a258806a787dcb7, type: 2}
+  modifierlist: []
+  color: {r: 0.53333336, g: 0, b: 0, a: 0}
+  color2: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 0}
+  color3: {r: 1, g: 0.5529412, b: 0.39607844, a: 0}
+  faction: {fileID: 0}
+  upgradeModules:
+  - {fileID: 11400000, guid: c353ac25d070870458f5a356ef34efc9, type: 2}
+  - {fileID: 11400000, guid: 12cb537f16bdaf644a89878abb69b196, type: 2}
+  - {fileID: 11400000, guid: 4aacb987553bb544e8298b0dc319e811, type: 2}
+  - {fileID: 11400000, guid: d5fa7cbe6fea59a4eacf1a2e56dc4dec, type: 2}
+  - {fileID: 11400000, guid: 27c6938e9247e69499c14cbcf386bc81, type: 2}
+  - {fileID: 11400000, guid: 94f71be92b55b3b4babda2edc54375ff, type: 2}
+  bodyparts:
+  - {fileID: 21300000, guid: 029d5a579ce80504f8261df832085610, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 73f9ba4ab2629ef4c87f0a66865677e8, type: 3}
+  Mercenary: 0

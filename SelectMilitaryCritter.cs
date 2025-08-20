@@ -9,7 +9,7 @@ public class SelectMilitaryCritter : MonoBehaviour
     private bool firsttime = true;
     public GameObject heldcritter;
     public CritterHolder NewCritter;
-    public TestCritter NewTestCritter;
+    // public TestCritter NewTestCritter;
     public UnitSaveData unitSaveData;
     public bool CanPlay = false;
     public int minpagans = -1;
@@ -18,12 +18,6 @@ public class SelectMilitaryCritter : MonoBehaviour
         if (firsttime)
         {
             firsttime = false;
-            //heldcritter.GetComponent<CritterHolder>().Wakey();
-            // NewCritter = heldcritter.GetComponent<CritterHolder>();
-            // unitSaveData.NewCritterHolder(NewCritter);
-            // //NewCritter.Wakey();
-            // NewTestCritter = heldcritter.GetComponent<TestCritter>();
-            // unitSaveData.NewTestCritter(NewTestCritter);
             transform.GetComponent<Image>().color = new Color32(255, 255, 255, 255);//new Color32(0,0,0,255);
 
             UpdateSprite();

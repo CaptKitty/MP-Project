@@ -38,6 +38,8 @@ public class Owners : MonoBehaviour
         {
             nationdict.Add(nation.name, nation);
             nation.IsPlayer = false;
+            nation.faction = nation.faction.Init();
+            nation.faction.Set();
             if (SessionManager.Instance.HostFaction.name.Contains(nation.name))
             {
                 nation.IsPlayer = true;
@@ -93,6 +95,10 @@ public class Owners : MonoBehaviour
     }
     public Province CallProvinceByColor(Color32 provincecolor)
     {
+        if (provincecolor.r == 0 && provincecolor.g == 0 & provincecolor.b == 0)
+        {
+            return null;
+        }
         return provincedictcolor[provincecolor];
     }
     public Culture CallCultureByName(string culturename)
@@ -115,6 +121,7 @@ public class Province
     public string state;
     public Vector2 position;
     public int population = 1000;
+    public int supply = 1000;
     public List<Culture> cultures;
     public int taxincome;
     public int taxpercentage;
@@ -226,12 +233,12 @@ public class Weapons
     public int accuracy;
     public int reloadtime;
 }
-[System.Serializable]
-public class Armor
-{
-    public string name;
-    public int health;
-}
+// [System.Serializable]
+// public class Armor
+// {
+//     public string name;
+//     public int health;
+// }
 [System.Serializable]
 public class Unit
 {

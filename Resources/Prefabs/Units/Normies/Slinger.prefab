@@ -67,6 +67,9 @@ MonoBehaviour:
   DoesThisHaveSlinger: 1
   DoesThisHaveAxe: 0
   Upgrade: {fileID: 11400000, guid: 30264ee2eeeaac547959aa1d5920153f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 1
 --- !u!114 &-1170439232849311746
@@ -83,6 +86,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spot: {x: 6, y: 3, z: 0}
   name: Stabby
+  typename: 
   unittype: 3
   nametype: []
   cost:
@@ -108,6 +112,8 @@ MonoBehaviour:
   flaglist: []
   RangedWeapon: {fileID: 11400000, guid: 34576c9836db32b4ca9747b7753854af, type: 2}
   MeleeWeapon: {fileID: 11400000, guid: 376d425d6e9214e47b8ecbfadc0641cb, type: 2}
+  Armor: {fileID: 0}
+  Shield: {fileID: 0}
   AIScript: {fileID: 11400000, guid: f4f720c0890b5ff499068dee51c7a0d6, type: 2}
   scriptlist:
   - {fileID: 11400000, guid: f4f720c0890b5ff499068dee51c7a0d6, type: 2}
@@ -445,13 +451,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1002579343439947282}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0.9754561, w: -0.22019409}
-  m_LocalPosition: {x: 0.047, y: -0.27, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1002579342033724368}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -205.441}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &1002579343439947276
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -493,7 +499,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 25
-  m_Sprite: {fileID: 21300000, guid: 043797a523bafd84783672765d527679, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 5ef0b5e59424e494f9e2b50d95b4d657, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

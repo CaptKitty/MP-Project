@@ -22,9 +22,9 @@ MonoBehaviour:
   bonus_combatdistance: 0
   aiscripts: {fileID: 0}
   health_modifier: 1
-  combatdistance_modifier: 5
+  combatdistance_modifier: 2
   speed_modifier: 1
-  attack_modifier: 5
+  attack_modifier: 1.5
   attacktime_modifier: 1
   duration: 0
   EndDuration: 0

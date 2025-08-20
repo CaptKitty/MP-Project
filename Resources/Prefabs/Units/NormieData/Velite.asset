@@ -17,16 +17,24 @@ MonoBehaviour:
   unittype: 3
   cost: 50
   health: 100
+  speed: 1
   flaglist: []
   RangedWeapon: {fileID: 11400000, guid: b20748d8d39bc7144ab514e36638e93d, type: 2}
   MeleeWeapon: {fileID: 11400000, guid: 376d425d6e9214e47b8ecbfadc0641cb, type: 2}
+  Armor: {fileID: 11400000, guid: c6fe3a90079e386418f1370598f70a5f, type: 2}
+  Shield: {fileID: 11400000, guid: 1bd00b1d3809b2e45a258806a787dcb7, type: 2}
   modifierlist: []
   color: {r: 0.53333336, g: 0, b: 0, a: 0}
   color2: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 0}
   color3: {r: 1, g: 0.5529412, b: 0.39607844, a: 0}
   faction: {fileID: 0}
   upgradeModules:
-  - {fileID: 11400000, guid: 863807df6ad4e3642bc9e2adedef60b9, type: 2}
+  - {fileID: 11400000, guid: c353ac25d070870458f5a356ef34efc9, type: 2}
+  - {fileID: 11400000, guid: 12cb537f16bdaf644a89878abb69b196, type: 2}
+  - {fileID: 11400000, guid: 4aacb987553bb544e8298b0dc319e811, type: 2}
+  - {fileID: 11400000, guid: d5fa7cbe6fea59a4eacf1a2e56dc4dec, type: 2}
+  - {fileID: 11400000, guid: 27c6938e9247e69499c14cbcf386bc81, type: 2}
+  - {fileID: 11400000, guid: 94f71be92b55b3b4babda2edc54375ff, type: 2}
   bodyparts:
   - {fileID: 21300000, guid: b0f6d172f4b245b47b49a0ef856267d1, type: 3}
   - {fileID: 0}

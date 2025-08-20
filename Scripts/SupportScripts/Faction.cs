@@ -20,6 +20,7 @@ public class Faction : ScriptableObject
     public List<UnitSaveData> BarracksDataList = new List<UnitSaveData>();
     public List<GameObject> MercenaryUnits = new List<GameObject>();
     public List<UnitSaveData> MercenaryDataList = new List<UnitSaveData>();
+    public List<string> Flaglist = new List<string>();
 
     public int Income = 500;
 
@@ -27,6 +28,7 @@ public class Faction : ScriptableObject
     {
         var a = Instantiate(this);
         a.MercenaryUnits.Clear();
+        a.name = name;
         foreach (var item in MercenaryUnits)
         {
             a.MercenaryUnits.Add(item);
@@ -52,8 +54,10 @@ public class Faction : ScriptableObject
                 a.MercenaryDataList[i].RangedWeapon = a.MercenaryDataList[i].RangedWeapon.GrabCopy();
             }
             catch { }
-            
-            
+        }
+        foreach (var item in Flaglist)
+        {
+            a.Flaglist.Add(item);
         }
         return a;
     }
@@ -80,6 +84,17 @@ public class Faction : ScriptableObject
         UnitDataList.Add(a);
 
         //MercenaryUnits.Remove(potato);
+    }
+    public bool HasFlag(string flag)
+    {
+        foreach (var item in Flaglist)
+        {
+            if (item == flag)
+            {
+                return true;
+            }
+        }
+        return false;
     }
     public int GrabIncome()
     {

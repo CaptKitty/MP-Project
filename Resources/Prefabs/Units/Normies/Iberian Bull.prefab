@@ -66,7 +66,11 @@ MonoBehaviour:
   DoesThisHaveJavelin: 0
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
+  DoesThisHaveBasicBow: 0
   Upgrade: {fileID: 11400000, guid: 30264ee2eeeaac547959aa1d5920153f, type: 2}
+  upgradeModule: {fileID: 0}
+  __upgradeModules: []
+  upgradeModules: []
   UpgradeButtons: {fileID: 0}
   Mercenary: 1
 --- !u!114 &-1170439232849311746
@@ -83,6 +87,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spot: {x: 6, y: 3, z: 0}
   name: Stabby
+  typename: 
   unittype: 1
   nametype: []
   cost:
@@ -108,6 +113,8 @@ MonoBehaviour:
   flaglist: []
   RangedWeapon: {fileID: 11400000, guid: dd27822988f93bc469b2fe10ae3c23ca, type: 2}
   MeleeWeapon: {fileID: 0}
+  Armor: {fileID: 0}
+  Shield: {fileID: 0}
   AIScript: {fileID: 11400000, guid: 07f423a66fa057f4ab28200c87a9b0f7, type: 2}
   scriptlist:
   - {fileID: 11400000, guid: 07f423a66fa057f4ab28200c87a9b0f7, type: 2}

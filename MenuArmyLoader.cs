@@ -14,12 +14,12 @@ public class MenuArmyLoader : MonoBehaviour
     public void LoadFiles()
     {
         //Debug.LogError(BattleManager1.Instance.Playerfaction.UnitDataList.Count);
-        foreach (UnitSaveData item in BattleManager1.Instance.Playerfaction.UnitDataList)
+        foreach (var item in FieldArmyHolder.PlayerFieldArmy.fieldArmy.USDReserves )//BattleManager1.Instance.Playerfaction.UnitDataList)
         {
             var menu = Instantiate(prefab, this.transform);
-            menu.GetComponent<SelectMilitaryCritter>().unitSaveData = item;
-            item.NewCritterHolder(menu.GetComponent<SelectMilitaryCritter>().heldcritter.GetComponent<CritterHolder>());
-            item.NewCritterHolder(menu.transform.GetChild(0).GetComponent<CritterHolder>());
+            menu.GetComponent<SelectMilitaryCritter>().unitSaveData = item.USD;
+            item.USD.NewCritterHolder(menu.GetComponent<SelectMilitaryCritter>().heldcritter.GetComponent<CritterHolder>());
+            item.USD.NewCritterHolder(menu.transform.GetChild(0).GetComponent<CritterHolder>());
             // menu.transform.GetChild(0).GetComponent<CritterHolder>().RangedWeapon = item.GetComponent<CritterHolder>().RangedWeapon;
             // menu.transform.GetChild(0).GetComponent<CritterHolder>().MeleeWeapon = item.GetComponent<CritterHolder>().MeleeWeapon;
             // menu.transform.GetChild(0).GetComponent<CritterHolder>().cost = item.GetComponent<CritterHolder>().cost;

@@ -12,3 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94503adc920e22d4eaf3e59119d3eda2, type: 3}
   m_Name: BasicFieldArmy
   m_EditorClassIdentifier: 
+  faction: {fileID: 0}
+  USDReserves:
+  - name: Axeman
+    USD: {fileID: 0}
+    amount: 20
+  - name: Tribesman_SpearChucker
+    USD: {fileID: 0}
+    amount: 21
+  ArmySupply: 0

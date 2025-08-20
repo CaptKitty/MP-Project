@@ -19,7 +19,7 @@ MonoBehaviour:
   UnitDataList: []
   BarracksLevel: 2
   MercLevel: 0
-  FarmLevel: 5
+  FarmLevel: 10
   BarracksUnits:
   - {fileID: 1002579342033724372, guid: 5b059ef4b6a7449469828fd73a7c0976, type: 3}
   - {fileID: 1002579342033724372, guid: f7018d30c84785d4ab6c433a0b272cac, type: 3}
@@ -27,7 +27,7 @@ MonoBehaviour:
   - {fileID: 1002579342033724372, guid: a9d37f12ece01bd46843b4aa7c7f959e, type: 3}
   BarracksDataList:
   - {fileID: 11400000, guid: 8d26d17d75f9c5748a8f2e463b59e1ec, type: 2}
-  - {fileID: 11400000, guid: 288334bf104fae5448e61506ac62b986, type: 2}
+  - {fileID: 11400000, guid: 4d99ece718fb98241b6374a359995d2c, type: 2}
   - {fileID: 11400000, guid: 95b5752ae8079124891e8e5af6edf194, type: 2}
   - {fileID: 11400000, guid: fa4a84c0cf334da40bb64d728942e382, type: 2}
   MercenaryUnits:
@@ -37,4 +37,5 @@ MonoBehaviour:
   - {fileID: 1002579342033724372, guid: d71592f662aacdd478c8937d36798e52, type: 3}
   - {fileID: 1002579342033724372, guid: dce30088f80515b49bc5661b6f2e9c00, type: 3}
   MercenaryDataList: []
+  Flaglist: []
   Income: 500

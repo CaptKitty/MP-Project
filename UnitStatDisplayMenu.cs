@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class UnitStatDisplayMenu : MonoBehaviour
 {
     public static UnitStatDisplayMenu Instance;
-    public Text TextUnitName, TextHealthName, TextCost, TextPrimary, TextSecondary, TextPrimaryStats, TextSecondaryStats;
+    public Text TextUnitName, TextHealthName, TextCost, TextPrimary, TextSecondary, TextPrimaryStats, TextSecondaryStats, TextMArmor, TextPArmor;
     public Image Bone1, Bone2, Bone3;
     public TestCritter testCritter;
     public CritterHolder critter;
@@ -47,10 +47,14 @@ public class UnitStatDisplayMenu : MonoBehaviour
             TextSecondary.text = critter.MeleeWeapon.name;
             TextSecondaryStats.text = critter.MeleeWeapon.GrabWeaponInformation();
         }
+        TextMArmor.text = critter.GrabArmor("attack") + " melee armor";
+        TextPArmor.text = critter.GrabArmor("ranged") + " ranged armor";
+
         
         Bone1.sprite = testCritter.listy[0].GetComponent<SpriteRenderer>().sprite;
         Bone2.enabled = true;
         Bone2.sprite = testCritter.listy[2].GetComponent<SpriteRenderer>().sprite;
+        
         if (Bone2.sprite == null)
         {
             Bone2.enabled = false;

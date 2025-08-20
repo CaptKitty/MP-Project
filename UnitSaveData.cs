@@ -16,6 +16,8 @@ public class UnitSaveData : ScriptableObject
     public List<string> flaglist;
     public Weapon RangedWeapon;
     public Weapon MeleeWeapon;
+    public Weapon Armor;
+    public Weapon Shield;
     public List<Modifier> modifierlist = new List<Modifier>();
 
     [Header("TestCritter")]
@@ -40,7 +42,14 @@ public class UnitSaveData : ScriptableObject
         oldCritter.RangedWeapon = RangedWeapon;
         //MeleeWeapon = MeleeWeapon.GrabCopy();
         oldCritter.MeleeWeapon = MeleeWeapon;
-        oldCritter.modifierlist = modifierlist;
+        oldCritter.modifierlist = new List<Modifier>();
+        foreach (var item in modifierlist)
+        {
+            oldCritter.modifierlist.Add(item);
+        }
+        oldCritter.Armor = Armor;//.GrabWeapon();
+        oldCritter.Shield = Shield;//.GrabWeapon();
+        
     }
     public void NewTestCritter(TestCritter oldCritter)
     {
@@ -54,6 +63,7 @@ public class UnitSaveData : ScriptableObject
         for (int i = 0; i < 3; i++)
         {
             oldCritter.listy[i].GetComponent<SpriteRenderer>().sprite = bodyparts[i];
+            //Debug.LogError(oldCritter.listy[i].GetComponent<SpriteRenderer>().sprite);
         }
     }
     public UpgradeModule GrabModule()

@@ -69,14 +69,22 @@ public class FactionUpgrade : MonoBehaviour
         {
             unitSaveData.MeleeWeapon = mod.NewMeleeWeapon;
         }
-        if (mod.NewShield != null)
+        if (mod.NewArmors != null)
         {
-            unitSaveData.bodyparts[1] = mod.NewShield;
+            unitSaveData.Armor = mod.NewArmors;
         }
-        if (mod.NewArmor != null)
+        if (mod.NewShields != null)
         {
-            unitSaveData.bodyparts[0] = mod.NewArmor;
+            unitSaveData.Shield = mod.NewShields;
         }
+        // if (mod.NewShield != null)
+        // {
+        //     unitSaveData.bodyparts[1] = mod.NewShield;
+        // }
+        // if (mod.NewArmor != null)
+        // {
+        //     unitSaveData.bodyparts[0] = mod.NewArmor;
+        // }
         unitSaveData.upgradeModules.Remove(mod);
     }
 }

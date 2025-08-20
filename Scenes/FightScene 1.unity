@@ -177,7 +177,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   heldcritter: {fileID: 1002579342033724372, guid: 217317507daa4c844a36b65fe44e647b, type: 3}
   NewCritter: {fileID: 0}
-  NewTestCritter: {fileID: 0}
   unitSaveData: {fileID: 0}
   CanPlay: 0
   minpagans: -1
@@ -487,6 +486,8 @@ MonoBehaviour:
   flaglist: []
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 0}
+  Armor: {fileID: 0}
+  Shield: {fileID: 0}
   AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
   scriptlist: []
   combatdistance: 1
@@ -521,6 +522,7 @@ MonoBehaviour:
   DoesThisHaveJavelin: 0
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
+  DoesThisHaveBasicBow: 0
   Upgrade: {fileID: 0}
   upgradeModule: {fileID: 0}
   __upgradeModules: []
@@ -1255,7 +1257,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   heldcritter: {fileID: 1002579342033724372, guid: 7dd13ec852e6dd14985d4d7b2b14348f, type: 3}
   NewCritter: {fileID: 0}
-  NewTestCritter: {fileID: 0}
   unitSaveData: {fileID: 0}
   CanPlay: 0
   minpagans: -1
@@ -2690,7 +2691,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   heldcritter: {fileID: 1002579342033724372, guid: c4768673248ce4e49babf3295139292b, type: 3}
   NewCritter: {fileID: 0}
-  NewTestCritter: {fileID: 0}
   unitSaveData: {fileID: 0}
   CanPlay: 0
   minpagans: -1
@@ -12387,7 +12387,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   heldcritter: {fileID: 1002579342033724372, guid: 5333515deaf5683439d613c37b184ef1, type: 3}
   NewCritter: {fileID: 0}
-  NewTestCritter: {fileID: 0}
   unitSaveData: {fileID: 0}
   CanPlay: 0
   minpagans: -1
@@ -12533,6 +12532,8 @@ MonoBehaviour:
   flaglist: []
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 0}
+  Armor: {fileID: 0}
+  Shield: {fileID: 0}
   AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
   scriptlist: []
   combatdistance: 1
@@ -12567,6 +12568,7 @@ MonoBehaviour:
   DoesThisHaveJavelin: 0
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
+  DoesThisHaveBasicBow: 0
   Upgrade: {fileID: 0}
   upgradeModule: {fileID: 0}
   __upgradeModules: []
@@ -13196,6 +13198,8 @@ RectTransform:
   - {fileID: 424347624}
   - {fileID: 235929701}
   - {fileID: 597131111}
+  - {fileID: 1862077577}
+  - {fileID: 1842143699}
   m_Father: {fileID: 1591133559}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -13222,6 +13226,8 @@ MonoBehaviour:
   TextSecondary: {fileID: 424347625}
   TextPrimaryStats: {fileID: 235929702}
   TextSecondaryStats: {fileID: 597131112}
+  TextMArmor: {fileID: 1862077578}
+  TextPArmor: {fileID: 1842143700}
   Bone1: {fileID: 5333547443302642983}
   Bone2: {fileID: 919521529}
   Bone3: {fileID: 1366289869}
@@ -13479,6 +13485,8 @@ MonoBehaviour:
   flaglist: []
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 0}
+  Armor: {fileID: 0}
+  Shield: {fileID: 0}
   AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
   scriptlist: []
   combatdistance: 1
@@ -13513,6 +13521,7 @@ MonoBehaviour:
   DoesThisHaveJavelin: 0
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
+  DoesThisHaveBasicBow: 0
   Upgrade: {fileID: 0}
   upgradeModule: {fileID: 0}
   __upgradeModules: []
@@ -13592,6 +13601,164 @@ SpriteRenderer:
   m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &1842143698
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1842143699}
+  - component: {fileID: 1842143701}
+  - component: {fileID: 1842143700}
+  m_Layer: 5
+  m_Name: Parmor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1842143699
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1842143698}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1793597486}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 100.00008, y: 145}
+  m_SizeDelta: {x: 200, y: 50}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1842143700
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1842143698}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 14
+    m_FontStyle: 0
+    m_BestFit: 1
+    m_MinSize: 10
+    m_MaxSize: 40
+    m_Alignment: 4
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: 0 ranged armor
+--- !u!222 &1842143701
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1842143698}
+  m_CullTransparentMesh: 1
+--- !u!1 &1862077576
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1862077577}
+  - component: {fileID: 1862077579}
+  - component: {fileID: 1862077578}
+  m_Layer: 5
+  m_Name: Marmor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1862077577
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1862077576}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1793597486}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 100.00008, y: 194.99998}
+  m_SizeDelta: {x: 200, y: 50}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1862077578
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1862077576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 14
+    m_FontStyle: 0
+    m_BestFit: 1
+    m_MinSize: 10
+    m_MaxSize: 40
+    m_Alignment: 4
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: 0 melee armor
+--- !u!222 &1862077579
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1862077576}
+  m_CullTransparentMesh: 1
 --- !u!1 &1862602172
 GameObject:
   m_ObjectHideFlags: 0
@@ -13805,7 +13972,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   heldcritter: {fileID: 1002579342033724372, guid: c373d7a5ff883a544b2de2546327f11a, type: 3}
   NewCritter: {fileID: 0}
-  NewTestCritter: {fileID: 0}
   unitSaveData: {fileID: 0}
   CanPlay: 0
   minpagans: -1
@@ -14407,7 +14573,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 120.000015}
+  m_AnchoredPosition: {x: -100, y: 120.000015}
   m_SizeDelta: {x: 200, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2019513052
@@ -14590,6 +14756,8 @@ MonoBehaviour:
   flaglist: []
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 0}
+  Armor: {fileID: 0}
+  Shield: {fileID: 0}
   AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
   scriptlist: []
   combatdistance: 1
@@ -14624,6 +14792,7 @@ MonoBehaviour:
   DoesThisHaveJavelin: 0
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
+  DoesThisHaveBasicBow: 0
   Upgrade: {fileID: 0}
   upgradeModule: {fileID: 0}
   __upgradeModules: []
@@ -15215,6 +15384,7 @@ MonoBehaviour:
   DoesThisHaveJavelin: 0
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
+  DoesThisHaveBasicBow: 0
   Upgrade: {fileID: 0}
   upgradeModule: {fileID: 0}
   __upgradeModules: []
@@ -15637,6 +15807,7 @@ MonoBehaviour:
   DoesThisHaveJavelin: 0
   DoesThisHaveSlinger: 0
   DoesThisHaveAxe: 0
+  DoesThisHaveBasicBow: 0
   Upgrade: {fileID: 11400000, guid: 41d8d5a6d9243e547bf872f8bf4c3c7f, type: 2}
   upgradeModule: {fileID: 0}
   __upgradeModules: []
@@ -15814,6 +15985,8 @@ MonoBehaviour:
   flaglist: []
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 0}
+  Armor: {fileID: 0}
+  Shield: {fileID: 0}
   AIScript: {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}
   scriptlist: []
   combatdistance: 1

@@ -51,7 +51,7 @@ public class ChargeAction : Unit_GAction
                 }
             }
             critter.NextAvailableAttack = Time.time + critter.GrabAttackTime();
-            unitBrainy.TargetEnemy.GetComponent<CritterHolder>().LoseHealth(critter.GrabAttack() * 2);
+            unitBrainy.TargetEnemy.GetComponent<CritterHolder>().LoseHealth(critter.GrabAttack() * 2, critter.RangedWeapon.attacktype);
 
             var modifier = new Modifier();
             modifier.name = "Charged";

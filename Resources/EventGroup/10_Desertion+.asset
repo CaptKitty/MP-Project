@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1265209c423766a429c3b11813f1e6c7, type: 3}
+  m_Name: 10_Desertion+
+  m_EditorClassIdentifier: 
+  Title: Desertion
+  Message: Exhaustion and homesickness cause some allies to slip away under cover
+    of darkness, out of the accursed Italian lands and back home.
+  triggers:
+  - {fileID: 11400000, guid: d4855e5d27eba9548846971294b6ec0d, type: 2}
+  - {fileID: 11400000, guid: 7b976bff33ab37d4c99e9f87054d03a5, type: 2}
+  HasTriggered: 0
+  initialOption:
+    Message: 
+    Tooltip: 
+    trigger: {fileID: 0}
+    EffectList: []
+  OptionList:
+  - Message: Punish them harshly
+    Tooltip: 
+    trigger: {fileID: 0}
+    EffectList:
+    - {fileID: 11400000, guid: 3c3168863e107ab4d9f0caf758d585f1, type: 2}
+  - Message: Turn a blind eye
+    Tooltip: 
+    trigger: {fileID: 0}
+    EffectList:
+    - {fileID: 11400000, guid: 805ce0df4e34aba45866629ea757e851, type: 2}
+  - Message: Bribe them
+    Tooltip: 
+    trigger: {fileID: 0}
+    EffectList:
+    - {fileID: 11400000, guid: 42f66c0ddf374074396c33cb652deeae, type: 2}

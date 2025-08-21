@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1265209c423766a429c3b11813f1e6c7, type: 3}
+  m_Name: 07_Wealthy_Friends
+  m_EditorClassIdentifier: 
+  Title: Good Times
+  Message: 'We are starting to grow a sizable number of vultures circling our hoards.
+
+    Our
+    supplies can buy us more than just a full stomach, they can buy us loyalty or
+    blood.'
+  triggers:
+  - {fileID: 11400000, guid: d4855e5d27eba9548846971294b6ec0d, type: 2}
+  - {fileID: 11400000, guid: e5e433968098f5644be905e38185920c, type: 2}
+  HasTriggered: 0
+  initialOption:
+    Message: 
+    Tooltip: 
+    trigger: {fileID: 0}
+    EffectList: []
+  OptionList:
+  - Message: Eat drink and be merry!
+    Tooltip: 
+    trigger: {fileID: 0}
+    EffectList:
+    - {fileID: 11400000, guid: 3c3168863e107ab4d9f0caf758d585f1, type: 2}
+    - {fileID: 11400000, guid: 42f66c0ddf374074396c33cb652deeae, type: 2}
+  - Message: Glitters doesn't it
+    Tooltip: 
+    trigger: {fileID: 0}
+    EffectList:
+    - {fileID: 11400000, guid: b03ba4b6d26391d4dadc9f395f49c7ad, type: 2}
+    - {fileID: 11400000, guid: 42f66c0ddf374074396c33cb652deeae, type: 2}
+  - Message: Hard Men for Hard times
+    Tooltip: 
+    trigger: {fileID: 0}
+    EffectList: []

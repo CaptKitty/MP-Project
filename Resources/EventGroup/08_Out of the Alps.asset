@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1265209c423766a429c3b11813f1e6c7, type: 3}
+  m_Name: 08_Out of the Alps
+  m_EditorClassIdentifier: 
+  Title: Out of the Alps
+  Message: We have arrived in Italy and the land is fertile!
+  triggers:
+  - {fileID: 11400000, guid: d4855e5d27eba9548846971294b6ec0d, type: 2}
+  - {fileID: 11400000, guid: 7b976bff33ab37d4c99e9f87054d03a5, type: 2}
+  - {fileID: 11400000, guid: 959a3b40413502148a5f9938ca8671a4, type: 2}
+  HasTriggered: 1
+  initialOption:
+    Message: 
+    Tooltip: 
+    trigger: {fileID: 0}
+    EffectList: []
+  OptionList:
+  - Message: To march on rome!
+    Tooltip: 
+    trigger: {fileID: 0}
+    EffectList:
+    - {fileID: 11400000, guid: b03ba4b6d26391d4dadc9f395f49c7ad, type: 2}
+    - {fileID: 11400000, guid: b03ba4b6d26391d4dadc9f395f49c7ad, type: 2}
+    - {fileID: 11400000, guid: dd1bdeaf0d6be8142a1a78816994ed21, type: 2}
+    - {fileID: 11400000, guid: 2beec830a6168164fb2b6fb70cb1bcfa, type: 2}

@@ -10,14 +10,18 @@ public class EventHolder : MonoBehaviour
     
     public void Awake()
     {
-        // LoadEvent();
+        Time.timeScale = 0;
+    }
+    public void OnDestroy()
+    {
+        Time.timeScale = 1;
     }
     public void LoadEvent(string nation = null)
     {
         Debug.Log(nation);
         Debug.Log(Owners.Instance.CallPlayer().name);
         //AI-Time
-        if(nation != null && nation != Owners.Instance.CallPlayer().name)
+        if (nation != null && nation != Owners.Instance.CallPlayer().name)
         {
             foreach (var item in thisevent.OptionList[0].EffectList)
             {
@@ -39,29 +43,29 @@ public class EventHolder : MonoBehaviour
             GameObject NewButton = Instantiate(Resources.Load<GameObject>("EventSupports/EventWindowButton"));
             NewButton.transform.SetParent(this.transform);
             NewButton.GetComponent<OptionHolder>().thisoption = Option;
-            NewButton.transform.position = new Vector2(0, -165 + 50 * i);//new Vector2(200 * i, -300);
+            NewButton.transform.position = new Vector2(0, -215 + 50 * i);//new Vector2(200 * i, -300);
             NewButton.transform.GetChild(0).GetComponent<Text>().text = Option.Message;
             NewButton.GetComponent<Tooltip>().message = Option.Tooltip;
-                     
+
             foreach (var item in Option.EffectList)
             {
                 NewButton.GetComponent<Tooltip>().message += item.GrabTooltip() + "\n";
             }
 
-            // if(Option.trigger != null)
-            // {
-            //     if(!Option.trigger.CanTrigger())
-            //     {
-            //         NewButton.GetComponent<Button>().enabled = !enabled;
-                    
-            //     }
-            //     NewButton.GetComponent<Tooltip>().message = "This option is available if:\n" + Option.trigger.triggerdescription + "\n" + NewButton.GetComponent<Tooltip>().message;
-            // }
+            if(Option.trigger != null)
+            {
+                if(!Option.trigger.CanTrigger())
+                {
+                    NewButton.GetComponent<Button>().enabled = !enabled;
+
+                }
+                NewButton.GetComponent<Tooltip>().message = "<color=red>This option is available if:" + Option.trigger.triggerdescription + "</color>\n" + NewButton.GetComponent<Tooltip>().message;
+            }
 
 
             i++;
         }
-        if(thisevent != null && thisevent.initialOption != null && thisevent.initialOption.EffectList != null && thisevent.initialOption.EffectList.Count != 0)
+        if (thisevent != null && thisevent.initialOption != null && thisevent.initialOption.EffectList != null && thisevent.initialOption.EffectList.Count != 0)
         {
             Instaclick();
             // GameObject NewButton = Instantiate(Resources.Load<GameObject>("Prefabs/Event/EventWindowButton"));

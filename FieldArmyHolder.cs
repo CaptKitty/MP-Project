@@ -20,6 +20,7 @@ public class FieldArmyHolder : MonoBehaviour
     private int DomesticSupplyUsage = 1;
     public int _ForeignSupplyUsage = 4;
     private int ForeignSupplyUsage = 4;
+    public List<string> flaglist = new List<string>();
     public void Awake()
     {
         if (gameObject.name == "PlayerArmy")
@@ -71,8 +72,25 @@ public class FieldArmyHolder : MonoBehaviour
         if (name != "")
         {
             //var a = SessionManager.Instance.HostFaction.UnitDataList.Find(x => x.name == name);
-            var a = FieldArmyHolder.PlayerFieldArmy.fieldArmy.USDReserves.Find(x => x.name == name).USD;
-            fieldArmy.AddTroop(a, amount);
+            try
+            {
+                var a = FieldArmyHolder.PlayerFieldArmy.fieldArmy.USDReserves.Find(x => x.name == name).USD;
+                fieldArmy.AddTroop(a, amount);
+            }
+            catch
+            {
+                try
+                {
+                    var b = Resources.Load<UnitSaveData>("Prefabs/Units/NormieData/" + name);
+                    fieldArmy.AddTroop(b, amount);
+                }
+                catch
+                {
+                    Debug.LogError("Could not find " + name + " Unit in database");
+                }
+                
+            }
+            
         }
         else
         {
@@ -111,9 +129,10 @@ public class FieldArmyHolder : MonoBehaviour
             province.supply -= lootableAmount;
             fieldArmy.AddSupply(lootableAmount);
         }
-        if (turnCounter >= NextRecruitTime)
+        if (turnCounter % RecruitTimer == 0)
+        //if (turnCounter >= NextRecruitTime)
         {
-            NextRecruitTime = turnCounter + RecruitTimer;
+            //NextRecruitTime = turnCounter + RecruitTimer;
             //AtHome
             if (province != null && province.nation.faction.name == fieldArmy.faction.name)
             {
@@ -132,7 +151,25 @@ public class FieldArmyHolder : MonoBehaviour
                     }
                 }
             }
-        }   
+        }
+        if (turnCounter % 8 == 0)
+        {
+            
+            EventManager.eventManager.TriggerEvent(grabRandomViableEvent().name);
+        }
+    }
+    public BaseEvents grabRandomViableEvent()
+    {
+        var a = Resources.LoadAll<BaseEvents>("EventGroup/");
+        var b = new List<BaseEvents>();
+        for (int i = 0; i < a.Length; i++)
+        {
+            if (a[i].Trigger())
+            {
+                b.Add(a[i]);
+            }
+        }
+        return b[Random.Range(0,b.Count)];
     }
     public void FixedUpdate()
     {
@@ -143,7 +180,7 @@ public class FieldArmyHolder : MonoBehaviour
         var heading = transform.position - new Vector3((target.x - adjustment.x) * modification.x, (target.y - adjustment.y) * modification.y, 0);
         var distance = heading.magnitude;
 
-        Mapshower.Instance.SelectProvince(Camera.main.WorldToScreenPoint(transform.position));
+        Mapshower.Instance.SelectProvince(GrabFieldArmyHolderPosition());
 
         if (timer < Time.time)
         {
@@ -161,6 +198,25 @@ public class FieldArmyHolder : MonoBehaviour
         }
         var direction = heading / distance;
         transform.localPosition -= direction * Time.deltaTime * speed;
+    }
+    public bool HasFlag(string flag)
+    {
+        foreach (var item in flaglist)
+        {
+            if (item == flag)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public Province GrabFieldArmyProvince()
+    {
+        return Mapshower.Instance.SelectProvinceFromLocation(GrabFieldArmyHolderPosition());
+    }
+    public Vector3 GrabFieldArmyHolderPosition()
+    {
+        return Camera.main.WorldToScreenPoint(transform.position);
     }
     public void SetTarget()
     {

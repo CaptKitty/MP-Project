@@ -28,11 +28,9 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     void OnMouseEnter()
     {
-        return;
-        // //print(ToolTipManager._instance.gameObject.name);
-        ToolTipManager._instance.SetAndShowToolTip(message, positions);
+        //ToolTipManager._instance.SetAndShowToolTip(message, positions);
 
-        //ToolTipManager._instance.SetAndShowToolTip(message, new Vector3(this.transform.position.x+positions.x,this.transform.position.y+positions.y,0), true);
+        ToolTipManager._instance.SetAndShowToolTip(message, new Vector3(this.transform.position.x+positions.x,this.transform.position.y+positions.y,0), true);
         // Debug.Log("Ping from " + this.transform.parent.gameObject.name);
         // Debug.Log(message);
         // if(skills)

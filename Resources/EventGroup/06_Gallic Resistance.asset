@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1265209c423766a429c3b11813f1e6c7, type: 3}
+  m_Name: 06_Gallic Resistance
+  m_EditorClassIdentifier: 
+  Title: Gallic Tribes
+  Message: The local Gauls are here for revenge and are harrassing your foraging
+    parties.
+  triggers:
+  - {fileID: 11400000, guid: d4855e5d27eba9548846971294b6ec0d, type: 2}
+  - {fileID: 11400000, guid: e0ee08316c1b3124c93b8ba4a003ba6b, type: 2}
+  - {fileID: 11400000, guid: 7490feb35c9dc7744bf5fd61a90f1927, type: 2}
+  HasTriggered: 0
+  initialOption:
+    Message: 
+    Tooltip: 
+    trigger: {fileID: 0}
+    EffectList: []
+  OptionList:
+  - Message: Damn the bastards
+    Tooltip: 
+    trigger: {fileID: 0}
+    EffectList:
+    - {fileID: 11400000, guid: 805ce0df4e34aba45866629ea757e851, type: 2}
+    - {fileID: 11400000, guid: 42f66c0ddf374074396c33cb652deeae, type: 2}

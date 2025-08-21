@@ -623,8 +623,6 @@ public class BattleManager1 : BattleManager
                     
                     GameObject trader = Instantiate(spawner, ownermap.transform);
 
-                    
-
 
                     trader.transform.position = new Vector3(ownermap.CellToWorld(target).x + 0.0f, ownermap.CellToWorld(target).y + 0.25f, 0);
                     if (trader.GetComponent<CritterHolder>() != null)
@@ -679,15 +677,32 @@ public class BattleManager1 : BattleManager
                             }
                         }
 
-                        unitsavedata.NewTestCritter(trader.GetComponent<TestCritter>());
-                        unitsavedata.NewCritterHolder(trader.GetComponent<CritterHolder>());
-                        unitsavedataname = unitsavedata.name;
+                        if (unitsavedata == null)
+                        {
+                            try
+                            {
+                                unitsavedata = Resources.Load<UnitSaveData>("Prefabs/Units/NormieData/" + name);
+                            }
+                            catch
+                            {
+                                Debug.LogError("Could not find " + name + " Unit in database");
+                            }
+                        }
 
-                        trader.GetComponent<CritterHolder>().name = futurename;
-                        trader.GetComponent<CritterHolder>().typename = unitsavedataname;
+                        try
+                        {
+                            unitsavedata.NewTestCritter(trader.GetComponent<TestCritter>());
+                            unitsavedata.NewCritterHolder(trader.GetComponent<CritterHolder>());
+                            unitsavedataname = unitsavedata.name;
 
+                            trader.GetComponent<CritterHolder>().name = futurename;
+                            trader.GetComponent<CritterHolder>().typename = unitsavedataname;
+                        }
+                        catch
+                        {
+                            Debug.LogError(name + " was unable to be Unit Save Data'd");
+                        }
                         
-                    
 
                         trader.name = futurename;
             

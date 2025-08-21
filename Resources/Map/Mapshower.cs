@@ -390,7 +390,7 @@ public class Mapshower : MonoBehaviour
                     //Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
                     SelectProvince(province);
 
-                    EventManager.eventManager.TriggerEvent("Hello Event");
+                    
                     
                     // SelectedNation = province.nation;
                     // UIElement.NationHost.UpdateTitle(province.nation.name);
@@ -464,6 +464,22 @@ public class Mapshower : MonoBehaviour
             }
             SelectProvince(province);
         }
+    }
+    public Province SelectProvinceFromLocation(Vector3 spot)
+    {
+        var ray = Camera.main.ScreenPointToRay(spot);
+        RaycastHit hitInfo;
+        if (Physics.Raycast(ray, out hitInfo))
+        {
+            var p = hitInfo.point;
+            int x = (int)Mathf.Floor(p.x) + width / 2;
+            int y = (int)Mathf.Floor(p.y) + height / 2;
+
+            var mainTex = GrabMaterial().GetTexture("_MainTex") as Texture2D;
+            Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
+            return province;
+        }
+        return null;
     }
     public void PrepBattle()
     {

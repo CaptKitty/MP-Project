@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class FieldArmy : ScriptableObject
 {
     public Faction faction;
-    // public Nation nation;
+    public Nation nation;
     public List<ArmyReserves> USDReserves = new List<ArmyReserves>();
     public int ArmySupply;
     public int MaxArmySize = 20;
@@ -22,16 +22,20 @@ public class FieldArmy : ScriptableObject
             if (item.USD.name == UnitToAdd.name)
             {
                 item.amount += amount;
-                UpdateUI();
+                if (item.amount < 0)
+                {
+                    item.amount = 0;
+                }
+                //UpdateUI();
                 return;
             }
         }
+        //Debug.LogError("We don't have " + UnitToAdd.name + " yet.");
         ArmyReserves UR = new ArmyReserves();
         UR.name = UnitToAdd.name;
         UR.USD = UnitToAdd;
         UR.amount = amount;
         USDReserves.Add(UR);
-        UpdateUI();
     }
     public void UpdateUI()
     {
@@ -60,9 +64,9 @@ public class FieldArmy : ScriptableObject
         {
             ArmySupply = 0;
         }
-        if (ArmySupply > faction.FarmLevel * 100)
+        if (ArmySupply > nation.faction.FarmLevel * 100)
         {
-            ArmySupply = faction.FarmLevel * 100;
+            ArmySupply = nation.faction.FarmLevel * 100;
         }
         UpdateUI();
     }

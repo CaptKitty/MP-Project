@@ -19,6 +19,23 @@ public class SpawnCritters : GAction
         //unitToSpawn = a[Random.Range(0, a.Count)];
 
         var b = SessionManager.Instance.ClientFaction.UnitDataList;
+        if (SessionManager.Instance.savedArmy != null)
+        {
+            b.Clear();
+            foreach (var item in SessionManager.Instance.savedArmy.fieldArmy.USDReserves)
+            {
+                for (int i = 0; i < item.amount; i++)
+                {
+                    b.Add(item.USD);
+                }
+            }
+        }
+        if (b.Count == 0)
+        {
+            Debug.Log("Out of Units M'Lord");
+            return false;
+        }
+
         var c = b[Random.Range(0, b.Count)];
         c.NewCritterHolder(unitToSpawn.GetComponent<CritterHolder>());
         unitToSpawn.gameObject.name = c.name;
@@ -37,7 +54,7 @@ public class SpawnCritters : GAction
         }
 
 
-        if (brainy.resources < unitToSpawn.GetComponent<CritterHolder>().cost.amount)
+        if (brainy.resources <= unitToSpawn.GetComponent<CritterHolder>().cost.amount)
         {
             return false;
         }

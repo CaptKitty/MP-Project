@@ -14,6 +14,7 @@ public class UpgradeModule : ScriptableObject
     public Weapon NewShields;
     public Sprite NewArmor;
     public Sprite NewShield;
+    public bool generic = false;
     public UpgradeModule GrabUpgradeModule()
     {
         var potato = new UpgradeModule();
@@ -23,9 +24,10 @@ public class UpgradeModule : ScriptableObject
         potato.NewMeleeWeapon = NewMeleeWeapon;
         potato.NewArmors = NewArmors;
         potato.NewShields = NewShields;
-        
+
         potato.NewArmor = NewArmor;
         potato.NewShield = NewShield;
+        potato.generic = generic;
         return potato;
     }
     public bool CanUpgrade()

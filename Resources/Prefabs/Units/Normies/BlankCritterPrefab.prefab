@@ -87,7 +87,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spot: {x: 0, y: 0, z: 0}
-  name: Tribesman_SpearChucker
+  name: Iberian_SpearChucker
   typename: 
   unittype: 3
   nametype: []

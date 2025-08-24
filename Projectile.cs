@@ -12,7 +12,7 @@ public class Projectile : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        Debug.Log("potato");
+        //Debug.Log("potato");
         timer = Time.time + duration;
         
     }

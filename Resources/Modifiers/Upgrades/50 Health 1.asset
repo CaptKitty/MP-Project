@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 72462179417ba77429912feffd038a61, type: 3}
-  m_Name: First +50 health
+  m_Name: 50 Health 1
   m_EditorClassIdentifier: 
   base_health: 0
   base_combatdistance: 0

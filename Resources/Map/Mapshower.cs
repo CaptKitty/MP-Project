@@ -175,14 +175,14 @@ public class Mapshower : MonoBehaviour
         {
             SupplyPaint();
         }
-        if (Input.GetKey("q"))
-        {
-            Camera.main.orthographicSize += 0.1f;
-        }
-        if (Input.GetKey("e"))
-        {
-            Camera.main.orthographicSize -= 0.1f;
-        }
+        // if (Input.GetKey("q"))
+        // {
+        //     Camera.main.orthographicSize += 0.1f;
+        // }
+        // if (Input.GetKey("e"))
+        // {
+        //     Camera.main.orthographicSize -= 0.1f;
+        // }
     }
     public void Paint()
     {
@@ -287,7 +287,7 @@ public class Mapshower : MonoBehaviour
             {
                 selectAny = true;
                 prevColor = remapColor;
-                paletteTex.SetPixel(xp, yp, province.cultures[0].ownerIdentity);
+                paletteTex.SetPixel(xp, yp, province.OriginalNation.ownerIdentity);//province.cultures[0].ownerIdentity);
                 paletteTex.Apply(false);
                 ownerTex.Apply(false);
             }
@@ -389,8 +389,9 @@ public class Mapshower : MonoBehaviour
                 {
                     //Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
                     SelectProvince(province);
+                    //SelectLocationFromProvince(province);
 
-                    
+                     //mousePos);
                     
                     // SelectedNation = province.nation;
                     // UIElement.NationHost.UpdateTitle(province.nation.name);
@@ -432,6 +433,13 @@ public class Mapshower : MonoBehaviour
             
         }
 
+    }
+    public void SpawnArmy(Province province)
+    {
+        var b = Resources.Load<GameObject>("Prefabs/FieldArmy");
+        var c = Instantiate(b, transform.GetChild(2));
+
+        c.GetComponent<FieldArmyHolder>().SetPositionTo(province);
     }
     public Material GrabMaterial()
     {
@@ -501,6 +509,28 @@ public class Mapshower : MonoBehaviour
         SessionManager.Instance.ClientChangePlayerFaction(province.nation.name);
         SessionManager.Instance.savedProvince = province;
         SessionManager.Instance.LoadCampaign(province.nation.name);
+        this.gameObject.SetActive(false);
+        SceneManager.LoadScene("FightScene 1", LoadSceneMode.Additive);
+    }
+    public void ArmyBattle(FieldArmyHolder player, FieldArmyHolder Enemy)
+    {
+        // SelectProvince(FieldArmyHolder.PlayerFieldArmy.LocalProvince);
+        // Province province = SelectedProvince;
+
+        if (Enemy == SessionManager.Instance.savedArmy)
+        {
+            return;
+        }
+        if (Enemy.fieldArmy.nation == null)
+        {
+            return;
+        }
+
+        SessionManager.Instance.ChangeEnemyFaction(Enemy.fieldArmy.nation.faction.name);
+        SessionManager.Instance.ClientChangePlayerFaction(player.fieldArmy.nation.name);
+        SessionManager.Instance.savedProvince = null;
+        SessionManager.Instance.savedArmy = Enemy;
+        //SessionManager.Instance.LoadCampaign(province.nation.name);
         this.gameObject.SetActive(false);
         SceneManager.LoadScene("FightScene 1", LoadSceneMode.Additive);
     }

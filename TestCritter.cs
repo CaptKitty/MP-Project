@@ -126,6 +126,10 @@ public class TestCritter : MonoBehaviour
             {
                 _upgradeModules.Add(item);//Instantiate(item));
             }
+            if (item.generic == false)
+            {
+                return item;
+            }
         }
         if (_upgradeModules.Count > 0)
         {

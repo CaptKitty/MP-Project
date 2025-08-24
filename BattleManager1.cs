@@ -40,11 +40,16 @@ public class BattleManager1 : BattleManager
     }
     public void Start()
     {
-        SessionManager.Instance.ClientFaction.BarracksLevel = SessionManager.Instance.CampaignLevel;
-        SessionManager.Instance.ClientFaction.Set();
+        // SessionManager.Instance.ClientFaction.BarracksLevel = SessionManager.Instance.CampaignLevel;
+        // SessionManager.Instance.ClientFaction.Set();
 
         brainy = new Brain();
         brainy.resources = 200 + (SessionManager.Instance.CampaignLevel * 150);
+        if (SessionManager.Instance.savedArmy != null)
+        {
+            brainy.resources = SessionManager.Instance.savedArmy.fieldArmy.ArmySupply;
+        }
+
         brainy.Startie();
 
         TerrainTime();
@@ -74,6 +79,8 @@ public class BattleManager1 : BattleManager
     public List<SpawnBait> GenerateAIArmy()
     {
         List<SpawnBait> clientarmies = new List<SpawnBait>();
+        return clientarmies;
+
         Vector3Int Corespot = new Vector3Int(4, -9, 0);
         List<GameObject> units = new List<GameObject>();
         List<UnitSaveData> unitsData = new List<UnitSaveData>();
@@ -205,10 +212,10 @@ public class BattleManager1 : BattleManager
             OnVictory?.Invoke();
         }
         if(Starter)
-        {   
+        {
             try
             {
-                if(TestRelay.Instance.PlayerObjects.Count == 2)
+                if (TestRelay.Instance.PlayerObjects.Count == 2)
                 {
                     Starter = false;
                     if (RpcTest.Serverchecker.ServerCheck())
@@ -219,7 +226,7 @@ public class BattleManager1 : BattleManager
                     {
                         b.SetActive(false);
                     }
-                    
+
                     foreach (var RPC in TestRelay.Instance.PlayerObjects)
                     {
                         RPC.GetComponent<RpcTest>().SendFaction();
@@ -235,10 +242,10 @@ public class BattleManager1 : BattleManager
                     // {
                     //     Playerfaction = SessionManager.Instance.ClientFaction_client;
                     // }
-                    MenuArmyLoader.Instance.LoadFiles();
-                    Starter = false;
+                    // MenuArmyLoader.Instance.LoadFiles();
+                    //Starter = false;
                 }
-                if(TestRelay.Instance.PlayerObjects.Count == 1 && SessionManager.Instance.Campaign == true)
+                if (TestRelay.Instance.PlayerObjects.Count == 1 && SessionManager.Instance.Campaign == true)
                 {
                     Starter = false;
                     a.SetActive(false);
@@ -247,9 +254,9 @@ public class BattleManager1 : BattleManager
                     // {
                     //     RPC.GetComponent<RpcTest>().SendFaction();
                     // }
-                    Playerfaction = SessionManager.Instance.HostFaction;
+                    //Playerfaction = SessionManager.Instance.HostFaction;
                     // Reserves = SessionManager.Instance.HostFaction.GrabIncome();
-                    Reserves = FieldArmyHolder.PlayerFieldArmy.fieldArmy.ArmySupply;
+                    //Reserves = FieldArmyHolder.PlayerFieldArmy.fieldArmy.ArmySupply;
                     // if(RpcTest.Serverchecker.ServerCheck())
                     // {
                     //     Playerfaction = SessionManager.Instance.HostFaction;
@@ -258,11 +265,15 @@ public class BattleManager1 : BattleManager
                     // {
                     //     Playerfaction = SessionManager.Instance.ClientFaction_client;
                     // }
-                    MenuArmyLoader.Instance.LoadFiles();
-                    Starter = false;
+                    //MenuArmyLoader.Instance.LoadFiles();
+                    //Starter = false;
                 }
+                Playerfaction = SessionManager.Instance.HostFaction;
+                Reserves = FieldArmyHolder.PlayerFieldArmy.fieldArmy.ArmySupply;
+                MenuArmyLoader.Instance.LoadFiles();
+                Starter = false;
             }
-            catch{}
+            catch { }
         }
         try
         {
@@ -402,7 +413,19 @@ public class BattleManager1 : BattleManager
                 if(enemyalive < 1)
                 {
                     //SessionManager.Instance.BattleStatus = "Victorious";
-                    SessionManager.Instance.savedProvince.nation = Owners.Instance.CallPlayer();
+                    try
+                    {
+                        SessionManager.Instance.savedProvince.nation = Owners.Instance.CallPlayer();
+                    }
+                    catch
+                    {
+                        Debug.Log("No Savedprovince because armybattle");
+                    }
+                    if (SessionManager.Instance.savedArmy != null)
+                    {
+                        Destroy(SessionManager.Instance.savedArmy.gameObject);
+                    }
+                    
                     SessionManager.Instance.CampaignLevel++;
                     SessionManager.Instance.HostFaction.FarmLevel++;
                     FactionUpgrade.Instance.gameObject.SetActive(true);

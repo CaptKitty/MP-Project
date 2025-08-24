@@ -68,6 +68,13 @@ public class UnitSaveData : ScriptableObject
     }
     public UpgradeModule GrabModule()
     {
+        foreach (var item in upgradeModules)
+        {
+            if (!item.generic)
+            {
+                return item;
+            }
+        }
         if (upgradeModules.Count > 0)
         {
             return upgradeModules[Random.Range(0, upgradeModules.Count)];

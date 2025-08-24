@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0328358a590af594aabff3322a37048d, type: 3}
-  m_Name: Tribesman_SpearChucker
+  m_Name: Iberian_SpearChucker
   m_EditorClassIdentifier: 
   spot: {x: 0, y: 0, z: 0}
-  unitname: Tribesman_SpearChucker
+  unitname: Iberian_SpearChucker
   unittype: 3
   cost: 50
   health: 100

@@ -16,6 +16,10 @@ public class MenuArmyLoader : MonoBehaviour
         //Debug.LogError(BattleManager1.Instance.Playerfaction.UnitDataList.Count);
         foreach (var item in FieldArmyHolder.PlayerFieldArmy.fieldArmy.USDReserves )//BattleManager1.Instance.Playerfaction.UnitDataList)
         {
+            if (item.amount < 1)
+            {
+                continue;
+            }
             var menu = Instantiate(prefab, this.transform);
             menu.GetComponent<SelectMilitaryCritter>().unitSaveData = item.USD;
             item.USD.NewCritterHolder(menu.GetComponent<SelectMilitaryCritter>().heldcritter.GetComponent<CritterHolder>());

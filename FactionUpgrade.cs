@@ -23,6 +23,9 @@ public class FactionUpgrade : MonoBehaviour
         // mod = gameobject.GetComponent<TestCritter>().GrabModule();
 
         unitSaveData = SessionManager.Instance.HostFaction.UnitDataList[Random.Range(0, SessionManager.Instance.HostFaction.UnitDataList.Count)];
+
+        unitSaveData = FieldArmyHolder.PlayerFieldArmy.fieldArmy.USDReserves[Random.Range(0, FieldArmyHolder.PlayerFieldArmy.fieldArmy.USDReserves.Count)].USD;
+        
         mod = unitSaveData.GrabModule();
 
         transform.GetChild(3).GetChild(0).GetComponent<Text>().text = unitSaveData.name + " " + mod.name;//"Upgrade " +  + " gets " + mod.name;

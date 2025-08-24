@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5d5eb853a7d8c4045a9e582fc98f8b34, type: 3}
-  m_Name: Add 10 percent damage
+  m_Name: Add 10 percent damage 0
   m_EditorClassIdentifier: 
   name: Add 10 percent damage
   modifier: {fileID: 11400000, guid: 2560e257bc7b3d946848a62cba1771b8, type: 2}
@@ -20,3 +20,4 @@ MonoBehaviour:
   NewShields: {fileID: 0}
   NewArmor: {fileID: 0}
   NewShield: {fileID: 0}
+  generic: 1

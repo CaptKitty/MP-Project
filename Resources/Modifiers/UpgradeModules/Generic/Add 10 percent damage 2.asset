@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5d5eb853a7d8c4045a9e582fc98f8b34, type: 3}
-  m_Name: Add Basic Shield
+  m_Name: Add 10 percent damage 2
   m_EditorClassIdentifier: 
-  name: Add Basic Shield
-  modifier: {fileID: 11400000, guid: 788f974802e7e00418ea518bb52f7dd6, type: 2}
+  name: Add 10 percent damage
+  modifier: {fileID: 11400000, guid: 3ebbe9b5c22489f43b9db623de5da95a, type: 2}
   NewRangedWeapon: {fileID: 0}
   NewMeleeWeapon: {fileID: 0}
   NewArmors: {fileID: 0}
-  NewShields: {fileID: 11400000, guid: eb5fb9f583a662b44a5000763b03cfa3, type: 2}
+  NewShields: {fileID: 0}
   NewArmor: {fileID: 0}
   NewShield: {fileID: 0}
-  generic: 0
+  generic: 1

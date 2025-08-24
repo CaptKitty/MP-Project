@@ -10,13 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5d5eb853a7d8c4045a9e582fc98f8b34, type: 3}
-  m_Name: Add first 50 health
+  m_Name: Add 50 health 1
   m_EditorClassIdentifier: 
-  name: Add first 50 health
-  modifier: {fileID: 11400000, guid: 30264ee2eeeaac547959aa1d5920153f, type: 2}
+  name: Add another 50 health
+  modifier: {fileID: 11400000, guid: 7c6a3f89d74916f4d8d40220ff80314a, type: 2}
   NewRangedWeapon: {fileID: 0}
   NewMeleeWeapon: {fileID: 0}
   NewArmors: {fileID: 0}
   NewShields: {fileID: 0}
   NewArmor: {fileID: 0}
   NewShield: {fileID: 0}
+  generic: 1

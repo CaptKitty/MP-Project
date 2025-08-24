@@ -507,16 +507,45 @@ public class CritterHolder : MonoBehaviour
     }
     public double GrabArmor(string attacktype = "attack")
     {
-        int a = 0;//zero armor;
+        List<Modifier> _modifierlist = new List<Modifier>();
+        foreach (var item in modifierlist)
+        {
+            if (item == null)
+            {
+                continue;
+            }
+            if (_modifierlist.Find(x => x.name == item.name))
+            {
+                continue;
+            }
+            _modifierlist.Add(item);
+        }
+        double a = 0;//zero armor;
         if (attacktype == "attack")
         {
             a += Shield.armor.armor;
             a += Armor.armor.armor;
+            foreach (var item in _modifierlist)
+            {
+                a += item.base_armor;
+            }
+            foreach (var item in _modifierlist)
+            {
+                a *= item.armor_modifier;
+            }
         }
         if (attacktype == "ranged")
         {
             a += Shield.armor.rangedarmor;
             a += Armor.armor.rangedarmor;
+            foreach (var item in _modifierlist)
+            {
+                a += item.base_ranged;
+            }
+            foreach (var item in _modifierlist)
+            {
+                a *= item.ranged_modifier;
+            }
         }
         if (attacktype == "pierce")
         {
@@ -526,7 +555,7 @@ public class CritterHolder : MonoBehaviour
             a = 80;
         }
         //Debug.LogError(attacktype + " " + a);
-        return a;
+        return (int)a;
     }
     public void LoseHealth(int incoming, string attacktype = "attack")
     {

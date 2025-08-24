@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 72462179417ba77429912feffd038a61, type: 3}
-  m_Name: Second 50 health
+  m_Name: 50 Health Unique
   m_EditorClassIdentifier: 
   base_health: 0
   base_combatdistance: 0
@@ -20,11 +20,16 @@ MonoBehaviour:
   bonus_health: 50
   bonus_attack: 0
   bonus_combatdistance: 0
+  aiscripts: {fileID: 0}
   health_modifier: 1
   combatdistance_modifier: 1
   speed_modifier: 1
   attack_modifier: 1
   attacktime_modifier: 1
+  armor_modifier: 1
+  base_armor: 0
+  ranged_modifier: 1
+  base_ranged: 0
   duration: 0
   EndDuration: 0
   Aura: {fileID: 0}

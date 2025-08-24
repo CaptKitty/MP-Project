@@ -23,6 +23,13 @@ public class Modifier : ScriptableObject
     public double attack_modifier = 1;
     public double attacktime_modifier = 1;
 
+    [Range(0,2)]
+    public double armor_modifier = 1;
+    public double base_armor = 0;
+    [Range(0,2)]
+    public double ranged_modifier = 1;
+    public double base_ranged = 0;
+
     public double duration;
     public double EndDuration;
     public GameObject Aura;

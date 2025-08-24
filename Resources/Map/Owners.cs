@@ -15,7 +15,9 @@ public class Owners : MonoBehaviour
     public GameObject CityObject;
     public Dictionary<string, Province> provincedict;
     public Dictionary<Color32, Province> provincedictcolor;
-    // public List<Province> provincelists;
+    public List<FieldArmyHolder> armylist = new List<FieldArmyHolder>();
+    public double timer;
+    public int turncounter;
 
     // Start is called before the first frame update
     void Awake()
@@ -59,6 +61,7 @@ public class Owners : MonoBehaviour
             {
                 //Debug.LogError(province.name);
             }
+            province.OriginalNation = province.nation;
         }
         Mapshower.Instance.Paint();
 
@@ -69,8 +72,8 @@ public class Owners : MonoBehaviour
         foreach (var province in provincelist)
         {
             var a = Instantiate(CityObject, this.transform.GetChild(2));
-            a.transform.localScale = new Vector3(50f,50f,50f);
-            a.transform.localPosition = new Vector3(province.position.x*1f-364f, province.position.y*1f-228f, 0);
+            a.transform.localScale = new Vector3(50f, 50f, 50f);
+            a.transform.localPosition = new Vector3(province.position.x * 1f - 364f, province.position.y * 1f - 232f, 0);
         }
     }
     public Nation CallPlayer()
@@ -107,9 +110,32 @@ public class Owners : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        
+        if (!FieldArmyHolder.PlayerFieldArmy.IsTargetNull())
+        {
+            foreach (var item in armylist)
+            {
+                item.Act();
+                if (timer % 50 == 0)
+                {
+                    item.NextTurn();
+                }
+            }
+            if (timer % 250 == 0)
+            {
+                TakeTurns();
+            }
+            timer++;
+        }
+
+    }
+    public void TakeTurns()
+    {
+        foreach (var nation in nationlist)
+        {
+            nation.TakeTurn();
+        }
     }
 }
 [System.Serializable]
@@ -118,6 +144,7 @@ public class Province
     public string name;
     public Color32 identity;
     public Nation nation;
+    public Nation OriginalNation;
     public string state;
     public Vector2 position;
     public int population = 1000;
@@ -152,27 +179,24 @@ public class Nation
     public string name;
     public Color32 ownerIdentity;
     public bool IsPlayer;
-    public int manpower;
-    public int treasury;
-    public List<Weapons> unlockedWeaponss;
-    public List<Armor> unlockedarmor;
-    public List<Regiment> regimentdesigns;
-    public List<GameObject> armies;
+    public List<FieldArmyHolder> armies = new List<FieldArmyHolder>();
     // public List<Nation> Enemies;
     public Faction faction;
 
-    public void AddManpower(int Manpower)
+    public void TakeTurn()
     {
-        manpower += Manpower;
-        //UIManager.Instance.ChangeGovernmentText();
-    }
-    public bool HasManpower(int Manpower)
-    {
-        if(manpower >= Manpower)
+        if (armies.Count == 0)
         {
-            return true;
+            var a = new List<Province>();
+            foreach (var province in Owners.Instance.provincelist)
+            {
+                if (province.nation == this)
+                {
+                    a.Add(province);
+                }
+            }
+            Mapshower.Instance.SpawnArmy(a[Random.Range(0, a.Count)]);
         }
-        return false;
     }
 }
 [System.Serializable]
@@ -191,85 +215,4 @@ public class State
     public Nation nation;
     public int taxpercentage;
     public int levypercentage;
-}
-[System.Serializable]
-public class General
-{
-    public string name;
-    public List<Regiment> regimentList;
-    public Nation nation;
-    public List<Trait> Traits;
-}
-[System.Serializable]
-public class Regiment
-{
-    public string name;
-    public UnitType unittype;
-    public string nation;
-    public int health;
-    public int maxhealth;
-    public float movement = 1;
-    public Equipment equipment;
-    public bool in_range;
-    public bool loaded;
-    public float reload;
-    public Combat Combatstance;
-    public Vector2 waypoint;
-    public Vector2 viewpoint;
-    public Vector2 currentPosition;
-    public List<GameObject> enemies;
-}
-[System.Serializable]
-public class Equipment
-{
-    public Weapons Weapons;
-    public Armor armor;
-}
-[System.Serializable]
-public class Weapons
-{
-    public string name;
-    public int range;
-    public int accuracy;
-    public int reloadtime;
-}
-// [System.Serializable]
-// public class Armor
-// {
-//     public string name;
-//     public int health;
-// }
-[System.Serializable]
-public class Unit
-{
-    public string name;
-}
-[System.Serializable]
-public class Trait
-{
-    public string traitname;
-}
-public enum Formation
-{
-    None,
-    Line,
-    DoubleLine,
-    Column
-}
-public enum Order
-{
-    None,
-    Advance
-}
-public enum Combat
-{
-    None,
-    OnCommand,
-    AtWill
-}
-public enum UnitType
-{
-    Infantry,
-    Artillery,
-    Cavalry
 }

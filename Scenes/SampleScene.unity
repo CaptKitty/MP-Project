@@ -1548,23 +1548,28 @@ MonoBehaviour:
         serializedVersion: 2
         rgba: 0
       IsPlayer: 0
-      manpower: 0
-      treasury: 0
-      unlockedWeaponss: []
-      unlockedarmor: []
-      regimentdesigns: []
+      armies: []
+      faction: {fileID: 0}
+    OriginalNation:
+      name: 
+      ownerIdentity:
+        serializedVersion: 2
+        rgba: 0
+      IsPlayer: 0
       armies: []
       faction: {fileID: 0}
     state: 
     position: {x: 0, y: 0}
     population: 1000
     supply: 1000
+    garrisonArmy: {fileID: 0}
     cultures: []
     taxincome: 0
     taxpercentage: 0
     levyincome: 0
     levypercentage: 0
     unrest: 0
+  savedArmy: {fileID: 0}
   BattleStatus: None
   Campaign: 0
   CampaignLevel: 1
@@ -5265,7 +5270,7 @@ CanvasRenderer:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 519420032}
-  - {fileID: 619394802}
-  - {fileID: 803559359}
   - {fileID: 1864803607}
+  - {fileID: 619394802}
+  - {fileID: 519420032}
+  - {fileID: 803559359}

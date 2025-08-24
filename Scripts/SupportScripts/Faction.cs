@@ -102,6 +102,7 @@ public class Faction : ScriptableObject
     }
     public void Set()
     {
+        //Debug.LogError(name);
         UnitList.Clear();
         for (int i = 0; i < BarracksLevel; i++)
         {

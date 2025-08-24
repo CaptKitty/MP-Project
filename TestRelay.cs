@@ -63,8 +63,8 @@ public class TestRelay : MonoBehaviour
     }
     public async void CreateLocal()
     {
-        try
-        {
+        //try
+        //{
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(3);
             string JoinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId); 
             //Debug.LogError(JoinCode);
@@ -82,8 +82,8 @@ public class TestRelay : MonoBehaviour
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(new RelayServerData(allocation, "wss"));
 
             NetworkManager.Singleton.StartHost();
-        }
-        catch{}
+        //}
+        //catch{}
         
         GimmeMap();
     }

@@ -62,6 +62,7 @@ public class SessionManager : MonoBehaviour
     }
     public void ClientChangePlayerFaction(string newfaction)
     {
+        return;
         HostFaction_client = Resources.Load<Faction>("Prefabs/Factions/" + newfaction);
         HostFaction_client = HostFaction_client.Init();
         HostFaction_client.Set();

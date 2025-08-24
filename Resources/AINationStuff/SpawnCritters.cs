@@ -53,12 +53,14 @@ public class SpawnCritters : GAction
             }
         }
 
-
+        //Debug.LogError(brainy.resources + " + " + unitToSpawn.GetComponent<CritterHolder>().cost.amount);
+        
         if (brainy.resources <= unitToSpawn.GetComponent<CritterHolder>().cost.amount)
         {
+            Debug.Log("Out of Supplies M'Lord");
             return false;
         }
-        brainy.resources -= unitToSpawn.GetComponent<CritterHolder>().cost.amount;
+        
 
         return true;
     }
@@ -91,11 +93,16 @@ public class SpawnCritters : GAction
         unit.AIorNot = false;
         unit.ClientOrHost = "Client";
 
+        if (SessionManager.Instance.savedArmy != null)
+        {
+            SessionManager.Instance.savedArmy.AddTroop(name: unit.name, amount: -1);
+        }
+        brainy.resources -= unitToSpawn.GetComponent<CritterHolder>().cost.amount;
 
         //var unit = _ClientArmy[i];
         foreach (var RPC in TestRelay.Instance.PlayerObjects)
         {
-            RPC.GetComponent<RpcTest>().Spawn(unit.target, unit.name, unit.AIorNot, unit.name + "" + brainy.i.ToString() + "" + brainy.j.ToString() +  "" + brainy.k.ToString(), unit.ClientOrHost);
+            RPC.GetComponent<RpcTest>().Spawn(unit.target, unit.name, unit.AIorNot, unit.name + "" + brainy.i.ToString() + "" + brainy.j.ToString() + "" + brainy.k.ToString(), unit.ClientOrHost);
         }
         return true;
     }

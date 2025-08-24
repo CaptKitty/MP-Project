@@ -49,6 +49,7 @@ public class BattleManager1 : BattleManager
         {
             brainy.resources = SessionManager.Instance.savedArmy.fieldArmy.ArmySupply;
         }
+        Debug.LogError(brainy.resources);
 
         brainy.Startie();
 
@@ -421,10 +422,12 @@ public class BattleManager1 : BattleManager
                     {
                         Debug.Log("No Savedprovince because armybattle");
                     }
-                    if (SessionManager.Instance.savedArmy != null)
-                    {
-                        Destroy(SessionManager.Instance.savedArmy.gameObject);
-                    }
+                    // if (SessionManager.Instance.savedArmy != null)
+                    // {
+                    //     Destroy(SessionManager.Instance.savedArmy.gameObject);
+                    // }
+
+                    //FieldArmyHolder.PlayerFieldArmy.EnterProvince(FieldArmyHolder.PlayerFieldArmy.GrabFieldArmyProvince());
                     
                     SessionManager.Instance.CampaignLevel++;
                     SessionManager.Instance.HostFaction.FarmLevel++;
@@ -433,14 +436,35 @@ public class BattleManager1 : BattleManager
 
                 foreach (var item in enemylist)
                 {
-                    if(item.GetComponent<CritterHolder>().IsthisAI && item.active)
+                    if (item.GetComponent<CritterHolder>().IsthisAI && item.active)
                     {
                         FieldArmyHolder.PlayerFieldArmy.AddTroop(name: item.GetComponent<CritterHolder>().typename);
+                    }
+                    if (SessionManager.Instance.savedArmy != null)
+                    {
+                        if (!item.GetComponent<CritterHolder>().IsthisAI && item.active)
+                        {
+                            SessionManager.Instance.savedArmy.AddTroop(name: item.GetComponent<CritterHolder>().typename);
+                        }
+                    }
+                }
+                if (SessionManager.Instance.savedArmy != null)
+                {
+                    int z = 0;
+                    foreach (var item in SessionManager.Instance.savedArmy.fieldArmy.USDReserves)
+                    {
+                        z += item.amount;
+                    }
+                    if(z == 0)
+                    {
+                        Destroy(SessionManager.Instance.savedArmy.gameObject);
                     }
                 }
 
                 SessionManager.Instance.HostArmy.Clear();
                 SessionManager.Instance.ClientArmy.Clear();
+
+                SessionManager.Instance.savedArmy = null;
 
                 Mapshower.Instance.gameObject.SetActive(true);
                 SceneManager.UnloadScene("FightScene 1");
@@ -664,7 +688,7 @@ public class BattleManager1 : BattleManager
                             }
                             else
                             {
-                            trader.GetComponent<TestCritter>().faction = SessionManager.Instance.ClientFaction; //HostFaction_client;
+                            trader.GetComponent<TestCritter>().faction = SessionManager.Instance.savedArmy.fieldArmy.nation.faction; //SessionManager.Instance.ClientFaction; //HostFaction_client;
                                 
                             }
 
@@ -673,7 +697,7 @@ public class BattleManager1 : BattleManager
                         {
                             if (RpcTest.Serverchecker.ServerCheck())
                             {
-                                trader.GetComponent<TestCritter>().faction = SessionManager.Instance.ClientFaction; //HostFaction_client;
+                                trader.GetComponent<TestCritter>().faction = SessionManager.Instance.savedArmy.fieldArmy.nation.faction; //SessionManager.Instance.ClientFaction; //HostFaction_client;
                             }
                             else
                             {

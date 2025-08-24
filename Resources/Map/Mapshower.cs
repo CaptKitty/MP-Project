@@ -434,12 +434,13 @@ public class Mapshower : MonoBehaviour
         }
 
     }
-    public void SpawnArmy(Province province)
+    public FieldArmyHolder SpawnArmy(Province province)
     {
         var b = Resources.Load<GameObject>("Prefabs/FieldArmy");
         var c = Instantiate(b, transform.GetChild(2));
 
         c.GetComponent<FieldArmyHolder>().SetPositionTo(province);
+        return c.GetComponent<FieldArmyHolder>();
     }
     public Material GrabMaterial()
     {
@@ -505,6 +506,13 @@ public class Mapshower : MonoBehaviour
         {
             return;
         }
+        FieldArmyHolder.PlayerFieldArmy.EnterProvince(SelectedProvince);
+        return;
+        //ArmyBattle(FieldArmyHolder.PlayerFieldArmy, SelectedProvince.CreateGarrison());
+        //ArmyBattle(FieldArmyHolder.PlayerFieldArmy, province.SallyOut(FieldArmyHolder.PlayerFieldArmy));
+        //province.SallyOut(FieldArmyHolder.PlayerFieldArmy);
+        return;
+        
         SessionManager.Instance.ChangeEnemyFaction(province.nation.name);
         SessionManager.Instance.ClientChangePlayerFaction(province.nation.name);
         SessionManager.Instance.savedProvince = province;
@@ -526,8 +534,8 @@ public class Mapshower : MonoBehaviour
             return;
         }
 
-        SessionManager.Instance.ChangeEnemyFaction(Enemy.fieldArmy.nation.faction.name);
-        SessionManager.Instance.ClientChangePlayerFaction(player.fieldArmy.nation.name);
+        //SessionManager.Instance.ChangeEnemyFaction(Enemy.fieldArmy.nation.faction.name);
+        //SessionManager.Instance.ClientChangePlayerFaction(player.fieldArmy.nation.name);
         SessionManager.Instance.savedProvince = null;
         SessionManager.Instance.savedArmy = Enemy;
         //SessionManager.Instance.LoadCampaign(province.nation.name);

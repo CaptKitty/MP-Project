@@ -41,7 +41,9 @@ public class Owners : MonoBehaviour
             nationdict.Add(nation.name, nation);
             nation.IsPlayer = false;
             nation.faction = nation.faction.Init();
+            //Debug.LogError(nation.name);
             nation.faction.Set();
+            
             if (SessionManager.Instance.HostFaction.name.Contains(nation.name))
             {
                 nation.IsPlayer = true;
@@ -149,12 +151,27 @@ public class Province
     public Vector2 position;
     public int population = 1000;
     public int supply = 1000;
+    //public FieldArmyHolder garrisonArmy;
+
     public List<Culture> cultures;
     public int taxincome;
     public int taxpercentage;
     public int levyincome;
     public int levypercentage;
     public int unrest;
+
+    // public FieldArmyHolder CreateGarrison()
+    // {
+    //     FieldArmyHolder garrison = new FieldArmyHolder();
+    //     garrison.fieldArmy = new FieldArmy();
+    //     garrison.fieldArmy.nation = nation;
+
+    //     return garrison;
+    // }
+    public FieldArmyHolder SallyOut(FieldArmyHolder sally)
+    {
+        return Mapshower.Instance.SpawnArmy(this);
+    }
     
     public void UpdatePopulation()
     {

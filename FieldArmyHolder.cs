@@ -38,6 +38,7 @@ public class FieldArmyHolder : MonoBehaviour
             {
                 PlayerFieldArmy = this;
                 IsPlayer = true;
+                //Debug.LogError("potato");
             }
         }
         else
@@ -177,8 +178,11 @@ public class FieldArmyHolder : MonoBehaviour
             LocalProvince = target;
             try
             {
-                var a = GrabFieldArmyProvince();
-                EnterProvince(a);
+                if (!IsPlayer)
+                {
+                    var a = GrabFieldArmyProvince();
+                    EnterProvince(a);
+                }
             }
             catch { }
 
@@ -198,11 +202,8 @@ public class FieldArmyHolder : MonoBehaviour
     }
     public void EnterProvince(Province province)
     {
-        if (!IsPlayer)
-        {
-            province.nation = fieldArmy.nation;
-            Mapshower.Instance.RePaint();
-        }
+        province.nation = fieldArmy.nation;
+        Mapshower.Instance.RePaint();
     }
     public void SetPositionTo(Vector3 newposition)
     {
@@ -214,6 +215,7 @@ public class FieldArmyHolder : MonoBehaviour
     }
     public void AddTroop(UnitSaveData unittoAdd = null, string name = "", int amount = 1)
     {
+        //Debug.LogError("Trying to add " + amount + " of " + name + unittoAdd);
         if (name != "")
         {
             try
@@ -330,11 +332,13 @@ public class FieldArmyHolder : MonoBehaviour
                 {
                     if (province != null && !province.nation.faction.name.Contains("Rome"))
                     {
-                        var a = Instantiate(province.OriginalNation.faction.UnitDataList[0]);
+                        Nation nation = Owners.Instance.nationlist.Find(x => x.name == province.OriginalNation.name);
+                        Debug.LogError(nation.name);
+                        var a = Instantiate(nation.faction.UnitDataList[0]);
                         a.name = province.nation.faction.UnitDataList[0].name;
                         if (Random.Range(0, 3) == 1)
                         {
-                            a = Instantiate(province.OriginalNation.faction.UnitDataList[1]);
+                            a = Instantiate(nation.faction.UnitDataList[1]);
                             a.name = province.nation.faction.UnitDataList[1].name;
                         }
                         //a.name = province.nation.faction.UnitDataList[0].name;

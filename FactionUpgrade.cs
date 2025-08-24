@@ -18,6 +18,11 @@ public class FactionUpgrade : MonoBehaviour
     public void OnEnable()
     {
         Instance = this;
+        if (FieldArmyHolder.PlayerFieldArmy == null)
+        {
+            return;
+        }
+        
         // gameobject = SessionManager.Instance.HostFaction.UnitList[Random.Range(0, SessionManager.Instance.HostFaction.UnitList.Count)];
 
         // mod = gameobject.GetComponent<TestCritter>().GrabModule();

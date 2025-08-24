@@ -18,6 +18,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d4855e5d27eba9548846971294b6ec0d, type: 2}
   - {fileID: 11400000, guid: 7b976bff33ab37d4c99e9f87054d03a5, type: 2}
   - {fileID: 11400000, guid: 959a3b40413502148a5f9938ca8671a4, type: 2}
+  - {fileID: 11400000, guid: 7aa75638d0fbb144eb027ddf49ae0b8e, type: 2}
   HasTriggered: 1
   initialOption:
     Message: 

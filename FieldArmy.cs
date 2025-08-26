@@ -19,16 +19,25 @@ public class FieldArmy : ScriptableObject
         }
         foreach (ArmyReserves item in USDReserves)
         {
-            if (item.USD.name == UnitToAdd.name)
+            try
             {
-                item.amount += amount;
-                if (item.amount < 0)
+                if (item.USD.name == UnitToAdd.name)
                 {
-                    item.amount = 0;
+                    item.amount += amount;
+                    if (item.amount < 0)
+                    {
+                        item.amount = 0;
+                    }
+                    //UpdateUI();
+                    return;
                 }
-                //UpdateUI();
-                return;
             }
+            catch
+            {
+                Debug.LogError(UnitToAdd.name);
+                Debug.LogError(item.USD.name);
+            }
+            
         }
         //Debug.LogError("We don't have " + UnitToAdd.name + " yet.");
         ArmyReserves UR = new ArmyReserves();

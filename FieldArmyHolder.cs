@@ -56,6 +56,7 @@ public class FieldArmyHolder : MonoBehaviour
         if (gameObject.name == "PlayerArmy")
         {
             FieldArmyHolder.PlayerFieldArmy.fieldArmy.nation = Owners.Instance.nationlist.Find(x => x.faction.name == SessionManager.Instance.HostFaction.name); //SessionManager.Instance.HostFaction
+            fieldArmy.nation.armies.Add(this);
         }
         else
         {

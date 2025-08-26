@@ -7,6 +7,7 @@ using UnityEngine.EventSystems;
 [System.Serializable]
 public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
+    [TextArea(10,20)]
     public string message;
     public bool armory = true;
     public bool events = false;
@@ -17,12 +18,12 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        //OnMouseEnter();
+        OnMouseEnter();
         ////ToolTipManager._instance.SetAndShowToolTip(message, positions);
     }
     public void OnPointerExit(PointerEventData eventData)
     {
-        //OnMouseExit();
+        OnMouseExit();
         ////ToolTipManager._instance.SetAndShowToolTip(message, positions);
     }
 

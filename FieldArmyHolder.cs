@@ -44,7 +44,6 @@ public class FieldArmyHolder : MonoBehaviour
         else
         {
             fieldArmy = new FieldArmy();
-            RecruitTimer = _RecruitTimer * 2;
         }
 
         fieldArmy.ArmySupply = 500;
@@ -57,6 +56,22 @@ public class FieldArmyHolder : MonoBehaviour
         {
             FieldArmyHolder.PlayerFieldArmy.fieldArmy.nation = Owners.Instance.nationlist.Find(x => x.faction.name == SessionManager.Instance.HostFaction.name); //SessionManager.Instance.HostFaction
             fieldArmy.nation.armies.Add(this);
+            if (fieldArmy.nation.name == "Carthage")
+            {
+                SetPositionTo(Owners.Instance.provincelist.Find(x => x.name == "_4"));
+            }
+            if (fieldArmy.nation.name == "Rome")
+            {
+                SetPositionTo(Owners.Instance.provincelist.Find(x => x.name == "_16"));
+            }
+            if (fieldArmy.nation.name == "Spain")
+            {
+                SetPositionTo(Owners.Instance.provincelist.Find(x => x.name == "_11"));
+            }
+            if (fieldArmy.nation.name == "Gaul")
+            {
+                SetPositionTo(Owners.Instance.provincelist.Find(x => x.name == "_13"));
+            }
         }
         else
         {
@@ -132,7 +147,7 @@ public class FieldArmyHolder : MonoBehaviour
         {
             if (IsPlayer)
             {
-                Mapshower.Instance.ArmyBattle(this, otherarmy);
+                Mapshower.Instance.ArmyBattle(this, otherarmy, otherarmy.fieldArmy);
             }
         }
         else
@@ -142,23 +157,32 @@ public class FieldArmyHolder : MonoBehaviour
             flaglist.Remove("Battle");
         }
     }
-    public void HandleAIonAICombat(FieldArmyHolder otherarmy)
+    public bool HandleAIonAICombat(FieldArmyHolder otherarmy, FieldArmy actualarmy = null)
     {
-        otherarmy.flaglist.Add("Battle");
+        
+        if (otherarmy != null)
+        {
+            otherarmy.flaglist.Add("Battle");
+        }
         if (!flaglist.Contains("Battle"))
         {
-            Debug.LogError("Potato");
+            if (otherarmy != null)
+            {
+                actualarmy = otherarmy.fieldArmy;
+            }
+            //Debug.LogError("Potato");
             //GrabArmyStrength
-            var a = otherarmy.fieldArmy.GrabArmySize() + Random.Range(-otherarmy.fieldArmy.GrabArmySize() / 2, otherarmy.fieldArmy.GrabArmySize() / 2);
+            var a = actualarmy.GrabArmySize() + Random.Range(-actualarmy.GrabArmySize() / 2, actualarmy.GrabArmySize() / 2);
             var b = this.fieldArmy.GrabArmySize() + Random.Range(-this.fieldArmy.GrabArmySize() / 2, this.fieldArmy.GrabArmySize() / 2);
             //If Theirs is stronger
             if (a >= b)
             {
                 for (int i = 0; i < b; i++)
                 {
-                    otherarmy.fieldArmy.RemoveRandomUnit();
+                    actualarmy.RemoveRandomUnit();
                 }
                 Destroy(this.gameObject);
+                return false;
             }
             //If Ours is stronger
             else
@@ -167,18 +191,14 @@ public class FieldArmyHolder : MonoBehaviour
                 {
                     this.fieldArmy.RemoveRandomUnit();
                 }
-                Destroy(otherarmy.gameObject);
+                if (otherarmy != null)
+                {
+                    Destroy(otherarmy.gameObject);
+                }
+                return true;
             }
         }
-        return;
-        // if (Random.Range(0, 2) == 1)
-        // {
-        //     Destroy(otherarmy.gameObject);
-        // }
-        // else
-        // {
-        //     Destroy(this.gameObject);
-        // }
+        return false;
     }
     public void Act()
     {
@@ -213,7 +233,10 @@ public class FieldArmyHolder : MonoBehaviour
                 if (!IsPlayer)
                 {
                     var a = GrabFieldArmyProvince();
-                    EnterProvince(a);
+                    if (HandleAIonAICombat(null, a.garrison))
+                    {
+                        EnterProvince(a);
+                    }
                 }
             }
             catch { }
@@ -234,8 +257,13 @@ public class FieldArmyHolder : MonoBehaviour
     }
     public void EnterProvince(Province province)
     {
+        ConquerProvince(province);
+    }
+    public void ConquerProvince(Province province)
+    {
         province.nation = fieldArmy.nation;
         Mapshower.Instance.RePaint();
+        province.CreateGarrison();
     }
     public void SetPositionTo(Vector3 newposition)
     {

@@ -13,6 +13,7 @@ public class SessionManager : MonoBehaviour
     public Faction ClientFaction_client;
     public Province savedProvince;
     public FieldArmyHolder savedArmy;
+    public FieldArmy savedFieldArmy;
     public string BattleStatus = "None";
     public bool Campaign = false;
     public int CampaignLevel = 1;

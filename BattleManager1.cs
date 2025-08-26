@@ -45,10 +45,11 @@ public class BattleManager1 : BattleManager
 
         brainy = new Brain();
         brainy.resources = 200 + (SessionManager.Instance.CampaignLevel * 150);
-        if (SessionManager.Instance.savedArmy != null)
+        if (SessionManager.Instance.savedFieldArmy != null)
         {
-            brainy.resources = SessionManager.Instance.savedArmy.fieldArmy.ArmySupply;
+            brainy.resources = SessionManager.Instance.savedFieldArmy.ArmySupply;
         }
+        brainy.resources = 5000;
         //Debug.LogError(brainy.resources);
 
         brainy.Startie();
@@ -406,28 +407,26 @@ public class BattleManager1 : BattleManager
             }
             if(friendlyalive < 1 || enemyalive < 1)
             {
-                if(friendlyalive < 1)
+                Debug.Log("battle over");
+                if (friendlyalive < 1)
                 {
                     //SessionManager.Instance.BattleStatus = "Defeat";
-                    
+                    Debug.Log("you lost");
                 }
                 if(enemyalive < 1)
                 {
+                    Debug.Log("you won");
                     //SessionManager.Instance.BattleStatus = "Victorious";
                     try
                     {
                         SessionManager.Instance.savedProvince.nation = Owners.Instance.CallPlayer();
+                        SessionManager.Instance.savedProvince.CreateGarrison();
                     }
                     catch
                     {
                         Debug.Log("No Savedprovince because armybattle");
                     }
-                    // if (SessionManager.Instance.savedArmy != null)
-                    // {
-                    //     Destroy(SessionManager.Instance.savedArmy.gameObject);
-                    // }
 
-                    //FieldArmyHolder.PlayerFieldArmy.EnterProvince(FieldArmyHolder.PlayerFieldArmy.GrabFieldArmyProvince());
                     
                     SessionManager.Instance.CampaignLevel++;
                     SessionManager.Instance.HostFaction.FarmLevel++;
@@ -440,24 +439,27 @@ public class BattleManager1 : BattleManager
                     {
                         FieldArmyHolder.PlayerFieldArmy.AddTroop(name: item.GetComponent<CritterHolder>().typename);
                     }
-                    if (SessionManager.Instance.savedArmy != null)
+                    if (SessionManager.Instance.savedFieldArmy != null)
                     {
                         if (!item.GetComponent<CritterHolder>().IsthisAI && item.active)
                         {
-                            SessionManager.Instance.savedArmy.AddTroop(name: item.GetComponent<CritterHolder>().typename);
+                            SessionManager.Instance.savedFieldArmy.AddTroop(name: item.GetComponent<CritterHolder>().typename);
                         }
                     }
                 }
-                if (SessionManager.Instance.savedArmy != null)
+                if (SessionManager.Instance.savedFieldArmy != null)
                 {
                     int z = 0;
-                    foreach (var item in SessionManager.Instance.savedArmy.fieldArmy.USDReserves)
+                    foreach (var item in SessionManager.Instance.savedFieldArmy.USDReserves)
                     {
                         z += item.amount;
                     }
                     if(z == 0)
                     {
-                        Destroy(SessionManager.Instance.savedArmy.gameObject);
+                        if (SessionManager.Instance.savedArmy != null)
+                        {
+                            Destroy(SessionManager.Instance.savedArmy.gameObject);
+                        }
                     }
                 }
 
@@ -465,6 +467,8 @@ public class BattleManager1 : BattleManager
                 SessionManager.Instance.ClientArmy.Clear();
 
                 SessionManager.Instance.savedArmy = null;
+                SessionManager.Instance.savedFieldArmy = null;
+                SessionManager.Instance.savedProvince = null;
 
                 Mapshower.Instance.gameObject.SetActive(true);
                 SceneManager.UnloadScene("FightScene 1");
@@ -688,7 +692,7 @@ public class BattleManager1 : BattleManager
                             }
                             else
                             {
-                            trader.GetComponent<TestCritter>().faction = SessionManager.Instance.savedArmy.fieldArmy.nation.faction; //SessionManager.Instance.ClientFaction; //HostFaction_client;
+                            trader.GetComponent<TestCritter>().faction = SessionManager.Instance.savedFieldArmy.nation.faction; //SessionManager.Instance.ClientFaction; //HostFaction_client;
                                 
                             }
 
@@ -697,7 +701,7 @@ public class BattleManager1 : BattleManager
                         {
                             if (RpcTest.Serverchecker.ServerCheck())
                             {
-                                trader.GetComponent<TestCritter>().faction = SessionManager.Instance.savedArmy.fieldArmy.nation.faction; //SessionManager.Instance.ClientFaction; //HostFaction_client;
+                                trader.GetComponent<TestCritter>().faction = SessionManager.Instance.savedFieldArmy.nation.faction; //SessionManager.Instance.ClientFaction; //HostFaction_client;
                             }
                             else
                             {

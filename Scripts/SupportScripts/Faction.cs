@@ -104,6 +104,7 @@ public class Faction : ScriptableObject
     {
         //Debug.LogError(name);
         UnitList.Clear();
+        UnitDataList.Clear();
         for (int i = 0; i < BarracksLevel; i++)
         {
             try

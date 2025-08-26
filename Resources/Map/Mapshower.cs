@@ -506,7 +506,15 @@ public class Mapshower : MonoBehaviour
         {
             return;
         }
-        FieldArmyHolder.PlayerFieldArmy.EnterProvince(SelectedProvince);
+        if (province.name == "")
+        {
+            SelectProvince(FieldArmyHolder.PlayerFieldArmy.GrabFieldArmyProvince());
+        }
+        //FieldArmyHolder.PlayerFieldArmy.EnterProvince(SelectedProvince);
+            SessionManager.Instance.savedProvince = SelectedProvince;
+
+        ArmyBattle(FieldArmyHolder.PlayerFieldArmy, null, SelectedProvince.garrison);
+
         return;
         //ArmyBattle(FieldArmyHolder.PlayerFieldArmy, SelectedProvince.CreateGarrison());
         //ArmyBattle(FieldArmyHolder.PlayerFieldArmy, province.SallyOut(FieldArmyHolder.PlayerFieldArmy));
@@ -520,26 +528,36 @@ public class Mapshower : MonoBehaviour
         this.gameObject.SetActive(false);
         SceneManager.LoadScene("FightScene 1", LoadSceneMode.Additive);
     }
-    public void ArmyBattle(FieldArmyHolder player, FieldArmyHolder Enemy)
+    public void ArmyBattle(FieldArmyHolder player, FieldArmyHolder Enemy, FieldArmy EnemyfieldArmy)
     {
         // SelectProvince(FieldArmyHolder.PlayerFieldArmy.LocalProvince);
         // Province province = SelectedProvince;
 
-        if (Enemy == SessionManager.Instance.savedArmy)
-        {
-            return;
-        }
-        if (Enemy.fieldArmy.nation == null)
-        {
-            return;
-        }
+        // if (Enemy == SessionManager.Instance.savedFieldArmy)
+        // {
+        //     return;
+        // }
+        // if (Enemy.fieldArmy.nation == null)
+        // {
+        //     return;
+        // }
 
         //SessionManager.Instance.ChangeEnemyFaction(Enemy.fieldArmy.nation.faction.name);
         //SessionManager.Instance.ClientChangePlayerFaction(player.fieldArmy.nation.name);
-        SessionManager.Instance.savedProvince = null;
+        //SessionManager.Instance.savedProvince = null;
         SessionManager.Instance.savedArmy = Enemy;
+        //SessionManager.Instance.savedArmy = Enemy;
+        if (SessionManager.Instance.savedArmy == null)
+        {
+            SessionManager.Instance.savedFieldArmy = EnemyfieldArmy;
+        }
+        else
+        {
+            SessionManager.Instance.savedFieldArmy = Enemy.fieldArmy;
+        }
+
         //SessionManager.Instance.LoadCampaign(province.nation.name);
-        this.gameObject.SetActive(false);
+            this.gameObject.SetActive(false);
         SceneManager.LoadScene("FightScene 1", LoadSceneMode.Additive);
     }
 

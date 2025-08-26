@@ -19,10 +19,10 @@ public class SpawnCritters : GAction
         //unitToSpawn = a[Random.Range(0, a.Count)];
 
         var b = SessionManager.Instance.ClientFaction.UnitDataList;
-        if (SessionManager.Instance.savedArmy != null)
+        if (SessionManager.Instance.savedFieldArmy != null)
         {
             b.Clear();
-            foreach (var item in SessionManager.Instance.savedArmy.fieldArmy.USDReserves)
+            foreach (var item in SessionManager.Instance.savedFieldArmy.USDReserves)
             {
                 for (int i = 0; i < item.amount; i++)
                 {
@@ -93,9 +93,9 @@ public class SpawnCritters : GAction
         unit.AIorNot = false;
         unit.ClientOrHost = "Client";
 
-        if (SessionManager.Instance.savedArmy != null)
+        if (SessionManager.Instance.savedFieldArmy != null)
         {
-            SessionManager.Instance.savedArmy.AddTroop(name: unit.name, amount: -1);
+            SessionManager.Instance.savedFieldArmy.AddTroop(name: unit.name, amount: -1);
         }
         brainy.resources -= unitToSpawn.GetComponent<CritterHolder>().cost.amount;
 

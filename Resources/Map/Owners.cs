@@ -54,6 +54,7 @@ public class Owners : MonoBehaviour
         provincedictcolor = new Dictionary<Color32, Province>();
         foreach (Province province in provincelist)
         {
+            province.CreateGarrison();
             try
             {
                 provincedict.Add(province.name, province);
@@ -152,6 +153,7 @@ public class Province
     public int population = 1000;
     public int supply = 1000;
     //public FieldArmyHolder garrisonArmy;
+    public FieldArmy garrison;
 
     public List<Culture> cultures;
     public int taxincome;
@@ -160,14 +162,15 @@ public class Province
     public int levypercentage;
     public int unrest;
 
-    // public FieldArmyHolder CreateGarrison()
-    // {
-    //     FieldArmyHolder garrison = new FieldArmyHolder();
-    //     garrison.fieldArmy = new FieldArmy();
-    //     garrison.fieldArmy.nation = nation;
-
-    //     return garrison;
-    // }
+    public void CreateGarrison()
+    {
+        garrison = new FieldArmy();
+        garrison.nation = nation;
+        for (int i = 0; i < 2; i++)
+        {
+            garrison.AddTroop(nation.faction.UnitDataList[i], nation.faction.UnitDataList[i].name, 3);
+        }
+    }
     public FieldArmyHolder SallyOut(FieldArmyHolder sally)
     {
         return Mapshower.Instance.SpawnArmy(this);

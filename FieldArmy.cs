@@ -26,6 +26,47 @@ public class FieldArmy : ScriptableObject
             templist[Random.Range(0, templist.Count)].amount -= 1;
         }
     }
+    public void AddTroop(UnitSaveData unittoAdd = null, string name = "", int amount = 1)
+    {
+        //Debug.LogError("Trying to add " + amount + " of " + name + unittoAdd);
+        if (name != "")
+        {
+            try
+            {
+                var a = USDReserves.Find(x => x.name == name).USD;
+                AddTroop(a, amount);
+            }
+            catch
+            {
+                try
+                {
+                    var b = Resources.Load<UnitSaveData>("Prefabs/Units/NormieData/" + name);
+                    var c = Instantiate(b);
+                    c.name = b.name;
+                    AddTroop(c, amount);
+                }
+                catch
+                {
+                    Debug.LogError("Could not find " + name + " Unit in database");
+                }
+
+            }
+
+        }
+        else
+        {
+            if (unittoAdd == null)
+            {
+                var a = nation.faction.UnitDataList[Random.Range(0, nation.faction.UnitDataList.Count)];
+                AddTroop(a, amount);
+            }
+            else
+            {
+
+                AddTroop(unittoAdd, amount);
+            }
+        }
+    }
     public void AddTroop(UnitSaveData UnitToAdd, int amount = 1, bool ForceRecruit = false)
     {
         if (amount > 0 && GrabArmySize() > MaxArmySize && ForceRecruit == false)

@@ -23,8 +23,7 @@ MonoBehaviour:
   MeleeWeapon: {fileID: 11400000, guid: e16ead9d937412544bee2529d13783d3, type: 2}
   Armor: {fileID: 11400000, guid: c6fe3a90079e386418f1370598f70a5f, type: 2}
   Shield: {fileID: 11400000, guid: 83953234ba2b58a4bb676296c1cf3f5f, type: 2}
-  modifierlist:
-  - {fileID: 11400000, guid: 788f974802e7e00418ea518bb52f7dd6, type: 2}
+  modifierlist: []
   color: {r: 0.53333336, g: 0, b: 0, a: 0}
   color2: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 0}
   color3: {r: 1, g: 0.5529412, b: 0.39607844, a: 0}

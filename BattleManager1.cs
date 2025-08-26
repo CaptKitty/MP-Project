@@ -49,7 +49,7 @@ public class BattleManager1 : BattleManager
         {
             brainy.resources = SessionManager.Instance.savedArmy.fieldArmy.ArmySupply;
         }
-        Debug.LogError(brainy.resources);
+        //Debug.LogError(brainy.resources);
 
         brainy.Startie();
 

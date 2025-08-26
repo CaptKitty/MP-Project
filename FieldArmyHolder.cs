@@ -138,16 +138,47 @@ public class FieldArmyHolder : MonoBehaviour
         else
         {
             //HandleAIonAICombat
-            if (Random.Range(0, 2) == 1)
+            HandleAIonAICombat(otherarmy);
+            flaglist.Remove("Battle");
+        }
+    }
+    public void HandleAIonAICombat(FieldArmyHolder otherarmy)
+    {
+        otherarmy.flaglist.Add("Battle");
+        if (!flaglist.Contains("Battle"))
+        {
+            Debug.LogError("Potato");
+            //GrabArmyStrength
+            var a = otherarmy.fieldArmy.GrabArmySize() + Random.Range(-otherarmy.fieldArmy.GrabArmySize() / 2, otherarmy.fieldArmy.GrabArmySize() / 2);
+            var b = this.fieldArmy.GrabArmySize() + Random.Range(-this.fieldArmy.GrabArmySize() / 2, this.fieldArmy.GrabArmySize() / 2);
+            //If Theirs is stronger
+            if (a >= b)
             {
-                Destroy(otherarmy.gameObject);
-            }
-            else
-            {
+                for (int i = 0; i < b; i++)
+                {
+                    otherarmy.fieldArmy.RemoveRandomUnit();
+                }
                 Destroy(this.gameObject);
             }
+            //If Ours is stronger
+            else
+            {
+                for (int i = 0; i < a; i++)
+                {
+                    this.fieldArmy.RemoveRandomUnit();
+                }
+                Destroy(otherarmy.gameObject);
+            }
         }
-
+        return;
+        // if (Random.Range(0, 2) == 1)
+        // {
+        //     Destroy(otherarmy.gameObject);
+        // }
+        // else
+        // {
+        //     Destroy(this.gameObject);
+        // }
     }
     public void Act()
     {
@@ -334,7 +365,7 @@ public class FieldArmyHolder : MonoBehaviour
                     if (province != null && !province.nation.faction.name.Contains("Rome"))
                     {
                         Nation nation = Owners.Instance.nationlist.Find(x => x.name == province.OriginalNation.name);
-                        Debug.LogError(nation.name);
+                        //Debug.LogError(nation.name);
                         var a = Instantiate(nation.faction.UnitDataList[0]);
                         a.name = province.nation.faction.UnitDataList[0].name;
                         if (Random.Range(0, 3) == 1)

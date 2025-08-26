@@ -11,6 +11,21 @@ public class FieldArmy : ScriptableObject
     public List<ArmyReserves> USDReserves = new List<ArmyReserves>();
     public int ArmySupply;
     public int MaxArmySize = 20;
+    public void RemoveRandomUnit()
+    {
+        List<ArmyReserves> templist = new List<ArmyReserves>();
+        foreach (ArmyReserves item in USDReserves)
+        {
+            if (item.amount > 0)
+            {
+                templist.Add(item);
+            }
+        }
+        if (templist.Count > 0)
+        {
+            templist[Random.Range(0, templist.Count)].amount -= 1;
+        }
+    }
     public void AddTroop(UnitSaveData UnitToAdd, int amount = 1, bool ForceRecruit = false)
     {
         if (amount > 0 && GrabArmySize() > MaxArmySize && ForceRecruit == false)
@@ -37,7 +52,7 @@ public class FieldArmy : ScriptableObject
                 Debug.LogError(UnitToAdd.name);
                 Debug.LogError(item.USD.name);
             }
-            
+
         }
         //Debug.LogError("We don't have " + UnitToAdd.name + " yet.");
         ArmyReserves UR = new ArmyReserves();

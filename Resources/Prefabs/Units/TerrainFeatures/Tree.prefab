@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1002579342033724373}
   - component: {fileID: -8209825602014350543}
   - component: {fileID: 8284218633723813224}
+  - component: {fileID: 7981338866005667254}
   m_Layer: 0
   m_Name: Tree
   m_TagString: Untagged
@@ -87,7 +88,7 @@ SpriteRenderer:
   m_Size: {x: 0.39, y: 0.63}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!95 &1002579342033724373
@@ -160,7 +161,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   modifier: {fileID: 11400000, guid: 44f6939e49a949f4c9438170d45bc67b, type: 2}
   immunityflag: Forestry_Immunity
-  EffectFlag: null
+  reverseimmunity: 0
+--- !u!114 &7981338866005667254
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1002579342033724372}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5e9763fe09f5704780c4795f22a38d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  modifier: {fileID: 11400000, guid: 94b3c41704b91f14888f27349b5f6281, type: 2}
+  immunityflag: Forester
+  reverseimmunity: 1
 --- !u!1 &1002579343139218209
 GameObject:
   m_ObjectHideFlags: 0

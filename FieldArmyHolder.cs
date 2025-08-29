@@ -12,6 +12,7 @@ public class FieldArmyHolder : MonoBehaviour
     public int speed = 30;
     private Vector3 target;
     public Vector3 LocalProvince;
+    public Province TargetProvince;
     private float timer;
     public int turnCounter = 0;
     private int NextRecruitTime = 0;
@@ -58,20 +59,25 @@ public class FieldArmyHolder : MonoBehaviour
             fieldArmy.nation.armies.Add(this);
             if (fieldArmy.nation.name == "Carthage")
             {
-                SetPositionTo(Owners.Instance.provincelist.Find(x => x.name == "_4"));
+                SetPositionTo(Owners.Instance.provincelist.Find(x => x.name == "Bastetani_0"));
+            }
+            if (fieldArmy.nation.name == "Galicia")
+            {
+                SetPositionTo(Owners.Instance.provincelist.Find(x => x.name == "Gallaeci_0"));
             }
             if (fieldArmy.nation.name == "Rome")
             {
-                SetPositionTo(Owners.Instance.provincelist.Find(x => x.name == "_16"));
+                SetPositionTo(Owners.Instance.provincelist.Find(x => x.name == "Italian Province_3"));
             }
-            if (fieldArmy.nation.name == "Spain")
-            {
-                SetPositionTo(Owners.Instance.provincelist.Find(x => x.name == "_11"));
-            }
+            // if (fieldArmy.nation.name == "Spain")
+            // {
+            //     SetPositionTo(Owners.Instance.provincelist.Find(x => x.name == "_11"));
+            // }
             if (fieldArmy.nation.name == "Gaul")
             {
-                SetPositionTo(Owners.Instance.provincelist.Find(x => x.name == "_13"));
+                SetPositionTo(Owners.Instance.provincelist.Find(x => x.name == "French Province_8"));
             }
+            Camera.main.gameObject.transform.localPosition = new Vector3(FieldArmyHolder.PlayerFieldArmy.gameObject.transform.position.x, FieldArmyHolder.PlayerFieldArmy.gameObject.transform.position.y, -10);
         }
         else
         {
@@ -84,16 +90,33 @@ public class FieldArmyHolder : MonoBehaviour
         Owners.Instance.armylist.Add(this);
         Material mat = Instantiate(transform.GetChild(0).GetComponent<SpriteRenderer>().material);
         transform.GetChild(0).GetComponent<SpriteRenderer>().material = mat;
+        transform.GetChild(1).GetComponent<SpriteRenderer>().material = mat;
+        transform.GetChild(2).GetComponent<SpriteRenderer>().material = mat;
         mat.SetColor("_FactionColor", fieldArmy.nation.faction.color);
         mat.SetColor("_FactionColor2", fieldArmy.nation.faction.color2);
         mat.SetColor("_FactionColor3", fieldArmy.nation.faction.color3);
 
         fieldArmy.USDReserves.Clear();
 
-        foreach (UnitSaveData item in fieldArmy.nation.faction.UnitDataList)
+        if (fieldArmy.nation.faction.HasFlag("Decentralized"))
         {
-            fieldArmy.AddTroop(item, 3);
+            foreach (UnitSaveData item in fieldArmy.nation.faction.UnitDataList)
+            {
+                fieldArmy.AddTroop(item, 2);
+            }
         }
+        else
+        {
+            foreach (UnitSaveData item in fieldArmy.nation.faction.UnitDataList)
+            {
+                fieldArmy.AddTroop(item, 3);
+            }
+        }
+        
+
+        transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = fieldArmy.USDReserves[0].USD.bodyparts[0];
+        transform.GetChild(2).GetComponent<SpriteRenderer>().sprite = fieldArmy.USDReserves[0].USD.bodyparts[2];
+
         if (fieldArmy.nation.faction.HasFlag("EqualOpportunityPillagers"))
         {
             DomesticSupplyUsage = 2;
@@ -112,7 +135,9 @@ public class FieldArmyHolder : MonoBehaviour
         if (fieldArmy.nation.faction.HasFlag("FastAsFuckBoi"))
         {
             speed *= 2;
+            ActivityTimer = 0;
         }
+        
     }
     public void OnDestroy()
     {
@@ -123,7 +148,7 @@ public class FieldArmyHolder : MonoBehaviour
     {
         if (IsPlayer && Input.GetMouseButtonDown(1))
         {
-            SetTarget(Input.mousePosition);
+            //SetTarget(Input.mousePosition);
         }
     }
     public void OnTriggerEnter2D(Collider2D collider)
@@ -174,30 +199,35 @@ public class FieldArmyHolder : MonoBehaviour
             //GrabArmyStrength
             var a = actualarmy.GrabArmySize() + Random.Range(-actualarmy.GrabArmySize() / 2, actualarmy.GrabArmySize() / 2);
             var b = this.fieldArmy.GrabArmySize() + Random.Range(-this.fieldArmy.GrabArmySize() / 2, this.fieldArmy.GrabArmySize() / 2);
+            if (this.HasFlag("CrusherOfGarrisons") && otherarmy == null)
+            {
+                a -= 2;
+            }
             //If Theirs is stronger
-            if (a >= b)
-            {
-                for (int i = 0; i < b; i++)
+                if (a >= b)
                 {
-                    actualarmy.RemoveRandomUnit();
+                    for (int i = 0; i < b; i++)
+                    {
+                        actualarmy.RemoveRandomUnit();
+                    }
+                    Destroy(this.gameObject);
+                    return false;
                 }
-                Destroy(this.gameObject);
-                return false;
-            }
-            //If Ours is stronger
-            else
-            {
-                for (int i = 0; i < a; i++)
+                //If Ours is stronger
+                else
                 {
-                    this.fieldArmy.RemoveRandomUnit();
+                    for (int i = 0; i < a; i++)
+                    {
+                        this.fieldArmy.RemoveRandomUnit();
+                    }
+                    if (otherarmy != null)
+                    {
+                        Destroy(otherarmy.gameObject);
+                    }
+                    return true;
                 }
-                if (otherarmy != null)
-                {
-                    Destroy(otherarmy.gameObject);
-                }
-                return true;
-            }
         }
+        flaglist.Remove("Battle");
         return false;
     }
     public void Act()
@@ -228,18 +258,18 @@ public class FieldArmyHolder : MonoBehaviour
         {
             //Mapshower.Instance.SelectProvince(target);
             LocalProvince = target;
-            try
+            if (!IsPlayer)
             {
-                if (!IsPlayer)
+                //var a = GrabFieldArmyProvince();
+                var a = TargetProvince;//
+                if (a.nation != fieldArmy.nation)
                 {
-                    var a = GrabFieldArmyProvince();
                     if (HandleAIonAICombat(null, a.garrison))
                     {
                         EnterProvince(a);
                     }
                 }
             }
-            catch { }
 
             target = new Vector3(0, 0, 0);
             return;
@@ -271,7 +301,8 @@ public class FieldArmyHolder : MonoBehaviour
     }
     public void SetPositionTo(Province province)
     {
-        transform.localPosition = new Vector3(province.position.x * 1f - offset.x, province.position.y * 1f - offset.y, 0);
+        //transform.localPosition = new Vector3(province.position.x * 1f - offset.x, province.position.y * 1f - offset.y, 0);
+        transform.position = new Vector3(province.position.x * 1f - offset.x, province.position.y * 1f - offset.y, 0);
     }
     public void AddTroop(UnitSaveData unittoAdd = null, string name = "", int amount = 1)
     {
@@ -333,19 +364,23 @@ public class FieldArmyHolder : MonoBehaviour
                     var a = new List<Province>();
                     foreach (var item in Owners.Instance.provincelist)
                     {
-                        if (item.nation == fieldArmy.nation)
-                        {
-                            a.Add(item);
-                        }
-                        var temptarget = Camera.main.WorldToScreenPoint(new Vector3(item.position.x * 1f - offset.x, item.position.y * 1f - offset.y, 0));
+
+                        Vector3 temptarget = item.position;
                         var heading = transform.position - new Vector3((temptarget.x - adjustment.x) * modification.x, (temptarget.y - adjustment.y) * modification.y, 0);
                         var distance = heading.magnitude;
-                        if (distance < 150)
+                        if (distance < 75) // 50) //150)
                         {
                             a.Add(item);
+                            if (item.nation == fieldArmy.nation)
+                            {
+                                a.Add(item);
+                            }
                         }
                     }
-                    SetTarget(a[Random.Range(0, a.Count)]);
+                    var b = a[Random.Range(0, a.Count)];
+                    SetTarget(b);
+                    TargetProvince = b;
+                    //SetPositionTo(b);
                 }
             }
         }
@@ -388,9 +423,9 @@ public class FieldArmyHolder : MonoBehaviour
             //Abroad
             else
             {
-                if (fieldArmy.nation.faction.HasFlag("ForeignNonRomanRecruitment"))
+                if (fieldArmy.nation.faction.HasFlag("ForeignBarbarianRecruitment"))
                 {
-                    if (province != null && !province.nation.faction.name.Contains("Rome"))
+                    if (province != null && province.nation.faction.HasFlag("Barbarian"))
                     {
                         Nation nation = Owners.Instance.nationlist.Find(x => x.name == province.OriginalNation.name);
                         //Debug.LogError(nation.name);
@@ -411,7 +446,7 @@ public class FieldArmyHolder : MonoBehaviour
         //HandleEvents
         if (IsPlayer && turnCounter % 8 == 0)
         {
-
+            return;
             EventManager.eventManager.TriggerEvent(grabRandomViableEvent().name);
         }
     }
@@ -450,12 +485,17 @@ public class FieldArmyHolder : MonoBehaviour
     }
     public void SetTarget(Vector3 newtarget)
     {
-        // Debug.LogError("Target Set");
+        //Debug.LogError(newtarget);
         target = newtarget;
     }
     public void SetTarget(Province province)
     {
-        // Debug.LogError("Target Set");
-        target = Camera.main.WorldToScreenPoint(new Vector3(province.position.x * 1f - offset.x, province.position.y * 1f - offset.y, 0));
+        //Debug.LogError(province.position);
+        SetTarget(province.position);
+        // int x = (int)Mathf.Floor(province.position.x) + Mapshower.Instance.width / 2;
+        // int y = (int)Mathf.Floor(province.position.y) + Mapshower.Instance.height / 2;
+        // SetTarget(new Vector3(x, y, 0));
+
+        //target = Camera.main.WorldToScreenPoint(new Vector3(province.position.x * 1f - offset.x, province.position.y * 1f - offset.y, 0));
     }
 }

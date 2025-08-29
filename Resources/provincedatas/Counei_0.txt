@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Counei_0
+}
+Color ={
+124
+67
+51
+}
+Location ={
+103
+291
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Spain
+}
+}

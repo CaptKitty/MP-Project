@@ -26,6 +26,8 @@ public class Mapshower : MonoBehaviour
     public int width;
     public int height;
 
+    public Camera OverheadCamera;
+
     Color32[] remapArr;
     Texture2D paletteTex;
     Texture2D ownerTex;
@@ -159,30 +161,68 @@ public class Mapshower : MonoBehaviour
             RePaint();
             //Application.Quit();
         }
-        if (Input.GetKey("1"))
+        if (Input.GetKeyDown("space"))
         {
-            PopPaint();
+            if (Time.timeScale == 1)
+            {
+                Time.timeScale = 10;
+            }
+            else
+            {
+                Time.timeScale = 1;
+            }
         }
-        if (Input.GetKey("2"))
+        if (Input.GetKey("1"))
         {
             RePaint();
         }
-        if (Input.GetKey("3"))
-        {
-            CulturePaint();
-        }
-        if (Input.GetKey("4"))
+        if (Input.GetKey("2"))
         {
             SupplyPaint();
         }
-        // if (Input.GetKey("q"))
+        // if (Input.GetKey("3"))
         // {
-        //     Camera.main.orthographicSize += 0.1f;
+        //     CulturePaint();
         // }
-        // if (Input.GetKey("e"))
+        // if (Input.GetKey("4"))
         // {
-        //     Camera.main.orthographicSize -= 0.1f;
+        //     PopPaint();
         // }
+        float amount = 1;
+        if (Input.GetKey("left shift"))
+        {
+            amount *= 5;
+        }
+        if (Input.GetKey("q"))
+        {
+            if (Camera.main.orthographicSize < 150)
+            {
+                Camera.main.orthographicSize += amount * 0.5f;
+            }
+        }
+        if (Input.GetKey("e"))
+        {
+            if (Camera.main.orthographicSize > 50)
+            {
+                Camera.main.orthographicSize -= amount * 0.5f;
+            }
+        }
+        if (Input.GetKey("d"))
+        {
+            Camera.main.transform.position = new Vector3(Camera.main.transform.position.x + amount * 0.1f, Camera.main.transform.position.y, -10);
+        }
+        if (Input.GetKey("a"))
+        {
+            Camera.main.transform.position = new Vector3(Camera.main.transform.position.x -amount * 0.1f, Camera.main.transform.position.y, -10);
+        }
+        if (Input.GetKey("w"))
+        {
+            Camera.main.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y + amount * 0.1f, -10);
+        }
+        if (Input.GetKey("s"))
+        {
+            Camera.main.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y - amount * 0.1f, -10);
+        }
     }
     public void Paint()
     {
@@ -295,13 +335,15 @@ public class Mapshower : MonoBehaviour
     }
     public void OnMouseOver()
     {
-        if (Input.GetMouseButtonDown(1))
-        {
-            // banana = null;
-            // UIManager.Instance.gameObject.transform.GetChild(1).gameObject.SetActive(false);
-            // UIManager.Instance.gameObject.transform.GetChild(0).gameObject.SetActive(false);
-            //return;
-        }
+        // if (Input.GetMouseButtonDown(1))
+        // {
+        //     var a = Owners.Instance.provincelist[UnityEngine.Random.Range(0, 10)];
+        //     FieldArmyHolder.PlayerFieldArmy.SetPositionTo(a);
+        //     // banana = null;
+        //     // UIManager.Instance.gameObject.transform.GetChild(1).gameObject.SetActive(false);
+        //     // UIManager.Instance.gameObject.transform.GetChild(0).gameObject.SetActive(false);
+        //     //return;
+        // }
         if(1==1)
         {
             if (EventSystem.current.IsPointerOverGameObject())
@@ -316,8 +358,15 @@ public class Mapshower : MonoBehaviour
                 int x = (int)Mathf.Floor(p.x) + width / 2;
                 int y = (int)Mathf.Floor(p.y) + height / 2;
 
+                if (Input.GetMouseButtonDown(1))
+                {
+                    //print(x.ToString() + " " + y.ToString());
+                    FieldArmyHolder.PlayerFieldArmy.SetTarget(new Vector3(x, y, 0));
+                }
+
+                
+
                 var remapColor = remapArr[x + y * width];
-                // print(remapColor.r + " " + x.ToString() + " " + y.ToString());
                 int xp = remapColor[0];
                 int yp = remapColor[1];
 
@@ -344,91 +393,54 @@ public class Mapshower : MonoBehaviour
                 int xps = remapColor[0];
                 int yps = remapColor[1];
 
-                Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
-
-                //
-
-                // UIElement.NationHost.UpdateTitle(province.nation.name);
-                // UIElement.ProvinceHost.UpdateTitle(province.name);
-
-                foreach(Province provinces in Owners.Instance.provincelist)
+                try
                 {
-                    x = (int)provinces.position.x;
-                    y = (int)provinces.position.y;
+                    Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
+                    foreach(Province provinces in Owners.Instance.provincelist)
+                    {
+                        x = (int)provinces.position.x;
+                        y = (int)provinces.position.y;
+
+                        remapColor = remapArr[x + y * width];
+                        xp = remapColor[0];
+                        yp = remapColor[1];
+
+                        if(province.nation == provinces.nation)
+                        {
+                            changeColors(remapColor, new Color32(64, 64, 64, 255));//state.stateIdentity);
+                        }
+                        else
+                        {
+                            changeColors(remapColor, new Color32(0, 0, 0, 255));
+                        }
+                    }
+
+                    x = (int)Mathf.Floor(p.x) + width / 2;
+                    y = (int)Mathf.Floor(p.y) + height / 2;
 
                     remapColor = remapArr[x + y * width];
-                    xp = remapColor[0];
-                    yp = remapColor[1];
+                    changeColors(remapColor, new Color32(255, 255, 255, 255));
 
-                    //var state = Owners.Instance.statelist.Find(x => x.name == province.state);
+                    ownerTex.Apply(true);
+                    paletteTex.Apply(true);
 
-                    if(province.nation == provinces.nation)
+                    if (Input.GetMouseButtonDown(0))
                     {
-                        changeColors(remapColor, new Color32(64, 64, 64, 255));//state.stateIdentity);
-                    }
-                    else
-                    {
-                        changeColors(remapColor, new Color32(0, 0, 0, 255));
+                        //Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
+                        print(x.ToString() + " " + y.ToString());
+                        SelectProvince(province);
+                        //FieldArmyHolder.PlayerFieldArmy.SetTarget(province);
                     }
                 }
-
-                x = (int)Mathf.Floor(p.x) + width / 2;
-                y = (int)Mathf.Floor(p.y) + height / 2;
-
-                remapColor = remapArr[x + y * width];
-                changeColors(remapColor, new Color32(255, 255, 255, 255));
-
-                //ownerTex.SetPixel(xps, yps, province.nation.ownerIdentity);
-                
-
-
-                ownerTex.Apply(true);
-                paletteTex.Apply(true);
-
-                if (Input.GetMouseButtonDown(0))
+                catch
                 {
-                    //Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
-                    SelectProvince(province);
-                    //SelectLocationFromProvince(province);
-
-                     //mousePos);
                     
-                    // SelectedNation = province.nation;
-                    // UIElement.NationHost.UpdateTitle(province.nation.name);
-
-                    // SelectedProvince = province;
-                    // UIElement.ProvinceHost.UpdateTitle(province.name);
-
-                    // if(!province.nation.IsPlayer)
-                    // {
-                    //     PrepBattle(province);
-                    // }
                 }
-                
-                
-                // UIManager.Instance.ChangeText(province);
-                // print(Owners.Instance.CallProvinceByString(province.name).identity);
-                //print(province.name);
-                // if(banana != null)
-                // {
-                //     //UIManager.Instance.gameObject.transform.GetChild(1).gameObject.SetActive(true);
-                //     //UIManager.Instance.gameObject.transform.GetChild(0).gameObject.SetActive(false);
-                //     if(banana.GetComponent<CampaignArmyController>().general.nation.IsPlayer)
-                //     {
-                //         banana.GetComponent<CampaignArmyController>().TryToMove(province);
-                        // RePaint();
-                //     }
-                // }
-                // else
-                // {
-                //     UIManager.Instance.gameObject.transform.GetChild(1).gameObject.SetActive(false);
-                //     UIManager.Instance.gameObject.transform.GetChild(0).gameObject.SetActive(true);
-                // }
                 if(Input.GetMouseButtonDown(1))
                 {
                     //AddFileOfPower(new Vector2(x,y),mainTex.GetPixel(x,y));
                 }
-                // 
+
             }
             
         }
@@ -437,7 +449,7 @@ public class Mapshower : MonoBehaviour
     public FieldArmyHolder SpawnArmy(Province province)
     {
         var b = Resources.Load<GameObject>("Prefabs/FieldArmy");
-        var c = Instantiate(b, transform.GetChild(2));
+        var c = Instantiate(b, transform.GetChild(0).GetChild(1));
 
         c.GetComponent<FieldArmyHolder>().SetPositionTo(province);
         return c.GetComponent<FieldArmyHolder>();
@@ -492,25 +504,29 @@ public class Mapshower : MonoBehaviour
     }
     public void PrepBattle()
     {
-        SelectProvince(FieldArmyHolder.PlayerFieldArmy.LocalProvince);
+        print("Pressed button to engage");
+        SelectProvince(FieldArmyHolder.PlayerFieldArmy.GrabFieldArmyProvince());
         if (SelectedProvince == null)
         {
+            print("Selected province is null");
             return;
         }
         if (SelectedProvince.nation.IsPlayer)
         {
+            print("Selected province is yours dumbo");
             return;
         }
         Province province = SelectedProvince;
         if (province == null)
         {
+            print("Selected province is somehow null");
             return;
         }
         if (province.name == "")
         {
             SelectProvince(FieldArmyHolder.PlayerFieldArmy.GrabFieldArmyProvince());
         }
-        //FieldArmyHolder.PlayerFieldArmy.EnterProvince(SelectedProvince);
+
             SessionManager.Instance.savedProvince = SelectedProvince;
 
         ArmyBattle(FieldArmyHolder.PlayerFieldArmy, null, SelectedProvince.garrison);
@@ -557,7 +573,11 @@ public class Mapshower : MonoBehaviour
         }
 
         //SessionManager.Instance.LoadCampaign(province.nation.name);
+
             this.gameObject.SetActive(false);
+            OverheadCamera.gameObject.SetActive(false);
+            Time.timeScale = 1;
+
         SceneManager.LoadScene("FightScene 1", LoadSceneMode.Additive);
     }
 
@@ -566,7 +586,7 @@ public class Mapshower : MonoBehaviour
         // Debug.Log(Application.persistentDataPath);
         
         print(Application.persistentDataPath + "/" + regionname + "_" + regionnumber + ".txt");
-        regionnumber++;
+        //regionnumber++;
         StreamWriter sw = new StreamWriter(Application.persistentDataPath + "/" + regionname + "_" + regionnumber + ".txt");
         UnityEngine.Debug.LogError(Application.persistentDataPath + "/" + regionname + "_" + regionnumber + ".txt");
         sw.WriteLine("Province ={");

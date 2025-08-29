@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Bastetani_0
+}
+Color ={
+124
+53
+110
+}
+Location ={
+219
+268
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Carthage
+}
+}

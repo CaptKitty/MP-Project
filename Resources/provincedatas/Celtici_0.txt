@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Celtici_0
+}
+Color ={
+255
+229
+84
+}
+Location ={
+115
+319
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Spain
+}
+}

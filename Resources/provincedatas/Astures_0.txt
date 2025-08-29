@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Astures_0
+}
+Color ={
+127
+167
+0
+}
+Location ={
+166
+402
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Galicia
+}
+}

@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Cantabri_0
+}
+Color ={
+165
+97
+100
+}
+Location ={
+207
+395
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Spain
+}
+}

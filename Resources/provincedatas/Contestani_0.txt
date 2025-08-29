@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Contestani_0
+}
+Color ={
+214
+255
+102
+}
+Location ={
+237
+290
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Carthage
+}
+}

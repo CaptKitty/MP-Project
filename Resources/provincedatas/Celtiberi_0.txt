@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Celtiberi_0
+}
+Color ={
+183
+189
+255
+}
+Location ={
+222
+342
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Spain
+}
+}

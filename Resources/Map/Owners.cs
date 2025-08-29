@@ -43,6 +43,7 @@ public class Owners : MonoBehaviour
             nation.faction = nation.faction.Init();
             //Debug.LogError(nation.name);
             nation.faction.Set();
+            nation.faction.color = nation.ownerIdentity;
             
             if (SessionManager.Instance.HostFaction.name.Contains(nation.name))
             {
@@ -74,9 +75,9 @@ public class Owners : MonoBehaviour
     {
         foreach (var province in provincelist)
         {
-            var a = Instantiate(CityObject, this.transform.GetChild(2));
-            a.transform.localScale = new Vector3(50f, 50f, 50f);
-            a.transform.localPosition = new Vector3(province.position.x * 1f - 364f, province.position.y * 1f - 232f, 0);
+            var a = Instantiate(CityObject, this.transform.GetChild(0).GetChild(1).GetChild(1));
+            a.transform.localScale = new Vector3(25f, 25f, 25f);
+            a.transform.position = new Vector3(province.position.x * 1f - 512f, province.position.y * 1f - 331f, 0);
         }
     }
     public Nation CallPlayer()
@@ -120,12 +121,12 @@ public class Owners : MonoBehaviour
             foreach (var item in armylist)
             {
                 item.Act();
-                if (timer % 50 == 0)
+                if (timer % 50 == 0) //50
                 {
                     item.NextTurn();
                 }
             }
-            if (timer % 250 == 0)
+            if (timer % 1000 == 0) //if (timer % 250 == 0)
             {
                 TakeTurns();
             }
@@ -215,7 +216,10 @@ public class Nation
                     a.Add(province);
                 }
             }
-            Mapshower.Instance.SpawnArmy(a[Random.Range(0, a.Count)]);
+            if (a.Count > 0)
+            {
+                Mapshower.Instance.SpawnArmy(a[Random.Range(0, a.Count)]);
+            }
         }
     }
 }

@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Lusitani_0
+}
+Color ={
+127
+0
+55
+}
+Location ={
+130
+351
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Spain
+}
+}

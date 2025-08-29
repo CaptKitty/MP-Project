@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Italian Province_7
+}
+Color ={
+120
+255
+58
+}
+Location ={
+405
+412
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Rome
+}
+}

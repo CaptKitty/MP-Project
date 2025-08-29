@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Oretani_0
+}
+Color ={
+124
+26
+37
+}
+Location ={
+195
+293
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Spain
+}
+}

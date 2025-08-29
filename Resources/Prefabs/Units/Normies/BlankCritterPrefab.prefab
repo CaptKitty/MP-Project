@@ -87,19 +87,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spot: {x: 0, y: 0, z: 0}
-  name: LegionaryLight
+  name: Iberian_SpearChucker
   typename: 
-  unittype: 1
+  unittype: 3
   nametype: []
   cost:
     name: 
-    amount: 100
+    amount: 50
     sprite: {fileID: 0}
   DoesThisgoOnTheCity: 0
   ViablePlacingSpots:
   - Grassland
   targetlists: []
-  population: 200
+  population: 100
   AbilityList:
   - {fileID: 0}
   PrivateAbilityList:
@@ -111,11 +111,12 @@ MonoBehaviour:
   online: 0
   unitbrain: {fileID: 0}
   weaponlist: []
-  flaglist: []
+  flaglist:
+  - Forestry_Immunity
   RangedWeapon: {fileID: 0}
-  MeleeWeapon: {fileID: 11400000, guid: dd27822988f93bc469b2fe10ae3c23ca, type: 2}
-  Armor: {fileID: 11400000, guid: 0c528521dbd964449a22c382d3668628, type: 2}
-  Shield: {fileID: 11400000, guid: 391b1d4a466a19d40a0d7b9792737f1a, type: 2}
+  MeleeWeapon: {fileID: 0}
+  Armor: {fileID: 11400000, guid: c6fe3a90079e386418f1370598f70a5f, type: 2}
+  Shield: {fileID: 11400000, guid: 1bd00b1d3809b2e45a258806a787dcb7, type: 2}
   AIScript: {fileID: 11400000, guid: 2d7ce668646ce0147a880409da096a1d, type: 2}
   scriptlist:
   - {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}

@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: feeb2f63c62761344bf2889db73c56d4, type: 3}
   m_Name: Carthage
   m_EditorClassIdentifier: 
-  color: {r: 0.690566, g: 0.690566, b: 0.690566, a: 1}
-  color2: {r: 0.1764706, g: 0.5496015, b: 0.7607843, a: 0}
+  color: {r: 0.1764706, g: 0.54901963, b: 0.7607843, a: 0}
+  color2: {r: 0.6901961, g: 0.6901961, b: 0.6901961, a: 1}
   color3: {r: 0.5660378, g: 0.44838488, b: 0.3337487, a: 0}
   UnitList: []
   UnitDataList: []
@@ -40,5 +40,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 57eb2d5207ea83d429b585109863402b, type: 2}
   - {fileID: 11400000, guid: 51919457534f672489ebf26eb0bc2224, type: 2}
   Flaglist:
-  - ForeignNonRomanRecruitment
+  - ForeignBarbarianRecruitment
+  - CrusherOfGarrisons
   Income: 500

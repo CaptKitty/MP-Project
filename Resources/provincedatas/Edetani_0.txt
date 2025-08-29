@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Edetani_0
+}
+Color ={
+107
+102
+255
+}
+Location ={
+239
+313
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Spain
+}
+}

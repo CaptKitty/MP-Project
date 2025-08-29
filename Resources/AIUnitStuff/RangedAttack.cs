@@ -39,6 +39,19 @@ public class RangedAttack : Unit_GAction
 
         if (critter.NextAvailableAttack < Time.time)
         {
+            if (critter.RangedWeapon != null && critter.RangedWeapon.modifier != null)
+            {
+                var moddy = Instantiate(critter.RangedWeapon.modifier);
+                moddy.SetTimer();
+                unitBrainy.TargetEnemy.GetComponent<CritterHolder>().modifierlist.Add(moddy);
+                foreach (var items in unitBrainy.TargetEnemy.GetComponent<CritterHolder>().modifierlist)
+                {
+                    items.potato = unitBrainy.TargetEnemy;
+                    items.DestroyAura();
+                    items.LoadAura();
+                    critter.onDeath += items.DestroyAura;
+                }
+            }
             critter.NextAvailableAttack = Time.time + critter.GrabAttackTime();
             unitBrainy.TargetEnemy.GetComponent<CritterHolder>().LoseHealth(critter.GrabAttack(), critter.RangedWeapon.attacktype);
             RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");

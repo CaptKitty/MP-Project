@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Turdetani_0
+}
+Color ={
+86
+124
+113
+}
+Location ={
+138
+273
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Carthage
+}
+}

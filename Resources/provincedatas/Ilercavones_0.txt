@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Ilercavones_0
+}
+Color ={
+255
+181
+231
+}
+Location ={
+261
+331
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Spain
+}
+}

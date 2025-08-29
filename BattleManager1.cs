@@ -471,6 +471,7 @@ public class BattleManager1 : BattleManager
                 SessionManager.Instance.savedProvince = null;
 
                 Mapshower.Instance.gameObject.SetActive(true);
+                Mapshower.Instance.OverheadCamera.gameObject.SetActive(true);
                 SceneManager.UnloadScene("FightScene 1");
                 return;
             }

@@ -34,7 +34,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -0.3}
   m_SizeDelta: {x: 2, y: 1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!212 &5193645579870587159
@@ -131,7 +131,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.357, y: -0.253}
+  m_AnchoredPosition: {x: 0.357, y: -0.49}
   m_SizeDelta: {x: 2, y: 1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!212 &6102158888361469376
@@ -222,7 +222,7 @@ RectTransform:
   m_GameObject: {fileID: 3370597003599154533}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 25, y: 25, z: 1}
+  m_LocalScale: {x: 15, y: 15, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1852326970986267061}
@@ -248,11 +248,43 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fieldArmy: {fileID: 11400000, guid: f613dfc028ea56b47ab9227bbcc66c53, type: 2}
-  adjustment: {x: 948, y: 533, z: 0}
-  modification: {x: 0.5, y: 0.5, z: 0}
-  offset: {x: 364, y: 222, z: 0}
-  speed: 15
+  adjustment: {x: 510, y: 317, z: 0}
+  modification: {x: 1, y: 1, z: 0}
+  offset: {x: 515, y: 325, z: 0}
+  speed: 10
   LocalProvince: {x: 0, y: 0, z: 0}
+  TargetProvince:
+    name: 
+    identity:
+      serializedVersion: 2
+      rgba: 0
+    nation:
+      name: 
+      ownerIdentity:
+        serializedVersion: 2
+        rgba: 0
+      IsPlayer: 0
+      armies: []
+      faction: {fileID: 0}
+    OriginalNation:
+      name: 
+      ownerIdentity:
+        serializedVersion: 2
+        rgba: 0
+      IsPlayer: 0
+      armies: []
+      faction: {fileID: 0}
+    state: 
+    position: {x: 0, y: 0}
+    population: 1000
+    supply: 1000
+    garrison: {fileID: 0}
+    cultures: []
+    taxincome: 0
+    taxpercentage: 0
+    levyincome: 0
+    levypercentage: 0
+    unrest: 0
   turnCounter: 0
   _RecruitTimer: 4
   _DomesticSupplyUsage: 1
@@ -366,7 +398,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -1.225143}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.25, y: -0.41}
+  m_AnchoredPosition: {x: -0.25, y: -0.63}
   m_SizeDelta: {x: 2, y: 1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!212 &9166184898384911150

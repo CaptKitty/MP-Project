@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Carpetani_0
+}
+Color ={
+255
+144
+76
+}
+Location ={
+185
+327
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Spain
+}
+}

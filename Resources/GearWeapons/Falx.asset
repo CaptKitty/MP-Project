@@ -16,8 +16,8 @@ MonoBehaviour:
   combatdistance: 1
   speed: 1
   attack: 25
-  attacktype: attack
-  attacktime: 0.5
+  attacktype: Pierce
+  attacktime: 0.75
   NextAvailableAttack: 0
   animationtype: Axe
   Throwable: {fileID: 0}

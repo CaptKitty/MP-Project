@@ -1,0 +1,22 @@
+Province ={
+Name ={
+French Province_4
+}
+Color ={
+255
+204
+170
+}
+Location ={
+300
+386
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Gaul
+}
+}

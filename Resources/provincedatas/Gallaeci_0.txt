@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Gallaeci_0
+}
+Color ={
+127
+51
+0
+}
+Location ={
+136
+406
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Galicia
+}
+}

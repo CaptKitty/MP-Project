@@ -192,7 +192,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Spain
+  m_Text: Galicia
 --- !u!222 &14754224
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1350,7 +1350,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 0
+  m_Interactable: 1
   m_TargetGraphic: {fileID: 795037820}
   m_OnClick:
     m_PersistentCalls:
@@ -1364,7 +1364,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: Spain
+          m_StringArgument: Galicia
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 1082436161}
@@ -1785,6 +1785,7 @@ MonoBehaviour:
     position: {x: 0, y: 0}
     population: 1000
     supply: 1000
+    garrison: {fileID: 0}
     cultures: []
     taxincome: 0
     taxpercentage: 0
@@ -5593,7 +5594,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 2130362712}
   m_OnClick:
     m_PersistentCalls:

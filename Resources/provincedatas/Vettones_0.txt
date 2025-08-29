@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Vettones_0
+}
+Color ={
+87
+0
+127
+}
+Location ={
+161
+345
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Spain
+}
+}

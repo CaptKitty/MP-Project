@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Turduli_0
+}
+Color ={
+102
+255
+145
+}
+Location ={
+138
+306
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Spain
+}
+}

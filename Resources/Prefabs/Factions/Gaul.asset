@@ -39,4 +39,5 @@ MonoBehaviour:
   MercenaryDataList: []
   Flaglist:
   - Decentralized
+  - Barbarian
   Income: 500

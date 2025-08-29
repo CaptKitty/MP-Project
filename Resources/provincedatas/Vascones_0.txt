@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Vascones_0
+}
+Color ={
+76
+255
+0
+}
+Location ={
+253
+376
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Spain
+}
+}

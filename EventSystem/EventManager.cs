@@ -37,8 +37,8 @@ public class EventManager : MonoBehaviour
         GameObject potatoes = Instantiate(Resources.Load<GameObject>("EventSupports/EventWindow"));
         potatoes.GetComponent<EventHolder>().thisevent = potato;
         potatoes.GetComponent<EventHolder>().LoadEvent(nation:nation);
-        potatoes.transform.SetParent(this.transform.GetChild(2).transform);
-        potatoes.transform.position = new Vector3(0,-50,0);
+        potatoes.transform.SetParent(this.transform); //this.transform.GetChild(2).transform);
+        potatoes.transform.localPosition = new Vector3(0,-50,0);
         potatoes.transform.localScale = new Vector2(1,1);
         
         return;

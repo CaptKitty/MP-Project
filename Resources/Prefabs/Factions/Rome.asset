@@ -38,4 +38,5 @@ MonoBehaviour:
   MercenaryDataList: []
   Flaglist:
   - DoubleLocalRecruitment
+  - CrusherOfGarrisons
   Income: 500

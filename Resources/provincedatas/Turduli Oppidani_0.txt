@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Turduli Oppidani_0
+}
+Color ={
+255
+0
+220
+}
+Location ={
+103
+337
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Spain
+}
+}

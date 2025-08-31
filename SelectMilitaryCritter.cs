@@ -57,27 +57,32 @@ public class SelectMilitaryCritter : MonoBehaviour
             //transform.GetChild(3).GetComponent<Text>().color = new Color32(255, 0, 0, 255);
             transform.GetComponent<Image>().color = new Color32(255, 0, 0, 64);
         }
+        if (FieldArmyHolder.PlayerFieldArmy.fieldArmy.USDReserves.Find(x => x.name == unitSaveData.name).USD.cost > BattleManager1.Instance.Reserves)
+        {
+            //transform.GetChild(3).GetComponent<Text>().color = new Color32(255, 0, 0, 255);
+            transform.GetComponent<Image>().color = new Color32(255, 0, 0, 64);
+        }
 
         //transform.GetChild(2).GetComponent<Text>().text = NewCritter.GrabHealth().ToString() + " Health";
 
-            // var f = Math.Round((NewCritter.GrabAttack() / NewCritter.GrabAttackTime()));
-            // transform.GetChild(3).GetComponent<Text>().text = f.ToString() + " DPS";
-            // var a = NewCritter.AIScript;
-            // // if(a.GetType() == typeof(basic_Ranged_AI_script))
-            // // {
-            // //     var b = (basic_Ranged_AI_script)a;
-            // //     transform.GetChild(3).GetComponent<Text>().text += "    " + b.ammo + "x " + b.modifier.base_attack * b.modifier.base_attacktime + " DPS";
-            // // }
-            // if (a.GetType() == typeof(basic_Ranged_AI_script_ammo))
-            // {
-            //     var b = (basic_Ranged_AI_script_ammo)a;
-            //     transform.GetChild(3).GetComponent<Text>().text += "    " + b.ammo + "x " + b.modifier.base_attack + " Damage";
-            // }
-            // if (a.GetType() == typeof(basic_Skirmish_Ranged_AI_script_ammo))
-            // {
-            //     var b = (basic_Skirmish_Ranged_AI_script_ammo)a;
-            //     transform.GetChild(3).GetComponent<Text>().text += "    " + b.ammo + "x " + b.modifier.base_attack + " Damage";
-            // }
+        // var f = Math.Round((NewCritter.GrabAttack() / NewCritter.GrabAttackTime()));
+        // transform.GetChild(3).GetComponent<Text>().text = f.ToString() + " DPS";
+        // var a = NewCritter.AIScript;
+        // // if(a.GetType() == typeof(basic_Ranged_AI_script))
+        // // {
+        // //     var b = (basic_Ranged_AI_script)a;
+        // //     transform.GetChild(3).GetComponent<Text>().text += "    " + b.ammo + "x " + b.modifier.base_attack * b.modifier.base_attacktime + " DPS";
+        // // }
+        // if (a.GetType() == typeof(basic_Ranged_AI_script_ammo))
+        // {
+        //     var b = (basic_Ranged_AI_script_ammo)a;
+        //     transform.GetChild(3).GetComponent<Text>().text += "    " + b.ammo + "x " + b.modifier.base_attack + " Damage";
+        // }
+        // if (a.GetType() == typeof(basic_Skirmish_Ranged_AI_script_ammo))
+        // {
+        //     var b = (basic_Skirmish_Ranged_AI_script_ammo)a;
+        //     transform.GetChild(3).GetComponent<Text>().text += "    " + b.ammo + "x " + b.modifier.base_attack + " Damage";
+        // }
     }
     public void UpdateMinPagans(int a)
     {
@@ -89,7 +94,7 @@ public class SelectMilitaryCritter : MonoBehaviour
     }
     public void OnMouseDown()
     {
-
+        TerrainExplainer.Instance.Disable();
 
         if (firsttime)
         {

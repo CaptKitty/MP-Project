@@ -28,7 +28,7 @@ MonoBehaviour:
   TargetPosition: {x: 0, y: 0, z: 0}
   modifier: {fileID: 11400000, guid: a0d13515ef5e8aa4c843a66d2720bad3, type: 2}
   CommandDistance: 1
-  CommandType: Formation
+  CommandType: Phalanx
   subjects: []
   subjectrelation: []
   HasExecuted: 0

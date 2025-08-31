@@ -568,6 +568,7 @@ public class BattleManager1 : BattleManager
     }
     public void StartGame()
     {
+        TerrainExplainer.Instance.Disable();
         foreach (var item in enemylist)
         {
             item.GetComponent<CritterHolder>().AIScript.FindTarget(item.GetComponent<CritterHolder>());

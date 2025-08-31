@@ -30,6 +30,12 @@ public class UpgradeModule : ScriptableObject
         potato.generic = generic;
         return potato;
     }
+    public string GrabTooltip()
+    {
+        string tooltip = "";
+        tooltip += name;
+        return tooltip;
+    }
     public bool CanUpgrade()
     {
         return true;

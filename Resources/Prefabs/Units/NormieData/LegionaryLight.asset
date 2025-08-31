@@ -18,7 +18,8 @@ MonoBehaviour:
   cost: 100
   health: 200
   speed: 1
-  flaglist: []
+  flaglist:
+  - Formation
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 11400000, guid: dd27822988f93bc469b2fe10ae3c23ca, type: 2}
   Armor: {fileID: 11400000, guid: 0c528521dbd964449a22c382d3668628, type: 2}

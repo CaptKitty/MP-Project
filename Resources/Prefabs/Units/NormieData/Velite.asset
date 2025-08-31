@@ -19,7 +19,7 @@ MonoBehaviour:
   health: 100
   speed: 1
   flaglist: []
-  RangedWeapon: {fileID: 11400000, guid: 87ed551f8630b754687c234e3437463e, type: 2}
+  RangedWeapon: {fileID: 11400000, guid: b20748d8d39bc7144ab514e36638e93d, type: 2}
   MeleeWeapon: {fileID: 11400000, guid: 376d425d6e9214e47b8ecbfadc0641cb, type: 2}
   Armor: {fileID: 11400000, guid: c6fe3a90079e386418f1370598f70a5f, type: 2}
   Shield: {fileID: 11400000, guid: 1bd00b1d3809b2e45a258806a787dcb7, type: 2}

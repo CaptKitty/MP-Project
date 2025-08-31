@@ -40,6 +40,8 @@ public class Mapshower : MonoBehaviour
     public GameObject banana;
     public static Mapshower Instance;
 
+    private Vector3 StartDragPosition;
+
     void Awake()
     {
         Instance = this;
@@ -207,13 +209,20 @@ public class Mapshower : MonoBehaviour
                 Camera.main.orthographicSize -= amount * 0.5f;
             }
         }
+        if (Input.mouseScrollDelta.y != 0)
+        {
+            if (Camera.main.orthographicSize > 50 && Input.mouseScrollDelta.y > 0 || Camera.main.orthographicSize < 150 && Input.mouseScrollDelta.y < 0)
+            {
+                Camera.main.orthographicSize += amount * 2f * -Input.mouseScrollDelta.y;
+            }
+        }
         if (Input.GetKey("d"))
         {
             Camera.main.transform.position = new Vector3(Camera.main.transform.position.x + amount * 0.1f, Camera.main.transform.position.y, -10);
         }
         if (Input.GetKey("a"))
         {
-            Camera.main.transform.position = new Vector3(Camera.main.transform.position.x -amount * 0.1f, Camera.main.transform.position.y, -10);
+            Camera.main.transform.position = new Vector3(Camera.main.transform.position.x - amount * 0.1f, Camera.main.transform.position.y, -10);
         }
         if (Input.GetKey("w"))
         {
@@ -222,6 +231,19 @@ public class Mapshower : MonoBehaviour
         if (Input.GetKey("s"))
         {
             Camera.main.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y - amount * 0.1f, -10);
+        }
+        if (Input.GetMouseButtonDown(0))
+        {
+            StartDragPosition = Input.mousePosition;
+        }
+        if (Input.GetMouseButton(0))
+        {
+            
+            var difference = StartDragPosition - Input.mousePosition;
+            var a = Camera.main.orthographicSize / 200;
+            difference *= a;
+            Camera.main.transform.position = Camera.main.transform.position + difference;
+            StartDragPosition = Input.mousePosition;
         }
     }
     public void Paint()
@@ -344,7 +366,7 @@ public class Mapshower : MonoBehaviour
         //     // UIManager.Instance.gameObject.transform.GetChild(0).gameObject.SetActive(false);
         //     //return;
         // }
-        if(1==1)
+        if (1 == 1)
         {
             if (EventSystem.current.IsPointerOverGameObject())
             {
@@ -353,7 +375,8 @@ public class Mapshower : MonoBehaviour
             var mousePos = Input.mousePosition;
             var ray = Camera.main.ScreenPointToRay(mousePos);
             RaycastHit hitInfo;
-            if(Physics.Raycast(ray, out hitInfo)){
+            if (Physics.Raycast(ray, out hitInfo))
+            {
                 var p = hitInfo.point;
                 int x = (int)Mathf.Floor(p.x) + width / 2;
                 int y = (int)Mathf.Floor(p.y) + height / 2;
@@ -364,7 +387,7 @@ public class Mapshower : MonoBehaviour
                     FieldArmyHolder.PlayerFieldArmy.SetTarget(new Vector3(x, y, 0));
                 }
 
-                
+
 
                 var remapColor = remapArr[x + y * width];
                 int xp = remapColor[0];
@@ -372,23 +395,24 @@ public class Mapshower : MonoBehaviour
 
                 // var material = ;
                 var mainTex = GrabMaterial().GetTexture("_MainTex") as Texture2D;
-                
+
                 // print(mainTex.GetPixel(x, y));
                 // // print(x + " + " + y);
                 // print(mainTex.GetPixel(x, y).r*255 + " + " + mainTex.GetPixel(x, y).g*255 + " + " + mainTex.GetPixel(x, y).b*255);
                 // print(mainTex.GetPixel(x, y).r*255);
 
-                if(mainTex.GetPixel(x,y) == new Color32(0,0,0,0))
+                if (mainTex.GetPixel(x, y) == new Color32(0, 0, 0, 0))
                 {
                     return;
                 }
 
-                if(selectALL){
+                if (selectALL)
+                {
                     changeColors(prevColorA, new Color32(255, 255, 255, 255));
                 }
                 selectALL = true;
                 prevColorA = remapColor;
-                
+
                 //changeColors(remapColor, new Color32(50, 0, 0, 255));//new Color32(127, 127, 127, 127));
                 int xps = remapColor[0];
                 int yps = remapColor[1];
@@ -396,7 +420,7 @@ public class Mapshower : MonoBehaviour
                 try
                 {
                     Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
-                    foreach(Province provinces in Owners.Instance.provincelist)
+                    foreach (Province provinces in Owners.Instance.provincelist)
                     {
                         x = (int)provinces.position.x;
                         y = (int)provinces.position.y;
@@ -405,7 +429,7 @@ public class Mapshower : MonoBehaviour
                         xp = remapColor[0];
                         yp = remapColor[1];
 
-                        if(province.nation == provinces.nation)
+                        if (province.nation == provinces.nation)
                         {
                             changeColors(remapColor, new Color32(64, 64, 64, 255));//state.stateIdentity);
                         }
@@ -427,22 +451,22 @@ public class Mapshower : MonoBehaviour
                     if (Input.GetMouseButtonDown(0))
                     {
                         //Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
-                        print(x.ToString() + " " + y.ToString());
+                        //print(x.ToString() + " " + y.ToString());
                         SelectProvince(province);
                         //FieldArmyHolder.PlayerFieldArmy.SetTarget(province);
                     }
                 }
                 catch
                 {
-                    
+
                 }
-                if(Input.GetMouseButtonDown(1))
+                if (Input.GetMouseButtonDown(1))
                 {
                     //AddFileOfPower(new Vector2(x,y),mainTex.GetPixel(x,y));
                 }
 
             }
-            
+
         }
 
     }

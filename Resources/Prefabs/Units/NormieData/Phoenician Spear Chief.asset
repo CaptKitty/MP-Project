@@ -19,7 +19,7 @@ MonoBehaviour:
   health: 600
   speed: 1
   flaglist:
-  - Formation
+  - Phalanx
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 11400000, guid: e16ead9d937412544bee2529d13783d3, type: 2}
   Armor: {fileID: 11400000, guid: c6fe3a90079e386418f1370598f70a5f, type: 2}

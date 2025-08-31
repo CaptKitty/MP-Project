@@ -83,13 +83,17 @@ public class ToolTipManager : MonoBehaviour
         GetComponent<Canvas>().enabled = true;
 
         transform.GetChild(0).transform.localPosition = position;//Input.mousePosition;
-        if(textComponent != null && textComponent.text != null)
+        if (textComponent != null && textComponent.text != null)
         {
             textComponent.text = message;
         }
-        if(text != null && text.text != null)
+        if (text != null && text.text != null)
         {
-            text.text = message;;
+            text.text = message; ;
+        }
+        if (transform.GetChild(0).position.x > 1600)
+        {
+            transform.GetChild(0).transform.localPosition = new Vector3(position.x - 300, position.y, position.z);
         }
     }
 
@@ -117,7 +121,10 @@ public class ToolTipManager : MonoBehaviour
         {
             text.text = message;
         }
-
+        if (transform.GetChild(0).position.x > 1600)
+        {
+            transform.GetChild(0).position = new Vector3(position.x - 400, position.y, position.z);
+        }
         if(size.x != 0)
         {
             this.transform.GetChild(0).GetComponent<RectTransform>().sizeDelta = size;

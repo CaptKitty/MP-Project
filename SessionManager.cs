@@ -50,6 +50,7 @@ public class SessionManager : MonoBehaviour
         {
             item.GetComponent<CritterHolder>().modifierlist.Clear();
         }
+        ToolTipManager._instance.OnEnable();
     }
     public void ChangeEnemyFaction(string newEnemy)
     {

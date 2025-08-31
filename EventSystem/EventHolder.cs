@@ -7,11 +7,12 @@ using UnityEngine.UI;
 public class EventHolder : MonoBehaviour
 {
     public BaseEvents thisevent;
-    
+
     public void Awake()
     {
         Time.timeScale = 0;
-    }
+        //GetComponent<Canvas>().worldCamera = Camera.main;
+    }   
     public void OnDestroy()
     {
         Time.timeScale = 1;
@@ -43,7 +44,7 @@ public class EventHolder : MonoBehaviour
             GameObject NewButton = Instantiate(Resources.Load<GameObject>("EventSupports/EventWindowButton"));
             NewButton.transform.SetParent(this.transform);
             NewButton.GetComponent<OptionHolder>().thisoption = Option;
-            NewButton.transform.position = new Vector2(0, -215 + 50 * i);//new Vector2(200 * i, -300);
+            NewButton.transform.localPosition = new Vector2(0, -215 + 50 * i);//new Vector2(200 * i, -300);
             NewButton.transform.GetChild(0).GetComponent<Text>().text = Option.Message;
             NewButton.GetComponent<Tooltip>().message = Option.Tooltip;
 

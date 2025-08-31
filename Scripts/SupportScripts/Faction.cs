@@ -21,6 +21,7 @@ public class Faction : ScriptableObject
     public List<GameObject> MercenaryUnits = new List<GameObject>();
     public List<UnitSaveData> MercenaryDataList = new List<UnitSaveData>();
     public List<string> Flaglist = new List<string>();
+    public FactionTheme factionTheme;
 
     public int Income = 500;
 
@@ -59,6 +60,7 @@ public class Faction : ScriptableObject
         {
             a.Flaglist.Add(item);
         }
+        a.factionTheme = factionTheme;
         return a;
     }
     public void UpgradeBarracks()

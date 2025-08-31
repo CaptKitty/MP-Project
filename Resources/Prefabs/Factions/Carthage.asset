@@ -42,4 +42,5 @@ MonoBehaviour:
   Flaglist:
   - ForeignBarbarianRecruitment
   - CrusherOfGarrisons
+  factionTheme: {fileID: 11400000, guid: bc69b654c6f349c40b5b5b11dff99548, type: 2}
   Income: 500

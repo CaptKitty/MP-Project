@@ -87,9 +87,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spot: {x: 0, y: 0, z: 0}
-  name: Iberian_SpearChucker
+  name: Iberian Light
   typename: 
-  unittype: 3
+  unittype: 1
   nametype: []
   cost:
     name: 
@@ -99,7 +99,7 @@ MonoBehaviour:
   ViablePlacingSpots:
   - Grassland
   targetlists: []
-  population: 100
+  population: 200
   AbilityList:
   - {fileID: 0}
   PrivateAbilityList:
@@ -111,12 +111,11 @@ MonoBehaviour:
   online: 0
   unitbrain: {fileID: 0}
   weaponlist: []
-  flaglist:
-  - Forestry_Immunity
+  flaglist: []
   RangedWeapon: {fileID: 0}
-  MeleeWeapon: {fileID: 0}
+  MeleeWeapon: {fileID: 11400000, guid: dd27822988f93bc469b2fe10ae3c23ca, type: 2}
   Armor: {fileID: 11400000, guid: c6fe3a90079e386418f1370598f70a5f, type: 2}
-  Shield: {fileID: 11400000, guid: 1bd00b1d3809b2e45a258806a787dcb7, type: 2}
+  Shield: {fileID: 11400000, guid: eb5fb9f583a662b44a5000763b03cfa3, type: 2}
   AIScript: {fileID: 11400000, guid: 2d7ce668646ce0147a880409da096a1d, type: 2}
   scriptlist:
   - {fileID: 11400000, guid: 00b6075db61b13544a43ccf8379c6e1d, type: 2}

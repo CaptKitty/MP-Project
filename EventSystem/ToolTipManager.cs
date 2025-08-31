@@ -48,9 +48,24 @@ public class ToolTipManager : MonoBehaviour
         GetComponent<Canvas>().enabled = false;//!GetComponent<Canvas>().enabled;
         // gameObject.SetActive(false);
     }
-    void OnEnable()
+    public void OnEnable()
     {
         _instance = this;
+        try
+        {
+            try
+            {
+                transform.GetChild(0).GetChild(1).GetComponent<Image>().sprite = SessionManager.Instance.HostFaction.factionTheme.TooltipBird;
+            }
+            catch
+            {
+                transform.GetChild(0).GetChild(1).GetComponent<Image>().sprite = Owners.Instance.CallPlayer().faction.factionTheme.TooltipBird;
+            }
+        }
+        catch
+        {
+            print("no bird available");
+        }
     }
 
     // Update is called once per frame

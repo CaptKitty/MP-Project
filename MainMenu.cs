@@ -35,8 +35,10 @@ public class MainMenu : MonoBehaviour
             a = a.Replace("\n(Current)", "");
             a = a.Replace("\n(Default)", "");
             transform.GetChild(1).GetChild(i).GetChild(0).GetComponent<Text>().text = a;
+            transform.GetChild(1).GetChild(i).GetChild(1).gameObject.SetActive(false);
         }
         transform.GetChild(1).GetChild(whichone).GetChild(0).GetComponent<Text>().text += "\n(Current)";
+        transform.GetChild(1).GetChild(whichone).GetChild(1).gameObject.SetActive(true);
     }
     public void ChangeEnemy(int whichone)
     {

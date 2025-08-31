@@ -446,7 +446,6 @@ public class FieldArmyHolder : MonoBehaviour
         //HandleEvents
         if (IsPlayer && turnCounter % 8 == 0)
         {
-            return;
             EventManager.eventManager.TriggerEvent(grabRandomViableEvent().name);
         }
     }

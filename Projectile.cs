@@ -16,11 +16,6 @@ public class Projectile : MonoBehaviour
         timer = Time.time + duration;
         
     }
-    // void Start()
-    // {
-    //     transform.LookAt( TargetEnemy.transform.position, new Vector3(0,0,0));
-    // }
-
     // Update is called once per frame
     void Update()
     {

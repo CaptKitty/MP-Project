@@ -10,19 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0328358a590af594aabff3322a37048d, type: 3}
-  m_Name: Numidian_Charioteer
+  m_Name: Nubian Spear
   m_EditorClassIdentifier: 
   spot: {x: 0, y: 0, z: 0}
-  unitname: Numidian_Charioteer
-  unittype: 3
-  cost: 150
-  health: 400
-  speed: 2
-  flaglist: []
-  RangedWeapon: {fileID: 11400000, guid: 9e8242e89446bcb4ea017359a646c56d, type: 2}
-  MeleeWeapon: {fileID: 11400000, guid: 90b232b4120b16e4aa720f894a87cbdb, type: 2}
+  unitname: Nubian Spear
+  unittype: 2
+  cost: 100
+  health: 200
+  speed: 1
+  flaglist:
+  - Formation
+  RangedWeapon: {fileID: 0}
+  MeleeWeapon: {fileID: 11400000, guid: e16ead9d937412544bee2529d13783d3, type: 2}
   Armor: {fileID: 11400000, guid: c6fe3a90079e386418f1370598f70a5f, type: 2}
-  Shield: {fileID: 11400000, guid: 1bd00b1d3809b2e45a258806a787dcb7, type: 2}
+  Shield: {fileID: 11400000, guid: 83953234ba2b58a4bb676296c1cf3f5f, type: 2}
   modifierlist: []
   color: {r: 0.53333336, g: 0, b: 0, a: 0}
   color2: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 0}
@@ -36,8 +37,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 27c6938e9247e69499c14cbcf386bc81, type: 2}
   - {fileID: 11400000, guid: 94f71be92b55b3b4babda2edc54375ff, type: 2}
   bodyparts:
-  - {fileID: 21300000, guid: a9e50bb3cc5295942be88c5e7a584b71, type: 3}
-  - {fileID: 21300000, guid: f497242511d6c5344bfcec11b24e4ca2, type: 3}
-  - {fileID: 21300000, guid: 9551fde8601a24e4bba887117b0717b1, type: 3}
+  - {fileID: 21300000, guid: f155f456ca11c4642b310ada01fdce63, type: 3}
+  - {fileID: 21300000, guid: 012308622e6cfaa4f9cedb7452e0c332, type: 3}
+  - {fileID: 21300000, guid: 3eae1bb9a168ca849b6f4b4d18dd2213, type: 3}
   Mercenary: 0
-  Big: 1

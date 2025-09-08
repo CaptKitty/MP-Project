@@ -64,7 +64,7 @@ public class MoveAwayAction : Unit_GAction
         }
         else
         {
-            critter.gameObject.transform.position += direction * Time.deltaTime * (float)critter.GrabSpeed();
+            //critter.gameObject.transform.position += direction * Time.deltaTime * (float)critter.GrabSpeed();
         }
 
 

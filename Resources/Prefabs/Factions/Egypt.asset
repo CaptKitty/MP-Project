@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: feeb2f63c62761344bf2889db73c56d4, type: 3}
+  m_Name: Egypt
+  m_EditorClassIdentifier: 
+  color: {r: 0.7607843, g: 0.7174855, b: 0.17647058, a: 0}
+  color2: {r: 0.5660378, g: 0.52064794, b: 0.52064794, a: 1}
+  color3: {r: 0.31132078, g: 0.2702527, b: 0.2305536, a: 0}
+  UnitList: []
+  UnitDataList: []
+  BarracksLevel: 2
+  MercLevel: 0
+  FarmLevel: 10
+  BarracksUnits:
+  - {fileID: 1002579342033724372, guid: 5333515deaf5683439d613c37b184ef1, type: 3}
+  - {fileID: 1002579342033724372, guid: dc0ec296db2ed5543b6f4b990fb0f74d, type: 3}
+  - {fileID: 1002579342033724372, guid: d88b4529fd6907742aeafd945e719149, type: 3}
+  - {fileID: 1002579342033724372, guid: 217317507daa4c844a36b65fe44e647b, type: 3}
+  BarracksDataList:
+  - {fileID: 11400000, guid: 4cd6b8db7c6296a489a09d097c2cb76a, type: 2}
+  - {fileID: 11400000, guid: cb0b64d5dbdf6eb4d96f5f502a294a7a, type: 2}
+  - {fileID: 11400000, guid: 0faecb524350aae42b0714145125e954, type: 2}
+  - {fileID: 11400000, guid: e97bf7aaefbfd3a4fa8859e12cdec048, type: 2}
+  - {fileID: 11400000, guid: 0006aa33c11cc2947a6b49ac7c0b1504, type: 2}
+  - {fileID: 11400000, guid: c500bb9b138ab854483732ddb85cf82c, type: 2}
+  MercenaryUnits:
+  - {fileID: 1002579342033724372, guid: e20ae5212fbd75843aaefae8cc3d4c71, type: 3}
+  - {fileID: 1002579342033724372, guid: 29665083b747bd54aa900a8285ed01a6, type: 3}
+  - {fileID: 1002579342033724372, guid: d71592f662aacdd478c8937d36798e52, type: 3}
+  - {fileID: 1002579342033724372, guid: dce30088f80515b49bc5661b6f2e9c00, type: 3}
+  MercenaryDataList:
+  - {fileID: 11400000, guid: 57eb2d5207ea83d429b585109863402b, type: 2}
+  - {fileID: 11400000, guid: 51919457534f672489ebf26eb0bc2224, type: 2}
+  Flaglist:
+  - ForeignBarbarianRecruitment
+  - CrusherOfGarrisons
+  factionTheme: {fileID: 11400000, guid: bc69b654c6f349c40b5b5b11dff99548, type: 2}
+  Income: 500

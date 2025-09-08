@@ -39,6 +39,13 @@ public class RangedAttack : Unit_GAction
 
         if (critter.NextAvailableAttack < Time.time)
         {
+            if (running)
+            {
+                running = false;
+                return true;
+            }
+            running = true;
+
             if (critter.RangedWeapon != null && critter.RangedWeapon.modifier != null)
             {
                 var moddy = Instantiate(critter.RangedWeapon.modifier);

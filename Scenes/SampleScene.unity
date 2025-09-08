@@ -5974,7 +5974,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 0
+  m_Interactable: 1
   m_TargetGraphic: {fileID: 2130362712}
   m_OnClick:
     m_PersistentCalls:
@@ -5988,7 +5988,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: Gaul
+          m_StringArgument: Egypt
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 1082436161}

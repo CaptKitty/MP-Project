@@ -6,6 +6,7 @@ using UnityEngine.UI;
 [CreateAssetMenu(menuName = "UpgradeModule/Basic")]
 public class UpgradeModule : ScriptableObject
 {
+    [TextArea(3,5)]
     public string name;
     public Modifier modifier;
     public Weapon NewRangedWeapon;

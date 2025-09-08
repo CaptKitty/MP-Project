@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: -5787205392657145368}
   - component: {fileID: 4351530869278970923}
   m_Layer: 0
-  m_Name: BlankCritterPrefab
+  m_Name: BlankCritterPrefab_Large
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -87,19 +87,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spot: {x: 0, y: 0, z: 0}
-  name: Gallic_Archer
+  name: Iberian_SpearChucker
   typename: 
   unittype: 3
   nametype: []
   cost:
     name: 
-    amount: 75
+    amount: 50
     sprite: {fileID: 0}
   DoesThisgoOnTheCity: 0
   ViablePlacingSpots:
   - Grassland
   targetlists: []
-  population: 300
+  population: 100
   AbilityList:
   - {fileID: 0}
   PrivateAbilityList:
@@ -113,8 +113,8 @@ MonoBehaviour:
   weaponlist: []
   flaglist:
   - Forestry_Immunity
-  RangedWeapon: {fileID: 11400000, guid: 9e8242e89446bcb4ea017359a646c56d, type: 2}
-  MeleeWeapon: {fileID: 11400000, guid: 5687f1ea8a99c2d4cb4382d3b12854b2, type: 2}
+  RangedWeapon: {fileID: 11400000, guid: b20748d8d39bc7144ab514e36638e93d, type: 2}
+  MeleeWeapon: {fileID: 11400000, guid: 376d425d6e9214e47b8ecbfadc0641cb, type: 2}
   Armor: {fileID: 11400000, guid: c6fe3a90079e386418f1370598f70a5f, type: 2}
   Shield: {fileID: 11400000, guid: 1bd00b1d3809b2e45a258806a787dcb7, type: 2}
   AIScript: {fileID: 11400000, guid: 2d7ce668646ce0147a880409da096a1d, type: 2}
@@ -418,7 +418,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 15
-  m_Sprite: {fileID: 21300000, guid: da9102cb6462f3042a834451133196f0, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 29c9f91564cf63b48ad82f9f09b91552, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

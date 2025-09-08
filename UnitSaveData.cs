@@ -28,6 +28,7 @@ public class UnitSaveData : ScriptableObject
     public List<UpgradeModule> upgradeModules = new List<UpgradeModule>();
     public List<Sprite> bodyparts = new List<Sprite>();
     public bool Mercenary = false;
+    public bool Big = false;
 
     public void NewCritterHolder(CritterHolder oldCritter)
     {
@@ -49,7 +50,6 @@ public class UnitSaveData : ScriptableObject
         }
         oldCritter.Armor = Armor;//.GrabWeapon();
         oldCritter.Shield = Shield;//.GrabWeapon();
-        
     }
     public void NewTestCritter(TestCritter oldCritter)
     {
@@ -64,6 +64,10 @@ public class UnitSaveData : ScriptableObject
         {
             oldCritter.listy[i].GetComponent<SpriteRenderer>().sprite = bodyparts[i];
             //Debug.LogError(oldCritter.listy[i].GetComponent<SpriteRenderer>().sprite);
+        }
+        if (Big)
+        {
+            oldCritter.listy[0].GetComponent<SpriteRenderer>().size = new Vector2(2, 2);
         }
     }
     public UpgradeModule GrabModule()

@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d5eb853a7d8c4045a9e582fc98f8b34, type: 3}
   m_Name: Add Basic Shield
   m_EditorClassIdentifier: 
-  name: Add Basic Shield
+  name: 'Add Basic Shield
+
+    Add 50 health'
   modifier: {fileID: 11400000, guid: 788f974802e7e00418ea518bb52f7dd6, type: 2}
   NewRangedWeapon: {fileID: 0}
   NewMeleeWeapon: {fileID: 0}

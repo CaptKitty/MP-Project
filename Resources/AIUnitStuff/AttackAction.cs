@@ -35,6 +35,13 @@ public class AttackAction : Unit_GAction
 
         if (critter.NextAvailableAttack < Time.time)
         {
+            if (running)
+            {
+                running = false;
+                return true;
+            }
+            running = true;
+
             if (critter.RangedWeapon != null && critter.RangedWeapon.modifier != null)
             {
                 var moddy = Instantiate(critter.RangedWeapon.modifier);
@@ -51,6 +58,7 @@ public class AttackAction : Unit_GAction
             critter.NextAvailableAttack = Time.time + critter.GrabAttackTime();
             unitBrainy.TargetEnemy.GetComponent<CritterHolder>().LoseHealth(critter.GrabAttack(), critter.RangedWeapon.attacktype);
             RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");
+            
         }
         return false;
     }

@@ -44,10 +44,11 @@ public class Owners : MonoBehaviour
             //Debug.LogError(nation.name);
             nation.faction.Set();
             nation.faction.color = nation.ownerIdentity;
-            
+
             if (SessionManager.Instance.HostFaction.name.Contains(nation.name))
             {
                 nation.IsPlayer = true;
+                nation.faction = SessionManager.Instance.HostFaction;
             }
         }
 

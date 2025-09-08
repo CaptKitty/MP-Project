@@ -15,7 +15,7 @@ MonoBehaviour:
   sprite: {fileID: 21300000, guid: 5ef0b5e59424e494f9e2b50d95b4d657, type: 3}
   combatdistance: 4
   speed: 1
-  attack: 60
+  attack: 30
   attacktype: ranged
   attacktime: 1.5
   NextAvailableAttack: 0

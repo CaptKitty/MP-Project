@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Sardinia_0
+}
+Color ={
+174
+127
+255
+}
+Location ={
+414
+308
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Carthage
+}
+}

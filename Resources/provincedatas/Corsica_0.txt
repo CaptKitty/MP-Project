@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Corsica_0
+}
+Color ={
+212
+145
+255
+}
+Location ={
+417
+355
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Carthage
+}
+}

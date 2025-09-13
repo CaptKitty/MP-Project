@@ -28,7 +28,7 @@ public class GAgent : ScriptableObject{
     // Start is called before the first frame update
     public void Start() {
 
-        var acts = Resources.LoadAll<GAction>("AINationStuff/Actions/");
+        var acts = Resources.LoadAll<GAction>("AIArmyStuff/Actions/");
         foreach (GAction a in acts) 
         {
             actions.Add(a);

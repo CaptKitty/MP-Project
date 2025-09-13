@@ -26,6 +26,7 @@ public class FieldArmyHolder : MonoBehaviour
     private int ActivityTimer = 10;
     public List<string> flaglist = new List<string>();
     public bool IsPlayer = false;
+    
     public void Awake()
     {
         DomesticSupplyUsage = _DomesticSupplyUsage;
@@ -230,6 +231,11 @@ public class FieldArmyHolder : MonoBehaviour
         flaglist.Remove("Battle");
         return false;
     }
+    public float GrabDistanceToProvince(Province province)
+    {
+        var heading = transform.position - new Vector3((province.position.x - adjustment.x) * modification.x, (province.position.y - adjustment.y) * modification.y, 0);
+        return heading.magnitude;
+    }
     public void Act()
     {
         if (IsPlayer && target.x + target.y == 0)
@@ -354,36 +360,36 @@ public class FieldArmyHolder : MonoBehaviour
         turnCounter++;
         Province province = GrabFieldArmyProvince(); //Mapshower.Instance.SelectedProvince;
 
-        //HandleAIBehaviour
-        if (!IsPlayer)
-        {
-            if (target.x + target.y == 0)
-            {
-                if (turnCounter % ActivityTimer == 0)
-                {
-                    var a = new List<Province>();
-                    foreach (var item in Owners.Instance.provincelist)
-                    {
+        // //HandleAIBehaviour
+        // if (!IsPlayer)
+        // {
+        //     if (target.x + target.y == 0)
+        //     {
+        //         if (turnCounter % ActivityTimer == 0)
+        //         {
+        //             var a = new List<Province>();
+        //             foreach (var item in Owners.Instance.provincelist)
+        //             {
 
-                        Vector3 temptarget = item.position;
-                        var heading = transform.position - new Vector3((temptarget.x - adjustment.x) * modification.x, (temptarget.y - adjustment.y) * modification.y, 0);
-                        var distance = heading.magnitude;
-                        if (distance < 75) // 50) //150)
-                        {
-                            a.Add(item);
-                            if (item.nation == fieldArmy.nation)
-                            {
-                                a.Add(item);
-                            }
-                        }
-                    }
-                    var b = a[Random.Range(0, a.Count)];
-                    SetTarget(b);
-                    TargetProvince = b;
-                    //SetPositionTo(b);
-                }
-            }
-        }
+        //                 Vector3 temptarget = item.position;
+        //                 var heading = transform.position - new Vector3((temptarget.x - adjustment.x) * modification.x, (temptarget.y - adjustment.y) * modification.y, 0);
+        //                 var distance = heading.magnitude;
+        //                 if (distance < 75) // 50) //150)
+        //                 {
+        //                     a.Add(item);
+        //                     if (item.nation == fieldArmy.nation)
+        //                     {
+        //                         a.Add(item);
+        //                     }
+        //                 }
+        //             }
+        //             var b = a[Random.Range(0, a.Count)];
+        //             SetTarget(b);
+        //             TargetProvince = b;
+        //             //SetPositionTo(b);
+        //         }
+        //     }
+        // }
 
         //HandleSupply
         if (IsPlayer)
@@ -446,7 +452,7 @@ public class FieldArmyHolder : MonoBehaviour
         //HandleEvents
         if (IsPlayer && turnCounter % 8 == 0)
         {
-            EventManager.eventManager.TriggerEvent(grabRandomViableEvent().name);
+            //EventManager.eventManager.TriggerEvent(grabRandomViableEvent().name);
         }
     }
     public BaseEvents grabRandomViableEvent()

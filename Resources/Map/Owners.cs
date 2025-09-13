@@ -43,6 +43,11 @@ public class Owners : MonoBehaviour
             nation.faction = nation.faction.Init();
             //Debug.LogError(nation.name);
             nation.faction.Set();
+            nation.nationalbrainy = new NationalBrain();
+            nation.nationalbrainy.nation = nation.name;
+            nation.nationalbrainy.name = nation.name + "_brain";
+            
+
             nation.faction.color = nation.ownerIdentity;
 
             if (SessionManager.Instance.HostFaction.name.Contains(nation.name))
@@ -71,6 +76,11 @@ public class Owners : MonoBehaviour
         Mapshower.Instance.Paint();
 
         PlantCities();
+
+        foreach (Nation nation in nationlist)
+        {
+            nation.nationalbrainy.Startie();
+        }
     }
     public void PlantCities()
     {
@@ -127,11 +137,15 @@ public class Owners : MonoBehaviour
                     item.NextTurn();
                 }
             }
-            if (timer % 1000 == 0) //if (timer % 250 == 0)
+            if (timer % 100 == 0)//1000 == 0) //if (timer % 250 == 0)
             {
                 TakeTurns();
             }
             timer++;
+            foreach(var nation in nationlist)
+            {
+                nation.nationalbrainy.Think();
+            }
         }
 
     }
@@ -204,10 +218,11 @@ public class Nation
     public List<FieldArmyHolder> armies = new List<FieldArmyHolder>();
     // public List<Nation> Enemies;
     public Faction faction;
+    public NationalBrain nationalbrainy;
 
     public void TakeTurn()
     {
-        if (armies.Count == 0)
+        if (armies.Count < 5)
         {
             var a = new List<Province>();
             foreach (var province in Owners.Instance.provincelist)

@@ -19,8 +19,8 @@ public class EventHolder : MonoBehaviour
     }
     public void LoadEvent(string nation = null)
     {
-        Debug.Log(nation);
-        Debug.Log(Owners.Instance.CallPlayer().name);
+        //Debug.Log(nation);
+        //Debug.Log(Owners.Instance.CallPlayer().name);
         //AI-Time
         if (nation != null && nation != Owners.Instance.CallPlayer().name)
         {

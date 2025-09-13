@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Sicily_0
+}
+Color ={
+255
+204
+163
+}
+Location ={
+507
+255
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Carthage
+}
+}

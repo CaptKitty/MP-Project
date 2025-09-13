@@ -19,7 +19,7 @@ public class OptionHolder : MonoBehaviour
         {
             foreach (var item in thisoption.EffectList)
             {
-                Debug.Log(thisoption);
+                //Debug.Log(thisoption);
                 if(item != null)
                 {
                     item.Execute();

@@ -27,7 +27,7 @@ MonoBehaviour:
   modifierlist: []
   color: {r: 0.53333336, g: 0, b: 0, a: 0}
   color2: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 0}
-  color3: {r: 1, g: 0.5529412, b: 0.39607844, a: 0}
+  color3: {r: 0, g: 0.36656523, b: 1, a: 0}
   faction: {fileID: 0}
   upgradeModules:
   - {fileID: 11400000, guid: 9323025428561e94bb9bb3bec967c45f, type: 2}
@@ -41,4 +41,5 @@ MonoBehaviour:
   - {fileID: 21300000, guid: b0f6d172f4b245b47b49a0ef856267d1, type: 3}
   - {fileID: 21300000, guid: 16ba57bdaddde4a4d84a2e70a94b9dfb, type: 3}
   - {fileID: 21300000, guid: 2a17cfdacd044a541970e4e76ba4245d, type: 3}
-  Mercenary: 0
+  Mercenary: 1
+  Big: 0

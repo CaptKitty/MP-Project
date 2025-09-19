@@ -18,6 +18,7 @@ public class Owners : MonoBehaviour
     public List<FieldArmyHolder> armylist = new List<FieldArmyHolder>();
     public double timer;
     public int turncounter;
+    public int xxx = 25;
 
     // Start is called before the first frame update
     void Awake()
@@ -62,6 +63,7 @@ public class Owners : MonoBehaviour
         foreach (Province province in provincelist)
         {
             province.CreateGarrison();
+            province.SetAdjacents();
             try
             {
                 provincedict.Add(province.name, province);
@@ -168,8 +170,9 @@ public class Province
     public Vector2 position;
     public int population = 1000;
     public int supply = 1000;
-    //public FieldArmyHolder garrisonArmy;
     public FieldArmy garrison;
+
+    public List<string> AdjacentProvinces = new List<string>();
 
     public List<Culture> cultures;
     public int taxincome;
@@ -177,6 +180,61 @@ public class Province
     public int levyincome;
     public int levypercentage;
     public int unrest;
+
+    public List<Province> GrabAdjacents()
+    {
+        var a = new List<Province>();
+        foreach(var b in AdjacentProvinces)
+        {
+            a.Add(Owners.Instance.provincedict[b]);
+        }
+        return a;
+    }
+    public void SetAdjacents()
+    {
+        //Debug.LogError("setting adjacents");
+        AdjacentProvinces.Clear();
+        
+        foreach(var b in Owners.Instance.provincelist)
+        {
+            if(b == this)
+            {
+                continue;
+            }
+            if(Vector3.Distance(b.position, position) < 50)
+            {
+                AdjacentProvinces.Add(b.name);
+            }
+        }
+        // if(AdjacentProvinces.Count < 5)
+        // {
+        //     foreach(var b in Owners.Instance.provincelist)
+        //     {
+        //         if(b == this)
+        //         {
+        //             continue;
+        //         }
+        //         if(Vector3.Distance(b.position, position) < 70)
+        //         {
+        //             AdjacentProvinces.Add(b.name);
+        //         }
+        //     }
+        // }
+        // if(AdjacentProvinces.Count < 5)
+        // {
+        //     foreach(var b in Owners.Instance.provincelist)
+        //     {
+        //         if(b == this)
+        //         {
+        //             continue;
+        //         }
+        //         if(Vector3.Distance(b.position, position) < 90)
+        //         {
+        //             AdjacentProvinces.Add(b.name);
+        //         }
+        //     }
+        // }
+    }
 
     public void CreateGarrison()
     {

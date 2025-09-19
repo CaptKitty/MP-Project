@@ -2,13 +2,13 @@
 using System.Linq;
 using UnityEngine;
 
-public class NationalBrain : GAgent {
+public class GeneralBrain : GAgent {
 
     public string nation;
     public string province;
     public int WarThirst;
 
-    public List<Nation_GAction> actionss = new List<Nation_GAction>();
+    public List<General_GAction> actionss = new List<General_GAction>();
 
     public List<Priority> priorityList = new List<Priority>();
 
@@ -28,13 +28,13 @@ public class NationalBrain : GAgent {
         SubGoal s4 = new SubGoal("Sleep", 3, false);
         goals.Add(s4, 3);
 
-        var acts = Resources.LoadAll<Nation_GAction>("AINationStuff/Actions/");
+        var acts = Resources.LoadAll<General_GAction>("AINationStuff/Actions/");
         //debug.log(acts.Length);
-        foreach (Nation_GAction a in acts) 
+        foreach (General_GAction a in acts) 
         {
             // a.Awake();
             var b = Instantiate(a);
-            b.nationalbrainy = this;
+            b.generalBrainy = this;
             actionss.Add(b);
         }
         SetPriorities();
@@ -48,21 +48,6 @@ public class NationalBrain : GAgent {
         foreach(Province prov in Owners.Instance.provincelist)
         {
             var a = new Priority(prov,10);
-            if(prov.nation.name == nation)
-            {
-                a.value += 5;
-            }
-            if(prov.OriginalNation.name == nation)
-            {
-                a.value -= 10;
-            }
-            if(nation.Contains("Rome"))
-            {
-                if(prov.OriginalNation.name.Contains("Carthage"))
-                {
-                    a.value -= 20;
-                }
-            }
             priorityList.Add(a);
         }
     }
@@ -152,7 +137,7 @@ public class NationalBrain : GAgent {
                 var d = new List<GAction>();
                 foreach (var item in actionss)
                 {
-                    d.Add((Nation_GAction)item);
+                    d.Add((General_GAction)item);
                 }
                 actionQueue = planner.plan(d, sg.Key.sGoals, beliefs);
                 // If actionQueue is not = null then we must have a plan

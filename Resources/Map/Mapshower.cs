@@ -453,6 +453,8 @@ public class Mapshower : MonoBehaviour
                         //Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
                         //print(x.ToString() + " " + y.ToString());
                         SelectProvince(province);
+                        //province.SetAdjacents();
+                        
                         //FieldArmyHolder.PlayerFieldArmy.SetTarget(province);
                     }
                 }

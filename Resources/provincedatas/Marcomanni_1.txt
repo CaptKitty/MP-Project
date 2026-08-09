@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Marcomanni_1
+}
+Color ={
+108
+226
+179
+}
+Location ={
+508
+541
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Germania
+}
+}

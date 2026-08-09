@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Marsi_0
+}
+Color ={
+172
+212
+226
+}
+Location ={
+447
+559
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Germania
+}
+}

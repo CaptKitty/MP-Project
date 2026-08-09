@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Mattiaci_0
+}
+Color ={
+88
+226
+187
+}
+Location ={
+437
+533
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Germania
+}
+}

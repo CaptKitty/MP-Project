@@ -47,6 +47,7 @@ public class Nation_GactionOrderMove : Nation_GAction
     }
     public override bool Execute()
     {
+        Debug.LogError(nationalbrainy.nation + " Orders this unit to Move");
         if(running)
         {
             if(Time.time > Timer)

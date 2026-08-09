@@ -163,7 +163,7 @@ public class Mapshower : MonoBehaviour
             RePaint();
             //Application.Quit();
         }
-        if (Input.GetKeyDown("space"))
+        if (Input.GetKeyDown("1"))
         {
             if (Time.timeScale == 1)
             {
@@ -182,10 +182,10 @@ public class Mapshower : MonoBehaviour
         {
             SupplyPaint();
         }
-        // if (Input.GetKey("3"))
-        // {
-        //     CulturePaint();
-        // }
+        if (Input.GetKey("3"))
+        {
+            CulturePaint();
+        }
         // if (Input.GetKey("4"))
         // {
         //     PopPaint();
@@ -464,7 +464,7 @@ public class Mapshower : MonoBehaviour
                 }
                 if (Input.GetMouseButtonDown(1))
                 {
-                    //AddFileOfPower(new Vector2(x,y),mainTex.GetPixel(x,y));
+                    //xAddFileOfPower(new Vector2(x,y),mainTex.GetPixel(x,y));
                 }
 
             }
@@ -472,12 +472,13 @@ public class Mapshower : MonoBehaviour
         }
 
     }
-    public FieldArmyHolder SpawnArmy(Province province)
+    public FieldArmyHolder SpawnArmy(Province province, string armyname = "NoName")
     {
         var b = Resources.Load<GameObject>("Prefabs/FieldArmy");
         var c = Instantiate(b, transform.GetChild(0).GetChild(1));
 
         c.GetComponent<FieldArmyHolder>().SetPositionTo(province);
+        c.name = armyname;
         return c.GetComponent<FieldArmyHolder>();
     }
     public Material GrabMaterial()

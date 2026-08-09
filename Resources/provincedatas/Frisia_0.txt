@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Frisia_0
+}
+Color ={
+136
+226
+213
+}
+Location ={
+383
+603
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Frisia
+}
+}

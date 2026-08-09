@@ -10,7 +10,7 @@ public class FieldArmyHolder : MonoBehaviour
     public Vector3 modification = new Vector3(0.5f, 0.5f);
     public Vector3 offset = new Vector3(364f, 232f);
     public int speed = 30;
-    private Vector3 target;
+    public Vector3 target;
     public Vector3 LocalProvince;
     public Province TargetProvince;
     private float timer;
@@ -26,6 +26,7 @@ public class FieldArmyHolder : MonoBehaviour
     private int ActivityTimer = 10;
     public List<string> flaglist = new List<string>();
     public bool IsPlayer = false;
+    public GeneralBrain generalbrain;
     
     public void Awake()
     {
@@ -33,6 +34,10 @@ public class FieldArmyHolder : MonoBehaviour
         ForeignSupplyUsage = _ForeignSupplyUsage;
         RecruitTimer = _RecruitTimer;
         ActivityTimer = _ActivityTimer;
+        generalbrain = new GeneralBrain();
+        generalbrain.nation = fieldArmy.nation.name;
+        generalbrain.army = this;
+        generalbrain.Startie();
 
         if (gameObject.name == "PlayerArmy")
         {
@@ -40,7 +45,7 @@ public class FieldArmyHolder : MonoBehaviour
             {
                 PlayerFieldArmy = this;
                 IsPlayer = true;
-                //Debug.LogError("potato");
+                ////Debug.LogError("potato");
             }
         }
         else
@@ -142,8 +147,12 @@ public class FieldArmyHolder : MonoBehaviour
     }
     public void OnDestroy()
     {
-        fieldArmy.nation.armies.Remove(this);
-        Owners.Instance.armylist.Remove(this);
+        try{
+            fieldArmy.nation.armies.Remove(this);
+        }catch{}
+        try{
+            Owners.Instance.armylist.Remove(this);
+        }catch{}
     }
     public void Update()
     {
@@ -196,8 +205,6 @@ public class FieldArmyHolder : MonoBehaviour
             {
                 actualarmy = otherarmy.fieldArmy;
             }
-            //Debug.LogError("Potato");
-            //GrabArmyStrength
             var a = actualarmy.GrabArmySize() + Random.Range(-actualarmy.GrabArmySize() / 2, actualarmy.GrabArmySize() / 2);
             var b = this.fieldArmy.GrabArmySize() + Random.Range(-this.fieldArmy.GrabArmySize() / 2, this.fieldArmy.GrabArmySize() / 2);
             if (this.HasFlag("CrusherOfGarrisons") && otherarmy == null)
@@ -238,35 +245,33 @@ public class FieldArmyHolder : MonoBehaviour
     }
     public void Act()
     {
-        if (IsPlayer && target.x + target.y == 0)
+        if (IsPlayer && target.x + target.y != 0)
+        {
+            Move();
+            return;
+        }
+        generalbrain.Think();
+        if(!CanArmyAct())
         {
             return;
         }
+        //Move();
+    }
+    public bool Move()
+    {
         var heading = transform.position - new Vector3((target.x - adjustment.x) * modification.x, (target.y - adjustment.y) * modification.y, 0);
         var distance = heading.magnitude;
 
-        //SetPositionTo(target);
-
-        //Mapshower.Instance.SelectProvince(GrabFieldArmyHolderPosition());
-
-        // if (timer < Time.time)
-        // {
-        //     timer = Time.time + 0.5f;
-        //     NextTurn();
-        // }
-
         if (IsTargetNull())
         {
-            return;
+            return false;
         }
 
         if (distance < 1)
         {
-            //Mapshower.Instance.SelectProvince(target);
             LocalProvince = target;
             if (!IsPlayer)
             {
-                //var a = GrabFieldArmyProvince();
                 var a = TargetProvince;//
                 if (a.nation != fieldArmy.nation)
                 {
@@ -277,16 +282,40 @@ public class FieldArmyHolder : MonoBehaviour
                 }
             }
 
-            target = new Vector3(0, 0, 0);
-            return;
+            //target = new Vector3(0, 0, 0);
+            //Debug.LogError("Arrived");
+            return true;
         }
         var direction = heading / distance;
         transform.localPosition -= direction * Time.deltaTime * speed;
+        //Debug.Log("Walking");
+        return false;
     }
     public bool IsTargetNull()
     {
         if (target.x + target.y == 0)
         {
+            return true;
+        }
+        return false;
+    }
+    public bool CanArmyAct()
+    {
+        if(generalbrain.currentAction != null)
+        {
+            return false;
+        }
+        if(IsTargetNull())
+        {
+            return false;
+        }
+        return true;
+    }
+    public bool IsArmyAvailable()
+    {
+        if(generalbrain.currentAction == null)
+        {
+            //Debug.Log(gameObject.name + " Is Available");
             return true;
         }
         return false;
@@ -312,7 +341,7 @@ public class FieldArmyHolder : MonoBehaviour
     }
     public void AddTroop(UnitSaveData unittoAdd = null, string name = "", int amount = 1)
     {
-        //Debug.LogError("Trying to add " + amount + " of " + name + unittoAdd);
+        ////Debug.LogError("Trying to add " + amount + " of " + name + unittoAdd);
         if (name != "")
         {
             try
@@ -331,7 +360,7 @@ public class FieldArmyHolder : MonoBehaviour
                 }
                 catch
                 {
-                    Debug.LogError("Could not find " + name + " Unit in database");
+                    //Debug.LogError("Could not find " + name + " Unit in database");
                 }
 
             }
@@ -414,41 +443,52 @@ public class FieldArmyHolder : MonoBehaviour
                 fieldArmy.AddSupply(lootableAmount);
             }
         }
+    }
+    public void Recruit()
+    {
+        Province province = GrabFieldArmyProvince();
         //HandleRecruitment
-        if (turnCounter % RecruitTimer == 0)
-        {
-            //AtHome
-            if (province != null && province.nation.faction.name == fieldArmy.nation.faction.name)
+        //if (turnCounter % RecruitTimer == 0)
+        //{
+            if(province != null)
             {
-                if (fieldArmy.nation.faction.HasFlag("DoubleLocalRecruitment"))
+                Nation nation = Owners.Instance.nationlist.Find(x => x.name == province.OriginalNation.name);
+                //AtHome
+                if (province.nation.faction.name == fieldArmy.nation.faction.name)
                 {
+                    if (nation.faction.name == fieldArmy.nation.faction.name)
+                    {
+                        if (fieldArmy.nation.faction.HasFlag("DoubleLocalRecruitment"))
+                        {
+                            AddTroop();
+                        }
+                    }
                     AddTroop();
                 }
-                AddTroop();
-            }
-            //Abroad
-            else
-            {
-                if (fieldArmy.nation.faction.HasFlag("ForeignBarbarianRecruitment"))
+                //Abroad
+                else
                 {
-                    if (province != null && province.nation.faction.HasFlag("Barbarian"))
-                    {
-                        Nation nation = Owners.Instance.nationlist.Find(x => x.name == province.OriginalNation.name);
-                        //Debug.LogError(nation.name);
-                        var a = Instantiate(nation.faction.UnitDataList[0]);
-                        a.name = province.nation.faction.UnitDataList[0].name;
-                        if (Random.Range(0, 3) == 1)
+                    if (fieldArmy.nation.faction.HasFlag("ForeignBarbarianRecruitment"))
+                    {   
+                        if (nation.faction.HasFlag("Barbarian"))
                         {
-                            a = Instantiate(nation.faction.UnitDataList[1]);
-                            a.name = province.nation.faction.UnitDataList[1].name;
+                            ////Debug.LogError(nation.name);
+                            var a = Instantiate(nation.faction.UnitDataList[0]);
+                            a.name = province.nation.faction.UnitDataList[0].name;
+                            if (Random.Range(0, 3) == 1)
+                            {
+                                a = Instantiate(nation.faction.UnitDataList[1]);
+                                a.name = province.nation.faction.UnitDataList[1].name;
+                            }
+                            //a.name = province.nation.faction.UnitDataList[0].name;
+                            a.Mercenary = true;
+                            AddTroop(a);
                         }
-                        //a.name = province.nation.faction.UnitDataList[0].name;
-                        a.Mercenary = true;
-                        AddTroop(a);
                     }
                 }
             }
-        }
+            
+        //}
         //HandleEvents
         if (IsPlayer && turnCounter % 8 == 0)
         {
@@ -490,12 +530,12 @@ public class FieldArmyHolder : MonoBehaviour
     }
     public void SetTarget(Vector3 newtarget)
     {
-        //Debug.LogError(newtarget);
+        ////Debug.LogError(newtarget);
         target = newtarget;
     }
     public void SetTarget(Province province)
     {
-        //Debug.LogError(province.position);
+        ////Debug.LogError(province.position);
         SetTarget(province.position);
         // int x = (int)Mathf.Floor(province.position.x) + Mapshower.Instance.width / 2;
         // int y = (int)Mathf.Floor(province.position.y) + Mapshower.Instance.height / 2;

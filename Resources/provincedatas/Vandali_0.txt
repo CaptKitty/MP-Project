@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Vandali_0
+}
+Color ={
+63
+255
+172
+}
+Location ={
+501
+567
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Germania
+}
+}

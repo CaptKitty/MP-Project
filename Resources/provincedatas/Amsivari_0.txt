@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Amsivari_0
+}
+Color ={
+226
+191
+179
+}
+Location ={
+399
+611
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Germania
+}
+}

@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Cauci_0
+}
+Color ={
+226
+83
+138
+}
+Location ={
+421
+607
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Germania
+}
+}

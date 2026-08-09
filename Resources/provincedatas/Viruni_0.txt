@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Viruni_0
+}
+Color ={
+224
+172
+224
+}
+Location ={
+469
+626
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Germania
+}
+}

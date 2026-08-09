@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Burgundi_0
+}
+Color ={
+255
+127
+127
+}
+Location ={
+509
+614
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Germania
+}
+}

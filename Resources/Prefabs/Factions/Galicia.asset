@@ -40,5 +40,6 @@ MonoBehaviour:
   - ForeignBarbarianRecruitment
   - Barbarian
   - Decentralized
+  - Braindead
   factionTheme: {fileID: 11400000, guid: 7a5e9e4fcf50ac14892d8fe0ce79a603, type: 2}
   Income: 500

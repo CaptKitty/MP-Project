@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Vindelici_1
+}
+Color ={
+255
+175
+186
+}
+Location ={
+468
+490
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Germania
+}
+}

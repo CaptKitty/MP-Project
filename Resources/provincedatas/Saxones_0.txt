@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Saxones_0
+}
+Color ={
+105
+224
+168
+}
+Location ={
+428
+627
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Germania
+}
+}

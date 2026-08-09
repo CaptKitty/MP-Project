@@ -134,4 +134,5 @@ public class Faction : ScriptableObject
         }
         Income = 500 + FarmLevel * 100;
     }
+
 }

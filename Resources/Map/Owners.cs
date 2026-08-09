@@ -129,17 +129,22 @@ public class Owners : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        if (!FieldArmyHolder.PlayerFieldArmy.IsTargetNull())
+        if (!FieldArmyHolder.PlayerFieldArmy.IsTargetNull() || Input.GetKey("space"))
         {
             foreach (var item in armylist)
             {
                 item.Act();
                 if (timer % 50 == 0) //50
                 {
+                    //Recruitment etc
                     item.NextTurn();
                 }
             }
             if (timer % 100 == 0)//1000 == 0) //if (timer % 250 == 0)
+            {
+                TakeTurns();
+            }
+            if (timer % 10 == 0)
             {
                 TakeTurns();
             }
@@ -277,8 +282,14 @@ public class Nation
     // public List<Nation> Enemies;
     public Faction faction;
     public NationalBrain nationalbrainy;
+    public int Manpower = 0;
+    public int ArmyNumber = 0;
 
     public void TakeTurn()
+    {
+        Manpower++;
+    }
+    public void SpawnArmy()
     {
         if (armies.Count < 5)
         {
@@ -292,7 +303,8 @@ public class Nation
             }
             if (a.Count > 0)
             {
-                Mapshower.Instance.SpawnArmy(a[Random.Range(0, a.Count)]);
+                ArmyNumber++;
+                Mapshower.Instance.SpawnArmy(a[Random.Range(0, a.Count)], ArmyNumber.ToString() + "st Army of " + name);
             }
         }
     }

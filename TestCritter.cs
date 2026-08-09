@@ -49,6 +49,7 @@ public class TestCritter : MonoBehaviour
         {
             material.SetColor("_FactionColor3", color3);
         }
+        SetBeard();
 
 
         GetComponent<Animator>().SetBool("Sword", DoesThisHaveSword);
@@ -62,6 +63,14 @@ public class TestCritter : MonoBehaviour
         {
             item.GetComponent<SpriteRenderer>().material = material;
         }
+    }
+    public void SetBeard()
+    {
+        try{
+            var selectedbeard = faction.factionTheme.GrabViableBeard();
+            listy[0].transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = selectedbeard;
+        }
+        catch{}
     }
     public void SetWeapon(string weapontype)
     {

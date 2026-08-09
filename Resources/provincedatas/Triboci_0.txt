@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Triboci_0
+}
+Color ={
+207
+122
+226
+}
+Location ={
+429
+506
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Germania
+}
+}

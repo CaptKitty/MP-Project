@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Lugii_0
+}
+Color ={
+179
+109
+255
+}
+Location ={
+543
+550
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Germania
+}
+}

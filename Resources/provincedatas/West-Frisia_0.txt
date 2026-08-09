@@ -1,0 +1,22 @@
+Province ={
+Name ={
+West-Frisia_0
+}
+Color ={
+255
+145
+149
+}
+Location ={
+361
+585
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Frisia
+}
+}

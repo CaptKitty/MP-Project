@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Batavi_0
+}
+Color ={
+173
+135
+255
+}
+Location ={
+360
+566
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Franks
+}
+}

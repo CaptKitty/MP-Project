@@ -21,12 +21,13 @@ public class Nation_GActionOrderAttack : Nation_GAction
             {
                 continue;
             }
-            if(a.IsTargetNull() == true)
+            if(a.IsArmyAvailable() == true)
             {
                 army = a;
                 return true;
             }
         }
+        //Debug.Log("Not able to Attack");
         return false;
     }
     public float AggroNumber(Province province)
@@ -41,20 +42,21 @@ public class Nation_GActionOrderAttack : Nation_GAction
     {
         if(nationalbrainy.name.Contains("Rome"))
         {
-            //Debug.LogError("Attack Costs " + army.fieldArmy.GrabArmySize());
+            ////Debug.LogError("Attack Costs " + army.fieldArmy.GrabArmySize());
         }
-        return army.fieldArmy.GrabArmySize();
+        return 10f;//army.fieldArmy.GrabArmySize();
     }
     public override bool Execute()
     {
-        if(running)
-        {
-            if(Time.time > Timer)
-            {
-                running = false;
-            }
-            return true;
-        }
+        Debug.LogError(nationalbrainy.nation + " Orders " + army.gameObject.name + " to Conquer");
+        // if(running)
+        // {
+        //     if(Time.time > Timer)
+        //     {
+        //         running = false;
+        //     }
+        //     return true;
+        // }
         if(army == null)
         {
             return false;
@@ -71,27 +73,25 @@ public class Nation_GActionOrderAttack : Nation_GAction
             {
                 if(nationalbrainy.name.Contains("Rome"))
                 {
-                    // Debug.LogError(prio.value - (army.GrabDistanceToProvince(prio.province)/10) + AggroNumber(prio.province));
-                    // Debug.LogError(b.value + Random.Range(-5,6) - (distance/10) + AggroNumber(b.province));
+                    // //Debug.LogError(prio.value - (army.GrabDistanceToProvince(prio.province)/10) + AggroNumber(prio.province));
+                    // //Debug.LogError(b.value + Random.Range(-5,6) - (distance/10) + AggroNumber(b.province));
                 }
                 b = prio;
                 distance = army.GrabDistanceToProvince(b.province);
                 // if(nationalbrainy.name.Contains("Rome"))
                 // {
-                //     Debug.LogError("Rome Wakes and sees: " + distance);
+                //     //Debug.LogError("Rome Wakes and sees: " + distance);
                 // }
             }
         }
+
         
         army.SetTarget(b.province);
         army.TargetProvince = b.province;
+        army.generalbrain.NewGoal("MoveArmy");
+
         Timer = Time.time + 0.1f;
-        running = true;
-        
-        if(nationalbrainy.name.Contains("Rome"))
-        {
-            //Debug.LogError("Rome Wakes");
-        }
+        running = false;
         
         return true;
     }

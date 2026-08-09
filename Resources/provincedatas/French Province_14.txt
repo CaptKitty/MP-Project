@@ -1,0 +1,22 @@
+Province ={
+Name ={
+French Province_14
+}
+Color ={
+196
+223
+255
+}
+Location ={
+360
+469
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Hadue
+}
+}

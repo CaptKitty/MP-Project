@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Boii_0
+}
+Color ={
+56
+139
+226
+}
+Location ={
+473
+529
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Germania
+}
+}

@@ -10,6 +10,7 @@ public class Nation_GActionBase : Nation_GAction
 {
     public override bool Execute()
     {
+        //Debug.LogError("Sleepy");
         return true;
     }
 }

@@ -15,13 +15,22 @@ public class Nation_GActionOrderGatherTroops : Nation_GAction
         {
             return false;
         }
+        if(nationalbrainy.GrabNation().Manpower < 5)
+        {
+            return false;
+        }
         foreach(var a in nationalbrainy.GrabNation().armies)
         {
             if(a.IsPlayer)
             {
                 continue;
             }
-            if(a.IsTargetNull() == true)
+            //if(a.CanArmyAct() == true)
+            if(a.fieldArmy.MaxArmySize == a.fieldArmy.GrabArmySize())
+            {
+                continue;
+            }
+            if(a.IsArmyAvailable() == true)
             {
                 army = a;
                 return true;
@@ -43,51 +52,55 @@ public class Nation_GActionOrderGatherTroops : Nation_GAction
         {
             //Debug.LogError("Gathering Costs " + (10-army.fieldArmy.GrabArmySize()));
         }
-        return 10-army.fieldArmy.GrabArmySize();
+        return army.fieldArmy.GrabArmySize();
     }
     public override bool Execute()
     {
-        if(running)
-        {
-            if(Time.time > Timer)
-            {
-                running = false;
-            }
-            return true;
-        }
-        if(army == null)
-        {
-            return false;
-        }
-        Priority b = nationalbrainy.priorityList[0];
-        float distance = army.GrabDistanceToProvince(b.province);
-        foreach(Priority prio in nationalbrainy.priorityList)
-        {
-            if(army.TargetProvince == prio.province)
-            {
-                continue;
-            }
-            if((prio.value - (army.GrabDistanceToProvince(prio.province)/5) + AggroNumber(prio.province)) > (b.value + Random.Range(-5,6) - (distance/5) + AggroNumber(b.province)))
-            {
-                b = prio;
-                distance = army.GrabDistanceToProvince(b.province);
-                // if(nationalbrainy.name.Contains("Rome"))
-                // {
-                //     Debug.LogError("Rome Wakes and sees: " + distance);
-                // }
-            }
-        }
-        
-        army.SetTarget(b.province);
-        army.TargetProvince = b.province;
-        Timer = Time.time + 0.1f;
-        running = true;
-
-        if(nationalbrainy.name.Contains("Rome"))
-        {
-            //Debug.LogError("Rome Chills");
-        }
-
+        Debug.LogError(nationalbrainy.nation + " Orders the " + army.gameObject.name + " to recruit");
+        army.generalbrain.NewGoal("RecruitTroops");
+        army.generalbrain.Think();
         return true;
+        // if(running)
+        // {
+        //     if(Time.time > Timer)
+        //     {
+        //         running = false;
+        //     }
+        //     return true;
+        // }
+        // if(army == null)
+        // {
+        //     return false;
+        // }
+        // Priority b = nationalbrainy.priorityList[0];
+        // float distance = army.GrabDistanceToProvince(b.province);
+        // foreach(Priority prio in nationalbrainy.priorityList)
+        // {
+        //     if(army.TargetProvince == prio.province)
+        //     {
+        //         continue;
+        //     }
+        //     if((prio.value - (army.GrabDistanceToProvince(prio.province)/5) + AggroNumber(prio.province)) > (b.value + Random.Range(-5,6) - (distance/5) + AggroNumber(b.province)))
+        //     {
+        //         b = prio;
+        //         distance = army.GrabDistanceToProvince(b.province);
+        //         // if(nationalbrainy.name.Contains("Rome"))
+        //         // {
+        //         //     Debug.LogError("Rome Wakes and sees: " + distance);
+        //         // }
+        //     }
+        // }
+        
+        // army.SetTarget(b.province);
+        // army.TargetProvince = b.province;
+        // Timer = Time.time + 0.1f;
+        // running = true;
+
+        // if(nationalbrainy.name.Contains("Rome"))
+        // {
+        //     //Debug.LogError("Rome Chills");
+        // }
+
+        // return true;
     }
 }

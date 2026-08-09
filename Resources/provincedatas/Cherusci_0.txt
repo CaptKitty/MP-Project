@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Cherusci_0
+}
+Color ={
+191
+124
+226
+}
+Location ={
+428
+578
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Franks
+}
+}

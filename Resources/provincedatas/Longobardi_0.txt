@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Longobardi_0
+}
+Color ={
+129
+224
+116
+}
+Location ={
+468
+600
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Germania
+}
+}

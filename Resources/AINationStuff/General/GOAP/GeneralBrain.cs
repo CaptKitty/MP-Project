@@ -5,8 +5,7 @@ using UnityEngine;
 public class GeneralBrain : GAgent {
 
     public string nation;
-    public string province;
-    public int WarThirst;
+    public FieldArmyHolder army;
 
     public List<General_GAction> actionss = new List<General_GAction>();
 
@@ -16,74 +15,42 @@ public class GeneralBrain : GAgent {
 
     public void Startie()
     {
-        SubGoal s1 = new SubGoal("ConquerProvince", 0, false);
-        goals.Add(s1, 5);
+        // SubGoal s1 = new SubGoal("ConquerProvince", 0, false);
+        // goals.Add(s1, 5);
 
-        SubGoal s2 = new SubGoal("RecruitTroops", 0, false);
-        goals.Add(s2, 5);
+        // SubGoal s2 = new SubGoal("RecruitTroops", 0, false);
+        // goals.Add(s2, 5);
 
-        SubGoal s3 = new SubGoal("PrepWar", 0, false);
-        goals.Add(s3, 0); 
+        // SubGoal s3 = new SubGoal("PrepWar", 0, false);
+        // goals.Add(s3, 0);
 
-        SubGoal s4 = new SubGoal("Sleep", 3, false);
-        goals.Add(s4, 3);
+        // SubGoal s4 = new SubGoal("Sleep", 3, false);
+        // goals.Add(s4, 3);
 
-        var acts = Resources.LoadAll<General_GAction>("AINationStuff/Actions/");
-        //debug.log(acts.Length);
-        foreach (General_GAction a in acts) 
+        var acts = Resources.LoadAll<General_GAction>("AINationStuff/General/Actions/");
+        ////Debug.Log(acts.Length);
+        foreach (General_GAction a in acts)
         {
             // a.Awake();
             var b = Instantiate(a);
             b.generalBrainy = this;
             actionss.Add(b);
         }
-        SetPriorities();
+    }
+    public void NewGoal(string NewGoal)
+    {
+        if(true)
+        {
+            goals.Clear();
+        }
+        SubGoal s1 = new SubGoal(NewGoal, 0, true);
+        goals.Add(s1, 5);
+        //Debug.LogError(nation + " Ordered " + army.gameObject.name + " to " + NewGoal);
     }
     public Nation GrabNation()
     {
         return Owners.Instance.nationdict[nation];
     }
-    public void SetPriorities()
-    {
-        foreach(Province prov in Owners.Instance.provincelist)
-        {
-            var a = new Priority(prov,10);
-            priorityList.Add(a);
-        }
-    }
-    public void ReSetPriorities()
-    {
-        priorityList.Clear();
-        foreach(Province prov in Owners.Instance.provincelist)
-        {
-            var a = new Priority(prov,10);
-            if(prov.nation.name == nation)
-            {
-                a.value += 5;
-                if(prov.OriginalNation.name == nation)
-                {
-                    a.value -= 10;
-                }
-            }
-            else
-            {
-                if(prov.OriginalNation.name == nation)
-                {
-                    a.value += 50;
-                }
-            }
-            
-            if(nation.Contains("Rome"))
-            {
-                if(prov.OriginalNation.name.Contains("Carthage"))
-                {
-                    a.value -= 20;
-                }
-            }
-            priorityList.Add(a);
-        }
-    }
-
     public void Think()
     {
         if (goals.Count == 0)
@@ -94,12 +61,42 @@ public class GeneralBrain : GAgent {
     }
     public void LaterUpdate() {
 
+        try{
+        //Debug.LogError(actionQueue.Count + "_" + goals.Count);
+        }
+        catch{}
         if (currentAction != null && currentAction.running)
         {
+            if(currentAction.Execute())
+            {
+                currentAction = null;
+                //Debug.LogError(currentAction);
+                
 
-            currentAction.Execute();
+                if (actionQueue != null && actionQueue.Count == 0) {
+
+                    // Check if currentGoal is removable
+                    if (currentGoal.remove) {
+
+                        // Remove it
+                        //Debug.LogError("Removed Goal");
+                        goals.Remove(currentGoal);
+                        //Debug.LogError(currentAction);
+                    }
+                    // Set planner = null so it will trigger a new one
+                    planner = null;
+                }
+                actionQueue = null;
+                //Debug.LogError("_vs_" + goals.Count);
+            }
             return;
         }
+        if(goals.Count == 0)
+        {
+            //Debug.LogError("Why the fuck would this trigger?");
+            return;
+        }
+        //Debug.LogError(currentAction);
 
         // Check we have a planner and an actionQueue
         if (planner == null || actionQueue == null) {
@@ -110,11 +107,12 @@ public class GeneralBrain : GAgent {
             // Sort the goals in descending order and store them in sortedGoals
             var sortedGoals = from entry in goals orderby entry.Value descending select entry;
 
+            //Debug.LogError(goals.Count);
             foreach (var res in goals)
             {
                 foreach (var item in res.Key.sGoals)
                 {
-                    //debug.log(item.Key + " " + res.Value);
+                    ////Debug.Log(item.Key + " " + res.Value);
                 }
             }
             foreach (var res in actionss)
@@ -128,7 +126,7 @@ public class GeneralBrain : GAgent {
                 {
                     varry += item.Key;
                 }
-                //debug.log(varry);
+                ////Debug.Log(varry);
             }
 
             //look through each goal to find one that has an achievable plan
@@ -157,7 +155,9 @@ public class GeneralBrain : GAgent {
             if (currentGoal.remove) {
 
                 // Remove it
+                //Debug.LogError("Removed Goal");
                 goals.Remove(currentGoal);
+                //Debug.LogError(currentAction);
             }
             // Set planner = null so it will trigger a new one
             planner = null;
@@ -166,8 +166,15 @@ public class GeneralBrain : GAgent {
         // Do we still have actions
         if (actionQueue != null && actionQueue.Count > 0) {
 
+            //Debug.Log(actionQueue.Count);
+            foreach(var item in actionQueue)
+            {
+                //Debug.LogError(item.actionName);
+            }
+            
             // Remove the top action of the queue and put it in currentAction
             currentAction = actionQueue.Dequeue();
+            //Debug.LogError(currentAction);
 
             if (currentAction.PrePerform()) {
 
@@ -187,9 +194,9 @@ public class GeneralBrain : GAgent {
                     //currentAction.agent.SetDestination(currentAction.target.transform.position);
                 }
             } else {
- 
+
                 // Force a new plan
-                actionQueue = null; 
+                actionQueue = null;
             }
         }
     }

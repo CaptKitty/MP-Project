@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Usipeti_0
+}
+Color ={
+255
+86
+167
+}
+Location ={
+379
+557
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Franks
+}
+}

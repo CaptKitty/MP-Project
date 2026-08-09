@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: feeb2f63c62761344bf2889db73c56d4, type: 3}
+  m_Name: Franks
+  m_EditorClassIdentifier: 
+  color: {r: 0.1348486, g: 0.10933607, b: 0.5943396, a: 0}
+  color2: {r: 0.254717, g: 0.24330279, b: 0.23188858, a: 0}
+  color3: {r: 0.990566, g: 0.7995944, b: 0.7335796, a: 0}
+  UnitList:
+  - {fileID: 1002579342033724372, guid: a4a249699bf4d8e4195b4f24a290938c, type: 3}
+  UnitDataList: []
+  BarracksLevel: 2
+  MercLevel: 0
+  FarmLevel: 10
+  BarracksUnits:
+  - {fileID: 1002579342033724372, guid: a4a249699bf4d8e4195b4f24a290938c, type: 3}
+  - {fileID: 5815002448955544719, guid: ee2a0342b3d10a849bea2717893c1cb1, type: 3}
+  - {fileID: 1002579342033724372, guid: a9d37f12ece01bd46843b4aa7c7f959e, type: 3}
+  BarracksDataList:
+  - {fileID: 11400000, guid: 47df4b1323052964c82b10d37a0c945a, type: 2}
+  - {fileID: 11400000, guid: 288334bf104fae5448e61506ac62b986, type: 2}
+  - {fileID: 11400000, guid: fa4a84c0cf334da40bb64d728942e382, type: 2}
+  MercenaryUnits:
+  - {fileID: 1002579342033724372, guid: e20ae5212fbd75843aaefae8cc3d4c71, type: 3}
+  - {fileID: 1002579342033724372, guid: 29665083b747bd54aa900a8285ed01a6, type: 3}
+  - {fileID: 1002579342033724372, guid: dc0ec296db2ed5543b6f4b990fb0f74d, type: 3}
+  - {fileID: 1002579342033724372, guid: d71592f662aacdd478c8937d36798e52, type: 3}
+  - {fileID: 1002579342033724372, guid: dce30088f80515b49bc5661b6f2e9c00, type: 3}
+  MercenaryDataList: []
+  Flaglist:
+  - EqualOpportunityPillagers
+  - Barbarian
+  - Braindead
+  factionTheme: {fileID: 11400000, guid: bc69b654c6f349c40b5b5b11dff99548, type: 2}
+  Income: 600

@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Switserland_0
+}
+Color ={
+255
+175
+96
+}
+Location ={
+398
+456
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Germania
+}
+}

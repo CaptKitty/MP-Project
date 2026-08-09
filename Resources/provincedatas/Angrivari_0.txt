@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Angrivari_0
+}
+Color ={
+106
+226
+146
+}
+Location ={
+406
+591
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Franks
+}
+}

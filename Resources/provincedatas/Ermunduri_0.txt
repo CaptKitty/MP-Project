@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Ermunduri_0
+}
+Color ={
+154
+226
+226
+}
+Location ={
+472
+551
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Germania
+}
+}

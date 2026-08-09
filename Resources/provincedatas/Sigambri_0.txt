@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Sigambri_0
+}
+Color ={
+158
+206
+226
+}
+Location ={
+409
+551
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Franks
+}
+}

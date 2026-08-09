@@ -7,4 +7,9 @@ using UnityEngine.UI;
 public class FactionTheme : ScriptableObject
 {
     public Sprite TooltipBird;
+    public List<Sprite> Beardlist = new List<Sprite>();
+    public Sprite GrabViableBeard()
+    {
+        return Beardlist[Random.Range(0,Beardlist.Count)];
+    }
 }

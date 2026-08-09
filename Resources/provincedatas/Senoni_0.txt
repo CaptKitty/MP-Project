@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Senoni_0
+}
+Color ={
+224
+153
+87
+}
+Location ={
+471
+579
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Germania
+}
+}

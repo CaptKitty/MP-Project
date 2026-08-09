@@ -13,14 +13,19 @@ public class NationalBrain : GAgent {
     public List<Priority> priorityList = new List<Priority>();
 
     public int DiplomacyCooldown = 0;
+    public int ArmySpawnCooldown = 0;
+    public int SetArmySpawnCooldown = 100;
 
     public void Startie()
     {
-        SubGoal s1 = new SubGoal("ConquerProvince", 0, false);
+        SubGoal s0 = new SubGoal("RecruitArmies", 0, false);
+        goals.Add(s0, 6);
+
+        SubGoal s1 = new SubGoal("RecruitTroops", 0, false);
         goals.Add(s1, 5);
 
-        SubGoal s2 = new SubGoal("RecruitTroops", 0, false);
-        goals.Add(s2, 5);
+        SubGoal s2 = new SubGoal("ConquerProvince", 0, false);
+        goals.Add(s2, 4);
 
         SubGoal s3 = new SubGoal("PrepWar", 0, false);
         goals.Add(s3, 0); 
@@ -28,7 +33,7 @@ public class NationalBrain : GAgent {
         SubGoal s4 = new SubGoal("Sleep", 3, false);
         goals.Add(s4, 3);
 
-        var acts = Resources.LoadAll<Nation_GAction>("AINationStuff/Actions/");
+        var acts = Resources.LoadAll<Nation_GAction>("AINationStuff/National/Actions/");
         //debug.log(acts.Length);
         foreach (Nation_GAction a in acts) 
         {
@@ -101,6 +106,10 @@ public class NationalBrain : GAgent {
 
     public void Think()
     {
+        if(GrabNation().faction.HasFlag("Braindead"))
+        {
+            return;
+        }
         if (goals.Count == 0)
         {
             return;

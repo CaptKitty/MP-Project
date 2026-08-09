@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Quadi_0
+}
+Color ={
+129
+124
+226
+}
+Location ={
+525
+503
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Germania
+}
+}

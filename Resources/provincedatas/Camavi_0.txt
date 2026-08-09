@@ -1,0 +1,22 @@
+Province ={
+Name ={
+Camavi_0
+}
+Color ={
+213
+226
+147
+}
+Location ={
+391
+576
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Franks
+}
+}

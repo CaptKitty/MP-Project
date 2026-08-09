@@ -13,3 +13,7 @@ MonoBehaviour:
   m_Name: RomanFactionTheme
   m_EditorClassIdentifier: 
   TooltipBird: {fileID: 21300000, guid: 6945e1fa303104748a3c274087a6a338, type: 3}
+  Beardlist:
+  - {fileID: 21300000, guid: d14552d1153682445ae1cfb5fd16a170, type: 3}
+  - {fileID: 21300000, guid: 9daf187c8675af143ae4da355031ae03, type: 3}
+  - {fileID: 21300000, guid: 1fa1fc97b0e90da4ba90fbc3dcadbcfd, type: 3}

@@ -18,6 +18,8 @@ MonoBehaviour:
   cost: 50
   health: 200
   speed: 1
+  actions: 3
+  Initiative: 6
   flaglist: []
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 11400000, guid: dd27822988f93bc469b2fe10ae3c23ca, type: 2}
@@ -40,3 +42,9 @@ MonoBehaviour:
   - {fileID: 21300000, guid: f497242511d6c5344bfcec11b24e4ca2, type: 3}
   - {fileID: 21300000, guid: 2a17cfdacd044a541970e4e76ba4245d, type: 3}
   Mercenary: 1
+  Big: 0
+  useFormation: 0
+  formationSize: 6
+  memberHealth: 150
+  memberSpacing: 1.85
+  formationLayout: 1

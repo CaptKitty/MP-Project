@@ -11,6 +11,9 @@ public class Nation_GActionOrderGatherTroops : Nation_GAction
     public FieldArmyHolder army;
     public override bool IsAchievable() 
     {
+        // Action ScriptableObjects are reused between plans. Never allow a previously chosen
+        // army to make this higher-priority recruitment goal appear achievable forever.
+        army = null;
         if(nationalbrainy.GrabNation().armies.Count == 0)
         {
             return false;
@@ -19,6 +22,7 @@ public class Nation_GActionOrderGatherTroops : Nation_GAction
         {
             return false;
         }
+        float weakestStrength = 2f;
         foreach(var a in nationalbrainy.GrabNation().armies)
         {
             if(a.IsPlayer)
@@ -32,11 +36,16 @@ public class Nation_GActionOrderGatherTroops : Nation_GAction
             }
             if(a.IsArmyAvailable() == true)
             {
-                army = a;
-                return true;
+                float strength = a.fieldArmy.MaxArmySize <= 0 ? 1f :
+                    (float)a.fieldArmy.GrabArmySize() / a.fieldArmy.MaxArmySize;
+                if (strength < weakestStrength)
+                {
+                    weakestStrength = strength;
+                    army = a;
+                }
             }
         }
-        return false;
+        return army != null;
     }
     public float AggroNumber(Province province)
     {
@@ -56,7 +65,7 @@ public class Nation_GActionOrderGatherTroops : Nation_GAction
     }
     public override bool Execute()
     {
-        Debug.LogError(nationalbrainy.nation + " Orders the " + army.gameObject.name + " to recruit");
+        //Debug.LogError(nationalbrainy.nation + " Orders the " + army.gameObject.name + " to recruit");
         army.generalbrain.NewGoal("RecruitTroops");
         army.generalbrain.Think();
         return true;

@@ -18,6 +18,25 @@ public class Weapon : ScriptableObject
     public double NextAvailableAttack = 0;
     public string animationtype;
 
+    [Header("Battle Presentation")]
+    [Tooltip("Shared animation and visual-pose definition. When assigned, this takes precedence over the legacy fields below.")]
+    public WeaponAnimationClass animationClass;
+    [Tooltip("Use a weapon-specific held position and angle. Create a Weapon variant for a different pose.")]
+    public bool overrideVisualPose;
+    public Vector2 visualOffset = new Vector2(.146f, -.082f);
+    public float visualAngle;
+    [Tooltip("Exact in-flight sprite. Blank falls back to the SpriteRenderer on Throwable.")]
+    public Sprite projectileSprite;
+
+    public string BattleAnimationType => animationClass != null && !string.IsNullOrEmpty(animationClass.animationType)
+        ? animationClass.animationType : animationtype;
+    public bool OverrideBattleVisualPose => animationClass != null ? animationClass.overrideVisualPose : overrideVisualPose;
+    public Vector2 BattleVisualOffset => animationClass != null ? animationClass.visualOffset : visualOffset;
+    public float BattleVisualAngle => animationClass != null ? animationClass.visualAngle : visualAngle;
+    public Sprite BattleProjectileSprite => animationClass != null && animationClass.projectileSprite != null
+        ? animationClass.projectileSprite : projectileSprite;
+    public float BattleProjectileAngleOffset => animationClass != null ? animationClass.projectileAngleOffset : 0f;
+
     [Header("Throwable")]
     public GameObject Throwable;
     public int ammo = 0;
@@ -30,7 +49,7 @@ public class Weapon : ScriptableObject
 
     public Weapon GrabCopy()
     {
-        Weapon potato = new Weapon();
+        Weapon potato = CreateInstance<Weapon>();
         potato.name = name;
         potato.sprite = sprite;
         potato.combatdistance = combatdistance;
@@ -42,7 +61,12 @@ public class Weapon : ScriptableObject
         potato.ammo = ammo;
         potato.modifier = modifier;
         potato.animationtype = animationtype;
-        potato.armor = armor.GrabArmor();
+        potato.animationClass = animationClass;
+        potato.overrideVisualPose = overrideVisualPose;
+        potato.visualOffset = visualOffset;
+        potato.visualAngle = visualAngle;
+        potato.projectileSprite = projectileSprite;
+        potato.armor = armor != null ? armor.GrabArmor() : null;
         return potato;
     }
     public string GrabWeaponInformation()

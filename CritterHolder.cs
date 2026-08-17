@@ -24,6 +24,10 @@ public class CritterHolder : MonoBehaviour
     public bool IsthisAI = false;
     public bool IsThisAlive = true;
     public bool online = false;
+    [Header("Formation Combat")]
+    public bool useFormation = true;
+    public FormationTuning formationTuning = new FormationTuning();
+    public FormationCombat formation;
 
     public UnitBrain unitbrain;
     public List<Weapon> weaponlist;
@@ -86,6 +90,14 @@ public class CritterHolder : MonoBehaviour
         }
         return newvariable;
     }
+    public int GrabCurrentFormationHealth()
+    {
+        return formation != null ? formation.CurrentHealth : population;
+    }
+    public int GrabMaximumFormationHealth()
+    {
+        return formation != null ? formation.MaximumHealth : GrabHealth();
+    }
     public double GrabCombatDistance()
     {
         List<Modifier> _modifierlist = new List<Modifier>();
@@ -122,6 +134,11 @@ public class CritterHolder : MonoBehaviour
             {
                 newvariable *= item.combatdistance_modifier;
             }
+        }
+        if (formation != null && flaglist != null && flaglist.Contains("Phalanx"))
+        {
+            float effectiveness = Mathf.InverseLerp(35f, 75f, formation.cohesion);
+            newvariable *= Mathf.Lerp(1.0f, 1.5f, effectiveness);
         }
         return newvariable;
     }
@@ -162,7 +179,16 @@ public class CritterHolder : MonoBehaviour
                 newvariable *= item.attack_modifier;
             }
         }
-        return (int)newvariable;
+        if (formation != null)
+        {
+            newvariable *= Mathf.Lerp(1f, 0.7f, formation.fatigue / 100f);
+            if (flaglist != null && flaglist.Contains("Phalanx"))
+            {
+                float effectiveness = Mathf.InverseLerp(35f, 75f, formation.cohesion);
+                newvariable *= Mathf.Lerp(1.0f, 1.5f, effectiveness);
+            }
+        }
+        return Mathf.Max(1, (int)newvariable);
     }
     public double GrabSpeed()
     {
@@ -193,6 +219,11 @@ public class CritterHolder : MonoBehaviour
             {
                 newvariable *= item.speed_modifier;
             }
+        }
+        if (formation != null)
+        {
+            newvariable *= Mathf.Lerp(1f, 0.65f, formation.fatigue / 100f);
+            if (flaglist != null && flaglist.Contains("Phalanx") && formation.cohesion >= 35f) newvariable *= 0.5f;
         }
         return newvariable;
     }
@@ -284,7 +315,7 @@ public class CritterHolder : MonoBehaviour
                 gameObject.GetComponent<TestCritter>().listy[1].GetComponent<SpriteRenderer>().sprite = Shield.sprite;
             }
         }
-        gameObject.GetComponent<TestCritter>().SetWeapon(RangedWeapon.animationtype);
+        gameObject.GetComponent<TestCritter>().SetWeapon(RangedWeapon.BattleAnimationType);
         
     }
 
@@ -360,7 +391,7 @@ public class CritterHolder : MonoBehaviour
         if (online)
         {
             
-            if (CanIAct())
+            if (CanIAct() && (formation == null || formation.AllowsLegacyCombatAI))
             {
                 unitbrain.Think();
                 //AIScript.Execute(this);
@@ -392,6 +423,12 @@ public class CritterHolder : MonoBehaviour
 
         FixWeapons();
         population = GrabHealth();
+        if (useFormation && BattleManager1.Instance != null)
+        {
+            formation = GetComponent<FormationCombat>();
+            if (formation == null) formation = gameObject.AddComponent<FormationCombat>();
+            formation.Initialize(this, formationTuning);
+        }
         // if (SpriteList.Count > 0)
         // {
         //     var a = SpriteList[Random.Range(0, SpriteList.Count)];
@@ -559,11 +596,25 @@ public class CritterHolder : MonoBehaviour
     }
     public void LoseHealth(int incoming, string attacktype = "attack")
     {
+        LoseHealthFrom(incoming, attacktype, transform.position);
+    }
+    public void LoseHealthFrom(int incoming, string attacktype, Vector3 attackerPosition)
+    {
         double armorreduction = 1 - (GrabArmor(attacktype)/100);
+        if (formation != null)
+        {
+            Vector2 attackDirection = attackerPosition - transform.position;
+            float facingDot = attackDirection.sqrMagnitude > 0.001f
+                ? Vector2.Dot(formation.Facing, attackDirection.normalized)
+                : 1f;
+            // Shields help most against attacks arriving from the formation's front.
+            if (facingDot > 0.35f) armorreduction *= 0.85;
+        }
         int damage = (int)(armorreduction * incoming);
 
         GetComponent<Animator>().SetTrigger("Hurt");
-        population -= damage;
+        if (formation != null) formation.ApplyDamage(damage, attackerPosition);
+        else population -= damage;
         if (population < 1)
         {
             IsThisAlive = false;

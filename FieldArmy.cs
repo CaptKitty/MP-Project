@@ -11,6 +11,9 @@ public class FieldArmy : ScriptableObject
     public List<ArmyReserves> USDReserves = new List<ArmyReserves>();
     public int ArmySupply;
     public int MaxArmySize = 20;
+    public List<ArmyRecruitmentOrder> recruitmentOrders = new List<ArmyRecruitmentOrder>();
+    [Header("Deterministic Battle Deployment")]
+    public SavedBattleDeployment battleDeployment = new SavedBattleDeployment();
     public void RemoveRandomUnit()
     {
         List<ArmyReserves> templist = new List<ArmyReserves>();
@@ -57,8 +60,8 @@ public class FieldArmy : ScriptableObject
         {
             if (unittoAdd == null)
             {
-                var a = nation.faction.UnitDataList[Random.Range(0, nation.faction.UnitDataList.Count)];
-                AddTroop(a, amount);
+                List<NationUnitEntry> roster = NationContentResolver.ResolveUnits(nation);
+                if (roster.Count > 0) AddTroop(roster[Random.Range(0, roster.Count)].unit, amount);
             }
             else
             {
@@ -104,14 +107,11 @@ public class FieldArmy : ScriptableObject
     }
     public void UpdateUI()
     {
-        string newtext = "";
-        foreach (ArmyReserves item in USDReserves)
-        {
-            newtext += item.amount + "X : " + item.USD.name + "\n";
-        }
-        UIElement.ArmyHost.UpdateTitle("Army", ArmySupply.ToString());
-        UIElement.ArmyHost.UpdateSecond("Army", ArmySupply.ToString());
-        UIElement.ArmyHost.UpdateThree(newtext);
+        if (UIElement.ArmyHost == null) return;
+        // The army panel is selection-based. UpdateUI can also be invoked by
+        // hovering an unrelated army, so the panel resolves the selected holder
+        // rather than blindly presenting this ScriptableObject.
+        UIElement.ArmyHost.RefreshArmyPanel(true);
     }
     public int GrabArmySize()
     {
@@ -121,6 +121,60 @@ public class FieldArmy : ScriptableObject
             a += item.amount;
         }
         return a;
+    }
+    public int GrabQueuedArmySize()
+    {
+        int amount = 0;
+        if (recruitmentOrders == null) recruitmentOrders = new List<ArmyRecruitmentOrder>();
+        foreach (ArmyRecruitmentOrder order in recruitmentOrders)
+            if (order != null) amount += Mathf.Max(0, order.amount);
+        return amount;
+    }
+    public bool QueueRecruitment(UnitSaveData unit, int amount)
+    {
+        if (unit == null || amount <= 0 || GrabArmySize() + GrabQueuedArmySize() + amount > MaxArmySize) return false;
+        if (recruitmentOrders == null) recruitmentOrders = new List<ArmyRecruitmentOrder>();
+        recruitmentOrders.Add(new ArmyRecruitmentOrder
+        {
+            unit = unit,
+            amount = amount,
+            remainingTicks = unit.EffectiveRecruitmentTicks
+        });
+        return true;
+    }
+    public void ProcessRecruitmentTick()
+    {
+        if (recruitmentOrders == null || recruitmentOrders.Count == 0) return;
+
+        // Recruitment is a FIFO queue. Only its first valid order consumes a tick,
+        // and batched orders produce their units one at a time.
+        while (recruitmentOrders.Count > 0)
+        {
+            ArmyRecruitmentOrder order = recruitmentOrders[0];
+            if (order == null || order.unit == null || order.amount <= 0)
+            {
+                recruitmentOrders.RemoveAt(0);
+                continue;
+            }
+
+            order.remainingTicks--;
+            if (order.remainingTicks > 0)
+            {
+                RecruitmentMenu.RefreshQueueFor(this);
+                return;
+            }
+
+            AddTroop(order.unit, 1, true);
+            order.amount--;
+            if (order.amount <= 0)
+                recruitmentOrders.RemoveAt(0);
+            else
+                order.remainingTicks = order.unit.EffectiveRecruitmentTicks;
+            RecruitmentMenu.RefreshQueueFor(this);
+            return;
+        }
+
+        RecruitmentMenu.RefreshQueueFor(this);
     }
     public void AddSupply(int suppliesToAdd)
     {
@@ -142,4 +196,12 @@ public class ArmyReserves
     public string name;
     public UnitSaveData USD;
     public int amount;
+}
+
+[System.Serializable]
+public class ArmyRecruitmentOrder
+{
+    public UnitSaveData unit;
+    public int amount = 1;
+    public int remainingTicks = 1;
 }

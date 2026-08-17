@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4c1af54aeb37c444a6600ee648e8d94, type: 3}
+  m_Name: Egypt
+  m_EditorClassIdentifier: Assembly-CSharp::NationCultureData
+  content:
+    units:
+    - unit: {fileID: 11400000, guid: 4cd6b8db7c6296a489a09d097c2cb76a, type: 2}
+      requiredBuilding: {fileID: 11400000, guid: 05fb6ded8375fbb4a81c7af3ff0cfff7, type: 2}
+      minimumBuildingLevel: 1
+    - unit: {fileID: 11400000, guid: cb0b64d5dbdf6eb4d96f5f502a294a7a, type: 2}
+      requiredBuilding: {fileID: 11400000, guid: 05fb6ded8375fbb4a81c7af3ff0cfff7, type: 2}
+      minimumBuildingLevel: 2
+    - unit: {fileID: 11400000, guid: 0faecb524350aae42b0714145125e954, type: 2}
+      requiredBuilding: {fileID: 11400000, guid: 05fb6ded8375fbb4a81c7af3ff0cfff7, type: 2}
+      minimumBuildingLevel: 3
+    buildings: []
+    generalNames:
+    - Ptolemy
+    flags: []

@@ -39,10 +39,14 @@ public class GeneralBrain : GAgent {
     }
     public void NewGoal(string NewGoal)
     {
-        if(true)
-        {
-            goals.Clear();
-        }
+        goals.Clear();
+        // A new national order supersedes every part of the previous plan. Leaving these
+        // references alive can make the second order resume the first order's action queue.
+        if (currentAction != null) currentAction.running = false;
+        currentAction = null;
+        currentGoal = null;
+        actionQueue = null;
+        planner = null;
         SubGoal s1 = new SubGoal(NewGoal, 0, true);
         goals.Add(s1, 5);
         //Debug.LogError(nation + " Ordered " + army.gameObject.name + " to " + NewGoal);

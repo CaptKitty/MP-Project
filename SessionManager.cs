@@ -35,7 +35,12 @@ public class SessionManager : MonoBehaviour
     }
     public void ChangePlayerFaction(string newfaction)
     {
-        HostFaction = Resources.Load<Faction>("Prefabs/Factions/" + newfaction);
+        HostFaction = LoadFaction(newfaction);
+        if (HostFaction == null)
+        {
+            Debug.LogError("Cannot change player faction: no faction asset was found for '" + newfaction + "'.");
+            return;
+        }
         HostFaction = HostFaction.Init();
         HostFaction.Set();
         foreach (var item in HostFaction.UnitList)
@@ -52,12 +57,32 @@ public class SessionManager : MonoBehaviour
         }
         ToolTipManager._instance.OnEnable();
     }
+
+    public void ApplyNetworkFaction(string factionName)
+    {
+        Faction faction = LoadFaction(factionName);
+        if (faction == null)
+        {
+            Debug.LogError("Network faction does not exist: " + factionName);
+            return;
+        }
+
+        HostFaction = faction.Init();
+        HostFaction.Set();
+    }
+
+    private static Faction LoadFaction(string factionName)
+    {
+        if (string.IsNullOrWhiteSpace(factionName)) return null;
+        Faction faction = Resources.Load<Faction>("Prefabs/NationData/Factions/" + factionName);
+        return faction != null ? faction : Resources.Load<Faction>("Prefabs/Factions/" + factionName);
+    }
     public void ChangeEnemyFaction(string newEnemy)
     {
         ClientFaction = Owners.Instance.nationlist.Find(x => x.faction.name == newEnemy).faction;
 
         return;
-        ClientFaction =  Resources.Load<Faction>("Prefabs/Factions/" + newEnemy);
+        ClientFaction = LoadFaction(newEnemy);
         ClientFaction = ClientFaction.Init();
         ClientFaction.Set();
         //Debug.LogError("Client is " + ClientFaction.name);
@@ -65,14 +90,14 @@ public class SessionManager : MonoBehaviour
     public void ClientChangePlayerFaction(string newfaction)
     {
         return;
-        HostFaction_client = Resources.Load<Faction>("Prefabs/Factions/" + newfaction);
+        HostFaction_client = LoadFaction(newfaction);
         HostFaction_client = HostFaction_client.Init();
         HostFaction_client.Set();
         //Debug.LogError("Host is " + HostFaction_client.name);
     }
     public void ClientChangeEnemyFaction(string newEnemy)
     {
-        ClientFaction_client =  Resources.Load<Faction>("Prefabs/Factions/" + newEnemy);
+        ClientFaction_client = LoadFaction(newEnemy);
         ClientFaction_client = ClientFaction_client.Init();
         ClientFaction_client.Set();
         //Debug.LogError("Client is " + ClientFaction_client.name);

@@ -6,6 +6,8 @@ public class FieldArmyHolder : MonoBehaviour
 {
     public FieldArmy fieldArmy;
     public static FieldArmyHolder PlayerFieldArmy;
+    public static FieldArmyHolder SelectedPlayerArmy;
+    public static FieldArmyHolder InspectedArmy;
     public Vector3 adjustment = new Vector3(948, 533);
     public Vector3 modification = new Vector3(0.5f, 0.5f);
     public Vector3 offset = new Vector3(364f, 232f);
@@ -26,6 +28,20 @@ public class FieldArmyHolder : MonoBehaviour
     private int ActivityTimer = 10;
     public List<string> flaglist = new List<string>();
     public bool IsPlayer = false;
+    public string NetworkArmyId;
+    public ulong NetworkOwnerClientId = ulong.MaxValue;
+    public bool IsHumanControlled;
+    public bool IsNetworkReplica;
+    public bool PreserveConfiguredRoster;
+    [Header("AI Reinforcement")]
+    [Min(1)] public int AIReinforcementIntervalTurns = 8;
+    [HideInInspector] public int NextAIReinforcementTurn;
+    [HideInInspector] public int CannotEngageUntilTurn;
+    [HideInInspector] public int MovementPenaltyUntilTurn;
+    [Min(0.1f)] public float NetworkInterpolationSpeed = 12f;
+
+    private Vector3 networkVisualTarget;
+    private bool hasNetworkVisualTarget;
     public GeneralBrain generalbrain;
     
     public void Awake()
@@ -34,11 +50,6 @@ public class FieldArmyHolder : MonoBehaviour
         ForeignSupplyUsage = _ForeignSupplyUsage;
         RecruitTimer = _RecruitTimer;
         ActivityTimer = _ActivityTimer;
-        generalbrain = new GeneralBrain();
-        generalbrain.nation = fieldArmy.nation.name;
-        generalbrain.army = this;
-        generalbrain.Startie();
-
         if (gameObject.name == "PlayerArmy")
         {
             if (FieldArmyHolder.PlayerFieldArmy == null)
@@ -50,8 +61,11 @@ public class FieldArmyHolder : MonoBehaviour
         }
         else
         {
-            fieldArmy = new FieldArmy();
+            fieldArmy = ScriptableObject.CreateInstance<FieldArmy>();
         }
+
+        generalbrain = ScriptableObject.CreateInstance<GeneralBrain>();
+        generalbrain.army = this;
 
         fieldArmy.ArmySupply = 500;
 
@@ -63,26 +77,12 @@ public class FieldArmyHolder : MonoBehaviour
         {
             FieldArmyHolder.PlayerFieldArmy.fieldArmy.nation = Owners.Instance.nationlist.Find(x => x.faction.name == SessionManager.Instance.HostFaction.name); //SessionManager.Instance.HostFaction
             fieldArmy.nation.armies.Add(this);
-            if (fieldArmy.nation.name == "Carthage")
-            {
-                SetPositionTo(Owners.Instance.provincelist.Find(x => x.name == "Bastetani_0"));
-            }
-            if (fieldArmy.nation.name == "Galicia")
-            {
-                SetPositionTo(Owners.Instance.provincelist.Find(x => x.name == "Gallaeci_0"));
-            }
-            if (fieldArmy.nation.name == "Rome")
-            {
-                SetPositionTo(Owners.Instance.provincelist.Find(x => x.name == "Italian Province_3"));
-            }
-            // if (fieldArmy.nation.name == "Spain")
-            // {
-            //     SetPositionTo(Owners.Instance.provincelist.Find(x => x.name == "_11"));
-            // }
-            if (fieldArmy.nation.name == "Gaul")
-            {
-                SetPositionTo(Owners.Instance.provincelist.Find(x => x.name == "French Province_8"));
-            }
+            Province startingProvince = FindStartingProvince(fieldArmy.nation);
+            if (startingProvince != null)
+                SetPositionTo(startingProvince);
+            else
+                Debug.LogWarning($"Could not position {name}: {fieldArmy.nation.name} does not own a province.", this);
+
             Camera.main.gameObject.transform.localPosition = new Vector3(FieldArmyHolder.PlayerFieldArmy.gameObject.transform.position.x, FieldArmyHolder.PlayerFieldArmy.gameObject.transform.position.y, -10);
         }
         else
@@ -93,6 +93,8 @@ public class FieldArmyHolder : MonoBehaviour
                 fieldArmy.nation.armies.Add(this);
             }
         }
+        generalbrain.nation = fieldArmy.nation.name;
+        generalbrain.Startie();
         Owners.Instance.armylist.Add(this);
         Material mat = Instantiate(transform.GetChild(0).GetComponent<SpriteRenderer>().material);
         transform.GetChild(0).GetComponent<SpriteRenderer>().material = mat;
@@ -102,26 +104,17 @@ public class FieldArmyHolder : MonoBehaviour
         mat.SetColor("_FactionColor2", fieldArmy.nation.faction.color2);
         mat.SetColor("_FactionColor3", fieldArmy.nation.faction.color3);
 
-        fieldArmy.USDReserves.Clear();
-
-        if (fieldArmy.nation.faction.HasFlag("Decentralized"))
+        if (!PreserveConfiguredRoster)
         {
-            foreach (UnitSaveData item in fieldArmy.nation.faction.UnitDataList)
-            {
-                fieldArmy.AddTroop(item, 2);
-            }
-        }
-        else
-        {
-            foreach (UnitSaveData item in fieldArmy.nation.faction.UnitDataList)
-            {
-                fieldArmy.AddTroop(item, 3);
-            }
+            InitializeStarterRoster();
         }
         
 
-        transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = fieldArmy.USDReserves[0].USD.bodyparts[0];
-        transform.GetChild(2).GetComponent<SpriteRenderer>().sprite = fieldArmy.USDReserves[0].USD.bodyparts[2];
+        if (fieldArmy.USDReserves.Count > 0 && fieldArmy.USDReserves[0].USD != null)
+        {
+            transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = fieldArmy.USDReserves[0].USD.bodyparts[0];
+            transform.GetChild(2).GetComponent<SpriteRenderer>().sprite = fieldArmy.USDReserves[0].USD.bodyparts[2];
+        }
 
         if (fieldArmy.nation.faction.HasFlag("EqualOpportunityPillagers"))
         {
@@ -147,12 +140,15 @@ public class FieldArmyHolder : MonoBehaviour
     }
     public void OnDestroy()
     {
+        if (InspectedArmy == this) InspectedArmy = null;
+        if (SelectedPlayerArmy == this) SelectedPlayerArmy = null;
         try{
             fieldArmy.nation.armies.Remove(this);
         }catch{}
         try{
             Owners.Instance.armylist.Remove(this);
         }catch{}
+        if (generalbrain != null) Destroy(generalbrain);
     }
     public void Update()
     {
@@ -172,10 +168,63 @@ public class FieldArmyHolder : MonoBehaviour
     {
         fieldArmy.UpdateUI();
     }
+    public void OnMouseDown()
+    {
+        InspectedArmy = this;
+        if (IsFriendlyToLocalPlayer())
+        {
+            SelectedPlayerArmy = this;
+        }
+        if (fieldArmy != null) fieldArmy.UpdateUI();
+    }
+    public bool IsFriendlyToLocalPlayer()
+    {
+        if (fieldArmy == null || fieldArmy.nation == null) return false;
+        string localNation = CampaignNetworkPlayer.Local != null
+            ? CampaignNetworkPlayer.Local.AssignedNation
+            : string.Empty;
+        if (string.IsNullOrEmpty(localNation) && SessionManager.Instance != null && SessionManager.Instance.HostFaction != null)
+        {
+            localNation = SessionManager.Instance.HostFaction.name;
+        }
+        if (string.IsNullOrEmpty(localNation) && PlayerFieldArmy != null && PlayerFieldArmy.fieldArmy != null && PlayerFieldArmy.fieldArmy.nation != null)
+        {
+            localNation = PlayerFieldArmy.fieldArmy.nation.name;
+        }
+        return !string.IsNullOrEmpty(localNation) ? fieldArmy.nation.name == localNation : IsPlayer;
+    }
+    public void OpenRecruitmentMenu()
+    {
+        RecruitmentMenu.Show(this);
+    }
     public void OnMeeting(FieldArmyHolder otherarmy)
     {
+        if (Unity.Netcode.NetworkManager.Singleton != null &&
+            Unity.Netcode.NetworkManager.Singleton.IsListening &&
+            !Unity.Netcode.NetworkManager.Singleton.IsServer)
+        {
+            return;
+        }
+
+        if (Owners.Instance != null && (Owners.Instance.turncounter < CannotEngageUntilTurn ||
+            Owners.Instance.turncounter < otherarmy.CannotEngageUntilTurn)) return;
         if (otherarmy.fieldArmy.nation == fieldArmy.nation)
         {
+            if (ProjectX.TileBattle.TileBattleCampaignManager.Instance != null)
+                ProjectX.TileBattle.TileBattleCampaignManager.Instance.TryJoinFriendlyBattle(this, otherarmy);
+            return;
+        }
+        if (DeterministicBattleManager.Instance != null &&
+            DeterministicBattleManager.Instance.BattleSystemMode == CampaignBattleSystemMode.TileBased &&
+            ProjectX.TileBattle.TileBattleCampaignManager.Instance != null)
+        {
+            ProjectX.TileBattle.TileBattleCampaignManager.Instance.TryStartBattle(this, otherarmy);
+            return;
+        }
+        if (DeterministicBattleManager.Instance != null &&
+            DeterministicBattleManager.Instance.BattleSystemMode == CampaignBattleSystemMode.Deterministic)
+        {
+            DeterministicBattleManager.Instance.TryStartBattle(this, otherarmy);
             return;
         }
         if (IsPlayer || otherarmy.IsPlayer)
@@ -245,6 +294,7 @@ public class FieldArmyHolder : MonoBehaviour
     }
     public void Act()
     {
+        if (flaglist.Contains("Battle")) return;
         if (IsPlayer && target.x + target.y != 0)
         {
             Move();
@@ -270,24 +320,33 @@ public class FieldArmyHolder : MonoBehaviour
         if (distance < 1)
         {
             LocalProvince = target;
-            if (!IsPlayer)
+            var destination = TargetProvince;
+            if (destination != null && destination.nation != fieldArmy.nation)
             {
-                var a = TargetProvince;//
-                if (a.nation != fieldArmy.nation)
+                if (DeterministicBattleManager.Instance != null &&
+                    DeterministicBattleManager.Instance.BattleSystemMode == CampaignBattleSystemMode.TileBased &&
+                    ProjectX.TileBattle.TileBattleCampaignManager.Instance != null)
                 {
-                    if (HandleAIonAICombat(null, a.garrison))
-                    {
-                        EnterProvince(a);
-                    }
+                    ProjectX.TileBattle.TileBattleCampaignManager.Instance.TryStartGarrisonBattle(this, destination);
+                }
+                else if (DeterministicBattleManager.Instance != null &&
+                    DeterministicBattleManager.Instance.BattleSystemMode == CampaignBattleSystemMode.Deterministic)
+                {
+                    DeterministicBattleManager.Instance.TryStartGarrisonBattle(this, destination);
+                }
+                else if (!IsPlayer && HandleAIonAICombat(null, destination.garrison))
+                {
+                    EnterProvince(destination);
                 }
             }
-
-            //target = new Vector3(0, 0, 0);
+            target = Vector3.zero;
+            TargetProvince = null;
             //Debug.LogError("Arrived");
             return true;
         }
         var direction = heading / distance;
-        transform.localPosition -= direction * Time.deltaTime * speed;
+        float battleFatigueMultiplier = Owners.Instance != null && Owners.Instance.turncounter < MovementPenaltyUntilTurn ? .5f : 1f;
+        transform.localPosition -= direction * Time.deltaTime * speed * battleFatigueMultiplier;
         //Debug.Log("Walking");
         return false;
     }
@@ -326,9 +385,75 @@ public class FieldArmyHolder : MonoBehaviour
     }
     public void ConquerProvince(Province province)
     {
+        Nation previousOwner = province.nation;
         province.nation = fieldArmy.nation;
+        if (fieldArmy.nation != null && fieldArmy.nation.nationalbrainy != null)
+            fieldArmy.nation.nationalbrainy.ReSetPriorities();
+        if (previousOwner != null && previousOwner != fieldArmy.nation && previousOwner.nationalbrainy != null)
+            previousOwner.nationalbrainy.ReSetPriorities();
         Mapshower.Instance.RePaint();
         province.CreateGarrison();
+    }
+
+    private void LateUpdate()
+    {
+        if (!IsNetworkReplica || !hasNetworkVisualTarget)
+        {
+            return;
+        }
+
+        float blend = 1f - Mathf.Exp(-NetworkInterpolationSpeed * Time.unscaledDeltaTime);
+        transform.position = Vector3.Lerp(transform.position, networkVisualTarget, blend);
+
+        if ((transform.position - networkVisualTarget).sqrMagnitude < 0.0001f)
+        {
+            transform.position = networkVisualTarget;
+        }
+    }
+
+    public void ConfigureNetworkIdentity(string armyId, ulong ownerClientId, bool humanControlled, Nation nation)
+    {
+        NetworkArmyId = armyId;
+        NetworkOwnerClientId = ownerClientId;
+        IsHumanControlled = humanControlled;
+        IsPlayer = humanControlled;
+        IsNetworkReplica = Unity.Netcode.NetworkManager.Singleton != null &&
+                           Unity.Netcode.NetworkManager.Singleton.IsListening &&
+                           !Unity.Netcode.NetworkManager.Singleton.IsServer;
+
+        if (fieldArmy == null)
+        {
+            fieldArmy = ScriptableObject.CreateInstance<FieldArmy>();
+        }
+        if (nation != null)
+        {
+            fieldArmy.nation = nation;
+            if (!nation.armies.Contains(this))
+            {
+                nation.armies.Add(this);
+            }
+        }
+    }
+
+    public void ApplyNetworkState(CampaignArmyState state)
+    {
+        if (!hasNetworkVisualTarget || Vector3.Distance(transform.position, state.MapPosition) > 25f)
+        {
+            transform.position = state.MapPosition;
+        }
+
+        networkVisualTarget = state.MapPosition;
+        hasNetworkVisualTarget = true;
+        target = state.MapTarget;
+        fieldArmy.ArmySupply = state.Supply;
+        if (state.InEncounter)
+        {
+            if (!flaglist.Contains("Battle")) flaglist.Add("Battle");
+        }
+        else
+        {
+            flaglist.Remove("Battle");
+        }
     }
     public void SetPositionTo(Vector3 newposition)
     {
@@ -370,8 +495,8 @@ public class FieldArmyHolder : MonoBehaviour
         {
             if (unittoAdd == null)
             {
-                var a = fieldArmy.nation.faction.UnitDataList[Random.Range(0, fieldArmy.nation.faction.UnitDataList.Count)];
-                fieldArmy.AddTroop(a, amount);
+                List<NationUnitEntry> roster = NationContentResolver.ResolveUnits(fieldArmy.nation);
+                if (roster.Count > 0) fieldArmy.AddTroop(roster[Random.Range(0, roster.Count)].unit, amount);
             }
             else
             {
@@ -509,6 +634,72 @@ public class FieldArmyHolder : MonoBehaviour
         return b[Random.Range(0, b.Count)];
     }
 
+    private void InitializeStarterRoster()
+    {
+        const int starterUnitCount = 6;
+        const int starterBarracksLevels = 3;
+
+        fieldArmy.USDReserves.Clear();
+        List<NationUnitEntry> resolvedRoster = NationContentResolver.ResolveUnits(fieldArmy.nation);
+        List<NationUnitEntry> barracksLine = new List<NationUnitEntry>();
+
+        foreach (NationUnitEntry entry in resolvedRoster)
+        {
+            if (entry == null || entry.unit == null) continue;
+            if (!string.Equals(entry.RequiredBuildingId, "Barracks", System.StringComparison.OrdinalIgnoreCase)) continue;
+            barracksLine.Add(entry);
+        }
+
+        // Treat the first three distinct progression tiers as barracks-line levels 0, 1 and 2.
+        // The serialized building requirement itself is one-based, so sorting first keeps
+        // this compatible with both older level-zero data and newer level-one data.
+        barracksLine.Sort((left, right) =>
+        {
+            int tierComparison = left.minimumBuildingLevel.CompareTo(right.minimumBuildingLevel);
+            if (tierComparison != 0) return tierComparison;
+            return string.CompareOrdinal(left.unit.name, right.unit.name);
+        });
+
+        int availableStarterTypes = 0;
+        int includedLevels = 0;
+        int previousLevel = int.MinValue;
+        foreach (NationUnitEntry entry in barracksLine)
+        {
+            if (entry.minimumBuildingLevel != previousLevel)
+            {
+                if (includedLevels >= starterBarracksLevels) break;
+                previousLevel = entry.minimumBuildingLevel;
+                includedLevels++;
+            }
+            availableStarterTypes++;
+        }
+
+        if (availableStarterTypes == 0)
+        {
+            Debug.LogWarning($"Could not create the six-unit starter army for {fieldArmy.nation.name}: its resolved roster has no Barracks units.", this);
+            return;
+        }
+
+        for (int i = 0; i < starterUnitCount; i++)
+        {
+            UnitSaveData starterUnit = barracksLine[i % availableStarterTypes].unit;
+            fieldArmy.AddTroop(starterUnit, 1, true);
+        }
+    }
+
+    private Province FindStartingProvince(Nation armyNation)
+    {
+        if (armyNation == null || Owners.Instance == null || Owners.Instance.provincelist == null) return null;
+
+        foreach (Province province in Owners.Instance.provincelist)
+        {
+            if (province == null || province.nation == null) continue;
+            if (province.nation == armyNation || province.nation.name == armyNation.name) return province;
+        }
+
+        return null;
+    }
+
     public bool HasFlag(string flag)
     {
         foreach (var item in flaglist)
@@ -522,7 +713,25 @@ public class FieldArmyHolder : MonoBehaviour
     }
     public Province GrabFieldArmyProvince()
     {
-        return Mapshower.Instance.SelectProvinceFromLocation(GrabFieldArmyHolderPosition());
+        Province nearest = GrabNearestProvince();
+        return nearest != null ? nearest : Mapshower.Instance.SelectProvinceFromLocation(GrabFieldArmyHolderPosition());
+    }
+    public Province GrabNearestProvince()
+    {
+        if (Owners.Instance == null || Owners.Instance.provincelist == null) return null;
+        Province nearest = null;
+        float nearestDistance = float.MaxValue;
+        foreach (Province province in Owners.Instance.provincelist)
+        {
+            Vector3 provinceWorldPosition = new Vector3(province.position.x - offset.x, province.position.y - offset.y, 0f);
+            float distance = (transform.position - provinceWorldPosition).sqrMagnitude;
+            if (distance < nearestDistance)
+            {
+                nearestDistance = distance;
+                nearest = province;
+            }
+        }
+        return nearest;
     }
     public Vector3 GrabFieldArmyHolderPosition()
     {

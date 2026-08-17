@@ -71,6 +71,12 @@ public class FactionUpgrade : MonoBehaviour
     }
     public void Upgrade(string input)
     {
+        if (CampaignNetworkPlayer.Local != null && CampaignNetworkPlayer.Local.IsSpawned)
+        {
+            CampaignNetworkPlayer.Local.RequestFactionUpgrade(input);
+            gameObject.SetActive(false);
+            return;
+        }
         if (input.Contains("Barracks"))
         {
             SessionManager.Instance.HostFaction.UpgradeBarracks();

@@ -9,7 +9,7 @@ using UnityEngine;
 public class General_GActionRecruit : General_GAction
 {
     public int countsmade = 0;
-    public int countsneeded = 50;
+    public int countsneeded = 10;
 
     public override bool IsAchievable() 
     {
@@ -33,8 +33,7 @@ public class General_GActionRecruit : General_GAction
             if(countsmade >= countsneeded)
             {
                 running = false;
-                generalBrainy.GrabNation().Manpower -= 5;
-                generalBrainy.army.Recruit();//AddTroop();
+                generalBrainy.GrabNation().ReinforceArmy(generalBrainy.army);
                 //Debug.LogError("Hired a Dude");
                 return true;
             }

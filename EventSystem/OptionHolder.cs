@@ -6,6 +6,8 @@ using UnityEngine;
 public class OptionHolder : MonoBehaviour
 {
     public Option thisoption = new Option();
+    public string eventName;
+    public int optionIndex;
     
     public void OnClickThis()
     {
@@ -15,7 +17,11 @@ public class OptionHolder : MonoBehaviour
         }
         catch{}
 
-        if(thisoption != null && thisoption.EffectList != null)
+        if(CampaignNetworkPlayer.Local != null && CampaignNetworkPlayer.Local.IsSpawned && !string.IsNullOrEmpty(eventName))
+        {
+            CampaignNetworkPlayer.Local.RequestEventOption(eventName, optionIndex);
+        }
+        else if(thisoption != null && thisoption.EffectList != null)
         {
             foreach (var item in thisoption.EffectList)
             {

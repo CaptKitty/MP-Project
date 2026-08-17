@@ -23,6 +23,13 @@ public class Faction : ScriptableObject
     public List<string> Flaglist = new List<string>();
     public FactionTheme factionTheme;
 
+    [Header("Nation identity contribution")]
+    public NationContentLayer content = new NationContentLayer();
+    [Tooltip("A null replacement removes the inherited unit.")]
+    public List<FactionUnitReplacement> unitReplacements = new List<FactionUnitReplacement>();
+    [Tooltip("A null replacement removes the inherited building.")]
+    public List<FactionBuildingReplacement> buildingReplacements = new List<FactionBuildingReplacement>();
+
     public int Income = 500;
 
     public Faction Init()
@@ -68,9 +75,23 @@ public class Faction : ScriptableObject
         // var potato = BarracksUnits[BarracksLevel];
         // potato.GetComponent<TestCritter>().Mercenary = false;
         // UnitList.Add(potato);
-        UnitDataList.Add(BarracksDataList[BarracksLevel]);
-
+        if (BarracksLevel >= BarracksDataList.Count) return;
+        UnitSaveData unlocked = BarracksDataList[BarracksLevel];
+        if (unlocked != null && !UnitDataList.Contains(unlocked)) UnitDataList.Add(unlocked);
         BarracksLevel++;
+    }
+
+    public int GetBarracksTier(UnitSaveData unit)
+    {
+        if (unit == null || BarracksDataList == null) return 0;
+        for (int i = 0; i < BarracksDataList.Count; i++)
+        {
+            UnitSaveData candidate = BarracksDataList[i];
+            if (candidate == unit || candidate != null &&
+                (candidate.name == unit.name || candidate.unitname == unit.unitname))
+                return i + 1;
+        }
+        return 0;
     }
     public void UpgradeMercenaries()
     {

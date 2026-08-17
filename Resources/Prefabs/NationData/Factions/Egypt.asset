@@ -45,4 +45,15 @@ MonoBehaviour:
   - CrusherOfGarrisons
   - Braindead
   factionTheme: {fileID: 11400000, guid: bc69b654c6f349c40b5b5b11dff99548, type: 2}
+  content:
+    units: []
+    buildings: []
+    generalNames: []
+    flags: []
+  unitReplacements:
+  - replace: {fileID: 11400000, guid: 1c0e49bb946563549b1164e0979b86d2, type: 2}
+    with: {fileID: 11400000, guid: 4cd6b8db7c6296a489a09d097c2cb76a, type: 2}
+    requiredBuilding: {fileID: 0}
+    minimumBuildingLevel: 0
+  buildingReplacements: []
   Income: 500

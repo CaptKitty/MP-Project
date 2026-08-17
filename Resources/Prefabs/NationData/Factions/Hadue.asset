@@ -10,25 +10,26 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: feeb2f63c62761344bf2889db73c56d4, type: 3}
-  m_Name: Galicia
+  m_Name: Hadue
   m_EditorClassIdentifier: 
-  color: {r: 0.6704019, g: 0.7735849, b: 0.61667854, a: 0}
-  color2: {r: 0.4528302, g: 0.4402516, b: 0.33962265, a: 0}
-  color3: {r: 0.8679245, g: 0.70059705, b: 0.64275545, a: 0}
+  color: {r: 0.13333334, g: 0.24705882, b: 0.05490196, a: 0}
+  color2: {r: 0.3422969, g: 0.3735848, b: 0.32071903, a: 0}
+  color3: {r: 1, g: 0.6829454, b: 0.57169807, a: 0}
   UnitList: []
   UnitDataList: []
   BarracksLevel: 2
   MercLevel: 0
   FarmLevel: 10
   BarracksUnits:
-  - {fileID: 1002579342033724372, guid: c4768673248ce4e49babf3295139292b, type: 3}
+  - {fileID: 1002579342033724372, guid: 5b059ef4b6a7449469828fd73a7c0976, type: 3}
+  - {fileID: 1002579342033724372, guid: f7018d30c84785d4ab6c433a0b272cac, type: 3}
   - {fileID: 5815002448955544719, guid: ee2a0342b3d10a849bea2717893c1cb1, type: 3}
-  - {fileID: 1002579342033724372, guid: 29665083b747bd54aa900a8285ed01a6, type: 3}
+  - {fileID: 1002579342033724372, guid: a9d37f12ece01bd46843b4aa7c7f959e, type: 3}
   BarracksDataList:
-  - {fileID: 11400000, guid: ab99f0a35f670b34ca74e6bfdfedfd2e, type: 2}
-  - {fileID: 11400000, guid: 288334bf104fae5448e61506ac62b986, type: 2}
+  - {fileID: 11400000, guid: 8d26d17d75f9c5748a8f2e463b59e1ec, type: 2}
+  - {fileID: 11400000, guid: 4d99ece718fb98241b6374a359995d2c, type: 2}
+  - {fileID: 11400000, guid: 95b5752ae8079124891e8e5af6edf194, type: 2}
   - {fileID: 11400000, guid: fa4a84c0cf334da40bb64d728942e382, type: 2}
-  - {fileID: 11400000, guid: 44543f8e91660e04d8ca5e054cefc161, type: 2}
   MercenaryUnits:
   - {fileID: 1002579342033724372, guid: e20ae5212fbd75843aaefae8cc3d4c71, type: 3}
   - {fileID: 1002579342033724372, guid: 29665083b747bd54aa900a8285ed01a6, type: 3}
@@ -37,9 +38,7 @@ MonoBehaviour:
   - {fileID: 1002579342033724372, guid: dce30088f80515b49bc5661b6f2e9c00, type: 3}
   MercenaryDataList: []
   Flaglist:
-  - ForeignBarbarianRecruitment
-  - Barbarian
   - Decentralized
-  - Braindead
-  factionTheme: {fileID: 11400000, guid: 7a5e9e4fcf50ac14892d8fe0ce79a603, type: 2}
+  - Barbarian
+  factionTheme: {fileID: 11400000, guid: bc69b654c6f349c40b5b5b11dff99548, type: 2}
   Income: 500

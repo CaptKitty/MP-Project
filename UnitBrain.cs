@@ -70,6 +70,12 @@ public class UnitBrain : GAgent
     }
     public void LaterUpdate()
     {
+        if (TargetEnemy == null || !TargetEnemy.activeInHierarchy ||
+            TargetEnemy.GetComponent<CritterHolder>() == null || !TargetEnemy.GetComponent<CritterHolder>().IsThisAlive)
+        {
+            ResetPlan();
+            GrabTarget();
+        }
         if (currentAction != null && currentAction.running)
         {
 
@@ -174,5 +180,12 @@ public class UnitBrain : GAgent
                 actionQueues = null;
             }
         }
+    }
+    public void ResetPlan()
+    {
+        if (currentAction != null) currentAction.running = false;
+        currentAction = null;
+        actionQueues = null;
+        planner = null;
     }
 }

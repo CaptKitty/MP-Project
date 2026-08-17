@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56c9a7030e3fdb348bc8977e4e3f9973, type: 3}
+  m_Name: Hillfort
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
+  id: Hillfort
+  displayName: Hillfort
+  description: Earthen and timber defenses suited to decentralized settlements. Provides garrison capacity at a lower construction cost than a classical fort.
+  icon: {fileID: 0}
+  maximumLevel: 5
+  defaultConstructionTicks: 4
+  levels:
+  - level: 1
+    goldCost: 200
+    constructionTicks: 0
+    goldIncome: 0
+    garrisonCapacity: 3
+    unitUnlocks: []
+    flags: []
+  - level: 2
+    goldCost: 400
+    constructionTicks: 0
+    goldIncome: 0
+    garrisonCapacity: 3
+    unitUnlocks: []
+    flags: []
+  - level: 3
+    goldCost: 600
+    constructionTicks: 0
+    goldIncome: 0
+    garrisonCapacity: 3
+    unitUnlocks: []
+    flags: []
+  - level: 4
+    goldCost: 800
+    constructionTicks: 0
+    goldIncome: 0
+    garrisonCapacity: 3
+    unitUnlocks: []
+    flags: []
+  - level: 5
+    goldCost: 1000
+    constructionTicks: 0
+    goldIncome: 0
+    garrisonCapacity: 3
+    unitUnlocks: []
+    flags: []

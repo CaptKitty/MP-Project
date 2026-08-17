@@ -25,7 +25,9 @@ public class RangedAttack : Unit_GAction
         var heading = unitBrainy.TargetEnemy.transform.position - critter.gameObject.transform.position;
         var distance = heading.magnitude;
         var direction = heading / distance;
-        if (distance < critter.GrabCombatDistance())
+        if (critter.formation != null
+            ? critter.formation.CanEngageTarget(unitBrainy.TargetEnemy.GetComponent<CritterHolder>(), true)
+            : distance < critter.GrabCombatDistance())
         {
             return true;
         }
@@ -33,13 +35,24 @@ public class RangedAttack : Unit_GAction
     }
     public override bool Execute()
     {
+        CritterHolder target = unitBrainy.TargetEnemy != null ? unitBrainy.TargetEnemy.GetComponent<CritterHolder>() : null;
+        if (target == null || !target.IsThisAlive)
+        {
+            unitBrainy.ResetPlan();
+            return true;
+        }
+        if (critter.formation != null && !critter.formation.CanEngageTarget(target, true))
+        {
+            unitBrainy.ResetPlan();
+            return true;
+        }
         var heading = unitBrainy.TargetEnemy.transform.position - critter.gameObject.transform.position;
         var distance = heading.magnitude;
         var direction = heading / distance;
 
         if (critter.NextAvailableAttack < Time.time)
         {
-            if (running)
+            if (running && critter.formation == null)
             {
                 running = false;
                 return true;
@@ -60,9 +73,19 @@ public class RangedAttack : Unit_GAction
                 }
             }
             critter.NextAvailableAttack = Time.time + critter.GrabAttackTime();
-            unitBrainy.TargetEnemy.GetComponent<CritterHolder>().LoseHealth(critter.GrabAttack(), critter.RangedWeapon.attacktype);
+            int participants = critter.formation != null ? critter.formation.CountEligibleAttackers(target, true) : 1;
+            if (participants > 0)
+            {
+                if (critter.formation != null)
+                {
+                    critter.formation.ResolveMemberAttacks(target, critter.GrabAttack(), critter.RangedWeapon.attacktype, true);
+                    critter.formation.SpawnMemberProjectiles(target);
+                    critter.formation.PlayMemberAnimation("Attack", target, true);
+                }
+                else target.LoseHealthFrom(critter.GrabAttack(), critter.RangedWeapon.attacktype, critter.transform.position);
+            }
             RpcTest.Serverchecker.ExecuteAnimation(critter, "Attack");
-            RpcTest.Serverchecker.ExecuteAnimation(critter, "Throw");
+            if (critter.formation == null) RpcTest.Serverchecker.ExecuteAnimation(critter, "Throw");
 
         }
         return false;

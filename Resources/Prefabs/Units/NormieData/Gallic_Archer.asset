@@ -41,3 +41,9 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 21300000, guid: 5ef0b5e59424e494f9e2b50d95b4d657, type: 3}
   Mercenary: 0
+  Big: 0
+  useFormation: 0
+  formationSize: 6
+  memberHealth: 150
+  memberSpacing: 1.85
+  formationLayout: 1

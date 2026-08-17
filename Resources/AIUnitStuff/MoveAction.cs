@@ -33,20 +33,14 @@ public class MoveAction : Unit_GAction
         var distance = heading.magnitude;
         var direction = heading / distance;
 
-        if (direction.x > -0.5)
-        {
-            critter.gameObject.transform.LookAt(new Vector3(critter.gameObject.transform.position.x + 1, critter.gameObject.transform.position.y, 360));//, new Vector3(0,0,0));
-        }
-        else
-        {
-            if (direction.x < 0.5)
-            {
-                critter.gameObject.transform.LookAt(new Vector3(critter.gameObject.transform.position.x - 1, critter.gameObject.transform.position.y, -360));//, new Vector3(0,0,0));
-            }
-        }
+        if (critter.formation != null) critter.formation.SetFacing(direction);
         critter.gameObject.transform.position += direction * Time.deltaTime * (float)critter.GrabSpeed();
 
-        if (distance < critter.GrabCombatDistance())
+        bool reachedEngagement = critter.formation != null && unitBrainy.TargetEnemy != null
+            ? critter.formation.CanEngageTarget(unitBrainy.TargetEnemy.GetComponent<CritterHolder>(),
+                critter.RangedWeapon != null && critter.RangedWeapon.Throwable != null)
+            : distance < critter.GrabCombatDistance();
+        if (reachedEngagement)
         {
             running = false;
             return true;

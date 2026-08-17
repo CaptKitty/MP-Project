@@ -18,6 +18,8 @@ MonoBehaviour:
   cost: 100
   health: 200
   speed: 1
+  actions: 3
+  Initiative: 6
   flaglist:
   - Forestry_Immunity
   RangedWeapon: {fileID: 0}
@@ -41,3 +43,9 @@ MonoBehaviour:
   - {fileID: 21300000, guid: a5b56156d766ec549940a72bc1bdec16, type: 3}
   - {fileID: 21300000, guid: 81cb0454a27daf34d9b550739b4e5b88, type: 3}
   Mercenary: 0
+  Big: 0
+  useFormation: 0
+  formationSize: 6
+  memberHealth: 150
+  memberSpacing: 1.85
+  formationLayout: 1

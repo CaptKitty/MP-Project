@@ -11,6 +11,7 @@ public class Nation_GactionOrderMove : Nation_GAction
     public FieldArmyHolder army;
     public override bool IsAchievable() 
     {
+        army = null;
         if(nationalbrainy.GrabNation().armies.Count == 0)
         {
             return false;

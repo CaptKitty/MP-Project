@@ -17,9 +17,13 @@ MonoBehaviour:
   speed: 1
   attack: 40
   attacktype: ranged
-  attacktime: 2
+  attacktime: 5
   NextAvailableAttack: 0
   animationtype: Slinger
+  overrideVisualPose: 0
+  visualOffset: {x: 0.146, y: -0.082}
+  visualAngle: 0
+  projectileSprite: {fileID: 0}
   Throwable: {fileID: 8062874142913599219, guid: 1636a683343580140b3ef88d2881bf11, type: 3}
   ammo: 10
   modifier: {fileID: 0}

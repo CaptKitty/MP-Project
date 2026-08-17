@@ -87,19 +87,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spot: {x: 0, y: 0, z: 0}
-  name: Gallic_Archer
+  name: Iberian_SpearChucker
   typename: 
   unittype: 3
   nametype: []
   cost:
     name: 
-    amount: 75
+    amount: 50
     sprite: {fileID: 0}
   DoesThisgoOnTheCity: 0
   ViablePlacingSpots:
   - Grassland
   targetlists: []
-  population: 300
+  population: 100
   AbilityList:
   - {fileID: 0}
   PrivateAbilityList:
@@ -109,12 +109,26 @@ MonoBehaviour:
   IsthisAI: 0
   IsThisAlive: 1
   online: 0
+  useFormation: 1
+  formationTuning:
+    memberCount: 6
+    healthPerMember: 50
+    memberSpacing: 0.55
+    layout: 0
+    reformSpeed: 7
+    decisionInterval: 0.5
+    perceptionRadius: 8
+    routMorale: 15
+    lowMorale: 35
+    lowCohesion: 45
+    highFatigue: 75
+  formation: {fileID: 0}
   unitbrain: {fileID: 0}
   weaponlist: []
   flaglist:
   - Forestry_Immunity
-  RangedWeapon: {fileID: 11400000, guid: 9e8242e89446bcb4ea017359a646c56d, type: 2}
-  MeleeWeapon: {fileID: 11400000, guid: 5687f1ea8a99c2d4cb4382d3b12854b2, type: 2}
+  RangedWeapon: {fileID: 11400000, guid: b20748d8d39bc7144ab514e36638e93d, type: 2}
+  MeleeWeapon: {fileID: 11400000, guid: 376d425d6e9214e47b8ecbfadc0641cb, type: 2}
   Armor: {fileID: 11400000, guid: c6fe3a90079e386418f1370598f70a5f, type: 2}
   Shield: {fileID: 11400000, guid: 1bd00b1d3809b2e45a258806a787dcb7, type: 2}
   AIScript: {fileID: 11400000, guid: 2d7ce668646ce0147a880409da096a1d, type: 2}

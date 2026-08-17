@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcd7e51e799ed68459ac45f74d6d8f85, type: 3}
+  m_Name: Classical
+  m_EditorClassIdentifier: Assembly-CSharp::CivilizationData
+  content:
+    units:
+    - unit: {fileID: 11400000, guid: 1c0e49bb946563549b1164e0979b86d2, type: 2}
+      minimumBarracksLevel: 1
+    - unit: {fileID: 11400000, guid: 102f101b3742786458291061ffcac6fe, type: 2}
+      minimumBarracksLevel: 3
+    buildings:
+    - {fileID: 11400000, guid: 05fb6ded8375fbb4a81c7af3ff0cfff7, type: 2}
+    - {fileID: 11400000, guid: 42f8062780014adc9668816a333e84c1, type: 2}
+    - {fileID: 11400000, guid: 5d7da345adbd41bd80e4abf4439573c4, type: 2}
+    generalNames: []
+    flags:
+    - Civilized

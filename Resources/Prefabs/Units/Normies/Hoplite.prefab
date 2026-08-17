@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: -8209825602014350543}
   - component: {fileID: -5787205392657145368}
   m_Layer: 0
-  m_Name: Phoenician Spear
+  m_Name: Hoplite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

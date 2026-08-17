@@ -39,11 +39,14 @@ public class EventHolder : MonoBehaviour
         transform.GetChild(1).GetComponent<Text>().text = thisevent.Message;
 
         float i = 0;
+        int optionIndex = 0;
         foreach (var Option in thisevent.OptionList)
         {
             GameObject NewButton = Instantiate(Resources.Load<GameObject>("EventSupports/EventWindowButton"));
             NewButton.transform.SetParent(this.transform);
             NewButton.GetComponent<OptionHolder>().thisoption = Option;
+            NewButton.GetComponent<OptionHolder>().eventName = thisevent.name.Replace("(Clone)", "");
+            NewButton.GetComponent<OptionHolder>().optionIndex = optionIndex;
             NewButton.transform.localPosition = new Vector2(0, -215 + 50 * i);//new Vector2(200 * i, -300);
             NewButton.transform.GetChild(0).GetComponent<Text>().text = Option.Message;
             NewButton.GetComponent<Tooltip>().message = Option.Tooltip;
@@ -65,6 +68,7 @@ public class EventHolder : MonoBehaviour
 
 
             i++;
+            optionIndex++;
         }
         if (thisevent != null && thisevent.initialOption != null && thisevent.initialOption.EffectList != null && thisevent.initialOption.EffectList.Count != 0)
         {

@@ -11,13 +11,15 @@ public class Nation_GActionOrderAttack : Nation_GAction
     public FieldArmyHolder army;
     public override bool IsAchievable() 
     {
-        if(nationalbrainy.GrabNation().armies.Count == 0)
+        army = null;
+        Nation nation = nationalbrainy.GrabNation();
+        if(nation.armies.Count == 0 || !nationalbrainy.priorityList.Exists(item => item.province != null && item.province.nation != nation))
         {
             return false;
         }
-        foreach(var a in nationalbrainy.GrabNation().armies)
+        foreach(var a in nation.armies)
         {
-            if(a.IsPlayer)
+            if(a == null || a.IsPlayer || a.flaglist.Contains("Battle") || a.fieldArmy == null || a.fieldArmy.GrabArmySize() <= 0)
             {
                 continue;
             }
@@ -48,7 +50,7 @@ public class Nation_GActionOrderAttack : Nation_GAction
     }
     public override bool Execute()
     {
-        Debug.LogError(nationalbrainy.nation + " Orders " + army.gameObject.name + " to Conquer");
+        //Debug.LogError(nationalbrainy.nation + " Orders " + army.gameObject.name + " to Conquer");
         // if(running)
         // {
         //     if(Time.time > Timer)
@@ -61,31 +63,36 @@ public class Nation_GActionOrderAttack : Nation_GAction
         {
             return false;
         }
-        Priority b = nationalbrainy.priorityList[0];
-        float distance = army.GrabDistanceToProvince(b.province);
-        foreach(Priority prio in nationalbrainy.priorityList)
+        Nation nation = nationalbrainy.GrabNation();
+        List<Priority> hostile = nationalbrainy.priorityList.FindAll(item =>
+            item != null && item.province != null && item.province.nation != nation);
+        if (hostile.Count == 0) { running = false; return false; }
+
+        // Prefer a connected frontier conquest. This prevents armies crossing the entire map
+        // while also ensuring a friendly/current province can never become an attack target.
+        List<Priority> frontier = hostile.FindAll(item =>
+        {
+            List<Province> adjacent = item.province.GrabAdjacents();
+            return adjacent != null && adjacent.Exists(province => province != null && province.nation == nation);
+        });
+        List<Priority> candidates = frontier.Count > 0 ? frontier : hostile;
+        Priority b = null;
+        float bestScore = float.NegativeInfinity;
+        foreach(Priority prio in candidates)
         {
             if(army.TargetProvince == prio.province)
             {
                 continue;
             }
-            if((prio.value - (army.GrabDistanceToProvince(prio.province)/5) + AggroNumber(prio.province)) > (b.value + Random.Range(-5,6) - (distance/5) + AggroNumber(b.province)))
+            float score = prio.value - army.GrabDistanceToProvince(prio.province) / 5f + AggroNumber(prio.province);
+            if (b == null || score > bestScore || Mathf.Approximately(score, bestScore) &&
+                string.CompareOrdinal(prio.province.name, b.province.name) < 0)
             {
-                if(nationalbrainy.name.Contains("Rome"))
-                {
-                    // //Debug.LogError(prio.value - (army.GrabDistanceToProvince(prio.province)/10) + AggroNumber(prio.province));
-                    // //Debug.LogError(b.value + Random.Range(-5,6) - (distance/10) + AggroNumber(b.province));
-                }
                 b = prio;
-                distance = army.GrabDistanceToProvince(b.province);
-                // if(nationalbrainy.name.Contains("Rome"))
-                // {
-                //     //Debug.LogError("Rome Wakes and sees: " + distance);
-                // }
+                bestScore = score;
             }
         }
-
-        
+        if (b == null) { running = false; return false; }
         army.SetTarget(b.province);
         army.TargetProvince = b.province;
         army.generalbrain.NewGoal("MoveArmy");

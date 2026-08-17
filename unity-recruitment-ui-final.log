@@ -1,0 +1,647 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.2/staging' branch; Version is '6000.2.9f1 (e0c4e791ab71) revision 14730471'; Using compiler version '194234433'; Build Type 'Release'
+OS: 'Windows 10  (10.0.19045) 64bit Professional' Language: 'nl' Physical Memory: 16316 MB
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-Gebruiker" at "2026-08-11T14:40:33.0250635Z"
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+Date: 2026-08-11T14:40:33Z
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Unity.exe
+-batchmode
+-nographics
+-quit
+-projectPath
+C:\Users\Gebruiker\Documents\My project - kopie\projectx
+-logFile
+C:\Users\Gebruiker\Documents\My project - kopie\projectx\Assets\unity-recruitment-ui-final.log
+Successfully changed project path to: C:\Users\Gebruiker\Documents\My project - kopie\projectx
+C:/Users/Gebruiker/Documents/My project - kopie/projectx
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gfx=262144"
+Player connection [17048]  Target information:
+
+Player connection [17048]  * "[IP] 192.168.2.2 [Port] 55504 [Flags] 2 [Guid] 2226418570 [EditorId] 2226418570 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-D5RVAAV) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [17048] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [17048] Host joined alternative multi-casting on [225.0.0.222:34997]...
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 21856, path: "C:/Program Files/Unity/Hub/Editor/6000.2.9f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.17.2+ff71f16
+  Session Id:              60338d08e5de434daf6b866b920066c9
+  Correlation Id:          d95445714cde36b47ee7a1574be0e277
+  External correlation Id: 4540245588917800777
+  Machine Id:              e19115cBwbd47TFvkWtYGQfWIs4=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-Gebruiker" (connect: 0.00s, validation: 0.06s, handshake: 0.04s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-Gebruiker-notifications" at "2026-08-11T14:40:33.1289354Z"
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-S764-WTZR-DBHB-3EQV-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 9071413853946-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-S764-WTZR-DBHB-3EQV-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 9071413853946-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Module] Licensing Background thread has ended after 0.15s
+[Package Manager] Connected to IPC stream "Upm-7856" after 0.4 seconds.
+Library Redirect Path: Library/
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Refreshing native plugins compatible for Editor in 1.51 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Initialize engine version: 6000.2.9f1 (e0c4e791ab71)
+[Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.2.9f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path C:/Users/Gebruiker/Documents/My project - kopie/projectx/Assets
+Forcing GfxDevice: Null
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+NullGfxDevice:
+    Version:  NULL 1.0 [1.0]
+    Renderer: Null Device
+    Vendor:   Unity Technologies
+Shader Hidden/ProbeVolume/VoxelizeScene is not supported: GPU does not support conservative rasterization
+Initialize mono
+Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.2.9f1/Editor/Data/Managed'
+Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.2.9f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.2.9f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56856
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.2.9f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Registered in 0.004124 seconds.
+- Loaded All Assemblies, in  0.536 seconds
+Native extension for WindowsStandalone target not found
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.442 seconds
+Domain Reload Profiling: 972ms
+	BeginReloadAssembly (175ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (0ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (1ms)
+	RebuildCommonClasses (52ms)
+	RebuildNativeTypeToScriptingClass (18ms)
+	initialDomainReloadingComplete (74ms)
+	LoadAllAssembliesAndSetupDomain (210ms)
+		LoadAssemblies (168ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (206ms)
+			TypeCache.Refresh (204ms)
+				TypeCache.ScanAssembly (187ms)
+			BuildScriptInfoCaches (0ms)
+			ResolveRequiredComponents (1ms)
+	FinalizeReload (443ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (386ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (68ms)
+			SetLoadedEditorAssemblies (4ms)
+			BeforeProcessingInitializeOnLoad (79ms)
+			ProcessInitializeOnLoadAttributes (154ms)
+			ProcessInitializeOnLoadMethodAttributes (81ms)
+			AfterProcessingInitializeOnLoad (0ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (0ms)
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: F4-S764-WTZR-DBHB-3EQV-XXXX
+  Product: Unity Personal
+  Type: ULF
+  Expiration: Unlimited
+[Licensing::Module] License group:
+  Id: 9071413853946-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+Application.AssetDatabase Initial Refresh Start
+Package Manager log level set to [2]
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 75 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.ai.navigation@2.0.9 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.ai.navigation@5218e4bf7edc)
+    com.unity.collab-proxy@2.10.2 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.collab-proxy@3351acaba9c9)
+    com.unity.ide.rider@3.0.38 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.ide.rider@1f60b3138684)
+    com.unity.ide.visualstudio@2.0.25 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.ide.visualstudio@74aa435fc4bb)
+    com.unity.ide.vscode@1.2.5 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.ide.vscode@82e68656b7bd)
+    com.unity.multiplayer.playmode@1.6.3 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.multiplayer.playmode@d6d235962e24)
+    com.unity.netcode.gameobjects@1.14.1 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.netcode.gameobjects@9e18ac3e8a23)
+    com.unity.services.multiplayer@1.1.8 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.services.multiplayer@34def56704ad)
+    com.unity.timeline@1.8.9 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.timeline@6b9e48457ddb)
+    com.unity.transport@2.6.0 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.transport@6e74a0e6481d)
+    com.unity.visualscripting@1.9.8 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.visualscripting@b4d700247d4b)
+    com.unity.burst@1.8.25 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.burst@1df634d836b8)
+    com.unity.collections@2.6.2 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.collections@aea9d3bd5e19)
+    com.unity.mathematics@1.3.2 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.mathematics@8017b507cc74)
+    com.unity.searcher@4.9.3 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.searcher@1e17ce91558d)
+    com.unity.services.qos@1.3.0 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.services.qos@f4a3648d24d3)
+    com.unity.services.core@1.14.0 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.services.core@9e81a5e38245)
+    com.unity.services.wire@1.4.0 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.services.wire@2d36cce58c62)
+    com.unity.services.deployment@1.4.1 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.services.deployment@87c909a1d726)
+    com.unity.nuget.newtonsoft-json@3.2.1 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.nuget.newtonsoft-json@74deb55db2a0)
+    com.unity.services.authentication@3.4.1 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.services.authentication@868ebdf18f3f)
+    com.unity.nuget.mono-cecil@1.11.5 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.nuget.mono-cecil@d78732e851eb)
+    com.unity.2d.animation@12.0.2 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.2d.animation@34e0443c58ed)
+    com.unity.2d.pixel-perfect@5.1.0 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.2d.pixel-perfect@2f2037a56bf7)
+    com.unity.2d.psdimporter@11.0.1 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.2d.psdimporter@0adcab25a8fd)
+    com.unity.2d.spriteshape@12.0.1 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.2d.spriteshape@1d246726c231)
+    com.unity.2d.tilemap.extras@5.0.1 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.2d.tilemap.extras@2338d989ff2a)
+    com.unity.2d.aseprite@2.0.2 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.2d.aseprite@dca42b450aa1)
+    com.unity.test-framework.performance@3.2.0 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.test-framework.performance@0840f58e4562)
+    com.unity.services.deployment.api@1.1.2 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.services.deployment.api@3c4a519a9319)
+    com.unity.2d.common@11.0.1 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.2d.common@dd402daace1b)
+  Built-in packages:
+    com.unity.feature.2d@2.0.1 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.feature.2d@dd1ea8910f12)
+    com.unity.multiplayer.center@1.0.0 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.multiplayer.center@f3fb577b3546)
+    com.unity.shadergraph@17.2.0 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.shadergraph@2c9221ffedf4)
+    com.unity.test-framework@1.6.0 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.test-framework@d97b7cd61ded)
+    com.unity.ugui@2.0.0 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.ugui@7056cb05de4c)
+    com.unity.modules.accessibility@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.accessibility)
+    com.unity.modules.ai@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.ai)
+    com.unity.modules.androidjni@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.animation)
+    com.unity.modules.assetbundle@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.assetbundle)
+    com.unity.modules.audio@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.audio)
+    com.unity.modules.cloth@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.cloth)
+    com.unity.modules.director@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.director)
+    com.unity.modules.imageconversion@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.imageconversion)
+    com.unity.modules.imgui@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.physics)
+    com.unity.modules.physics2d@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.physics2d)
+    com.unity.modules.screencapture@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.screencapture)
+    com.unity.modules.terrain@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.terrain)
+    com.unity.modules.terrainphysics@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.terrainphysics)
+    com.unity.modules.tilemap@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.tilemap)
+    com.unity.modules.ui@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.uielements)
+    com.unity.modules.umbra@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.umbra)
+    com.unity.modules.unityanalytics@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.unityanalytics)
+    com.unity.modules.unitywebrequest@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.unitywebrequest)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.unitywebrequestassetbundle)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.unitywebrequestaudio)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.unitywebrequesttexture)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.unitywebrequestwww)
+    com.unity.modules.vehicles@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.vehicles)
+    com.unity.modules.video@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.video)
+    com.unity.modules.vr@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.vr)
+    com.unity.modules.wind@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.wind)
+    com.unity.modules.xr@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.xr)
+    com.unity.modules.subsystems@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.subsystems)
+    com.unity.modules.hierarchycore@1.0.0 (location: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.modules.hierarchycore)
+    com.unity.ext.nunit@2.0.5 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.ext.nunit@031a54704bff)
+    com.unity.render-pipelines.core@17.2.0 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.render-pipelines.core@04755ad51d99)
+    com.unity.2d.sprite@1.0.0 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.2d.sprite@331abd9a1e2f)
+    com.unity.2d.tilemap@1.0.0 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.2d.tilemap@0b99f08c0204)
+    com.unity.rendering.light-transport@1.0.1 (location: C:\Users\Gebruiker\Documents\My project - kopie\projectx\Library\PackageCache\com.unity.rendering.light-transport@2c9279f90d7c)
+[Package Manager] com.unity.ide.vscode is deprecated: Visual Studio Code package is not supported anymore. You can continue to use it, but we won't provide any update anymore.
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.04 seconds
+The GUID inside 'Assets/Resources/Map/OFL.txt.meta' cannot be extracted by the YAML Parser. Attempting to extract it via string matching instead. Please verify the file does not contain unexpected data.
+[ScriptCompilation] Requested script compilation because: Assetdatabase observed changes in script compilation related files
+Starting: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: C:/Users/Gebruiker/Documents/My project - kopie/projectx
+DisplayProgressbar: Compiling Scripts
+Starting: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Tools\netcorerun\netcorerun.exe "C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\Tools\BuildPipeline\ScriptCompilationBuildProgram.exe" "Library/Bee/1900b0aE.dag.json" "Library/Bee/1900b0aE-inputdata.json" "Library\Bee\buildprogram0.traceevents"
+WorkingDir: C:/Users/Gebruiker/Documents/My project - kopie/projectx
+ExitCode: 4 Duration: 2s312ms
+Rebuilding DAG because FileSignature timestamp changed: Library/Bee/1900b0aE-inputdata.json
+[1161/1527  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+*** Tundra requires additional run (2.27 seconds), 2 items updated, 1160 evaluated
+ExitCode: 0 Duration: 1s665ms
+Starting: C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Data\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --dagfilejson="Library\Bee\1900b0aE.dag.json" --profile="Library/Bee/backend2.traceevents" ScriptAssemblies
+WorkingDir: C:/Users/Gebruiker/Documents/My project - kopie/projectx
+ExitCode: 0 Duration: 3s434ms
+Finished compiling graph: 1531 nodes, 29977 flattened edges (23729 ToBuild, 258 ToUse), maximum node priority 1985
+[ 779/1527  0s] WriteText Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.rsp
+[1161/1527  0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+[1519/1527  0s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll (+2 others)
+Assets\BattleManager1.cs(9,7): warning CS0105: The using directive for 'UnityEngine' appeared previously in this namespace
+
+Assets\TestCritter.cs(10,7): warning CS0105: The using directive for 'UnityEngine' appeared previously in this namespace
+
+Assets\CritterHolder.cs(10,19): warning CS0108: 'CritterHolder.name' hides inherited member 'Object.name'. Use the new keyword if hiding was intended.
+
+Assets\Scripts\basic_Skirmish_Ranged_AI_script_ammo.cs(115,17): warning CS0108: 'basic_Skirmish_Ranged_AI_script_ammo.Throw(CritterHolder)' hides inherited member 'basic_Ranged_AI_script_ammo.Throw(CritterHolder)'. Use the new keyword if hiding was intended.
+
+Assets\Scripts\SupportScripts\AdvancedRuleTile.cs(21,26): warning CS0108: 'AdvancedRuleTile.Neighbor.This' hides inherited member 'RuleTile.TilingRuleOutput.Neighbor.This'. Use the new keyword if hiding was intended.
+
+Assets\Scripts\SupportScripts\AdvancedRuleTile.cs(22,26): warning CS0108: 'AdvancedRuleTile.Neighbor.NotThis' hides inherited member 'RuleTile.TilingRuleOutput.Neighbor.NotThis'. Use the new keyword if hiding was intended.
+
+Assets\BattleManager1.cs(14,34): warning CS0108: 'BattleManager1.Instance' hides inherited member 'BattleManager.Instance'. Use the new keyword if hiding was intended.
+
+Assets\UpgradeModule.cs(10,19): warning CS0108: 'UpgradeModule.name' hides inherited member 'Object.name'. Use the new keyword if hiding was intended.
+
+Assets\BattleManager.cs(78,9): warning CS0618: 'SceneManager.UnloadScene(string)' is obsolete: 'Use SceneManager.UnloadSceneAsync. This function is not safe to use during triggers and under other circumstances. See Scripting reference for more details.'
+
+Assets\BattleManager1.cs(86,9): warning CS0162: Unreachable code detected
+
+Assets\BattleManager1.cs(127,14): warning CS0219: The variable 'hasriver' is assigned but its value is never used
+
+Assets\EventSystem\Tooltip.cs(102,9): warning CS0162: Unreachable code detected
+
+Assets\GeneralManager.cs(58,13): warning CS0219: The variable 'i' is assigned but its value is never used
+
+Assets\GlobalManager.cs(84,16): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\GlobalManager.cs(93,12): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\CritterHolder.cs(234,9): warning CS0162: Unreachable code detected
+
+Assets\GeneralManager.cs(135,12): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\GeneralManager.cs(144,20): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\BattleManager1.cs(399,67): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\BattleManager1.cs(403,68): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\BattleManager1.cs(438,72): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\BattleManager1.cs(444,77): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\BattleManager1.cs(475,17): warning CS0618: 'SceneManager.UnloadScene(string)' is obsolete: 'Use SceneManager.UnloadSceneAsync. This function is not safe to use during triggers and under other circumstances. See Scripting reference for more details.'
+
+Assets\FieldArmyHolder.cs(519,17): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+
+Assets\Resources\Map\LoadProvinces.cs(31,13): warning CS0219: The variable 'count' is assigned but its value is never used
+
+Assets\Resources\Map\LoadProvinces.cs(32,16): warning CS0168: The variable 'Lines' is declared but never used
+
+Assets\Resources\Map\LoadProvinces.cs(33,13): warning CS0219: The variable 'i' is assigned but its value is never used
+
+Assets\Resources\Map\Mapshower.cs(53,9): warning CS0618: 'WWW' is obsolete: 'Use UnityWebRequest, a fully featured replacement which is more efficient and has additional features'
+
+Assets\Resources\Map\Mapshower.cs(53,25): warning CS0618: 'WWW' is obsolete: 'Use UnityWebRequest, a fully featured replacement which is more efficient and has additional features'
+
+Assets\Resources\Map\Mapshower.cs(69,9): warning CS0618: 'WWW' is obsolete: 'Use UnityWebRequest, a fully featured replacement which is more efficient and has additional features'
+
+Assets\Resources\Map\Mapshower.cs(69,23): warning CS0618: 'WWW' is obsolete: 'Use UnityWebRequest, a fully featured replacement which is more efficient and has additional features'
+
+Assets\Resources\Map\Mapshower.cs(78,9): warning CS0618: 'WWW' is obsolete: 'Use UnityWebRequest, a fully featured replacement which is more efficient and has additional features'
+
+Assets\Resources\Map\Mapshower.cs(78,24): warning CS0618: 'WWW' is obsolete: 'Use UnityWebRequest, a fully featured replacement which is more efficient and has additional features'
+
+Assets\Resources\Map\Mapshower.cs(53,9): warning CS0162: Unreachable code detected
+
+Assets\Scripts\basic_AI_Follower_Script.cs(18,35): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\Scripts\basic_AI_Cavalry_Script_Charge.cs(23,35): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\Resources\Map\LoadProvinces.cs(102,17): warning CS0219: The variable 'population' is assigned but its value is never used
+
+Assets\Resources\Map\LoadProvinces.cs(90,13): warning CS0219: The variable 'count' is assigned but its value is never used
+
+Assets\Resources\Map\LoadProvinces.cs(91,16): warning CS0168: The variable 'Lines' is declared but never used
+
+Assets\Resources\Map\LoadProvinces.cs(92,13): warning CS0219: The variable 'i' is assigned but its value is never used
+
+Assets\Scripts\basic_AI_Command_Script.cs(32,35): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\Scripts\basic_AI_Cavalry_Script_Charge.cs(53,39): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\Scripts\basic_AI_Script.cs(19,35): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\Scripts\basic_AI_Bull_Script.cs(27,35): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\Scripts\basic_Ranged_AI_script.cs(20,35): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\Scripts\basic_Ranged_AI_script_ammo.cs(26,35): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\Scripts\basic_Skirmish_Ranged_AI_script_ammo.cs(23,35): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\Scripts\basic_AI_Bull_Script.cs(52,39): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\Scripts\basic_AI_Script.cs(44,39): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\Scripts\basic_Ranged_AI_script.cs(45,39): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\Scripts\basic_Ranged_AI_script_ammo.cs(56,39): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\Scripts\basic_Skirmish_Ranged_AI_script_ammo.cs(53,39): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\Scripts\basic_AI_Command_Script.cs(112,39): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\Scripts\basic_AI_Cavalry_Script.cs(21,35): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\SessionManager.cs(73,9): warning CS0162: Unreachable code detected
+
+Assets\SessionManager.cs(81,9): warning CS0162: Unreachable code detected
+
+Assets\Scripts\basic_AI_Cavalry_Script.cs(51,39): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+
+Assets\SessionManager.cs(131,9): warning CS0162: Unreachable code detected
+
+Assets\Resources\Map\Mapshower.cs(572,9): warning CS0162: Unreachable code detected
+
+Assets\Resources\Map\Mapshower.cs(696,9): warning CS0162: Unreachable code detected
+
+Assets\Resources\AIArmyStuff\GOAP\GAgent.cs(38,10): warning CS0414: The field 'GAgent.invoked' is assigned but its value is never used
+
+Assets\FieldArmyHolder.cs(18,17): warning CS0414: The field 'FieldArmyHolder.NextRecruitTime' is assigned but its value is never used
+[1520/1527  0s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
+[1521/1527  1s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 131 defines and 358 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, Unity.Netcode.Editor.CodeGen.INetworkMessageILPP, Unity.Netcode.Editor.CodeGen.INetworkSerializableILPP, Unity.Netcode.Editor.CodeGen.NetworkBehaviourILPP, Unity.Netcode.Editor.CodeGen.RuntimeAccessModifiersILPP, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running Unity.Netcode.Editor.CodeGen.INetworkMessageILPP
+
+running Unity.Netcode.Editor.CodeGen.INetworkSerializableILPP
+
+running Unity.Netcode.Editor.CodeGen.NetworkBehaviourILPP
+
+running Unity.Netcode.Editor.CodeGen.RuntimeAccessModifiersILPP
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1522/1527  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.dll
+[1523/1527  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.pdb
+[1524/1527  1s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll, with 133 defines and 340 references
+
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, Unity.Netcode.Editor.CodeGen.INetworkMessageILPP, Unity.Netcode.Editor.CodeGen.INetworkSerializableILPP, Unity.Netcode.Editor.CodeGen.NetworkBehaviourILPP, Unity.Netcode.Editor.CodeGen.RuntimeAccessModifiersILPP, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+
+running Unity.Netcode.Editor.CodeGen.INetworkMessageILPP
+
+running Unity.Netcode.Editor.CodeGen.INetworkSerializableILPP
+
+running Unity.Netcode.Editor.CodeGen.NetworkBehaviourILPP
+
+running Unity.Netcode.Editor.CodeGen.RuntimeAccessModifiersILPP
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[1525/1527  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.pdb
+[1526/1527  0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.dll
+*** Tundra build success (3.41 seconds), 10 items updated, 1527 evaluated
+Assets\BattleManager1.cs(9,7): warning CS0105: The using directive for 'UnityEngine' appeared previously in this namespace
+Assets\TestCritter.cs(10,7): warning CS0105: The using directive for 'UnityEngine' appeared previously in this namespace
+Assets\CritterHolder.cs(10,19): warning CS0108: 'CritterHolder.name' hides inherited member 'Object.name'. Use the new keyword if hiding was intended.
+Assets\Scripts\basic_Skirmish_Ranged_AI_script_ammo.cs(115,17): warning CS0108: 'basic_Skirmish_Ranged_AI_script_ammo.Throw(CritterHolder)' hides inherited member 'basic_Ranged_AI_script_ammo.Throw(CritterHolder)'. Use the new keyword if hiding was intended.
+Assets\Scripts\SupportScripts\AdvancedRuleTile.cs(21,26): warning CS0108: 'AdvancedRuleTile.Neighbor.This' hides inherited member 'RuleTile.TilingRuleOutput.Neighbor.This'. Use the new keyword if hiding was intended.
+Assets\Scripts\SupportScripts\AdvancedRuleTile.cs(22,26): warning CS0108: 'AdvancedRuleTile.Neighbor.NotThis' hides inherited member 'RuleTile.TilingRuleOutput.Neighbor.NotThis'. Use the new keyword if hiding was intended.
+Assets\BattleManager1.cs(14,34): warning CS0108: 'BattleManager1.Instance' hides inherited member 'BattleManager.Instance'. Use the new keyword if hiding was intended.
+Assets\UpgradeModule.cs(10,19): warning CS0108: 'UpgradeModule.name' hides inherited member 'Object.name'. Use the new keyword if hiding was intended.
+Assets\BattleManager.cs(78,9): warning CS0618: 'SceneManager.UnloadScene(string)' is obsolete: 'Use SceneManager.UnloadSceneAsync. This function is not safe to use during triggers and under other circumstances. See Scripting reference for more details.'
+Assets\BattleManager1.cs(86,9): warning CS0162: Unreachable code detected
+Assets\BattleManager1.cs(127,14): warning CS0219: The variable 'hasriver' is assigned but its value is never used
+Assets\EventSystem\Tooltip.cs(102,9): warning CS0162: Unreachable code detected
+Assets\GeneralManager.cs(58,13): warning CS0219: The variable 'i' is assigned but its value is never used
+Assets\GlobalManager.cs(84,16): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\GlobalManager.cs(93,12): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\CritterHolder.cs(234,9): warning CS0162: Unreachable code detected
+Assets\GeneralManager.cs(135,12): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\GeneralManager.cs(144,20): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\BattleManager1.cs(399,67): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\BattleManager1.cs(403,68): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\BattleManager1.cs(438,72): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\BattleManager1.cs(444,77): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\BattleManager1.cs(475,17): warning CS0618: 'SceneManager.UnloadScene(string)' is obsolete: 'Use SceneManager.UnloadSceneAsync. This function is not safe to use during triggers and under other circumstances. See Scripting reference for more details.'
+Assets\FieldArmyHolder.cs(519,17): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+Assets\Resources\Map\LoadProvinces.cs(31,13): warning CS0219: The variable 'count' is assigned but its value is never used
+Assets\Resources\Map\LoadProvinces.cs(32,16): warning CS0168: The variable 'Lines' is declared but never used
+Assets\Resources\Map\LoadProvinces.cs(33,13): warning CS0219: The variable 'i' is assigned but its value is never used
+Assets\Resources\Map\Mapshower.cs(53,9): warning CS0618: 'WWW' is obsolete: 'Use UnityWebRequest, a fully featured replacement which is more efficient and has additional features'
+Assets\Resources\Map\Mapshower.cs(53,25): warning CS0618: 'WWW' is obsolete: 'Use UnityWebRequest, a fully featured replacement which is more efficient and has additional features'
+Assets\Resources\Map\Mapshower.cs(69,9): warning CS0618: 'WWW' is obsolete: 'Use UnityWebRequest, a fully featured replacement which is more efficient and has additional features'
+Assets\Resources\Map\Mapshower.cs(69,23): warning CS0618: 'WWW' is obsolete: 'Use UnityWebRequest, a fully featured replacement which is more efficient and has additional features'
+Assets\Resources\Map\Mapshower.cs(78,9): warning CS0618: 'WWW' is obsolete: 'Use UnityWebRequest, a fully featured replacement which is more efficient and has additional features'
+Assets\Resources\Map\Mapshower.cs(78,24): warning CS0618: 'WWW' is obsolete: 'Use UnityWebRequest, a fully featured replacement which is more efficient and has additional features'
+Assets\Resources\Map\Mapshower.cs(53,9): warning CS0162: Unreachable code detected
+Assets\Scripts\basic_AI_Follower_Script.cs(18,35): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\Scripts\basic_AI_Cavalry_Script_Charge.cs(23,35): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\Resources\Map\LoadProvinces.cs(102,17): warning CS0219: The variable 'population' is assigned but its value is never used
+Assets\Resources\Map\LoadProvinces.cs(90,13): warning CS0219: The variable 'count' is assigned but its value is never used
+Assets\Resources\Map\LoadProvinces.cs(91,16): warning CS0168: The variable 'Lines' is declared but never used
+Assets\Resources\Map\LoadProvinces.cs(92,13): warning CS0219: The variable 'i' is assigned but its value is never used
+Assets\Scripts\basic_AI_Command_Script.cs(32,35): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\Scripts\basic_AI_Cavalry_Script_Charge.cs(53,39): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\Scripts\basic_AI_Script.cs(19,35): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\Scripts\basic_AI_Bull_Script.cs(27,35): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\Scripts\basic_Ranged_AI_script.cs(20,35): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\Scripts\basic_Ranged_AI_script_ammo.cs(26,35): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\Scripts\basic_Skirmish_Ranged_AI_script_ammo.cs(23,35): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\Scripts\basic_AI_Bull_Script.cs(52,39): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\Scripts\basic_AI_Script.cs(44,39): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\Scripts\basic_Ranged_AI_script.cs(45,39): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\Scripts\basic_Ranged_AI_script_ammo.cs(56,39): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\Scripts\basic_Skirmish_Ranged_AI_script_ammo.cs(53,39): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\Scripts\basic_AI_Command_Script.cs(112,39): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\Scripts\basic_AI_Cavalry_Script.cs(21,35): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\SessionManager.cs(73,9): warning CS0162: Unreachable code detected
+Assets\SessionManager.cs(81,9): warning CS0162: Unreachable code detected
+Assets\Scripts\basic_AI_Cavalry_Script.cs(51,39): warning CS0618: 'GameObject.active' is obsolete: 'GameObject.active is obsolete. Use GameObject.SetActive(), GameObject.activeSelf or GameObject.activeInHierarchy.'
+Assets\SessionManager.cs(131,9): warning CS0162: Unreachable code detected
+Assets\Resources\Map\Mapshower.cs(572,9): warning CS0162: Unreachable code detected
+Assets\Resources\Map\Mapshower.cs(696,9): warning CS0162: Unreachable code detected
+Assets\Resources\AIArmyStuff\GOAP\GAgent.cs(38,10): warning CS0414: The field 'GAgent.invoked' is assigned but its value is never used
+Assets\FieldArmyHolder.cs(18,17): warning CS0414: The field 'FieldArmyHolder.NextRecruitTime' is assigned but its value is never used
+AssetDatabase: script compilation time: 8.028701s
+'Assets/unity-recruitment-ui-final.log' Amount of processed bytes '48199' does not match file size '22846'
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  1.719 seconds
+'Assets/unity-recruitment-ui-final.log' Amount of processed bytes '48385' does not match file size '48307'
+Refreshing native plugins compatible for Editor in 4.63 ms, found 4 plugins.
+Native extension for WindowsStandalone target not found
+Refreshing native plugins compatible for Editor in 4.42 ms, found 4 plugins.
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  6.037 seconds
+Domain Reload Profiling: 7734ms
+	BeginReloadAssembly (356ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (15ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (143ms)
+	RebuildCommonClasses (50ms)
+	RebuildNativeTypeToScriptingClass (17ms)
+	initialDomainReloadingComplete (78ms)
+	LoadAllAssembliesAndSetupDomain (1195ms)
+		LoadAssemblies (865ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (472ms)
+			TypeCache.Refresh (313ms)
+				TypeCache.ScanAssembly (295ms)
+			BuildScriptInfoCaches (145ms)
+			ResolveRequiredComponents (10ms)
+	FinalizeReload (6037ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (5830ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (33ms)
+			SetLoadedEditorAssemblies (9ms)
+			BeforeProcessingInitializeOnLoad (289ms)
+			ProcessInitializeOnLoadAttributes (4721ms)
+			ProcessInitializeOnLoadMethodAttributes (765ms)
+			AfterProcessingInitializeOnLoad (13ms)
+			EditorAssembliesLoaded (1ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (12ms)
+'Assets/unity-recruitment-ui-final.log' Amount of processed bytes '49949' does not match file size '48493'
+Start importing Assets/unity-recruitment-ui-final.log using Guid(751831261eea7294ebe169c211d6b70d) (DefaultImporter) -> (artifact id: '00000000000000000000000000000000') in 0.0604626 seconds
+Import Error Code:(4)
+Message: Build asset version error: assets/unity-recruitment-ui-final.log in SourceAssetDB has modification time of '2026-08-11T14:40:33.023183Z' while content on disk has modification time of '2026-08-11T14:40:51.9185469Z'
+'Assets/unity-recruitment-ui-final.log' Amount of processed bytes '50497' does not match file size '50173'
+Start importing Assets/unity-recruitment-ui-final.log using Guid(751831261eea7294ebe169c211d6b70d) (DefaultImporter) -> (artifact id: '00000000000000000000000000000000') in 0.0012486 seconds
+Import Error Code:(4)
+Message: Build asset version error: assets/unity-recruitment-ui-final.log in SourceAssetDB has modification time of '2026-08-11T14:40:33.023183Z' while content on disk has modification time of '2026-08-11T14:40:52.0355829Z'
+'Assets/unity-recruitment-ui-final.log' Amount of processed bytes '51045' does not match file size '50721'
+Start importing Assets/unity-recruitment-ui-final.log using Guid(751831261eea7294ebe169c211d6b70d) (DefaultImporter) -> (artifact id: '00000000000000000000000000000000') in 0.0011643 seconds
+Import Error Code:(4)
+Message: Build asset version error: assets/unity-recruitment-ui-final.log in SourceAssetDB has modification time of '2026-08-11T14:40:33.023183Z' while content on disk has modification time of '2026-08-11T14:40:52.0832759Z'
+'Assets/unity-recruitment-ui-final.log' Amount of processed bytes '51593' does not match file size '51269'
+Start importing Assets/unity-recruitment-ui-final.log using Guid(751831261eea7294ebe169c211d6b70d) (DefaultImporter) -> (artifact id: '00000000000000000000000000000000') in 0.0013813 seconds
+Import Error Code:(4)
+Message: Build asset version error: assets/unity-recruitment-ui-final.log in SourceAssetDB has modification time of '2026-08-11T14:40:33.023183Z' while content on disk has modification time of '2026-08-11T14:40:52.1291197Z'
+'Assets/unity-recruitment-ui-final.log' Amount of processed bytes '52141' does not match file size '51817'
+Start importing Assets/unity-recruitment-ui-final.log using Guid(751831261eea7294ebe169c211d6b70d) (DefaultImporter) -> (artifact id: '00000000000000000000000000000000') in 0.0016239 seconds
+Import Error Code:(4)
+Message: Build asset version error: assets/unity-recruitment-ui-final.log in SourceAssetDB has modification time of '2026-08-11T14:40:33.023183Z' while content on disk has modification time of '2026-08-11T14:40:52.1769316Z'
+Start importing Assets/unity-recruitment-ui-final.log using Guid(751831261eea7294ebe169c211d6b70d) (DefaultImporter) -> (artifact id: '00000000000000000000000000000000') in 0.0011429 seconds
+Import Error Code:(4)
+Message: Build asset version error: assets/unity-recruitment-ui-final.log in SourceAssetDB has modification time of '2026-08-11T14:40:52.1779323Z' while content on disk has modification time of '2026-08-11T14:40:52.2234336Z'
+'Assets/unity-recruitment-ui-final.log' Amount of processed bytes '53130' does not match file size '52805'
+Start importing Assets/unity-recruitment-ui-final.log using Guid(751831261eea7294ebe169c211d6b70d) (DefaultImporter) -> (artifact id: '00000000000000000000000000000000') in 0.0013286 seconds
+Import Error Code:(4)
+Message: Build asset version error: assets/unity-recruitment-ui-final.log in SourceAssetDB has modification time of '2026-08-11T14:40:52.1779323Z' while content on disk has modification time of '2026-08-11T14:40:52.2717587Z'
+'Assets/unity-recruitment-ui-final.log' Amount of processed bytes '53679' does not match file size '53354'
+Start importing Assets/unity-recruitment-ui-final.log using Guid(751831261eea7294ebe169c211d6b70d) (DefaultImporter) -> (artifact id: '00000000000000000000000000000000') in 0.0012943 seconds
+Import Error Code:(4)
+Message: Build asset version error: assets/unity-recruitment-ui-final.log in SourceAssetDB has modification time of '2026-08-11T14:40:52.1779323Z' while content on disk has modification time of '2026-08-11T14:40:52.3212815Z'
+An infinite import loop has been detected. The following Assets were imported multiple times, but no changes to them have been detected. Please check if any custom code is trying to import them:
+Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/RenderingLayerMask/TraceRenderingLayerMask.urtshader(modified date 2025-10-17T17:51:54Z)
+Assets/unity-recruitment-ui.log(modified date 2026-08-11T14:39:21.7833348Z)
+Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/VirtualOffset/TraceVirtualOffset.urtshader(modified date 2025-10-17T17:51:54Z)
+Assets/unity-recruitment-ui-final.log(modified date 2026-08-11T14:40:52.3222823Z)
+Packages/com.unity.rendering.light-transport/Tests/Editor/UnifiedRayTracing/TraceRaysAndFetchAttributes.urtshader(modified date 2025-10-17T17:51:56Z)
+Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/DynamicGI/DynamicGISkyOcclusion.urtshader(modified date 2025-10-17T17:51:52Z)
+Packages/com.unity.rendering.light-transport/Tests/Editor/UnifiedRayTracing/TraceRays.urtshader(modified date 2025-10-17T17:51:56Z)
+Refreshing native plugins compatible for Editor in 7.89 ms, found 4 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=2619019b19284664484e2a6350cef03e): Total: 17.883 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=0 (actual=8, local cache=18446744073709551608, cache server=0)
+		Asset DB Process Time: managed=6 ms, native=7399 ms
+		Asset DB Callback time: managed=421 ms, native=161 ms
+		Scripting: domain reloads=1, domain reload time=1720 ms, compile time=8033 ms, other=141 ms
+		Project Asset Count: scripts=2003, non-scripts=3196
+		Asset File Changes: new=3, changed=5, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokeCustomDependenciesCallbacks: 0.003ms
+	InvokePackagesCallback: 46.953ms
+	ApplyChangesToAssetFolders: 1.733ms
+	Scan: 549.100ms
+	OnSourceAssetsModified: 1.885ms
+	CategorizeAssetsWithTransientArtifact: 103.178ms
+	ProcessAssetsWithTransientArtifactChanges: 152.096ms
+	CategorizeAssets: 89.393ms
+	ImportOutOfDateAssets: 6140.393ms (-1975.661ms without children)
+		ImportManagerImport: 73.532ms (1.592ms without children)
+			ImportInProcess: 71.896ms
+			UpdateCategorizedAssets: 0.044ms
+		CompileScripts: 8032.930ms
+		ReloadNativeAssets: 0.069ms
+		UnloadImportedAssets: 4.472ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 4.555ms
+		InitializingProgressBar: 0.064ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.003ms
+		OnDemandSchedulerStart: 0.430ms
+	PostProcessAllAssets: 527.972ms
+	Hotreload: 12.586ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.004ms
+	UnloadStreamsBegin: 0.618ms
+	UnloadStreamsEnd: 0.001ms
+	GenerateScriptTypeHashes: 5.522ms
+	Untracked: 10257.056ms
+
+Application.AssetDatabase Initial Refresh End
+Scanning for USB devices : 17.023ms
+Initializing Unity extensions:
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-My project
+Unloading 41 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 9291 unused Assets / (3.3 MB). Loaded Objects now: 9971.
+Memory consumption went from 201.3 MB to 198.0 MB.
+Total: 37.836300 ms (FindLiveObjects: 1.443500 ms CreateObjectMapping: 1.409500 ms MarkObjects: 30.797700 ms  DeleteObjects: 4.183900 ms)
+
+Batchmode quit successfully invoked - shutting down!
+Curl error 42: Callback aborted
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input System polling thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-Gebruiker-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-Gebruiker channel disconnected successfully.
+AcceleratorClientConnectionCallback - disconnected - :0
+Cleanup mono
+Exiting batchmode successfully now!
+Exiting without the bug reporter. Application will terminate with return code 0

@@ -9,6 +9,7 @@ using UnityEngine.SceneManagement;
 
 public class Mapshower : MonoBehaviour
 {
+    [Min(0.01f)] public float CampaignTimeScale = 0.25f;
     public string regionname;
     public int regionnumber;
     public string owner;
@@ -36,6 +37,7 @@ public class Mapshower : MonoBehaviour
     Color32 prevColorA;
     bool selectAny = false;
     bool selectALL = false;
+    private Province highlightedProvince;
     public bool potato = true;
     public GameObject banana;
     public static Mapshower Instance;
@@ -44,6 +46,7 @@ public class Mapshower : MonoBehaviour
 
     void Awake()
     {
+        Time.timeScale = 1f;
         Instance = this;
         
         var material = GetComponent<Renderer>().material;
@@ -106,6 +109,7 @@ public class Mapshower : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        if (Owners.Instance != null) Owners.Instance.CampaignSimulationSpeed = CampaignTimeScale;
         var material = GetComponent<Renderer>().material;
         var mainTex = material.GetTexture("_MainTex") as Texture2D;
         var mainArr = mainTex.GetPixels32();
@@ -158,6 +162,10 @@ public class Mapshower : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (Owners.Instance != null) Owners.Instance.CampaignPaused = !Owners.Instance.CampaignPaused;
+        }
         if (Input.GetKeyDown("escape"))
         {
             RePaint();
@@ -165,14 +173,8 @@ public class Mapshower : MonoBehaviour
         }
         if (Input.GetKeyDown("1"))
         {
-            if (Time.timeScale == 1)
-            {
-                Time.timeScale = 10;
-            }
-            else
-            {
-                Time.timeScale = 1;
-            }
+            if (Owners.Instance != null) Owners.Instance.CampaignSimulationSpeed =
+                Mathf.Approximately(Owners.Instance.CampaignSimulationSpeed, 1f) ? CampaignTimeScale : 1f;
         }
         if (Input.GetKey("1"))
         {
@@ -266,16 +268,16 @@ public class Mapshower : MonoBehaviour
                     selectAny = true;
                     prevColor = remapColor;
                     paletteTex.SetPixel(xp, yp, province.nation.ownerIdentity);
-                    paletteTex.Apply(false);
-                    ownerTex.Apply(false);
                 }
             }
+            paletteTex.Apply(false);
         }
         catch { }
         
     }
     public void RePaint()
     {
+        highlightedProvince = null;
         foreach(Province province in Owners.Instance.provincelist)
         {
             int x = (int)province.position.x;
@@ -289,10 +291,9 @@ public class Mapshower : MonoBehaviour
                 selectAny = true;
                 prevColor = remapColor;
                 paletteTex.SetPixel(xp, yp, province.nation.ownerIdentity);
-                paletteTex.Apply(false);
-                ownerTex.Apply(false);
             }
         }
+        paletteTex.Apply(false);
     }
     public void PopPaint()
     {
@@ -309,10 +310,9 @@ public class Mapshower : MonoBehaviour
                 selectAny = true;
                 prevColor = remapColor;
                 paletteTex.SetPixel(xp, yp, PopToColor(province.population));
-                paletteTex.Apply(false);
-                ownerTex.Apply(false);
             }
         }
+        paletteTex.Apply(false);
     }
     public void SupplyPaint()
     {
@@ -329,10 +329,9 @@ public class Mapshower : MonoBehaviour
                 selectAny = true;
                 prevColor = remapColor;
                 paletteTex.SetPixel(xp, yp, PopToColor(province.supply));
-                paletteTex.Apply(false);
-                ownerTex.Apply(false);
             }
         }
+        paletteTex.Apply(false);
     }
     public void CulturePaint()
     {
@@ -350,10 +349,9 @@ public class Mapshower : MonoBehaviour
                 selectAny = true;
                 prevColor = remapColor;
                 paletteTex.SetPixel(xp, yp, province.OriginalNation.ownerIdentity);//province.cultures[0].ownerIdentity);
-                paletteTex.Apply(false);
-                ownerTex.Apply(false);
             }
         }
+        paletteTex.Apply(false);
     }
     public void OnMouseOver()
     {
@@ -383,8 +381,18 @@ public class Mapshower : MonoBehaviour
 
                 if (Input.GetMouseButtonDown(1))
                 {
-                    //print(x.ToString() + " " + y.ToString());
-                    FieldArmyHolder.PlayerFieldArmy.SetTarget(new Vector3(x, y, 0));
+                    Vector3 mapTarget = new Vector3(x, y, 0);
+                    if (CampaignNetworkPlayer.Local != null && CampaignNetworkPlayer.Local.IsSpawned)
+                    {
+                        CampaignNetworkPlayer.Local.RequestArmyMove(
+                            FieldArmyHolder.SelectedPlayerArmy != null ? FieldArmyHolder.SelectedPlayerArmy.NetworkArmyId : string.Empty,
+                            mapTarget);
+                    }
+                    else if (FieldArmyHolder.SelectedPlayerArmy != null || FieldArmyHolder.PlayerFieldArmy != null)
+                    {
+                        FieldArmyHolder commanded = FieldArmyHolder.SelectedPlayerArmy != null ? FieldArmyHolder.SelectedPlayerArmy : FieldArmyHolder.PlayerFieldArmy;
+                        commanded.IsPlayer = true; commanded.IsHumanControlled = true; commanded.SetTarget(mapTarget);
+                    }
                 }
 
 
@@ -406,13 +414,6 @@ public class Mapshower : MonoBehaviour
                     return;
                 }
 
-                if (selectALL)
-                {
-                    changeColors(prevColorA, new Color32(255, 255, 255, 255));
-                }
-                selectALL = true;
-                prevColorA = remapColor;
-
                 //changeColors(remapColor, new Color32(50, 0, 0, 255));//new Color32(127, 127, 127, 127));
                 int xps = remapColor[0];
                 int yps = remapColor[1];
@@ -420,33 +421,27 @@ public class Mapshower : MonoBehaviour
                 try
                 {
                     Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
-                    foreach (Province provinces in Owners.Instance.provincelist)
+                    if (province != highlightedProvince)
                     {
-                        x = (int)provinces.position.x;
-                        y = (int)provinces.position.y;
+                        highlightedProvince = province;
+                        foreach (Province provinces in Owners.Instance.provincelist)
+                        {
+                            x = (int)provinces.position.x;
+                            y = (int)provinces.position.y;
+                            remapColor = remapArr[x + y * width];
+                            changeColors(remapColor, province.nation == provinces.nation
+                                ? new Color32(64, 64, 64, 255)
+                                : new Color32(0, 0, 0, 255));
+                        }
+
+                        x = (int)Mathf.Floor(p.x) + width / 2;
+                        y = (int)Mathf.Floor(p.y) + height / 2;
 
                         remapColor = remapArr[x + y * width];
-                        xp = remapColor[0];
-                        yp = remapColor[1];
+                        changeColors(remapColor, new Color32(255, 255, 255, 255));
 
-                        if (province.nation == provinces.nation)
-                        {
-                            changeColors(remapColor, new Color32(64, 64, 64, 255));//state.stateIdentity);
-                        }
-                        else
-                        {
-                            changeColors(remapColor, new Color32(0, 0, 0, 255));
-                        }
+                        ownerTex.Apply(false);
                     }
-
-                    x = (int)Mathf.Floor(p.x) + width / 2;
-                    y = (int)Mathf.Floor(p.y) + height / 2;
-
-                    remapColor = remapArr[x + y * width];
-                    changeColors(remapColor, new Color32(255, 255, 255, 255));
-
-                    ownerTex.Apply(true);
-                    paletteTex.Apply(true);
 
                     if (Input.GetMouseButtonDown(0))
                     {
@@ -556,6 +551,19 @@ public class Mapshower : MonoBehaviour
 
             SessionManager.Instance.savedProvince = SelectedProvince;
 
+        if (DeterministicBattleManager.Instance != null &&
+            DeterministicBattleManager.Instance.BattleSystemMode == CampaignBattleSystemMode.TileBased &&
+            ProjectX.TileBattle.TileBattleCampaignManager.Instance != null)
+        {
+            ProjectX.TileBattle.TileBattleCampaignManager.Instance.TryStartGarrisonBattle(FieldArmyHolder.PlayerFieldArmy, SelectedProvince);
+            return;
+        }
+        if (DeterministicBattleManager.Instance != null &&
+            DeterministicBattleManager.Instance.BattleSystemMode == CampaignBattleSystemMode.Deterministic)
+        {
+            DeterministicBattleManager.Instance.TryStartGarrisonBattle(FieldArmyHolder.PlayerFieldArmy, SelectedProvince);
+            return;
+        }
         ArmyBattle(FieldArmyHolder.PlayerFieldArmy, null, SelectedProvince.garrison);
 
         return;

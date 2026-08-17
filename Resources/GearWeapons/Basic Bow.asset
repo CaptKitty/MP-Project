@@ -13,13 +13,18 @@ MonoBehaviour:
   m_Name: Basic Bow
   m_EditorClassIdentifier: 
   sprite: {fileID: 21300000, guid: 5ef0b5e59424e494f9e2b50d95b4d657, type: 3}
-  combatdistance: 4
+  combatdistance: 5
   speed: 1
   attack: 30
   attacktype: ranged
-  attacktime: 1.5
+  attacktime: 5
   NextAvailableAttack: 0
   animationtype: BasicBow
+  animationClass: {fileID: 11400000, guid: 211ed8a9df89d47438976f21fb127013, type: 2}
+  overrideVisualPose: 0
+  visualOffset: {x: 0.146, y: -0.082}
+  visualAngle: 0
+  projectileSprite: {fileID: 0}
   Throwable: {fileID: 8062874142913599219, guid: 5c5afad69fe5b9648a0e9435d575d624, type: 3}
   ammo: 10
   modifier: {fileID: 0}

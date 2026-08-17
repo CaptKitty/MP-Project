@@ -13,13 +13,18 @@ MonoBehaviour:
   m_Name: Javelin(1)
   m_EditorClassIdentifier: 
   sprite: {fileID: 21300000, guid: 3eae1bb9a168ca849b6f4b4d18dd2213, type: 3}
-  combatdistance: 3
+  combatdistance: 4
   speed: 1
   attack: 50
   attacktype: ranged
-  attacktime: 1
+  attacktime: 4
   NextAvailableAttack: 0
   animationtype: Javelin
+  animationClass: {fileID: 0}
+  overrideVisualPose: 0
+  visualOffset: {x: 0.146, y: -0.082}
+  visualAngle: 0
+  projectileSprite: {fileID: 0}
   Throwable: {fileID: 8062874142913599219, guid: 0603e32d295d7154085c6c9224cdb6c5, type: 3}
   ammo: 1
   modifier: {fileID: 0}

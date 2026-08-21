@@ -8,6 +8,12 @@ public class UIBuildingMenu : MonoBehaviour
     public Province LoadedProvince { get; private set; }
 
     private readonly List<UIBuildingMenuSlot> slots = new List<UIBuildingMenuSlot>();
+    private readonly List<UIBuildingMenuSlot> generatedSlots = new List<UIBuildingMenuSlot>();
+    private readonly List<Vector2> sceneSlotPositions = new List<Vector2>();
+    private readonly List<float> sceneSlotTopOffsets = new List<float>();
+    private int sceneSlotCount;
+    private float sceneMenuHeight;
+    private Vector2 sceneMenuPosition;
     private UIProvinceHost host;
     private UIBuildingMenuSlot selectedSlot;
     private GameObject tooltipRoot;
@@ -19,6 +25,18 @@ public class UIBuildingMenu : MonoBehaviour
     private void Awake()
     {
         ResolveSlots();
+        sceneSlotCount = slots.Count;
+        RectTransform menuRect = GetComponent<RectTransform>();
+        sceneMenuHeight = menuRect.sizeDelta.y;
+        sceneMenuPosition = menuRect.anchoredPosition;
+        float menuTop = sceneMenuHeight * (1f - menuRect.pivot.y);
+        for (int i = 0; i < sceneSlotCount; i++)
+        {
+            RectTransform slotRect = slots[i].GetComponent<RectTransform>();
+            sceneSlotPositions.Add(slotRect.anchoredPosition);
+            float slotPivotY = menuRect.InverseTransformPoint(slotRect.position).y;
+            sceneSlotTopOffsets.Add(menuTop - slotPivotY);
+        }
     }
 
     public void LoadProvince(Province province, UIProvinceHost owner)
@@ -32,10 +50,86 @@ public class UIBuildingMenu : MonoBehaviour
         HideTooltip();
         HideBuildGrid();
 
-        for (int i = 0; i < slots.Count; i++)
+        List<Province> provinces = GetDisplayedProvinces(province);
+        int slotsPerProvince = Mathf.Max(4, sceneSlotCount);
+        EnsureSlotCount(provinces.Count * slotsPerProvince);
+        LayoutRegionSlots(provinces.Count, slotsPerProvince);
+        int displayIndex = 0;
+        foreach (Province displayedProvince in provinces)
         {
-            ProvinceBuilding building = province != null ? province.GetBuildingInSlot(i) : null;
-            slots[i].Configure(this, building, i);
+            for (int slotIndex = 0; slotIndex < slotsPerProvince; slotIndex++)
+            {
+                ProvinceBuilding building = displayedProvince != null ? displayedProvince.GetBuildingInSlot(slotIndex) : null;
+                slots[displayIndex].gameObject.SetActive(true);
+                slots[displayIndex].Configure(this, displayedProvince, building, slotIndex, provinces.Count > 1);
+                displayIndex++;
+            }
+        }
+        for (int i = displayIndex; i < slots.Count; i++) slots[i].gameObject.SetActive(false);
+    }
+
+    private void LayoutRegionSlots(int provinceCount, int slotsPerProvince)
+    {
+        if (sceneSlotCount == 0 || sceneSlotPositions.Count == 0) return;
+        float minY = float.MaxValue;
+        float maxY = float.MinValue;
+        for (int i = 0; i < sceneSlotCount; i++)
+        {
+            RectTransform rect = slots[i].GetComponent<RectTransform>();
+            float halfHeight = rect.rect.height * .5f;
+            minY = Mathf.Min(minY, sceneSlotPositions[i].y - halfHeight);
+            maxY = Mathf.Max(maxY, sceneSlotPositions[i].y + halfHeight);
+        }
+        float groupHeight = Mathf.Max(1f, maxY - minY + 8f);
+        int visibleCount = provinceCount * slotsPerProvince;
+        for (int i = 0; i < visibleCount && i < slots.Count; i++)
+        {
+            int templateIndex = i % slotsPerProvince;
+            int provinceIndex = i / slotsPerProvince;
+            RectTransform rect = slots[i].GetComponent<RectTransform>();
+            RectTransform templateRect = slots[Mathf.Min(templateIndex, sceneSlotCount - 1)].GetComponent<RectTransform>();
+            rect.anchorMin = templateRect.anchorMin;
+            rect.anchorMax = templateRect.anchorMax;
+            rect.anchorMin = new Vector2(rect.anchorMin.x, 1f);
+            rect.anchorMax = new Vector2(rect.anchorMax.x, 1f);
+            rect.pivot = templateRect.pivot;
+            rect.sizeDelta = templateRect.sizeDelta;
+            int sourceIndex = Mathf.Min(templateIndex, sceneSlotPositions.Count - 1);
+            rect.anchoredPosition = new Vector2(sceneSlotPositions[sourceIndex].x,
+                -sceneSlotTopOffsets[sourceIndex] - provinceIndex * groupHeight);
+        }
+        RectTransform menuRect = GetComponent<RectTransform>();
+        float expandedHeight = sceneMenuHeight + Mathf.Max(0, provinceCount - 1) * groupHeight;
+        float addedHeight = expandedHeight - sceneMenuHeight;
+        menuRect.sizeDelta = new Vector2(menuRect.sizeDelta.x, expandedHeight);
+        // Keep the original top edge fixed and grow the region building list downward.
+        menuRect.anchoredPosition = sceneMenuPosition +
+            Vector2.down * (addedHeight * (1f - menuRect.pivot.y));
+    }
+
+    private static List<Province> GetDisplayedProvinces(Province selectedProvince)
+    {
+        List<Province> result = new List<Province>();
+        if (selectedProvince == null) return result;
+        CampaignRegion region = Owners.Instance != null ? Owners.Instance.CallRegionByString(selectedProvince.region) : null;
+        if (region != null && region.provincelist != null)
+            foreach (Province province in region.provincelist) if (province != null) result.Add(province);
+        if (result.Count == 0) result.Add(selectedProvince);
+        return result;
+    }
+
+    private void EnsureSlotCount(int required)
+    {
+        ResolveSlots();
+        if (required <= slots.Count || slots.Count == 0) return;
+        UIBuildingMenuSlot template = slots[0];
+        Transform parent = template.transform.parent;
+        while (slots.Count < required)
+        {
+            UIBuildingMenuSlot clone = Instantiate(template, parent);
+            clone.gameObject.name = "RegionBuildingSlot_" + slots.Count.ToString("D2");
+            generatedSlots.Add(clone);
+            slots.Add(clone);
         }
     }
 
@@ -49,13 +143,13 @@ public class UIBuildingMenu : MonoBehaviour
     public void PointerEntered(UIBuildingMenuSlot slot)
     {
         if (slot == null || buildGridOpen) return;
-        ShowTooltip(BuildBuildingDescription(slot.Building, slot.SlotIndex));
+        ShowTooltip(BuildBuildingDescription(slot.Province, slot.Building, slot.SlotIndex));
     }
 
     public void PointerExited(UIBuildingMenuSlot slot)
     {
         if (buildGridOpen) return;
-        if (selectedSlot != null) ShowTooltip(BuildUpgradeDescription(selectedSlot.Building, selectedSlot.SlotIndex));
+        if (selectedSlot != null) ShowTooltip(BuildUpgradeDescription(selectedSlot.Province, selectedSlot.Building, selectedSlot.SlotIndex));
         else HideTooltip();
     }
 
@@ -73,12 +167,13 @@ public class UIBuildingMenu : MonoBehaviour
         buildGridOpen = true;
         buildGridRoot.SetActive(true);
         buildGridRoot.transform.SetAsLastSibling();
-        if (slot == null || LoadedProvince == null) { AddGridMessage("No province slot selected."); return; }
+        Province targetProvince = slot != null ? slot.Province : null;
+        if (slot == null || targetProvince == null) { AddGridMessage("No province slot selected."); return; }
 
         ProvinceBuilding building = slot.Building;
         if (building == null)
         {
-            Nation nation = LoadedProvince.nation;
+            Nation nation = targetProvince.nation;
             foreach (string buildingId in NationContentResolver.ResolveBuildings(nation))
                 AddBuildOption(slot, buildingId, 1, buildingId + "\nLevel 1\n" +
                     CampaignEconomy.BuildingGoldCost(buildingId, 1) + " gold\n" +
@@ -87,7 +182,7 @@ public class UIBuildingMenu : MonoBehaviour
         else if (building.level < building.EffectiveMaximumLevel)
         {
             string buildingId = building.BuildingId;
-            if (!NationContentResolver.HasBuilding(LoadedProvince.nation, buildingId))
+            if (!NationContentResolver.HasBuilding(targetProvince.nation, buildingId))
             {
                 AddGridMessage(building.DisplayName + " is not available to this nation.");
                 AddCancelOption();
@@ -97,7 +192,7 @@ public class UIBuildingMenu : MonoBehaviour
             string caption = building.DisplayName + "\nLevel " + nextLevel;
             caption += "\n" + CampaignEconomy.BuildingGoldCost(buildingId, nextLevel) + " gold";
             caption += "\n" + BuildingDefinition.ConstructionTicks(buildingId, nextLevel) + " ticks";
-            if (LoadedProvince.nation != null && NationContentResolver.ResolveUnits(LoadedProvince.nation)
+            if (targetProvince.nation != null && NationContentResolver.ResolveUnits(targetProvince.nation)
                 .Exists(entry => entry != null && entry.RequiredBuildingId.Equals(buildingId,
                     System.StringComparison.OrdinalIgnoreCase) && entry.minimumBuildingLevel == nextLevel))
                 caption += "\nUnlocks unit tier " + nextLevel;
@@ -134,20 +229,21 @@ public class UIBuildingMenu : MonoBehaviour
 
     private void BeginConstruction(UIBuildingMenuSlot slot, string buildingId, int targetLevel)
     {
-        if (LoadedProvince == null || slot == null) return;
+        Province targetProvince = slot != null ? slot.Province : null;
+        if (targetProvince == null || slot == null) return;
         if (Unity.Netcode.NetworkManager.Singleton != null && Unity.Netcode.NetworkManager.Singleton.IsListening)
         {
             if (CampaignNetworkPlayer.Local != null)
-                CampaignNetworkPlayer.Local.RequestProvinceBuilding(LoadedProvince.name, slot.SlotIndex, buildingId, targetLevel);
+                CampaignNetworkPlayer.Local.RequestProvinceBuilding(targetProvince.name, slot.SlotIndex, buildingId, targetLevel);
             buildGridOpen = false;
             HideBuildGrid();
             return;
         }
-        Nation owner = LoadedProvince.nation; int goldCost = CampaignEconomy.BuildingGoldCost(buildingId, targetLevel);
+        Nation owner = targetProvince.nation; int goldCost = CampaignEconomy.BuildingGoldCost(buildingId, targetLevel);
         int constructionTicks = TestConstructionTicks >= 0 ? TestConstructionTicks
             : BuildingDefinition.ConstructionTicks(buildingId, targetLevel);
         if (owner == null || owner.Gold < goldCost ||
-            !LoadedProvince.BeginBuildingConstruction(slot.SlotIndex, buildingId, targetLevel, constructionTicks)) return;
+            !targetProvince.BeginBuildingConstruction(slot.SlotIndex, buildingId, targetLevel, constructionTicks)) return;
         owner.Gold -= goldCost;
         buildGridOpen = false;
         HideBuildGrid();
@@ -200,22 +296,24 @@ public class UIBuildingMenu : MonoBehaviour
         if (buildGridRoot != null) buildGridRoot.SetActive(false);
     }
 
-    private string BuildBuildingDescription(ProvinceBuilding building, int slotIndex)
+    private string BuildBuildingDescription(Province province, ProvinceBuilding building, int slotIndex)
     {
-        if (building == null) return "Building slot " + (slotIndex + 1) + "\n\nEmpty";
+        string provinceName = province != null ? province.name + "\n" : string.Empty;
+        if (building == null) return provinceName + "Building slot " + (slotIndex + 1) + "\n\nEmpty";
         StringBuilder text = new StringBuilder();
-        text.Append(building.id).Append("\nLevel ").Append(building.level).Append(" / ").Append(building.maxLevel);
-        AppendUnlocks(text, building);
+        text.Append(provinceName).Append(building.id).Append("\nLevel ").Append(building.level).Append(" / ").Append(building.maxLevel);
+        AppendUnlocks(text, province, building);
         return text.ToString();
     }
 
-    private string BuildUpgradeDescription(ProvinceBuilding building, int slotIndex)
+    private string BuildUpgradeDescription(Province province, ProvinceBuilding building, int slotIndex)
     {
         if (building == null)
-            return "Building slot " + (slotIndex + 1) + "\n\nNo building is present, so this slot has no upgrades.";
+            return (province != null ? province.name + "\n" : string.Empty) + "Building slot " + (slotIndex + 1) + "\n\nNo building is present, so this slot has no upgrades.";
 
         StringBuilder text = new StringBuilder();
         string buildingId = string.IsNullOrEmpty(building.id) ? "Building" : building.id;
+        if (province != null) text.Append(province.name).Append("\n");
         text.Append(buildingId).Append(" upgrades\n\n");
         if (building.level >= building.maxLevel)
         {
@@ -228,8 +326,7 @@ public class UIBuildingMenu : MonoBehaviour
         text.Append("\nCost: ").Append(CampaignEconomy.BuildingGoldCost(buildingId, nextLevel)).Append(" gold");
         if (buildingId.Equals("Barracks", System.StringComparison.OrdinalIgnoreCase))
         {
-            Faction localFaction = LoadedProvince != null && LoadedProvince.nation != null
-                ? LoadedProvince.nation.faction : null;
+            Faction localFaction = province != null && province.nation != null ? province.nation.faction : null;
             if (localFaction != null && localFaction.BarracksDataList != null && building.level < localFaction.BarracksDataList.Count)
             {
                 UnitSaveData unlocked = localFaction.BarracksDataList[building.level];
@@ -246,7 +343,7 @@ public class UIBuildingMenu : MonoBehaviour
         return text.ToString();
     }
 
-    private void AppendUnlocks(StringBuilder text, ProvinceBuilding building)
+    private void AppendUnlocks(StringBuilder text, Province province, ProvinceBuilding building)
     {
         List<string> names = new List<string>();
         if (building.explicitUnitUnlocks != null)
@@ -259,10 +356,10 @@ public class UIBuildingMenu : MonoBehaviour
                     foreach (UnitSaveData unit in level.unitUnlocks)
                         if (unit != null && !names.Contains(unit.unitname)) names.Add(unit.unitname);
 
-        if (LoadedProvince != null)
+        if (province != null)
         {
-            if (LoadedProvince.nation != null)
-                foreach (NationUnitEntry entry in NationContentResolver.ResolveUnits(LoadedProvince.nation))
+            if (province.nation != null)
+                foreach (NationUnitEntry entry in NationContentResolver.ResolveUnits(province.nation))
                     if (entry != null && entry.unit != null && entry.RequiredBuildingId.Equals(building.BuildingId,
                         System.StringComparison.OrdinalIgnoreCase) && entry.minimumBuildingLevel <= building.level &&
                         !names.Contains(entry.unit.unitname)) names.Add(entry.unit.unitname);
@@ -277,14 +374,16 @@ public class UIBuildingMenu : MonoBehaviour
 
     private void EnsureTooltip()
     {
-        if (tooltipRoot != null) return;
+        if (tooltipRoot != null)
+        {
+            PositionTooltip();
+            return;
+        }
         Transform parent = host != null ? host.transform : transform.parent;
         tooltipRoot = new GameObject("BuildingTooltip", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
         tooltipRoot.layer = gameObject.layer;
         tooltipRoot.transform.SetParent(parent, false);
         RectTransform rect = (RectTransform)tooltipRoot.transform;
-        rect.anchorMin = rect.anchorMax = new Vector2(.5f, .5f);
-        rect.anchoredPosition = new Vector2(0f, -130f);
         rect.sizeDelta = new Vector2(190f, 245f);
         tooltipRoot.GetComponent<Image>().color = new Color(.08f, .08f, .08f, .96f);
 
@@ -303,11 +402,26 @@ public class UIBuildingMenu : MonoBehaviour
         RectTransform textRect = tooltipText.rectTransform;
         textRect.anchorMin = Vector2.zero; textRect.anchorMax = Vector2.one;
         textRect.offsetMin = new Vector2(8f, 8f); textRect.offsetMax = new Vector2(-8f, -8f);
+        PositionTooltip();
+    }
+
+    private void PositionTooltip()
+    {
+        if (tooltipRoot == null) return;
+        RectTransform tooltipRect = (RectTransform)tooltipRoot.transform;
+        RectTransform menuRect = GetComponent<RectTransform>();
+        tooltipRect.anchorMin = tooltipRect.anchorMax = menuRect.anchorMin;
+        float menuTop = menuRect.anchoredPosition.y + menuRect.sizeDelta.y * (1f - menuRect.pivot.y);
+        float tooltipY = menuTop - tooltipRect.sizeDelta.y * (1f - tooltipRect.pivot.y);
+        float menuRight = menuRect.anchoredPosition.x + menuRect.sizeDelta.x * (1f - menuRect.pivot.x);
+        float tooltipX = menuRight + 10f + tooltipRect.sizeDelta.x * tooltipRect.pivot.x;
+        tooltipRect.anchoredPosition = new Vector2(tooltipX, tooltipY);
     }
 
     private void ShowTooltip(string contents)
     {
         EnsureTooltip();
+        PositionTooltip();
         tooltipText.text = contents;
         tooltipRoot.SetActive(true);
         tooltipRoot.transform.SetAsLastSibling();

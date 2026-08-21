@@ -40,11 +40,12 @@ public class UIProvinceHost : MonoBehaviour
             string owner = LoadedProvince.nation != null ? LoadedProvince.nation.name : "Unowned";
             int gold = LoadedProvince.nation != null ? LoadedProvince.nation.Gold : 0;
             if (owner != lastOwnerName || gold != lastNationGold) RefreshHeader();
-            int signature = BuildingSignature(LoadedProvince);
-            if (signature != lastBuildingSignature && buildingMenu != null)
+            int signature = RegionBuildingSignature(LoadedProvince);
+            if (signature != lastBuildingSignature)
             {
                 lastBuildingSignature = signature;
-                buildingMenu.LoadProvince(LoadedProvince, this);
+                if (buildingMenu != null) buildingMenu.LoadProvince(LoadedProvince, this);
+                RepositionRecruitUnitsButton();
             }
         }
 
@@ -61,9 +62,10 @@ public class UIProvinceHost : MonoBehaviour
     {
         ResolveReferences();
         LoadedProvince = province;
-        lastBuildingSignature = BuildingSignature(province);
+        lastBuildingSignature = RegionBuildingSignature(province);
         RefreshHeader();
         if (buildingMenu != null) buildingMenu.LoadProvince(province, this);
+        RepositionRecruitUnitsButton();
     }
 
     private void ResolveReferences()
@@ -132,6 +134,17 @@ public class UIProvinceHost : MonoBehaviour
         recruitUnitsLabel.color = Color.white;
         recruitUnitsLabel.resizeTextForBestFit = true;
         RefreshRecruitUnitsButton();
+    }
+
+    private void RepositionRecruitUnitsButton()
+    {
+        if (recruitUnitsButton == null || buildingMenu == null) return;
+        RectTransform rect = recruitUnitsButton.GetComponent<RectTransform>();
+        RectTransform buildingRect = buildingMenu.GetComponent<RectTransform>();
+        rect.anchorMin = rect.anchorMax = buildingRect.anchorMin;
+        rect.anchoredPosition = buildingRect.anchoredPosition +
+            Vector2.down * (Mathf.Max(0f, buildingRect.sizeDelta.y) * .5f + 28f);
+        rect.sizeDelta = new Vector2(Mathf.Max(150f, buildingRect.sizeDelta.x), 46f);
     }
 
     private void RefreshRecruitUnitsButton()
@@ -204,6 +217,20 @@ public class UIProvinceHost : MonoBehaviour
             FieldArmyHolder.SelectedPlayerArmy = army;
             FieldArmyHolder.InspectedArmy = army;
             RefreshRaiseArmyButton();
+        }
+    }
+
+    private static int RegionBuildingSignature(Province province)
+    {
+        unchecked
+        {
+            int hash = 17;
+            if (province == null) return hash;
+            CampaignRegion region = Owners.Instance != null ? Owners.Instance.CallRegionByString(province.region) : null;
+            if (region == null) return BuildingSignature(province);
+            foreach (Province regionProvince in region.provincelist)
+                hash = hash * 31 + BuildingSignature(regionProvince);
+            return hash;
         }
     }
 

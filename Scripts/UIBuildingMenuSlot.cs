@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class UIBuildingMenuSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public ProvinceBuilding Building { get; private set; }
+    public Province Province { get; private set; }
     public int SlotIndex { get; private set; }
 
     private UIBuildingMenu menu;
@@ -22,20 +23,22 @@ public class UIBuildingMenuSlot : MonoBehaviour, IPointerEnterHandler, IPointerE
         EnsureLabel();
     }
 
-    public void Configure(UIBuildingMenu owner, ProvinceBuilding building, int slotIndex)
+    public void Configure(UIBuildingMenu owner, Province province, ProvinceBuilding building, int slotIndex, bool showProvinceName)
     {
         menu = owner;
+        Province = province;
         Building = building;
         SlotIndex = slotIndex;
         if (background == null) background = GetComponent<Image>();
         EnsureLabel();
 
-        ProvinceConstructionOrder construction = owner != null && owner.LoadedProvince != null
-            ? owner.LoadedProvince.constructionOrders.Find(order => order != null && order.slotIndex == slotIndex)
+        ProvinceConstructionOrder construction = province != null && province.constructionOrders != null
+            ? province.constructionOrders.Find(order => order != null && order.slotIndex == slotIndex)
             : null;
+        string prefix = showProvinceName && province != null ? province.name + "\n" : string.Empty;
         if (construction != null)
         {
-            label.text = "Constructing " + construction.buildingId + "\n" + construction.remainingTicks + " ticks";
+            label.text = prefix + "Constructing " + construction.buildingId + "\n" + construction.remainingTicks + " ticks";
             if (background != null) background.color = new Color(.45f, .32f, .12f, .95f);
             if (button != null) button.interactable = false;
             return;
@@ -44,12 +47,12 @@ public class UIBuildingMenuSlot : MonoBehaviour, IPointerEnterHandler, IPointerE
 
         if (building == null)
         {
-            label.text = "Empty";
+            label.text = prefix + "Empty";
             if (background != null) background.color = new Color(.25f, .25f, .25f, .9f);
         }
         else
         {
-            label.text = building.DisplayName + "\nLv " + building.level;
+            label.text = prefix + building.DisplayName + "\nLv " + building.level;
             if (background != null) background.color = new Color(.22f, .38f, .24f, .95f);
         }
         if (background != null) background.raycastTarget = true;

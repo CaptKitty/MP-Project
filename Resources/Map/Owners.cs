@@ -10,6 +10,8 @@ public class Owners : MonoBehaviour
     public List<Nation> nationlist;
     public Dictionary<string, Nation> nationdict;
     public List<State> statelist;
+    public List<CampaignRegion> regionlist = new List<CampaignRegion>();
+    public Dictionary<string, CampaignRegion> regiondict;
     public List<Culture> culturelist;
     public Dictionary<string, Culture> culturedict;
     public List<Province> provincelist;
@@ -144,6 +146,12 @@ public class Owners : MonoBehaviour
     {
         return provincedict[provincename];
     }
+    public CampaignRegion CallRegionByString(string regionname)
+    {
+        if (string.IsNullOrWhiteSpace(regionname) || regiondict == null) return null;
+        regiondict.TryGetValue(regionname, out CampaignRegion region);
+        return region;
+    }
     public Province CallProvinceByColor(Color32 provincecolor)
     {
         if (provincecolor.r == 0 && provincecolor.g == 0 & provincecolor.b == 0)
@@ -185,13 +193,13 @@ public class Owners : MonoBehaviour
         foreach (Nation nation in nationlist)
         {
             if (nation == null) continue;
-            nation.armies.RemoveAll(army => army == null);
+            nation.armies.RemoveAll(existingArmy => existingArmy == null);
             if (NationContentResolver.HasFlag(nation, "Braindead"))
             {
                 // Braindead nations are passive expansion space and begin without
                 // either generated or scene-placed campaign armies.
-                foreach (FieldArmyHolder army in new List<FieldArmyHolder>(nation.armies))
-                    if (army != null) Destroy(army.gameObject);
+                foreach (FieldArmyHolder passiveArmy in new List<FieldArmyHolder>(nation.armies))
+                    if (passiveArmy != null) Destroy(passiveArmy.gameObject);
                 nation.armies.Clear();
                 continue;
             }
@@ -199,10 +207,10 @@ public class Owners : MonoBehaviour
             Province start = provincelist.Find(province => province != null && province.nation == nation);
             if (start == null) continue;
 
-            FieldArmyHolder army = Mapshower.Instance.SpawnArmy(start, "1st Army of " + nation.name);
-            if (army == null) continue;
-            army.PreserveConfiguredRoster = false;
-            army.ConfigureNetworkIdentity("starter_" + nation.name, ulong.MaxValue, false, nation);
+            FieldArmyHolder starterArmy = Mapshower.Instance.SpawnArmy(start, "1st Army of " + nation.name);
+            if (starterArmy == null) continue;
+            starterArmy.PreserveConfiguredRoster = false;
+            starterArmy.ConfigureNetworkIdentity("starter_" + nation.name, ulong.MaxValue, false, nation);
         }
     }
 
@@ -269,6 +277,7 @@ public class Province
     public Nation nation;
     public Nation OriginalNation;
     public string state;
+    public string region;
     public Vector2 position;
     public CampaignTerrainProfile terrainProfile = CampaignTerrainProfile.Auto;
     public int population = 1000;
@@ -844,4 +853,39 @@ public class State
     public Nation nation;
     public int taxpercentage;
     public int levypercentage;
+}
+
+[System.Serializable]
+public class CampaignRegion
+{
+    public string name;
+    public Color32 identity;
+    public List<Province> provincelist = new List<Province>();
+
+    public int Population
+    {
+        get
+        {
+            int total = 0;
+            foreach (Province province in provincelist)
+                if (province != null) total += province.population;
+            return total;
+        }
+    }
+
+    public int Supply
+    {
+        get
+        {
+            int total = 0;
+            foreach (Province province in provincelist)
+                if (province != null) total += province.supply;
+            return total;
+        }
+    }
+
+    public List<Province> GetProvincesOwnedBy(Nation nation)
+    {
+        return provincelist.FindAll(province => province != null && province.nation == nation);
+    }
 }

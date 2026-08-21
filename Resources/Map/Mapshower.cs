@@ -9,6 +9,7 @@ using UnityEngine.SceneManagement;
 
 public class Mapshower : MonoBehaviour
 {
+    private enum CampaignMapMode { Ownership, Supply, OriginalOwners, Regions }
     [Min(0.01f)] public float CampaignTimeScale = 0.25f;
     public string regionname;
     public int regionnumber;
@@ -38,6 +39,7 @@ public class Mapshower : MonoBehaviour
     bool selectAny = false;
     bool selectALL = false;
     private Province highlightedProvince;
+    private CampaignMapMode currentMapMode = CampaignMapMode.Ownership;
     public bool potato = true;
     public GameObject banana;
     public static Mapshower Instance;
@@ -188,10 +190,10 @@ public class Mapshower : MonoBehaviour
         {
             CulturePaint();
         }
-        // if (Input.GetKey("4"))
-        // {
-        //     PopPaint();
-        // }
+        if (Input.GetKey("4"))
+        {
+            RegionPaint();
+        }
         float amount = 1;
         if (Input.GetKey("left shift"))
         {
@@ -277,6 +279,7 @@ public class Mapshower : MonoBehaviour
     }
     public void RePaint()
     {
+        currentMapMode = CampaignMapMode.Ownership;
         highlightedProvince = null;
         foreach(Province province in Owners.Instance.provincelist)
         {
@@ -316,6 +319,7 @@ public class Mapshower : MonoBehaviour
     }
     public void SupplyPaint()
     {
+        currentMapMode = CampaignMapMode.Supply;
         foreach(Province province in Owners.Instance.provincelist)
         {
             int x = (int)province.position.x;
@@ -335,6 +339,7 @@ public class Mapshower : MonoBehaviour
     }
     public void CulturePaint()
     {
+        currentMapMode = CampaignMapMode.OriginalOwners;
         foreach (Province province in Owners.Instance.provincelist)
         {
             int x = (int)province.position.x;
@@ -350,6 +355,21 @@ public class Mapshower : MonoBehaviour
                 prevColor = remapColor;
                 paletteTex.SetPixel(xp, yp, province.OriginalNation.ownerIdentity);//province.cultures[0].ownerIdentity);
             }
+        }
+        paletteTex.Apply(false);
+    }
+    public void RegionPaint()
+    {
+        currentMapMode = CampaignMapMode.Regions;
+        if (Owners.Instance == null || paletteTex == null || remapArr == null) return;
+        foreach (Province province in Owners.Instance.provincelist)
+        {
+            int x = (int)province.position.x;
+            int y = (int)province.position.y;
+            var remapColor = remapArr[x + y * width];
+            CampaignRegion region = Owners.Instance.CallRegionByString(province.region);
+            paletteTex.SetPixel(remapColor[0], remapColor[1],
+                region != null ? region.identity : new Color32(96, 96, 96, 255));
         }
         paletteTex.Apply(false);
     }
@@ -429,7 +449,10 @@ public class Mapshower : MonoBehaviour
                             x = (int)provinces.position.x;
                             y = (int)provinces.position.y;
                             remapColor = remapArr[x + y * width];
-                            changeColors(remapColor, province.nation == provinces.nation
+                            bool highlighted = currentMapMode == CampaignMapMode.Regions
+                                ? province.region == provinces.region
+                                : province.nation == provinces.nation;
+                            changeColors(remapColor, highlighted
                                 ? new Color32(64, 64, 64, 255)
                                 : new Color32(0, 0, 0, 255));
                         }

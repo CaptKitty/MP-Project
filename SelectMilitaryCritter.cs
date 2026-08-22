@@ -43,9 +43,7 @@ public class SelectMilitaryCritter : MonoBehaviour
             catch { }
         }
         transform.GetChild(0).GetComponent<TestCritter>().Mercenary = unitSaveData.Mercenary;
-        transform.GetChild(0).GetComponent<TestCritter>().color = unitSaveData.color;
-        transform.GetChild(0).GetComponent<TestCritter>().color2 = unitSaveData.color2;
-        transform.GetChild(0).GetComponent<TestCritter>().color3 = unitSaveData.color3;
+        transform.GetChild(0).GetComponent<TestCritter>().color3 = unitSaveData.nativeSkintone;
 
         transform.GetChild(0).GetComponent<TestCritter>().Start();
         transform.GetChild(1).GetComponent<Text>().text = unitSaveData.name;// + "    " + unitSaveData.cost + " cost";

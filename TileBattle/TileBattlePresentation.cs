@@ -15,11 +15,15 @@ namespace ProjectX.TileBattle
         private string attackStyle;
         private bool initialized;
         private bool pendingEntry;
+        private bool fallen;
+        private float fallStarted;
+        private float fallDirection = 1f;
 
         public void Bind(int unitId)
         {
             if (UnitId == unitId) return;
             UnitId = unitId; initialized = false; pendingEntry = true; velocity = Vector2.zero; attackStart = -10f;
+            fallen = false; fallStarted = -10f;
         }
 
         public void SetTargetWithEntry(Vector2 target, int side, float fieldWidth)
@@ -41,6 +45,15 @@ namespace ProjectX.TileBattle
             Target = new Vector2(side == 0 ? -fieldWidth * .62f : fieldWidth * .62f, Target.y);
         }
 
+        public void SetFallen(bool active, int side)
+        {
+            if (fallen == active) return;
+            fallen = active; fallStarted = Time.unscaledTime;
+            // Stable pseudo-random direction: varied corpses without replay/network visual disagreement.
+            unchecked { fallDirection = ((UnitId * 1103515245 + 12345) & 1) == 0 ? -1f : 1f; }
+            velocity = Vector2.zero; attackStart = -10f;
+        }
+
         private void Update()
         {
             if (!initialized) { displayed = Target; initialized = true; }
@@ -54,11 +67,20 @@ namespace ProjectX.TileBattle
             float swing = !legacyAnimation && !rangedAttack && !string.IsNullOrEmpty(attackStyle) &&
                 attackStyle.IndexOf("swing", System.StringComparison.OrdinalIgnoreCase) >= 0 && elapsed >= 0f && elapsed < .5f
                 ? Mathf.Sin(progress * Mathf.PI * 2f) * 7f : 0f;
-            float moving = Vector2.Distance(displayed, Target) > 1f ? Mathf.Sin(Time.unscaledTime * 12f) * .65f : 0f;
-            ((RectTransform)transform).anchoredPosition = displayed + attackDirection * lunge + perpendicular * swing + Vector2.up * moving;
+            float moving = !fallen && Vector2.Distance(displayed, Target) > 1f ? Mathf.Sin(Time.unscaledTime * 12f) * .65f : 0f;
+            float fallProgress = fallen ? Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((Time.unscaledTime - fallStarted) / .45f)) : 0f;
+            ((RectTransform)transform).anchoredPosition = displayed + attackDirection * lunge + perpendicular * swing +
+                Vector2.up * (moving - fallProgress * 13f);
+            if (layered != null) layered.SetPresentationFallen(fallen, fallDirection * 90f * fallProgress);
         }
 
-        private void OnDisable() { initialized = false; pendingEntry = true; velocity = Vector2.zero; attackStart = -10f; }
+        private void OnDisable()
+        {
+            initialized = false; pendingEntry = true; velocity = Vector2.zero; attackStart = -10f;
+            fallen = false; fallStarted = -10f;
+            LayeredBattleUnitVisual layered = GetComponent<LayeredBattleUnitVisual>();
+            if (layered != null) layered.SetPresentationFallen(false, 0f);
+        }
     }
 
     public sealed class TileProjectileVisual : MonoBehaviour
@@ -95,6 +117,11 @@ namespace ProjectX.TileBattle
 
     public sealed class TileBattlePresentation : MonoBehaviour
     {
+        [Header("Prototype casualty presentation")]
+        [Tooltip("When enabled, destroyed formations remain on the battlefield as fallen visuals. Disable to restore pooled deletion.")]
+        public bool LeaveFallenUnitsOnField = true;
+        [Tooltip("Detach the displayed shield and weapon when a formation falls.")]
+        public bool DropEquipmentOnDeath = true;
         private TileBattleCampaignManager manager;
         private readonly Dictionary<TileCampaignBattle, GameObject> markers = new Dictionary<TileCampaignBattle, GameObject>();
         private readonly List<Image> unitPool = new List<Image>();
@@ -241,7 +268,12 @@ namespace ProjectX.TileBattle
         {
             selected = null; if (viewerRoot != null) viewerRoot.SetActive(false);
             if (summaryRoot != null) summaryRoot.SetActive(false);
-            for (int i = 0; i < unitPool.Count; i++) if (unitPool[i] != null) unitPool[i].gameObject.SetActive(false);
+            for (int i = 0; i < unitPool.Count; i++) if (unitPool[i] != null)
+            {
+                LayeredBattleUnitVisual art = unitPool[i].GetComponent<LayeredBattleUnitVisual>();
+                if (art != null) art.RestoreEquipment();
+                unitPool[i].gameObject.SetActive(false);
+            }
             for (int i = 0; i < projectilePool.Count; i++) if (projectilePool[i] != null) projectilePool[i].gameObject.SetActive(false);
         }
 
@@ -281,6 +313,11 @@ namespace ProjectX.TileBattle
 
         private void RefreshViewer()
         {
+            if (manager != null)
+            {
+                LeaveFallenUnitsOnField = manager.LeaveFallenUnitsOnField;
+                DropEquipmentOnDeath = manager.DropEquipmentOnDeath;
+            }
             TileBattleSimulation simulation = selected.Simulation;
             if (simulation.History.Count == 0) return;
             historyIndex = Mathf.Clamp(historyIndex, 0, simulation.History.Count - 1);
@@ -295,12 +332,13 @@ namespace ProjectX.TileBattle
             for (int i = 0; i < snapshot.Units.Count; i++)
             {
                 TileBattleUnitViewState unit = snapshot.Units[i];
-                if (!unit.Deployed || unit.Strength <= 0 || unit.State == TileUnitState.Destroyed || unit.State == TileUnitState.Withdrawn) continue;
+                bool destroyed = unit.Strength <= 0 || unit.State == TileUnitState.Destroyed;
+                if (!unit.Deployed || unit.State == TileUnitState.Withdrawn || destroyed && !LeaveFallenUnitsOnField) continue;
                 visibleUnitIds.Add(unit.Id);
                 Image image = AcquireUnit(unit.Id); UnitSaveData data = FindUnitData(selected, unit.Id);
                 LayeredBattleUnitVisual art = image.GetComponent<LayeredBattleUnitVisual>();
                 if (art == null) art = image.gameObject.AddComponent<LayeredBattleUnitVisual>();
-                art.Configure(data, GetFactionMaterial(selected, unit.Side)); art.Attacking = false;
+                art.Configure(data, GetFactionMaterial(selected, unit.Side, data)); art.Attacking = false;
                 art.SetHorizontalFacing(unit.Facing == TileFacing.West || unit.Facing != TileFacing.East && unit.Side == 1);
                 RectTransform rect = image.rectTransform;
                 float x = (unit.Position.X + .5f) / simulation.Grid.Width;
@@ -309,12 +347,29 @@ namespace ProjectX.TileBattle
                 TileBattleVisualMotion motion = image.GetComponent<TileBattleVisualMotion>(); if (motion == null) motion = image.gameObject.AddComponent<TileBattleVisualMotion>();
                 motion.Bind(unit.Id); motion.SetTargetWithEntry(new Vector2((x - .5f) * field.rect.width,
                     (y - .5f) * field.rect.height), unit.Side, field.rect.width);
-                image.color = unit.State == TileUnitState.Routing ? new Color(1f, 1f, 1f, .55f) : Color.white;
+                motion.SetFallen(destroyed, unit.Side);
+                if (destroyed)
+                {
+                    art.SetContinuousCheer(false);
+                    if (DropEquipmentOnDeath) art.DropEquipment(unit.Side == 0 ? -1f : 1f);
+                    else art.RestoreEquipment();
+                    image.color = new Color(.72f, .72f, .72f, .82f);
+                }
+                else
+                {
+                    art.RestoreEquipment();
+                    image.color = unit.State == TileUnitState.Routing ? new Color(1f, 1f, 1f, .55f) : Color.white;
+                }
             }
             for (int i = 0; i < unitPool.Count; i++)
             {
                 TileBattleVisualMotion motion = unitPool[i].GetComponent<TileBattleVisualMotion>();
-                if (motion != null && !visibleUnitIds.Contains(motion.UnitId)) unitPool[i].gameObject.SetActive(false);
+                if (motion != null && !visibleUnitIds.Contains(motion.UnitId))
+                {
+                    LayeredBattleUnitVisual art = unitPool[i].GetComponent<LayeredBattleUnitVisual>();
+                    if (art != null) art.RestoreEquipment();
+                    unitPool[i].gameObject.SetActive(false);
+                }
             }
             ApplyFinishedBattlePresentation(simulation, snapshot);
             ConsumeVisualEvents(simulation, snapshot.EventCount);
@@ -328,6 +383,12 @@ namespace ProjectX.TileBattle
             if (!finalFrame)
             {
                 cheeringUnits.Clear();
+                for (int i = 0; i < unitPool.Count; i++)
+                {
+                    LayeredBattleUnitVisual art = unitPool[i] != null ? unitPool[i].GetComponent<LayeredBattleUnitVisual>() : null;
+                    if (art == null) continue;
+                    art.SetContinuousCheer(false);
+                }
                 return;
             }
             int winner = simulation.Result.WinningSide;
@@ -341,12 +402,19 @@ namespace ProjectX.TileBattle
                 LayeredBattleUnitVisual art = motion.GetComponent<LayeredBattleUnitVisual>();
                 if (unit.Side != winner)
                 {
+                    if (art != null)
+                    {
+                        art.SetContinuousCheer(false);
+                        art.DropEquipment(unit.Side == 0 ? -1f : 1f);
+                    }
                     motion.RetreatOffField(unit.Side, field.rect.width);
                     if (art != null) art.SetHorizontalFacing(unit.Side == 0);
                 }
-                else if (cheeringUnits.Add(unit.Id) && art != null)
+                else if (art != null)
                 {
-                    art.TriggerLegacyCheer();
+                    cheeringUnits.Add(unit.Id);
+                    art.RestoreEquipment();
+                    art.SetContinuousCheer(true);
                 }
             }
         }
@@ -406,6 +474,11 @@ namespace ProjectX.TileBattle
             if (selected == null || selected.Simulation.History.Count == 0) return;
             followLive = false; playbackPaused = false; historyIndex = 0;
             consumedEventCount = 0; displayedProjectileCount = 0; cheeringUnits.Clear(); nextPlaybackAdvance = Time.unscaledTime;
+            for (int i = 0; i < unitPool.Count; i++)
+            {
+                LayeredBattleUnitVisual art = unitPool[i] != null ? unitPool[i].GetComponent<LayeredBattleUnitVisual>() : null;
+                if (art != null) art.RestoreEquipment();
+            }
             for (int i = 0; i < projectilePool.Count; i++) projectilePool[i].gameObject.SetActive(false);
         }
 
@@ -502,6 +575,27 @@ namespace ProjectX.TileBattle
                     .Append(values[1] - values[2]).Append(" / ").Append(values[1]).Append(" lost; ")
                     .Append(values[2]).AppendLine(" remaining");
             }
+            Dictionary<string, int> recovered = new Dictionary<string, int>(System.StringComparer.Ordinal);
+            for (int i = 0; i < simulation.Units.Count; i++)
+            {
+                TileBattleUnit unit = simulation.Units[i];
+                if (unit.Side != side || !simulation.Result.RecoveredFormations.TryGetValue(unit.Id, out int amount) || amount <= 0)
+                    continue;
+                string name = unit.Definition != null && !string.IsNullOrEmpty(unit.Definition.DisplayName)
+                    ? unit.Definition.DisplayName : "Unknown formation";
+                recovered[name] = recovered.TryGetValue(name, out int existing) ? existing + amount : amount;
+            }
+            if (recovered.Count > 0)
+            {
+                int recoveredTotal = 0;
+                foreach (int amount in recovered.Values) recoveredTotal += amount;
+                text.Append("Recovered after victory: ").Append(recoveredTotal).AppendLine(" formation(s)");
+                List<string> recoveredNames = new List<string>(recovered.Keys);
+                recoveredNames.Sort(System.StringComparer.Ordinal);
+                for (int i = 0; i < recoveredNames.Count; i++)
+                    text.Append("  + ").Append(recoveredNames[i]).Append(" x").AppendLine(recovered[recoveredNames[i]].ToString());
+            }
+            else text.AppendLine("Recovered after victory: none");
             text.AppendLine();
         }
 
@@ -608,6 +702,8 @@ namespace ProjectX.TileBattle
             for (int i = 0; i < unitPool.Count; i++) if (!unitPool[i].gameObject.activeSelf)
             {
                 unitPool[i].gameObject.SetActive(true);
+                LayeredBattleUnitVisual art = unitPool[i].GetComponent<LayeredBattleUnitVisual>();
+                if (art != null) art.RestoreEquipment();
                 TileBattleVisualMotion recycled = unitPool[i].GetComponent<TileBattleVisualMotion>();
                 if (recycled != null) recycled.Bind(unitId);
                 return unitPool[i];
@@ -632,11 +728,13 @@ namespace ProjectX.TileBattle
             return System.Array.Find(all, item => item != null && item.name == name);
         }
 
-        private Material GetFactionMaterial(TileCampaignBattle battle, int side)
+        private Material GetFactionMaterial(TileCampaignBattle battle, int side, UnitSaveData unit)
         {
             FieldArmy army = side == 0 ? battle.ArmyA != null ? battle.ArmyA.fieldArmy : null : battle.ArmyB != null ? battle.ArmyB.fieldArmy : battle.Garrison;
             Faction faction = army != null && army.nation != null ? army.nation.faction : null;
-            string key = faction != null ? faction.name : "side" + side;
+            bool mercenary = unit != null && unit.Mercenary;
+            string key = (faction != null ? faction.name : "side" + side) +
+                (mercenary ? ":mercenary:" + ColorUtility.ToHtmlStringRGBA(unit.nativeSkintone) : string.Empty);
             if (materialCache.TryGetValue(key, out Material cached)) return cached;
             if (baseUnitMaterial == null) return null;
             Material material = new Material(baseUnitMaterial) { name = "Tile Battle " + key };
@@ -644,7 +742,8 @@ namespace ProjectX.TileBattle
             {
                 if (material.HasProperty("_FactionColor")) material.SetColor("_FactionColor", faction.color);
                 if (material.HasProperty("_FactionColor2")) material.SetColor("_FactionColor2", faction.color2);
-                if (material.HasProperty("_FactionColor3")) material.SetColor("_FactionColor3", faction.color3);
+                if (material.HasProperty("_FactionColor3"))
+                    material.SetColor("_FactionColor3", mercenary ? unit.nativeSkintone : faction.color3);
             }
             materialCache[key] = material; return material;
         }

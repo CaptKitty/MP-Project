@@ -79,12 +79,50 @@ public struct CampaignUnitState : INetworkSerializable
     public FixedString64Bytes ArmyId;
     public FixedString64Bytes UnitName;
     public int Amount;
+    public byte Origin;
+    public FixedString128Bytes EntitlementId;
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
         serializer.SerializeValue(ref ArmyId);
         serializer.SerializeValue(ref UnitName);
         serializer.SerializeValue(ref Amount);
+        serializer.SerializeValue(ref Origin);
+        serializer.SerializeValue(ref EntitlementId);
+    }
+}
+
+public struct CampaignRecruitmentOrderState : INetworkSerializable
+{
+    public FixedString64Bytes ArmyId;
+    public FixedString64Bytes UnitName;
+    public int Amount;
+    public int RemainingTicks;
+
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+    {
+        serializer.SerializeValue(ref ArmyId);
+        serializer.SerializeValue(ref UnitName);
+        serializer.SerializeValue(ref Amount);
+        serializer.SerializeValue(ref RemainingTicks);
+    }
+}
+
+public struct CampaignConstructionOrderState : INetworkSerializable
+{
+    public ushort ProvinceIndex;
+    public int SlotIndex;
+    public FixedString64Bytes BuildingId;
+    public int TargetLevel;
+    public int RemainingTicks;
+
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+    {
+        serializer.SerializeValue(ref ProvinceIndex);
+        serializer.SerializeValue(ref SlotIndex);
+        serializer.SerializeValue(ref BuildingId);
+        serializer.SerializeValue(ref TargetLevel);
+        serializer.SerializeValue(ref RemainingTicks);
     }
 }
 
@@ -97,6 +135,7 @@ public struct CampaignNationState : INetworkSerializable
     public int FarmLevel;
     public int Income;
     public int Gold;
+    public int UpkeepDebt;
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
@@ -107,6 +146,7 @@ public struct CampaignNationState : INetworkSerializable
         serializer.SerializeValue(ref FarmLevel);
         serializer.SerializeValue(ref Income);
         serializer.SerializeValue(ref Gold);
+        serializer.SerializeValue(ref UpkeepDebt);
     }
 }
 
@@ -157,5 +197,27 @@ public struct CampaignMercenaryState : INetworkSerializable
         serializer.SerializeValue(ref Capacity);
         serializer.SerializeValue(ref RegenerationPerTurn);
         serializer.SerializeValue(ref RegenerationProgress);
+    }
+}
+
+public struct CampaignLevyState : INetworkSerializable
+{
+    public ushort ProvinceIndex;
+    public FixedString128Bytes EntitlementId;
+    public FixedString64Bytes RuleId;
+    public FixedString64Bytes UnitName;
+    public int BuildingSlot;
+    public int Ordinal;
+    public byte State;
+    public bool Eligible;
+    public int RemainingTicks;
+    public FixedString64Bytes RaisedArmyId;
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+    {
+        serializer.SerializeValue(ref ProvinceIndex); serializer.SerializeValue(ref EntitlementId);
+        serializer.SerializeValue(ref RuleId); serializer.SerializeValue(ref UnitName);
+        serializer.SerializeValue(ref BuildingSlot); serializer.SerializeValue(ref Ordinal);
+        serializer.SerializeValue(ref State); serializer.SerializeValue(ref Eligible);
+        serializer.SerializeValue(ref RemainingTicks); serializer.SerializeValue(ref RaisedArmyId);
     }
 }

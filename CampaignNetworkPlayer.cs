@@ -34,6 +34,9 @@ public class CampaignNetworkPlayer : NetworkBehaviour
     private int nextArmyId;
     private bool battleHooksInstalled;
     private int nextBattleTransferId;
+    private int lastDetailedStateSignature = int.MinValue;
+    private int lastProvinceStateSignature = int.MinValue;
+    private int lastQueueStateSignature = int.MinValue;
     private readonly Dictionary<int, BattleStartTransfer> incomingBattleTransfers = new Dictionary<int, BattleStartTransfer>();
     private readonly Dictionary<int, BattleStartTransfer> incomingTileBattleTransfers = new Dictionary<int, BattleStartTransfer>();
     private bool presenceAnnounced;
@@ -75,6 +78,11 @@ public class CampaignNetworkPlayer : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         NationName.OnValueChanged += OnNationChanged;
+        if (IsServer && NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+            NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+        }
 
         if (IsOwner)
         {
@@ -87,6 +95,8 @@ public class CampaignNetworkPlayer : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
+        if (NetworkManager.Singleton != null)
+            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
         string departingNation = AssignedNation;
         if (presenceAnnounced)
             CampaignConnectionNotifications.Show(departingNation + " player left the campaign.", true);
@@ -117,6 +127,16 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             }
         }
         RefreshPlayerControlledNations();
+    }
+
+    private void OnClientConnected(ulong clientId)
+    {
+        if (IsServer && clientId != NetworkManager.Singleton.LocalClientId)
+        {
+            lastDetailedStateSignature = int.MinValue;
+            lastProvinceStateSignature = int.MinValue;
+            lastQueueStateSignature = int.MinValue;
+        }
     }
 
     private void BroadcastBattleChecksum(BattleChecksumReport report)
@@ -211,7 +231,27 @@ public class CampaignNetworkPlayer : NetworkBehaviour
     {
         if (Owners.Instance == null || Owners.Instance.nationlist == null) return;
         foreach (Nation nation in Owners.Instance.nationlist)
-            if (nation != null) nation.IsPlayer = IsNationPlayerControlled(nation.name);
+        {
+            if (nation == null) continue;
+            nation.IsPlayer = IsNationPlayerControlled(nation.name);
+            if (nation.IsPlayer && NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
+                CancelPendingAIConstruction(nation);
+        }
+    }
+
+    private static void CancelPendingAIConstruction(Nation nation)
+    {
+        foreach (Province province in Owners.Instance.provincelist)
+        {
+            if (province == null || province.nation != nation || province.constructionOrders == null) continue;
+            for (int i = province.constructionOrders.Count - 1; i >= 0; i--)
+            {
+                ProvinceConstructionOrder order = province.constructionOrders[i];
+                if (order == null || !order.initiatedByAI) continue;
+                nation.Gold += CampaignEconomy.BuildingGoldCost(order.buildingId, order.targetLevel);
+                province.constructionOrders.RemoveAt(i);
+            }
+        }
     }
 
     private void Update()
@@ -421,6 +461,53 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         }
     }
 
+    public void RequestRaiseLevy(string entitlementId, string sourceProvinceName)
+    {
+        if (!IsOwner || !HasAssignment || string.IsNullOrEmpty(entitlementId)) return;
+        string armyId = FieldArmyHolder.SelectedPlayerArmy != null
+            ? FieldArmyHolder.SelectedPlayerArmy.NetworkArmyId : string.Empty;
+        RequestRaiseLevyRpc(entitlementId, sourceProvinceName ?? string.Empty, armyId ?? string.Empty);
+    }
+
+    public void RequestRaiseAllLevies()
+    {
+        if (!IsOwner || !HasAssignment) return;
+        string armyId = FieldArmyHolder.SelectedPlayerArmy != null
+            ? FieldArmyHolder.SelectedPlayerArmy.NetworkArmyId : string.Empty;
+        RequestRaiseAllLeviesRpc(armyId ?? string.Empty);
+    }
+
+    [Rpc(SendTo.Server)]
+    private void RequestRaiseAllLeviesRpc(FixedString64Bytes armyId, RpcParams rpcParams = default)
+    {
+        CampaignNetworkPlayer sender = FindPlayer(rpcParams.Receive.SenderClientId);
+        if (sender == null || Owners.Instance == null) return;
+        FieldArmyHolder army = Owners.Instance.armylist.Find(candidate => candidate != null &&
+            candidate.NetworkArmyId == armyId.ToString() && candidate.NetworkOwnerClientId == rpcParams.Receive.SenderClientId &&
+            candidate.IsHumanControlled && candidate.fieldArmy != null && candidate.fieldArmy.nation != null &&
+            candidate.fieldArmy.nation.name == sender.AssignedNation);
+        Province current = army != null ? army.GrabNearestProvince() : null;
+        if (current == null || current.nation != army.fieldArmy.nation) return;
+        current.RaiseAllAvailableRegionLevies(army);
+    }
+
+    [Rpc(SendTo.Server)]
+    private void RequestRaiseLevyRpc(FixedString128Bytes entitlementId, FixedString64Bytes sourceProvinceName,
+        FixedString64Bytes armyId, RpcParams rpcParams = default)
+    {
+        CampaignNetworkPlayer sender = FindPlayer(rpcParams.Receive.SenderClientId);
+        if (sender == null || Owners.Instance == null) return;
+        FieldArmyHolder army = Owners.Instance.armylist.Find(candidate => candidate != null &&
+            candidate.NetworkArmyId == armyId.ToString() && candidate.NetworkOwnerClientId == rpcParams.Receive.SenderClientId &&
+            candidate.fieldArmy != null && candidate.fieldArmy.nation != null && candidate.fieldArmy.nation.name == sender.AssignedNation);
+        Province source = Owners.Instance.provincelist.Find(candidate => candidate != null && candidate.name == sourceProvinceName.ToString());
+        Province current = army != null ? army.GrabNearestProvince() : null;
+        if (army == null || source == null || current == null || source.nation != army.fieldArmy.nation ||
+            !current.SharesRegionWith(source)) return;
+        source.ReconcileLevyEntitlements();
+        source.RaiseLevy(entitlementId.ToString(), army);
+    }
+
     public void RequestEventOption(string eventName, int optionIndex)
     {
         if (IsOwner && HasAssignment)
@@ -503,6 +590,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         string id = buildingId.ToString();
         ProvinceBuilding existing = province.GetBuildingInSlot(slotIndex);
         if (!NationContentResolver.HasBuilding(province.nation, id)) return;
+        if (!NationContentResolver.CanConstructBuildingLevel(province.nation, id, targetLevel)) return;
         if (existing == null)
         {
             if (targetLevel != 1 || !NationContentResolver.HasBuilding(province.nation, id)) return;
@@ -550,6 +638,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
     private void RequestRecruitRpc(FixedString64Bytes unitName, int amount, bool mercenary,
         FixedString64Bytes sourceProvinceName, FixedString64Bytes armyId, RpcParams rpcParams = default)
     {
+        if (mercenary && !ProvinceMercenaryPool.Enabled) return;
         CampaignNetworkPlayer sender = FindPlayer(rpcParams.Receive.SenderClientId);
         if (sender == null || amount < 1 || amount > 10)
         {
@@ -603,7 +692,8 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         }
         else
         {
-            if (sourceProvince != currentProvince || currentProvince.nation != nation || !sourceProvince.CanRecruitLocal(unit)) return;
+            if (currentProvince.nation != nation || sourceProvince.nation != nation ||
+                !currentProvince.SharesRegionWith(sourceProvince) || !sourceProvince.CanRecruitLocal(unit)) return;
             int manpowerCost = Mathf.Max(1, unit.cost / 100) * recruitAmount;
             if (nation.Manpower < manpowerCost) return;
             nation.Manpower -= manpowerCost;
@@ -714,8 +804,16 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             receivedIds.Add(armyId);
             FieldArmyHolder army = Owners.Instance.armylist.Find(item => item != null && item.NetworkArmyId == armyId);
 
-            if (army == null && state.OwnerClientId == NetworkManager.Singleton.LocalClientId && FieldArmyHolder.PlayerFieldArmy != null)
+            bool locallyOwned = state.OwnerClientId == NetworkManager.Singleton.LocalClientId;
+            if (locallyOwned && FieldArmyHolder.PlayerFieldArmy != null && army != FieldArmyHolder.PlayerFieldArmy)
             {
+                if (army != null && army.IsNetworkReplica)
+                {
+                    Owners.Instance.armylist.Remove(army);
+                    if (army.fieldArmy != null && army.fieldArmy.nation != null)
+                        army.fieldArmy.nation.armies.Remove(army);
+                    Destroy(army.gameObject);
+                }
                 army = FieldArmyHolder.PlayerFieldArmy;
             }
 
@@ -745,12 +843,22 @@ public class CampaignNetworkPlayer : NetworkBehaviour
     private void BroadcastProvinceState()
     {
         CampaignProvinceState[] provinces = new CampaignProvinceState[Owners.Instance.provincelist.Count];
+        int signature = 17;
         for (int i = 0; i < Owners.Instance.provincelist.Count; i++)
         {
             Province province = Owners.Instance.provincelist[i];
             int nationIndex = Owners.Instance.nationlist.IndexOf(province.nation);
             provinces[i] = CampaignProvinceState.FromProvince(i, nationIndex, province);
+            unchecked
+            {
+                signature = signature * 31 + nationIndex;
+                signature = signature * 31 + province.supply;
+                signature = signature * 31 + province.population;
+                signature = signature * 31 + (int)province.terrainProfile;
+            }
         }
+        if (signature == lastProvinceStateSignature) return;
+        lastProvinceStateSignature = signature;
         ReceiveProvinceStateRpc(provinces);
     }
 
@@ -763,15 +871,18 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             {
                 continue;
             }
-            foreach (ArmyReserves reserve in army.fieldArmy.USDReserves)
+            army.fieldArmy.ReconcileFormationRecords();
+            foreach (ArmyFormationRecord record in army.fieldArmy.formationRecords)
             {
-                if (reserve != null && reserve.USD != null && reserve.amount > 0)
+                if (record != null && record.unit != null)
                 {
                     units.Add(new CampaignUnitState
                     {
                         ArmyId = army.NetworkArmyId,
-                        UnitName = reserve.USD.name,
-                        Amount = reserve.amount
+                        UnitName = record.unit.name,
+                        Amount = 1,
+                        Origin = (byte)record.origin,
+                        EntitlementId = record.entitlementId ?? string.Empty
                     });
                 }
             }
@@ -790,11 +901,16 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 FarmLevel = nation.faction.FarmLevel,
                 Income = nation.faction.Income,
                 Gold = nation.Gold
+                ,UpkeepDebt = nation.UpkeepDebt
             };
         }
+        ReceiveNationStateRpc(nations);
+        BroadcastQueueState();
+
         List<CampaignFactionFlagState> flags = new List<CampaignFactionFlagState>();
         List<CampaignBuildingState> buildings = new List<CampaignBuildingState>();
         List<CampaignMercenaryState> mercenaries = new List<CampaignMercenaryState>();
+        List<CampaignLevyState> levies = new List<CampaignLevyState>();
         for (int i = 0; i < Owners.Instance.nationlist.Count; i++)
         {
             foreach (string flag in Owners.Instance.nationlist[i].faction.Flaglist)
@@ -825,25 +941,139 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                     RegenerationProgress = pool.regenerationProgress
                 });
             }
+            province.ReconcileLevyEntitlements();
+            foreach (ProvinceLevyEntitlement levy in province.levyEntitlements)
+                if (levy != null) levies.Add(new CampaignLevyState { ProvinceIndex = (ushort)i,
+                    EntitlementId = levy.id ?? string.Empty, RuleId = levy.ruleId ?? string.Empty,
+                    UnitName = levy.unitName ?? string.Empty, BuildingSlot = levy.buildingSlot, Ordinal = levy.ordinal,
+                    State = (byte)levy.state, Eligible = levy.eligible, RemainingTicks = levy.remainingTicks,
+                    RaisedArmyId = levy.raisedArmyId ?? string.Empty });
         }
-        ReceiveDetailedStateRpc(units.ToArray(), nations, flags.ToArray(), buildings.ToArray(), mercenaries.ToArray());
+        int signature = DetailedStateSignature(units, flags, buildings, mercenaries, levies);
+        if (signature == lastDetailedStateSignature) return;
+        lastDetailedStateSignature = signature;
+        ReceiveDetailedStateRpc(units.ToArray(), flags.ToArray(), buildings.ToArray(), mercenaries.ToArray(), levies.ToArray());
+    }
+
+    private void BroadcastQueueState()
+    {
+        List<CampaignRecruitmentOrderState> recruitment = new List<CampaignRecruitmentOrderState>();
+        foreach (FieldArmyHolder army in Owners.Instance.armylist)
+        {
+            if (army == null || army.fieldArmy == null || string.IsNullOrEmpty(army.NetworkArmyId) ||
+                army.fieldArmy.recruitmentOrders == null) continue;
+            foreach (ArmyRecruitmentOrder order in army.fieldArmy.recruitmentOrders)
+            {
+                if (order == null || order.unit == null || order.amount <= 0) continue;
+                recruitment.Add(new CampaignRecruitmentOrderState
+                {
+                    ArmyId = army.NetworkArmyId,
+                    UnitName = order.unit.name,
+                    Amount = order.amount,
+                    RemainingTicks = order.remainingTicks
+                });
+            }
+        }
+
+        List<CampaignConstructionOrderState> construction = new List<CampaignConstructionOrderState>();
+        for (int provinceIndex = 0; provinceIndex < Owners.Instance.provincelist.Count; provinceIndex++)
+        {
+            Province province = Owners.Instance.provincelist[provinceIndex];
+            if (province == null || province.constructionOrders == null) continue;
+            foreach (ProvinceConstructionOrder order in province.constructionOrders)
+            {
+                if (order == null || string.IsNullOrEmpty(order.buildingId)) continue;
+                construction.Add(new CampaignConstructionOrderState
+                {
+                    ProvinceIndex = (ushort)provinceIndex,
+                    SlotIndex = order.slotIndex,
+                    BuildingId = order.buildingId,
+                    TargetLevel = order.targetLevel,
+                    RemainingTicks = order.remainingTicks
+                });
+            }
+        }
+        int signature = 17;
+        unchecked
+        {
+            foreach (CampaignRecruitmentOrderState state in recruitment)
+            {
+                signature = signature * 31 + state.ArmyId.GetHashCode();
+                signature = signature * 31 + state.UnitName.GetHashCode();
+                signature = signature * 31 + state.Amount;
+                signature = signature * 31 + state.RemainingTicks;
+            }
+            foreach (CampaignConstructionOrderState state in construction)
+            {
+                signature = signature * 31 + state.ProvinceIndex;
+                signature = signature * 31 + state.SlotIndex;
+                signature = signature * 31 + state.BuildingId.GetHashCode();
+                signature = signature * 31 + state.TargetLevel;
+                signature = signature * 31 + state.RemainingTicks;
+            }
+        }
+        if (signature == lastQueueStateSignature) return;
+        lastQueueStateSignature = signature;
+        ReceiveQueueStateRpc(recruitment.ToArray(), construction.ToArray());
+    }
+
+    public void BroadcastQueueStateNow()
+    {
+        if (IsServer && IsOwner && Owners.Instance != null) BroadcastQueueState();
     }
 
     [Rpc(SendTo.NotServer)]
-    private void ReceiveDetailedStateRpc(CampaignUnitState[] units, CampaignNationState[] nations,
-        CampaignFactionFlagState[] flags, CampaignBuildingState[] buildings, CampaignMercenaryState[] mercenaries)
+    private void ReceiveQueueStateRpc(CampaignRecruitmentOrderState[] recruitment,
+        CampaignConstructionOrderState[] construction)
     {
-        if (Owners.Instance == null)
-        {
-            return;
-        }
+        if (Owners.Instance == null) return;
 
+        foreach (FieldArmyHolder army in Owners.Instance.armylist)
+            if (army != null && army.fieldArmy != null)
+                army.fieldArmy.recruitmentOrders.Clear();
+
+        foreach (CampaignRecruitmentOrderState state in recruitment)
+        {
+            string armyId = state.ArmyId.ToString();
+            FieldArmyHolder army = Owners.Instance.armylist.Find(candidate =>
+                candidate != null && candidate.NetworkArmyId == armyId && candidate.fieldArmy != null);
+            if (army == null || army.fieldArmy.nation == null) continue;
+            UnitSaveData unit = FindUnit(army.fieldArmy.nation, state.UnitName.ToString());
+            if (unit == null) continue;
+            army.fieldArmy.recruitmentOrders.Add(new ArmyRecruitmentOrder
+            {
+                unit = unit,
+                amount = state.Amount,
+                remainingTicks = state.RemainingTicks
+            });
+        }
+        foreach (FieldArmyHolder army in Owners.Instance.armylist)
+            if (army != null && army.fieldArmy != null)
+                RecruitmentMenu.RefreshQueueFor(army.fieldArmy);
+
+        foreach (Province province in Owners.Instance.provincelist)
+            if (province != null) province.constructionOrders.Clear();
+
+        foreach (CampaignConstructionOrderState state in construction)
+        {
+            if (state.ProvinceIndex >= Owners.Instance.provincelist.Count) continue;
+            Owners.Instance.provincelist[state.ProvinceIndex].constructionOrders.Add(new ProvinceConstructionOrder
+            {
+                slotIndex = state.SlotIndex,
+                buildingId = state.BuildingId.ToString(),
+                targetLevel = state.TargetLevel,
+                remainingTicks = state.RemainingTicks
+            });
+        }
+    }
+
+    [Rpc(SendTo.NotServer)]
+    private void ReceiveNationStateRpc(CampaignNationState[] nations)
+    {
+        if (Owners.Instance == null) return;
         foreach (CampaignNationState state in nations)
         {
-            if (state.NationIndex >= Owners.Instance.nationlist.Count)
-            {
-                continue;
-            }
+            if (state.NationIndex >= Owners.Instance.nationlist.Count) continue;
             Nation nation = Owners.Instance.nationlist[state.NationIndex];
             nation.Manpower = state.Manpower;
             nation.faction.BarracksLevel = state.BarracksLevel;
@@ -851,8 +1081,22 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             nation.faction.FarmLevel = state.FarmLevel;
             nation.faction.Income = state.Income;
             nation.Gold = state.Gold;
-            nation.faction.Flaglist.Clear();
+            nation.UpkeepDebt = state.UpkeepDebt;
         }
+    }
+
+    [Rpc(SendTo.NotServer)]
+    private void ReceiveDetailedStateRpc(CampaignUnitState[] units,
+        CampaignFactionFlagState[] flags, CampaignBuildingState[] buildings, CampaignMercenaryState[] mercenaries,
+        CampaignLevyState[] levies)
+    {
+        if (Owners.Instance == null)
+        {
+            return;
+        }
+
+        foreach (Nation nation in Owners.Instance.nationlist)
+            if (nation != null && nation.faction != null) nation.faction.Flaglist.Clear();
         foreach (CampaignFactionFlagState flag in flags)
         {
             if (flag.NationIndex < Owners.Instance.nationlist.Count)
@@ -861,37 +1105,50 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             }
         }
 
-        foreach (Province province in Owners.Instance.provincelist)
-        {
-            province.buildings.Clear();
-            province.mercenaryPools.Clear();
-        }
+        Dictionary<int, List<CampaignBuildingState>> buildingsByProvince = new Dictionary<int, List<CampaignBuildingState>>();
         foreach (CampaignBuildingState state in buildings)
         {
             if (state.ProvinceIndex >= Owners.Instance.provincelist.Count) continue;
-            Owners.Instance.provincelist[state.ProvinceIndex].buildings.Add(new ProvinceBuilding
+            int provinceIndex = state.ProvinceIndex;
+            if (!buildingsByProvince.TryGetValue(provinceIndex, out List<CampaignBuildingState> list))
             {
-                definition = BuildingDefinition.Find(state.BuildingId.ToString()),
-                id = state.BuildingId.ToString(), level = state.Level,
-                maxLevel = Mathf.Max(state.MaxLevel, ProvinceBuilding.MaximumLevelFor(state.BuildingId.ToString())),
-                slotIndex = state.SlotIndex
-            });
+                list = new List<CampaignBuildingState>();
+                buildingsByProvince.Add(provinceIndex, list);
+            }
+            list.Add(state);
         }
-        foreach (Province province in Owners.Instance.provincelist)
+        for (int provinceIndex = 0; provinceIndex < Owners.Instance.provincelist.Count; provinceIndex++)
+        {
+            Province province = Owners.Instance.provincelist[provinceIndex];
+            buildingsByProvince.TryGetValue(provinceIndex, out List<CampaignBuildingState> expected);
+            if (BuildingStateMatches(province, expected)) continue;
+            province.buildings.Clear();
+            if (expected != null) foreach (CampaignBuildingState state in expected)
+            {
+                string buildingId = state.BuildingId.ToString();
+                province.buildings.Add(new ProvinceBuilding
+                {
+                    definition = BuildingDefinition.Find(buildingId), id = buildingId, level = state.Level,
+                    maxLevel = Mathf.Max(1, state.MaxLevel),
+                    slotIndex = state.SlotIndex
+                });
+            }
             province.RefreshGarrisonForFort();
-        foreach (CampaignMercenaryState state in mercenaries)
+        }
+
+        // Mercenaries are currently disabled; avoid rebuilding dormant pools on every detailed update.
+        if (ProvinceMercenaryPool.Enabled) ApplyMercenaryState(mercenaries);
+
+        foreach (Province province in Owners.Instance.provincelist) province.levyEntitlements.Clear();
+        foreach (CampaignLevyState state in levies)
         {
             if (state.ProvinceIndex >= Owners.Instance.provincelist.Count) continue;
             Province province = Owners.Instance.provincelist[state.ProvinceIndex];
-            Nation localNation = province.OriginalNation != null ? province.OriginalNation : province.nation;
-            UnitSaveData unit = FindUnit(localNation, state.UnitName.ToString());
-            if (unit == null) continue;
-            province.mercenaryPools.Add(new ProvinceMercenaryPool
-            {
-                unit = unit, available = state.Available, capacity = state.Capacity,
-                regenerationPerTurn = state.RegenerationPerTurn,
-                regenerationProgress = state.RegenerationProgress
-            });
+            province.levyEntitlements.Add(new ProvinceLevyEntitlement { id = state.EntitlementId.ToString(),
+                ruleId = state.RuleId.ToString(), unitName = state.UnitName.ToString(), unit = FindUnit(province.nation, state.UnitName.ToString()),
+                buildingSlot = state.BuildingSlot, ordinal = state.Ordinal, beneficiaryNation = province.nation != null ? province.nation.name : string.Empty,
+                state = (LevyEntitlementState)Mathf.Clamp(state.State, 0, 3), eligible = state.Eligible,
+                remainingTicks = state.RemainingTicks, raisedArmyId = state.RaisedArmyId.ToString() });
         }
 
         Dictionary<string, List<CampaignUnitState>> byArmy = new Dictionary<string, List<CampaignUnitState>>();
@@ -906,29 +1163,122 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             list.Add(unit);
         }
 
-        foreach (FieldArmyHolder knownArmy in Owners.Instance.armylist)
+        foreach (FieldArmyHolder army in Owners.Instance.armylist)
         {
-            if (knownArmy != null && knownArmy.fieldArmy != null)
-            {
-                knownArmy.fieldArmy.USDReserves.Clear();
-            }
-        }
-
-        foreach (KeyValuePair<string, List<CampaignUnitState>> entry in byArmy)
-        {
-            FieldArmyHolder army = Owners.Instance.armylist.Find(item => item != null && item.NetworkArmyId == entry.Key);
-            if (army == null || army.fieldArmy == null || army.fieldArmy.nation == null)
-            {
-                continue;
-            }
-            foreach (CampaignUnitState unitState in entry.Value)
+            if (army == null || army.fieldArmy == null || army.fieldArmy.nation == null) continue;
+            byArmy.TryGetValue(army.NetworkArmyId, out List<CampaignUnitState> expected);
+            if (ArmyCompositionMatches(army.fieldArmy, expected)) continue;
+            army.fieldArmy.USDReserves.Clear();
+            army.fieldArmy.formationRecords.Clear();
+            if (expected == null) continue;
+            foreach (CampaignUnitState unitState in expected)
             {
                 UnitSaveData unit = FindUnit(army.fieldArmy.nation, unitState.UnitName.ToString());
-                if (unit != null)
-                {
-                    army.fieldArmy.AddTroop(unit, unitState.Amount, true);
-                }
+                if (unit != null) army.fieldArmy.AddTroop(unit, unitState.Amount, true,
+                    (CampaignUnitOrigin)Mathf.Clamp(unitState.Origin, 0, 3), unitState.EntitlementId.ToString());
             }
+        }
+    }
+
+    private static bool BuildingStateMatches(Province province, List<CampaignBuildingState> expected)
+    {
+        int expectedCount = expected != null ? expected.Count : 0;
+        if (province == null || province.buildings == null || province.buildings.Count != expectedCount) return false;
+        foreach (CampaignBuildingState state in expected)
+        {
+            string id = state.BuildingId.ToString();
+            ProvinceBuilding match = province.buildings.Find(building => building != null &&
+                building.slotIndex == state.SlotIndex && string.Equals(building.BuildingId, id, System.StringComparison.OrdinalIgnoreCase));
+            if (match == null || match.level != state.Level || match.maxLevel != state.MaxLevel) return false;
+        }
+        return true;
+    }
+
+    private static bool ArmyCompositionMatches(FieldArmy army, List<CampaignUnitState> expected)
+    {
+        int expectedCount = expected != null ? expected.Count : 0;
+        army.ReconcileFormationRecords();
+        if (army.formationRecords.Count != expectedCount) return false;
+        if (expected == null) return true;
+        List<ArmyFormationRecord> unmatched = new List<ArmyFormationRecord>(army.formationRecords);
+        foreach (CampaignUnitState state in expected)
+        {
+            int index = unmatched.FindIndex(record => record != null && record.unit != null &&
+                record.unit.name == state.UnitName.ToString() && (byte)record.origin == state.Origin &&
+                (record.entitlementId ?? string.Empty) == state.EntitlementId.ToString());
+            if (index < 0) return false;
+            unmatched.RemoveAt(index);
+        }
+        return true;
+    }
+
+    private static void ApplyMercenaryState(CampaignMercenaryState[] mercenaries)
+    {
+        foreach (Province province in Owners.Instance.provincelist) province.mercenaryPools.Clear();
+        foreach (CampaignMercenaryState state in mercenaries)
+        {
+            if (state.ProvinceIndex >= Owners.Instance.provincelist.Count) continue;
+            Province province = Owners.Instance.provincelist[state.ProvinceIndex];
+            Nation localNation = province.OriginalNation != null ? province.OriginalNation : province.nation;
+            UnitSaveData unit = FindUnit(localNation, state.UnitName.ToString());
+            if (unit == null) continue;
+            province.mercenaryPools.Add(new ProvinceMercenaryPool
+            {
+                unit = unit, available = state.Available, capacity = state.Capacity,
+                regenerationPerTurn = state.RegenerationPerTurn,
+                regenerationProgress = state.RegenerationProgress
+            });
+        }
+    }
+
+    private static int DetailedStateSignature(List<CampaignUnitState> units,
+        List<CampaignFactionFlagState> flags, List<CampaignBuildingState> buildings,
+        List<CampaignMercenaryState> mercenaries, List<CampaignLevyState> levies)
+    {
+        unchecked
+        {
+            int hash = 17;
+            hash = hash * 31 + units.Count;
+            foreach (CampaignUnitState state in units)
+            {
+                hash = hash * 31 + state.ArmyId.GetHashCode();
+                hash = hash * 31 + state.UnitName.GetHashCode();
+                hash = hash * 31 + state.Amount;
+                hash = hash * 31 + state.Origin;
+                hash = hash * 31 + state.EntitlementId.GetHashCode();
+            }
+            hash = hash * 31 + flags.Count;
+            foreach (CampaignFactionFlagState state in flags)
+            {
+                hash = hash * 31 + state.NationIndex;
+                hash = hash * 31 + state.Flag.GetHashCode();
+            }
+            hash = hash * 31 + buildings.Count;
+            foreach (CampaignBuildingState state in buildings)
+            {
+                hash = hash * 31 + state.ProvinceIndex;
+                hash = hash * 31 + state.BuildingId.GetHashCode();
+                hash = hash * 31 + state.Level;
+                hash = hash * 31 + state.MaxLevel;
+                hash = hash * 31 + state.SlotIndex;
+            }
+            hash = hash * 31 + mercenaries.Count;
+            foreach (CampaignMercenaryState state in mercenaries)
+            {
+                hash = hash * 31 + state.ProvinceIndex;
+                hash = hash * 31 + state.UnitName.GetHashCode();
+                hash = hash * 31 + state.Available;
+                hash = hash * 31 + state.Capacity;
+                hash = hash * 31 + state.RegenerationPerTurn.GetHashCode();
+                hash = hash * 31 + state.RegenerationProgress.GetHashCode();
+            }
+            foreach (CampaignLevyState state in levies)
+            {
+                hash = hash * 31 + state.ProvinceIndex; hash = hash * 31 + state.EntitlementId.GetHashCode();
+                hash = hash * 31 + state.State; hash = hash * 31 + state.Eligible.GetHashCode();
+                hash = hash * 31 + state.RemainingTicks; hash = hash * 31 + state.RaisedArmyId.GetHashCode();
+            }
+            return hash;
         }
     }
 

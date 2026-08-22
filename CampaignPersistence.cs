@@ -86,6 +86,7 @@ public class CampaignSaveData
                 mercenaryLevel = nation.faction.MercLevel,
                 farmLevel = nation.faction.FarmLevel,
                 income = nation.faction.Income,
+                upkeepDebt = nation.UpkeepDebt,
                 flags = new List<string>(nation.faction.Flaglist)
             });
         }
@@ -113,7 +114,8 @@ public class CampaignSaveData
                     if (order != null) savedProvince.construction.Add(new SavedConstructionOrder
                     {
                         slotIndex = order.slotIndex, buildingId = order.buildingId,
-                        targetLevel = order.targetLevel, remainingTicks = order.remainingTicks
+                        targetLevel = order.targetLevel, remainingTicks = order.remainingTicks,
+                        initiatedByAI = order.initiatedByAI
                     });
             foreach (ProvinceMercenaryPool pool in province.mercenaryPools)
             {
@@ -125,6 +127,11 @@ public class CampaignSaveData
                     regenerationProgress = pool.regenerationProgress
                 });
             }
+            foreach (ProvinceLevyEntitlement levy in province.levyEntitlements)
+                if (levy != null) savedProvince.levies.Add(new SavedLevyEntitlement { id = levy.id, ruleId = levy.ruleId,
+                    unitName = levy.unitName, buildingSlot = levy.buildingSlot, ordinal = levy.ordinal,
+                    beneficiaryNation = levy.beneficiaryNation, state = (int)levy.state, eligible = levy.eligible,
+                    remainingTicks = levy.remainingTicks, raisedArmyId = levy.raisedArmyId });
             save.provinces.Add(savedProvince);
         }
         foreach (FieldArmyHolder army in Owners.Instance.armylist)
@@ -150,6 +157,10 @@ public class CampaignSaveData
                     saved.units.Add(new SavedUnit { name = reserve.USD.name, amount = reserve.amount });
                 }
             }
+            army.fieldArmy.ReconcileFormationRecords();
+            foreach (ArmyFormationRecord record in army.fieldArmy.formationRecords)
+                if (record != null && record.unit != null) saved.formations.Add(new SavedFormationRecord
+                { unitName = record.unit.name, origin = (int)record.origin, entitlementId = record.entitlementId });
             if (army.fieldArmy.recruitmentOrders != null)
                 foreach (ArmyRecruitmentOrder order in army.fieldArmy.recruitmentOrders)
                     if (order != null && order.unit != null) saved.recruitment.Add(new SavedRecruitmentOrder
@@ -178,6 +189,7 @@ public class CampaignSaveData
             nation.faction.MercLevel = state.mercenaryLevel;
             nation.faction.FarmLevel = state.farmLevel;
             nation.faction.Income = state.income;
+            nation.UpkeepDebt = Mathf.Max(0, state.upkeepDebt);
             nation.faction.Flaglist = new List<string>(state.flags ?? new List<string>());
             nation.faction.Set();
         }
@@ -215,7 +227,8 @@ public class CampaignSaveData
                     province.constructionOrders.Add(new ProvinceConstructionOrder
                     {
                         slotIndex = order.slotIndex, buildingId = order.buildingId,
-                        targetLevel = order.targetLevel, remainingTicks = order.remainingTicks
+                        targetLevel = order.targetLevel, remainingTicks = order.remainingTicks,
+                        initiatedByAI = order.initiatedByAI
                     });
             if (state.mercenaries != null && state.mercenaries.Count > 0)
             {
@@ -233,6 +246,16 @@ public class CampaignSaveData
                     });
                 }
             }
+            province.levyEntitlements.Clear();
+            if (state.levies != null) foreach (SavedLevyEntitlement levy in state.levies)
+            {
+                UnitSaveData unit = FindSavedUnit(nation, levy.unitName);
+                province.levyEntitlements.Add(new ProvinceLevyEntitlement { id = levy.id, ruleId = levy.ruleId,
+                    unitName = levy.unitName, unit = unit, buildingSlot = levy.buildingSlot, ordinal = levy.ordinal,
+                    beneficiaryNation = levy.beneficiaryNation, state = (LevyEntitlementState)Mathf.Clamp(levy.state, 0, 3),
+                    eligible = levy.eligible, remainingTicks = levy.remainingTicks, raisedArmyId = levy.raisedArmyId });
+            }
+            province.ReconcileLevyEntitlements();
         }
         foreach (SavedArmy state in armies)
         {
@@ -254,10 +277,21 @@ public class CampaignSaveData
             army.fieldArmy.battleDeployment = state.deployment ?? new SavedBattleDeployment();
             army.flaglist = new List<string>(state.flags ?? new List<string>());
             army.fieldArmy.USDReserves.Clear();
+            army.fieldArmy.formationRecords.Clear();
             foreach (SavedUnit savedUnit in state.units)
             {
                 UnitSaveData unit = FindSavedUnit(nation, savedUnit.name);
                 if (unit != null) army.fieldArmy.AddTroop(unit, savedUnit.amount, true);
+            }
+            if (state.formations != null && state.formations.Count > 0)
+            {
+                army.fieldArmy.formationRecords.Clear();
+                foreach (SavedFormationRecord formation in state.formations)
+                {
+                    UnitSaveData unit = FindSavedUnit(nation, formation.unitName);
+                    if (unit != null) army.fieldArmy.formationRecords.Add(new ArmyFormationRecord { unit = unit,
+                        origin = (CampaignUnitOrigin)Mathf.Clamp(formation.origin, 0, 3), entitlementId = formation.entitlementId });
+                }
             }
             if (army.fieldArmy.recruitmentOrders == null) army.fieldArmy.recruitmentOrders = new List<ArmyRecruitmentOrder>();
             army.fieldArmy.recruitmentOrders.Clear();
@@ -295,11 +329,13 @@ public class CampaignSaveData
     }
 }
 
-[Serializable] public class SavedNation { public string name; public int manpower; public int gold = -1; public int armyNumber; public int barracksLevel; public int mercenaryLevel; public int farmLevel; public int income; public List<string> flags = new List<string>(); }
-[Serializable] public class SavedProvince { public string name; public string nation; public int population; public int supply; public int unrest; public int terrainProfile; public List<SavedBuilding> buildings = new List<SavedBuilding>(); public List<SavedConstructionOrder> construction = new List<SavedConstructionOrder>(); public List<SavedMercenaryPool> mercenaries = new List<SavedMercenaryPool>(); }
+[Serializable] public class SavedNation { public string name; public int manpower; public int gold = -1; public int armyNumber; public int barracksLevel; public int mercenaryLevel; public int farmLevel; public int income; public int upkeepDebt; public List<string> flags = new List<string>(); }
+[Serializable] public class SavedProvince { public string name; public string nation; public int population; public int supply; public int unrest; public int terrainProfile; public List<SavedBuilding> buildings = new List<SavedBuilding>(); public List<SavedConstructionOrder> construction = new List<SavedConstructionOrder>(); public List<SavedMercenaryPool> mercenaries = new List<SavedMercenaryPool>(); public List<SavedLevyEntitlement> levies = new List<SavedLevyEntitlement>(); }
 [Serializable] public class SavedBuilding { public string id; public int level; public int maxLevel; public int slotIndex = -1; }
-[Serializable] public class SavedConstructionOrder { public int slotIndex; public string buildingId; public int targetLevel; public int remainingTicks; }
+[Serializable] public class SavedConstructionOrder { public int slotIndex; public string buildingId; public int targetLevel; public int remainingTicks; public bool initiatedByAI; }
 [Serializable] public class SavedMercenaryPool { public string unitName; public int available; public int capacity; public float regenerationPerTurn; public float regenerationProgress; }
-[Serializable] public class SavedArmy { public string id; public string displayName; public string nation; public bool humanControlled; public Vector3 position; public Vector3 target; public int supply; public int maxSize; public List<string> flags = new List<string>(); public List<SavedUnit> units = new List<SavedUnit>(); public List<SavedRecruitmentOrder> recruitment = new List<SavedRecruitmentOrder>(); public SavedBattleDeployment deployment = new SavedBattleDeployment(); }
+[Serializable] public class SavedArmy { public string id; public string displayName; public string nation; public bool humanControlled; public Vector3 position; public Vector3 target; public int supply; public int maxSize; public List<string> flags = new List<string>(); public List<SavedUnit> units = new List<SavedUnit>(); public List<SavedFormationRecord> formations = new List<SavedFormationRecord>(); public List<SavedRecruitmentOrder> recruitment = new List<SavedRecruitmentOrder>(); public SavedBattleDeployment deployment = new SavedBattleDeployment(); }
 [Serializable] public class SavedUnit { public string name; public int amount; }
+[Serializable] public class SavedFormationRecord { public string unitName; public int origin; public string entitlementId; }
+[Serializable] public class SavedLevyEntitlement { public string id; public string ruleId; public string unitName; public int buildingSlot; public int ordinal; public string beneficiaryNation; public int state; public bool eligible; public int remainingTicks; public string raisedArmyId; }
 [Serializable] public class SavedRecruitmentOrder { public string unitName; public int amount; public int remainingTicks; }

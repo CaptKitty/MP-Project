@@ -1,0 +1,26 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.2/staging' branch; Version is '6000.2.9f1 (e0c4e791ab71) revision 14730471'; Using compiler version '194234433'; Build Type 'Release'
+OS: 'Windows 10  (10.0.19045) 64bit Professional' Language: 'nl' Physical Memory: 16316 MB
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-Gebruiker" at "2026-08-22T13:27:36.3395364Z"
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+Date: 2026-08-22T13:27:36Z
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Unity.exe
+-batchmode
+-nographics
+-projectPath
+C:\Users\Gebruiker\Documents\My project - kopie\projectx
+-runTests
+-testPlatform
+EditMode
+-testFilter
+TileBattleVerticalSliceTests
+-testResults
+C:\Users\Gebruiker\Documents\My project - kopie\projectx\Assets\BattleTestResults\tile-overhaul-results.xml
+-logFile
+C:\Users\Gebruiker\Documents\My project - kopie\projectx\Assets\BattleTestResults\tile-overhaul-tests.log
+-quit
+Successfully changed project path to: C:\Users\Gebruiker\Documents\My project - kopie\projectx
+C:/Users/Gebruiker/Documents/My project - kopie/projectx
+Exiting without the bug reporter. Application will terminate with return code 1

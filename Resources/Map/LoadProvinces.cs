@@ -271,6 +271,104 @@ public class LoadProvinces : MonoBehaviour
         SplitOversizedRegions();
         AttachLooseRegions();
         BalanceTwoProvinceRegions();
+        RenameRegionsFromCentralProvinces();
+    }
+
+    void RenameRegionsFromCentralProvinces()
+    {
+        Dictionary<CampaignRegion, string> baseNames = new Dictionary<CampaignRegion, string>();
+        Dictionary<CampaignRegion, Vector2> centers = new Dictionary<CampaignRegion, Vector2>();
+        foreach (CampaignRegion region in Owners.Instance.regionlist)
+        {
+            if (region == null || region.provincelist == null || region.provincelist.Count == 0) continue;
+            Vector2 center = RegionCenter(region);
+            Province centralProvince = region.provincelist
+                .Where(province => province != null)
+                .OrderBy(province => Vector2.SqrMagnitude(province.position - center))
+                .ThenBy(province => province.name, StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault();
+            centers[region] = center;
+            baseNames[region] = centralProvince != null ? DeriveRegionName(centralProvince.name) : "Unassigned";
+        }
+
+        Dictionary<CampaignRegion, string> finalNames = new Dictionary<CampaignRegion, string>();
+        foreach (IGrouping<string, CampaignRegion> group in baseNames.Keys
+            .GroupBy(region => baseNames[region], StringComparer.OrdinalIgnoreCase))
+        {
+            List<CampaignRegion> duplicates = group.ToList();
+            if (duplicates.Count == 1)
+            {
+                finalNames[duplicates[0]] = group.Key;
+                continue;
+            }
+
+            Vector2 groupCenter = Vector2.zero;
+            foreach (CampaignRegion region in duplicates) groupCenter += centers[region];
+            groupCenter /= duplicates.Count;
+
+            if (duplicates.Count == 2)
+            {
+                CampaignRegion first = duplicates[0];
+                CampaignRegion second = duplicates[1];
+                Vector2 separation = centers[first] - centers[second];
+                bool vertical = Mathf.Abs(separation.y) >= Mathf.Abs(separation.x);
+                if (vertical)
+                {
+                    CampaignRegion north = centers[first].y >= centers[second].y ? first : second;
+                    CampaignRegion south = north == first ? second : first;
+                    finalNames[north] = "North " + group.Key;
+                    finalNames[south] = "South " + group.Key;
+                }
+                else
+                {
+                    CampaignRegion east = centers[first].x >= centers[second].x ? first : second;
+                    CampaignRegion west = east == first ? second : first;
+                    finalNames[east] = "East " + group.Key;
+                    finalNames[west] = "West " + group.Key;
+                }
+                continue;
+            }
+
+            foreach (CampaignRegion region in duplicates)
+            {
+                Vector2 offset = centers[region] - groupCenter;
+                string direction = Mathf.Abs(offset.y) >= Mathf.Abs(offset.x)
+                    ? (offset.y >= 0f ? "North " : "South ")
+                    : (offset.x >= 0f ? "East " : "West ");
+                finalNames[region] = direction + group.Key;
+            }
+        }
+
+        Owners.Instance.regiondict = new Dictionary<string, CampaignRegion>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, int> collisions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (CampaignRegion region in Owners.Instance.regionlist)
+        {
+            if (region == null || !finalNames.TryGetValue(region, out string requestedName)) continue;
+            collisions.TryGetValue(requestedName, out int count);
+            collisions[requestedName] = ++count;
+            string uniqueName = count == 1 ? requestedName : requestedName + " (" + count + ")";
+            while (Owners.Instance.regiondict.ContainsKey(uniqueName))
+                uniqueName = requestedName + " (" + (++count) + ")";
+            collisions[requestedName] = count;
+
+            region.name = uniqueName;
+            foreach (Province province in region.provincelist)
+                if (province != null) province.region = uniqueName;
+            Owners.Instance.regiondict.Add(uniqueName, region);
+        }
+    }
+
+    static Vector2 RegionCenter(CampaignRegion region)
+    {
+        Vector2 center = Vector2.zero;
+        int count = 0;
+        foreach (Province province in region.provincelist)
+        {
+            if (province == null) continue;
+            center += province.position;
+            count++;
+        }
+        return count > 0 ? center / count : Vector2.zero;
     }
 
     void SplitOversizedRegions()

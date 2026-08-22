@@ -21,7 +21,7 @@ public class Owners : MonoBehaviour
     public List<FieldArmyHolder> armylist = new List<FieldArmyHolder>();
     public double timer;
     public int turncounter;
-    [Range(0.01f, 4f)] public float CampaignSimulationSpeed = 0.25f;
+    [Range(0f, 10f)] public float CampaignSimulationSpeed = 0.25f;
     public bool CampaignPaused;
     private float campaignStepAccumulator;
     public int xxx = 25;
@@ -261,7 +261,10 @@ public class Owners : MonoBehaviour
         {
             province.RegenerateMercenaries();
             province.ProcessConstructionTick();
+            province.ProcessLevyTick();
         }
+        if (CampaignNetworkPlayer.Local != null)
+            CampaignNetworkPlayer.Local.BroadcastQueueStateNow();
     }
 }
 public enum CampaignTerrainProfile : byte
@@ -295,16 +298,20 @@ public class Province
     public List<ProvinceBuilding> buildings = new List<ProvinceBuilding>();
     public List<ProvinceConstructionOrder> constructionOrders = new List<ProvinceConstructionOrder>();
     public List<ProvinceMercenaryPool> mercenaryPools = new List<ProvinceMercenaryPool>();
+    public List<ProvinceLevyEntitlement> levyEntitlements = new List<ProvinceLevyEntitlement>();
 
     public void InitializeRecruitment()
     {
         if (buildings == null) buildings = new List<ProvinceBuilding>();
         if (constructionOrders == null) constructionOrders = new List<ProvinceConstructionOrder>();
         if (mercenaryPools == null) mercenaryPools = new List<ProvinceMercenaryPool>();
+        if (levyEntitlements == null) levyEntitlements = new List<ProvinceLevyEntitlement>();
         Nation recruitmentNation = nation != null ? nation : OriginalNation;
-        if (buildings.Count == 0 && NationContentResolver.HasBuilding(recruitmentNation, "Barracks"))
+        if (buildings.Count == 0 && NationContentResolver.HasBuilding(recruitmentNation, "Farm"))
         {
-            buildings.Add(new ProvinceBuilding { id = "Barracks", level = 1, maxLevel = ProvinceBuilding.BarracksMaximumLevel, slotIndex = 0 });
+            BuildingDefinition farm = BuildingDefinition.Find("Farm");
+            buildings.Add(new ProvinceBuilding { definition = farm, id = "Farm", level = 1,
+                maxLevel = ProvinceBuilding.StandardMaximumLevel, slotIndex = 0 });
         }
         for (int i = 0; i < buildings.Count; i++)
         {
@@ -338,6 +345,116 @@ public class Province
             });
         }
     }
+    public void ReconcileLevyEntitlements()
+    {
+        if (levyEntitlements == null) levyEntitlements = new List<ProvinceLevyEntitlement>();
+        foreach (ProvinceLevyEntitlement entitlement in levyEntitlements) if (entitlement != null) entitlement.eligible = false;
+        if (nation == null) return;
+        foreach (LevyGrantRule rule in LevySystem.ResolveRules(nation))
+        foreach (ProvinceBuilding building in buildings)
+        {
+            if (!rule.Applies(this, building)) continue;
+            for (int ordinal = 0; ordinal < Mathf.Max(1, rule.formationsPerBuilding); ordinal++)
+            {
+                string entitlementId = name + "|" + building.slotIndex + "|" + rule.StableId + "|" + ordinal;
+                ProvinceLevyEntitlement entitlement = levyEntitlements.Find(item => item != null && item.id == entitlementId);
+                if (entitlement == null)
+                {
+                    entitlement = new ProvinceLevyEntitlement { id = entitlementId, ruleId = rule.StableId,
+                        unitName = rule.unit.name, unit = rule.unit, buildingSlot = building.slotIndex, ordinal = ordinal,
+                        beneficiaryNation = nation.name, state = LevyEntitlementState.Available };
+                    levyEntitlements.Add(entitlement);
+                }
+                entitlement.unit = rule.unit; entitlement.unitName = rule.unit.name; entitlement.eligible = true;
+                entitlement.beneficiaryNation = nation.name;
+            }
+        }
+    }
+
+    public void ProcessLevyTick()
+    {
+        ReconcileLevyEntitlements();
+        foreach (ProvinceLevyEntitlement entitlement in levyEntitlements)
+        {
+            if (entitlement == null || entitlement.remainingTicks <= 0) continue;
+            if (entitlement.state == LevyEntitlementState.Mobilizing && !entitlement.eligible)
+            { entitlement.state = LevyEntitlementState.Available; entitlement.remainingTicks = 0; entitlement.raisedArmyId = null; continue; }
+            if (entitlement.state == LevyEntitlementState.Recovering && !entitlement.eligible) continue;
+            entitlement.remainingTicks--;
+            if (entitlement.remainingTicks != 0) continue;
+            if (entitlement.state == LevyEntitlementState.Recovering)
+            { entitlement.state = LevyEntitlementState.Available; entitlement.raisedArmyId = null; }
+            else if (entitlement.state == LevyEntitlementState.Mobilizing)
+            {
+                FieldArmyHolder target = Owners.Instance != null ? Owners.Instance.armylist.Find(army => army != null &&
+                    army.NetworkArmyId == entitlement.raisedArmyId && army.fieldArmy != null && army.fieldArmy.nation == nation) : null;
+                if (target == null || target.fieldArmy.GrabArmySize() >= target.fieldArmy.MaxArmySize)
+                { entitlement.state = LevyEntitlementState.Available; entitlement.raisedArmyId = null; }
+                else
+                { target.fieldArmy.AddTroop(entitlement.unit, 1, true, CampaignUnitOrigin.Levy, entitlement.id); entitlement.state = LevyEntitlementState.Raised; }
+            }
+        }
+    }
+
+    public List<ProvinceLevyEntitlement> GetAvailableRegionLevies(Nation owner)
+    {
+        List<ProvinceLevyEntitlement> result = new List<ProvinceLevyEntitlement>();
+        foreach (Province province in GetOccupiedRegionProvinces(owner))
+        {
+            province.ReconcileLevyEntitlements();
+            result.AddRange(province.levyEntitlements.FindAll(item => item != null && item.eligible &&
+                item.state == LevyEntitlementState.Available && item.unit != null));
+        }
+        result.Sort((a, b) => string.CompareOrdinal(a.id, b.id));
+        return result;
+    }
+
+    public bool RaiseLevy(string entitlementId, FieldArmyHolder army)
+    {
+        ProvinceLevyEntitlement entitlement = levyEntitlements.Find(item => item != null && item.id == entitlementId);
+        if (entitlement == null || army == null || army.fieldArmy == null || !entitlement.eligible ||
+            entitlement.state != LevyEntitlementState.Available || army.fieldArmy.nation != nation ||
+            army.fieldArmy.GrabArmySize() + army.fieldArmy.GrabQueuedArmySize() >= army.fieldArmy.MaxArmySize) return false;
+        LevyGrantRule rule = LevySystem.FindRule(nation, entitlement.ruleId);
+        entitlement.raisedArmyId = army.NetworkArmyId;
+        entitlement.remainingTicks = rule != null ? Mathf.Max(0, rule.mobilizationTicks) : 0;
+        if (entitlement.remainingTicks > 0) entitlement.state = LevyEntitlementState.Mobilizing;
+        else
+        {
+            entitlement.state = LevyEntitlementState.Raised;
+            army.fieldArmy.AddTroop(entitlement.unit, 1, true, CampaignUnitOrigin.Levy, entitlement.id);
+        }
+        return true;
+    }
+
+    public int RaiseAllAvailableRegionLevies(FieldArmyHolder army)
+    {
+        if (army == null || army.fieldArmy == null || army.fieldArmy.nation == null || nation != army.fieldArmy.nation) return 0;
+        int capacity = army.fieldArmy.MaxArmySize - army.fieldArmy.GrabArmySize() - army.fieldArmy.GrabQueuedArmySize();
+        if (capacity <= 0) return 0;
+        List<Province> regionProvinces = GetOccupiedRegionProvinces(army.fieldArmy.nation);
+        List<ProvinceLevyEntitlement> available = GetAvailableRegionLevies(army.fieldArmy.nation);
+        int raised = 0;
+        foreach (ProvinceLevyEntitlement entitlement in available)
+        {
+            if (raised >= capacity) break;
+            Province source = regionProvinces.Find(candidate => candidate.levyEntitlements != null &&
+                candidate.levyEntitlements.Contains(entitlement));
+            if (source != null && source.RaiseLevy(entitlement.id, army)) raised++;
+        }
+        return raised;
+    }
+
+    public void BeginLevyRecovery(string entitlementId)
+    {
+        ProvinceLevyEntitlement entitlement = levyEntitlements.Find(item => item != null && item.id == entitlementId);
+        if (entitlement == null) return;
+        LevyGrantRule rule = LevySystem.FindRule(nation, entitlement.ruleId);
+        entitlement.state = LevyEntitlementState.Recovering; entitlement.raisedArmyId = null;
+        entitlement.remainingTicks = rule != null ? Mathf.Max(0, rule.recoveryTicks) : 20;
+        if (entitlement.remainingTicks == 0 && entitlement.eligible) entitlement.state = LevyEntitlementState.Available;
+    }
+
     public bool CanRecruitLocal(UnitSaveData unit)
     {
         if (nation == null || NationContentResolver.GetUnitTier(nation, unit) <= 0) return false;
@@ -356,13 +473,51 @@ public class Province
         return result;
     }
 
+    public bool SharesRegionWith(Province other)
+    {
+        return other != null && !string.IsNullOrWhiteSpace(region) &&
+            string.Equals(region, other.region, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    public List<Province> GetOccupiedRegionProvinces(Nation occupyingNation = null)
+    {
+        List<Province> result = new List<Province>();
+        Nation owner = occupyingNation != null ? occupyingNation : nation;
+        CampaignRegion campaignRegion = Owners.Instance != null ? Owners.Instance.CallRegionByString(region) : null;
+        if (campaignRegion != null && campaignRegion.provincelist != null)
+        {
+            foreach (Province province in campaignRegion.provincelist)
+                if (province != null && province.nation == owner) result.Add(province);
+        }
+        else if (nation == owner) result.Add(this);
+        return result;
+    }
+
+    public List<UnitSaveData> GetRecruitableRegionUnits(Nation recruitingNation = null)
+    {
+        List<UnitSaveData> result = new List<UnitSaveData>();
+        Nation owner = recruitingNation != null ? recruitingNation : nation;
+        foreach (Province province in GetOccupiedRegionProvinces(owner))
+            foreach (UnitSaveData unit in province.GetRecruitableLocalUnits())
+                if (unit != null && !result.Contains(unit)) result.Add(unit);
+        return result;
+    }
+
+    public Province FindRegionalRecruitmentSource(UnitSaveData unit, Nation recruitingNation = null)
+    {
+        Nation owner = recruitingNation != null ? recruitingNation : nation;
+        return GetOccupiedRegionProvinces(owner).Find(province => province.CanRecruitLocal(unit));
+    }
+
     public List<ProvinceMercenaryPool> GetAvailableMercenaries()
     {
+        if (!ProvinceMercenaryPool.Enabled) return new List<ProvinceMercenaryPool>();
         return mercenaryPools.FindAll(pool => pool != null && pool.unit != null && pool.available > 0);
     }
 
     public ProvinceMercenaryPool FindMercenary(string unitName)
     {
+        if (!ProvinceMercenaryPool.Enabled) return null;
         return mercenaryPools.Find(pool => pool != null && pool.unit != null && pool.unit.name == unitName);
     }
 
@@ -395,7 +550,7 @@ public class Province
     public int GetGoldIncome()
     {
         ProvinceBuilding farm = GetBuilding("Farm");
-        int income = CampaignEconomy.BaseProvinceIncome;
+        int income = 0;
         foreach (ProvinceBuilding building in buildings)
             if (building != null && building.definition != null) income += building.DefinitionGoldIncome;
         if (farm != null && farm.definition == null)
@@ -408,15 +563,18 @@ public class Province
         return buildings.Find(building => building != null && building.slotIndex == slotIndex);
     }
 
-    public bool BeginBuildingConstruction(int slotIndex, string buildingId, int targetLevel, int constructionTicks)
+    public bool BeginBuildingConstruction(int slotIndex, string buildingId, int targetLevel, int constructionTicks,
+        bool initiatedByAI = false)
     {
         if (slotIndex < 0 || string.IsNullOrEmpty(buildingId) || constructionOrders.Exists(order => order.slotIndex == slotIndex)) return false;
+        if (nation == null || !NationContentResolver.CanConstructBuildingLevel(nation, buildingId, targetLevel)) return false;
         ProvinceBuilding existing = GetBuildingInSlot(slotIndex);
         if (existing != null && !existing.BuildingId.Equals(buildingId, System.StringComparison.OrdinalIgnoreCase)) return false;
         ProvinceConstructionOrder order = new ProvinceConstructionOrder
         {
             slotIndex = slotIndex, buildingId = buildingId,
-            targetLevel = Mathf.Max(1, targetLevel), remainingTicks = Mathf.Max(0, constructionTicks)
+            targetLevel = Mathf.Max(1, targetLevel), remainingTicks = Mathf.Max(0, constructionTicks),
+            initiatedByAI = initiatedByAI
         };
         constructionOrders.Add(order);
         if (order.remainingTicks == 0) CompleteConstruction(order);
@@ -600,13 +758,28 @@ public class Nation
     public int NextAIInfrastructureTurn;
     public int AIInfrastructureIntervalTurns = 12;
     public int NextAIEconomyTurn;
+    public int LastGrossIncome;
+    public int LastUnitUpkeep;
+    public int UpkeepDebt;
 
     public void TakeTurn()
     {
         int ownedProvinces = Owners.Instance.provincelist.FindAll(province => province.nation == this).Count;
         Manpower += Mathf.Max(1, 1 + ownedProvinces / 4);
+        LastGrossIncome = 0;
         foreach (Province province in Owners.Instance.provincelist)
-            if (province != null && province.nation == this) Gold += province.GetGoldIncome();
+            if (province != null && province.nation == this) LastGrossIncome += province.GetGoldIncome();
+        LastUnitUpkeep = 0;
+        foreach (FieldArmyHolder army in armies)
+            if (army != null && army.fieldArmy != null) LastUnitUpkeep += army.fieldArmy.GetUpkeep();
+        int netIncome = LastGrossIncome - LastUnitUpkeep;
+        if (netIncome >= 0) Gold += netIncome;
+        else
+        {
+            int paid = Mathf.Min(Gold, -netIncome);
+            Gold -= paid;
+            UpkeepDebt += -netIncome - paid;
+        }
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
             IsPlayer = CampaignNetworkPlayer.IsNationPlayerControlled(name);
         if (IsPlayer) return;
@@ -637,47 +810,79 @@ public class Nation
         if (Gold < cost + 100) return;
         int slot = existing != null ? existing.slotIndex : FirstFreeBuildingSlot(selected);
         if (slot < 0 || !selected.BeginBuildingConstruction(slot, "Farm", targetLevel,
-            BuildingDefinition.ConstructionTicks("Farm", targetLevel))) return;
+            BuildingDefinition.ConstructionTicks("Farm", targetLevel), true)) return;
         Gold -= cost; NextAIEconomyTurn = Owners.Instance.turncounter + 15;
     }
 
     private static int FirstFreeBuildingSlot(Province province)
     {
-        for (int slot = 0; slot < 4; slot++) if (province.GetBuildingInSlot(slot) == null) return slot;
+        for (int slot = 0; slot < 4; slot++)
+            if (province.GetBuildingInSlot(slot) == null &&
+                (province.constructionOrders == null || !province.constructionOrders.Exists(order => order != null && order.slotIndex == slot)))
+                return slot;
         return -1;
     }
 
     private void DevelopMilitaryInfrastructure()
     {
-        if (IsPlayer || faction == null || !NationContentResolver.HasBuilding(this, "Barracks") ||
-            Owners.Instance.turncounter < NextAIInfrastructureTurn) return;
+        if (IsPlayer || faction == null || Owners.Instance.turncounter < NextAIInfrastructureTurn) return;
 
-        int usefulMaximum = Mathf.Min(ProvinceBuilding.BarracksMaximumLevel,
-            Mathf.Max(1, NationContentResolver.ResolveUnits(this).Count));
-        Province selected = null;
-        ProvinceBuilding selectedBarracks = null;
-        foreach (Province province in Owners.Instance.provincelist)
+        string selectedBuildingId = null;
+        Province selectedProvince = null;
+        ProvinceBuilding selectedExisting = null;
+        float lowestCompletion = float.MaxValue;
+        foreach (string buildingId in NationContentResolver.ResolveBuildings(this))
         {
-            if (province == null || province.nation != this) continue;
-            ProvinceBuilding barracks = province.GetBuilding("Barracks");
-            if (barracks == null || barracks.level >= usefulMaximum) continue;
-            // Concentrate investment so a nation establishes a high-tier
-            // recruiting centre before spreading upgrades across its empire.
-            if (selectedBarracks == null || barracks.level > selectedBarracks.level)
-            {
-                selected = province;
-                selectedBarracks = barracks;
-            }
-        }
-        if (selected == null || selectedBarracks == null) return;
+            if (!NationContentResolver.IsRecruitmentBuilding(this, buildingId)) continue;
+            int usefulMaximum = NationContentResolver.UsefulBuildingMaximumLevel(this, buildingId);
+            if (usefulMaximum <= 0) continue;
+            bool alreadyConstructing = Owners.Instance.provincelist.Exists(province =>
+                province != null && province.nation == this && province.constructionOrders != null &&
+                province.constructionOrders.Exists(order => order != null &&
+                    string.Equals(order.buildingId, buildingId, System.StringComparison.OrdinalIgnoreCase)));
+            if (alreadyConstructing) continue;
 
-        int targetLevel = selectedBarracks.level + 1;
-        int goldCost = CampaignEconomy.BuildingGoldCost("Barracks", targetLevel);
-        if (Gold < goldCost) return;
-        if (!selected.BeginBuildingConstruction(selectedBarracks.slotIndex, "Barracks", targetLevel,
-            BuildingDefinition.ConstructionTicks("Barracks", targetLevel))) return;
+            Province selected = null;
+            ProvinceBuilding existing = null;
+            foreach (Province province in Owners.Instance.provincelist)
+            {
+                if (province == null || province.nation != this) continue;
+                ProvinceBuilding candidate = province.GetBuilding(buildingId);
+                if (candidate == null || candidate.level >= usefulMaximum) continue;
+                if (existing == null || candidate.level > existing.level)
+                {
+                    selected = province;
+                    existing = candidate;
+                }
+            }
+
+            if (existing == null)
+            {
+                selected = Owners.Instance.provincelist.Find(province =>
+                    province != null && province.nation == this && FirstFreeBuildingSlot(province) >= 0);
+                if (selected == null) continue;
+            }
+
+            float completion = existing != null ? (float)existing.level / usefulMaximum : 0f;
+            if (completion >= lowestCompletion) continue;
+            lowestCompletion = completion;
+            selectedBuildingId = buildingId;
+            selectedProvince = selected;
+            selectedExisting = existing;
+        }
+
+        if (selectedProvince == null || string.IsNullOrEmpty(selectedBuildingId)) return;
+        int targetLevel = selectedExisting != null ? selectedExisting.level + 1 : 1;
+        int slot = selectedExisting != null ? selectedExisting.slotIndex : FirstFreeBuildingSlot(selectedProvince);
+        int goldCost = CampaignEconomy.BuildingGoldCost(selectedBuildingId, targetLevel);
+        if (Gold < goldCost || !selectedProvince.BeginBuildingConstruction(slot, selectedBuildingId, targetLevel,
+            BuildingDefinition.ConstructionTicks(selectedBuildingId, targetLevel), true)) return;
+
         Gold -= goldCost;
-        faction.BarracksLevel = Mathf.Max(faction.BarracksLevel, selectedBarracks.level);
+        if (selectedBuildingId.Equals("Barracks", System.StringComparison.OrdinalIgnoreCase))
+            faction.BarracksLevel = Mathf.Max(faction.BarracksLevel, targetLevel);
+        else if (selectedBuildingId.IndexOf("Mercenary", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            faction.MercLevel = Mathf.Max(faction.MercLevel, targetLevel);
         NextAIInfrastructureTurn = Owners.Instance.turncounter + Mathf.Max(1, AIInfrastructureIntervalTurns);
     }
 
@@ -737,7 +942,19 @@ public class Nation
         Province province = army.GrabNearestProvince();
         if (province != null && province.nation == this)
         {
-            List<UnitSaveData> units = province.GetRecruitableLocalUnits();
+            List<ProvinceLevyEntitlement> availableLevies = province.GetAvailableRegionLevies(this);
+            if (availableLevies.Count > 0)
+            {
+                ProvinceLevyEntitlement levy = availableLevies[0];
+                Province levyProvince = province.GetOccupiedRegionProvinces(this).Find(candidate =>
+                    candidate.levyEntitlements != null && candidate.levyEntitlements.Contains(levy));
+                if (levyProvince != null && levyProvince.RaiseLevy(levy.id, army))
+                {
+                    army.NextAIReinforcementTurn = Owners.Instance.turncounter + Mathf.Max(1, army.AIReinforcementIntervalTurns);
+                    return true;
+                }
+            }
+            List<UnitSaveData> units = province.GetRecruitableRegionUnits(this);
             if (units.Count > 0)
             {
                 // Nations favour the best locally available tier while retaining
@@ -761,7 +978,7 @@ public class Nation
             }
         }
 
-        if (province != null)
+        if (ProvinceMercenaryPool.Enabled && province != null)
         {
             ProvinceMercenaryPool pool = province.mercenaryPools.Find(item => item != null && item.unit != null && item.available > 0);
             if (pool != null)
@@ -783,7 +1000,7 @@ public class Nation
         if (army.IsTargetNull())
         {
             Province recruitmentProvince = Owners.Instance.provincelist
-                .Find(candidate => candidate.nation == this && candidate.GetRecruitableLocalUnits().Count > 0);
+                .Find(candidate => candidate.nation == this && candidate.GetRecruitableRegionUnits(this).Count > 0);
             if (recruitmentProvince != null && recruitmentProvince != province)
             {
                 army.SetTarget(recruitmentProvince);

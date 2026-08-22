@@ -164,7 +164,7 @@ public class RecruitmentMenu : MonoBehaviour
             return;
         }
 
-        title.text = "Recruitment — " + current.name;
+        title.text = "Recruitment — " + (!string.IsNullOrWhiteSpace(current.region) ? current.region : current.name);
         if (clickedProvince != null && clickedProvince != current)
         {
             title.text += " (selected " + clickedProvince.name + ")";
@@ -176,27 +176,62 @@ public class RecruitmentMenu : MonoBehaviour
                 if (order != null && order.unit != null)
                     AddMessage(order.amount + "X " + order.unit.name + " - " + order.remainingTicks + " ticks remaining");
         }
-        AddHeader("Local units");
+        army.fieldArmy.ReconcileFormationRecords();
+        List<ArmyFormationRecord> raisedLevies = army.fieldArmy.formationRecords.FindAll(record => record != null &&
+            record.origin == CampaignUnitOrigin.Levy && !string.IsNullOrEmpty(record.entitlementId));
+        if (raisedLevies.Count > 0)
+        {
+            AddHeader("Raised levies");
+            foreach (ArmyFormationRecord record in raisedLevies)
+            {
+                ArmyFormationRecord captured = record;
+                Button button = CreateButton("Demobilize " + record.unit.name, content,
+                    record.unit.name + " — free upkeep — demobilize", () => { army.fieldArmy.DemobilizeLevy(captured.entitlementId); Refresh(); });
+                button.gameObject.AddComponent<LayoutElement>().preferredHeight = 64f;
+            }
+        }
+        AddHeader("Regional units");
         if (current.nation != army.fieldArmy.nation)
         {
             AddMessage("Local recruitment requires an owned province.");
         }
         else
         {
-            List<UnitSaveData> locals = current.GetRecruitableLocalUnits();
-            if (locals.Count == 0) AddMessage("No units are unlocked by this province's buildings.");
-            foreach (UnitSaveData unit in locals) AddRecruitButton(unit, false, current, -1);
+            List<UnitSaveData> locals = current.GetRecruitableRegionUnits(army.fieldArmy.nation);
+            if (locals.Count == 0) AddMessage("No units are unlocked by occupied provinces in this region.");
+            foreach (UnitSaveData unit in locals)
+            {
+                Province source = current.FindRegionalRecruitmentSource(unit, army.fieldArmy.nation);
+                if (source != null) AddRecruitButton(unit, false, source, -1);
+            }
+
+            AddHeader("Recoverable levies");
+            List<ProvinceLevyEntitlement> levies = current.GetAvailableRegionLevies(army.fieldArmy.nation);
+            if (levies.Count == 0) AddMessage("No eligible levy formations are currently available.");
+            foreach (ProvinceLevyEntitlement levy in levies)
+            {
+                Province levySource = current.GetOccupiedRegionProvinces(army.fieldArmy.nation).Find(candidate =>
+                    candidate.levyEntitlements != null && candidate.levyEntitlements.Contains(levy));
+                if (levySource == null) continue;
+                string label = levy.unit.name.Replace("(Clone)", "") + " — free levy — " + levySource.name;
+                Button levyButton = CreateButton("Raise " + levy.unit.name, content, label, () => RaiseLevy(levy, levySource));
+                levyButton.gameObject.AddComponent<LayoutElement>().preferredHeight = 132f;
+                AddUnitArtwork(levyButton, levy.unit);
+            }
         }
 
-        AddHeader("Mercenaries - current province");
-        int mercenaryRows = 0;
-        foreach (ProvinceMercenaryPool pool in current.mercenaryPools)
+        if (ProvinceMercenaryPool.Enabled)
         {
-            if (pool == null || pool.unit == null) continue;
-            AddRecruitButton(pool.unit, true, current, pool.available);
-            mercenaryRows++;
+            AddHeader("Mercenaries - current province");
+            int mercenaryRows = 0;
+            foreach (ProvinceMercenaryPool pool in current.mercenaryPools)
+            {
+                if (pool == null || pool.unit == null) continue;
+                AddRecruitButton(pool.unit, true, current, pool.available);
+                mercenaryRows++;
+            }
+            if (mercenaryRows == 0) AddMessage("No mercenaries are available in this province.");
         }
-        if (mercenaryRows == 0) AddMessage("No mercenaries are available in this province.");
     }
 
     private void AddRecruitButton(UnitSaveData unit, bool mercenary, Province source, int stock)
@@ -213,6 +248,7 @@ public class RecruitmentMenu : MonoBehaviour
 
     private void Recruit(UnitSaveData unit, bool mercenary, Province source)
     {
+        if (mercenary && !ProvinceMercenaryPool.Enabled) return;
         if (CampaignNetworkPlayer.Local != null && CampaignNetworkPlayer.Local.IsSpawned)
         {
             CampaignNetworkPlayer.Local.RequestProvinceRecruit(unit.name, 1, mercenary, source.name);
@@ -233,12 +269,23 @@ public class RecruitmentMenu : MonoBehaviour
             else
             {
                 int manpowerCost = Mathf.Max(1, unit.cost / 100);
-                if (source.nation != nation || !source.CanRecruitLocal(unit) || nation.Manpower < manpowerCost) return;
+                Province current = army.GrabNearestProvince();
+                if (current == null || source.nation != nation || !current.SharesRegionWith(source) ||
+                    !source.CanRecruitLocal(unit) || nation.Manpower < manpowerCost) return;
                 nation.Manpower -= manpowerCost;
             }
             if (!army.fieldArmy.QueueRecruitment(unit, 1)) return;
             nation.Gold -= goldCost;
         }
+        Invoke(nameof(Refresh), 0.2f);
+    }
+
+    private void RaiseLevy(ProvinceLevyEntitlement entitlement, Province source)
+    {
+        if (entitlement == null || source == null || army == null) return;
+        if (CampaignNetworkPlayer.Local != null && CampaignNetworkPlayer.Local.IsSpawned)
+            CampaignNetworkPlayer.Local.RequestRaiseLevy(entitlement.id, source.name);
+        else source.RaiseLevy(entitlement.id, army);
         Invoke(nameof(Refresh), 0.2f);
     }
 

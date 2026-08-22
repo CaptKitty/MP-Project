@@ -74,7 +74,6 @@ public class UIProvinceHost : MonoBehaviour
         provinceOwnerName = provinceOwnerName != null ? provinceOwnerName : FindText("ProvinceOwnerName");
         buildingMenu = buildingMenu != null ? buildingMenu : GetComponentInChildren<UIBuildingMenu>(true);
         if (raiseArmyButton == null) CreateRaiseArmyButton();
-        if (recruitUnitsButton == null) CreateRecruitUnitsButton();
     }
 
     private Text FindText(string objectName)
@@ -95,7 +94,9 @@ public class UIProvinceHost : MonoBehaviour
             return;
         }
 
-        if (provinceName != null) provinceName.text = LoadedProvince.name;
+        if (provinceName != null) provinceName.text = !string.IsNullOrWhiteSpace(LoadedProvince.region)
+            ? LoadedProvince.region
+            : LoadedProvince.name;
         lastOwnerName = LoadedProvince.nation != null ? LoadedProvince.nation.name : "Unowned";
         lastNationGold = LoadedProvince.nation != null ? LoadedProvince.nation.Gold : 0;
         if (provinceOwnerName != null) provinceOwnerName.text = lastOwnerName;
@@ -105,6 +106,8 @@ public class UIProvinceHost : MonoBehaviour
 
     private void CreateRecruitUnitsButton()
     {
+        // Recruitment belongs to the selected army panel; retained as a no-op so older scenes remain compatible.
+        if (transform != null) return;
         GameObject root = new GameObject("Recruit Units", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
         root.layer = gameObject.layer;
         root.transform.SetParent(transform, false);
@@ -229,7 +232,8 @@ public class UIProvinceHost : MonoBehaviour
             CampaignRegion region = Owners.Instance != null ? Owners.Instance.CallRegionByString(province.region) : null;
             if (region == null) return BuildingSignature(province);
             foreach (Province regionProvince in region.provincelist)
-                hash = hash * 31 + BuildingSignature(regionProvince);
+                if (province.nation != null && regionProvince != null && regionProvince.nation == province.nation)
+                    hash = hash * 31 + BuildingSignature(regionProvince);
             return hash;
         }
     }

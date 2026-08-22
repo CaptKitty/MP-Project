@@ -7,6 +7,7 @@ public class UIBuildingMenuSlot : MonoBehaviour, IPointerEnterHandler, IPointerE
     public ProvinceBuilding Building { get; private set; }
     public Province Province { get; private set; }
     public int SlotIndex { get; private set; }
+    public bool IsHovered { get; private set; }
 
     private UIBuildingMenu menu;
     private Image background;
@@ -82,7 +83,8 @@ public class UIBuildingMenuSlot : MonoBehaviour, IPointerEnterHandler, IPointerE
         rect.offsetMin = new Vector2(3f, 3f); rect.offsetMax = new Vector2(-3f, -3f);
     }
 
-    public void OnPointerEnter(PointerEventData eventData) { if (menu != null) menu.PointerEntered(this); }
-    public void OnPointerExit(PointerEventData eventData) { if (menu != null) menu.PointerExited(this); }
+    public void OnPointerEnter(PointerEventData eventData) { IsHovered = true; if (menu != null) menu.PointerEntered(this); }
+    public void OnPointerExit(PointerEventData eventData) { IsHovered = false; if (menu != null) menu.PointerExited(this); }
+    private void OnDisable() { IsHovered = false; }
     private void HandleClick() { if (menu != null) menu.SlotClicked(this); }
 }

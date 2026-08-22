@@ -26,3 +26,5 @@ MonoBehaviour:
   armor:
     armor: 5
     rangedarmor: 15
+  shieldFrontEffectiveness: 100
+  shieldSideEffectiveness: 0

@@ -3,6 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+public enum MeleeReachPattern
+{
+    Auto = 0,
+    Short = 1,
+    Standard = 2,
+    Long = 3
+}
+
 [CreateAssetMenu(menuName = "Weapon/Basic")]
 public class Weapon : ScriptableObject
 {
@@ -11,6 +19,8 @@ public class Weapon : ScriptableObject
 
     [Header("Weapon")]
     public double combatdistance = 1f;
+    [Tooltip("Tile-battle melee coverage. Auto maps combatdistance >= 2 to Long and other weapons to Standard.")]
+    public MeleeReachPattern meleeReachPattern = MeleeReachPattern.Auto;
     public double speed = 1f;
     public int attack = 1;
     public string attacktype = "attack";
@@ -45,6 +55,12 @@ public class Weapon : ScriptableObject
     [Header("Gear")]
     public Armor armor;
 
+    [Header("Shield Coverage")]
+    [Tooltip("Percentage of this shield's armor applied against attacks arriving from the front.")]
+    [Range(0, 100)] public int shieldFrontEffectiveness = 100;
+    [Tooltip("Percentage of this shield's armor applied against attacks arriving from either side.")]
+    [Range(0, 100)] public int shieldSideEffectiveness = 0;
+
 
 
     public Weapon GrabCopy()
@@ -53,6 +69,7 @@ public class Weapon : ScriptableObject
         potato.name = name;
         potato.sprite = sprite;
         potato.combatdistance = combatdistance;
+        potato.meleeReachPattern = meleeReachPattern;
         potato.speed = speed;
         potato.attack = attack;
         potato.attacktype = attacktype;
@@ -67,6 +84,8 @@ public class Weapon : ScriptableObject
         potato.visualAngle = visualAngle;
         potato.projectileSprite = projectileSprite;
         potato.armor = armor != null ? armor.GrabArmor() : null;
+        potato.shieldFrontEffectiveness = shieldFrontEffectiveness;
+        potato.shieldSideEffectiveness = shieldSideEffectiveness;
         return potato;
     }
     public string GrabWeaponInformation()

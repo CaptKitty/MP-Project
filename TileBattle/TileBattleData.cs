@@ -10,11 +10,13 @@ namespace ProjectX.TileBattle
     public enum TileBattlePlan { AttackCentre, Hold, FlankLeft, FlankRight }
     public enum TileUnitState { Ready, Engaged, Routing, Withdrawn, Destroyed }
     public enum TileWeaponControl { Sword, Spear, Pike, Ranged }
-    public enum TileActionType { Wait, Move, Turn, Attack, Disengage, Brace }
+    public enum TileFormationType { None, Phalanx, Shieldwall, Testudo, CavalryCharge }
+    public enum TileActionType { Wait, Move, Charge, Turn, Attack, Disengage, Brace }
     public enum TileBattleEventType
     {
         RoundStarted, PlanChosen, OrderIssued, ActionStarted, UnitMoved, UnitTurned,
         UnitAttacked, UnitPushed, UnitEngaged, UnitDisengaged, UnitBlocked,
+        ChargeStarted, ChargeEnded, ChargeImpact,
         UnitDamaged, ProjectileLaunched, UnitDeployed, ReserveCommitted,
         UnitRouted, UnitWithdrawn, RoundEnded, BattleEnded
     }
@@ -38,12 +40,37 @@ namespace ProjectX.TileBattle
     [Serializable]
     public sealed class TileBattleRules
     {
+        public const int DefaultTicksPerSecond = 10;
+        public int TicksPerSecond = DefaultTicksPerSecond;
         public int Width = 20;
         public int Height = 20;
+        public int MinimumResolutionTicks = 16;
         public int SimilarMassPermille = 1250;
         public int OverwhelmingMassPermille = 2000;
         public int PushCohesionDamage = 12;
         public int BreakthroughCohesionDamage = 30;
+        public int PushHealthDamage = 4;
+        public int PushMoraleDamage = 35;
+        public int OverwhelmingPushHealthDamage = 10;
+        public int OverwhelmingPushMoraleDamage = 90;
+        public int BlockedPushHealthDamage = 14;
+        public int BlockedPushMoraleDamage = 120;
+        public int ChargeDamagePermillePerMomentum = 200;
+        public int FormationMassPermille = 1250;
+        public int PhalanxPushPermille = 1400;
+        public int ShieldwallShieldPermille = 1250;
+        public int TestudoShieldPermille = 1500;
+        public int TestudoCoverageBonusPercent = 25;
+        public int CavalryFormationChargePermille = 1400;
+        public int ForestMoveIntervalPermille = 1500;
+        public int ForestAttackMassPermille = 500;
+        public int ForestDefenceMassPermille = 1500;
+        public int ForestIncomingRangedDamagePermille = 500;
+        public int ForesterMassPermille = 1500;
+        public int HillPushPermille = 1250;
+        public int UphillPushPermille = 750;
+        public int HillRangedDamagePermille = 1250;
+        public int HillRangedRangeBonus = 1;
         public int BaseMeleeDamage = 20;
         public int FlankDamagePermille = 1400;
         public int RearDamagePermille = 1750;
@@ -96,11 +123,15 @@ namespace ProjectX.TileBattle
     {
         public string Id;
         public string DisplayName;
-        public int Initiative = 7;
+        public int ReactionTime = 7;
+        public int Initiative { get => ReactionTime; set => ReactionTime = value; }
         public int Actions = 2;
         public int BaseMass = 100;
         public int Strength = 100;
         public int MeleeDamage = 20;
+        public int MeleeRange = 1;
+        public MeleeReachPattern MeleeReachPattern = MeleeReachPattern.Standard;
+        public int MeleeAttackIntervalTicks = 1;
         public int ArmorPercent;
         public int ShieldPercent;
         public int ShieldFrontEffectivenessPercent = 100;
@@ -112,7 +143,12 @@ namespace ProjectX.TileBattle
         public bool Ranged;
         public int RangedRange;
         public int RangedDamage;
+        public int RangedAttackIntervalTicks = 1;
         public int Ammunition;
+        public TileFormationType FormationType;
+        public bool ForestImmune;
+        public bool Forester;
+        public bool RetainsMomentum;
     }
 
     [Serializable]
@@ -135,7 +171,17 @@ namespace ProjectX.TileBattle
         public bool Deployed = true;
         public int ActionsRemaining;
         public int NextActionTick;
-        public bool AttackedThisRound;
+        // Shared active-weapon clock. Switching between ranged and backup melee resets it.
+        public int WeaponAttackProgressTicks;
+        public bool UsingRangedWeapon;
+        public bool ChargeActive;
+        public int ChargeMomentum;
+        public int ChargeTargetUnitId = -1;
+        public TileCoord ChargeTarget;
+        public bool HoldPosition;
+        public bool SuppressAutomaticAttacks;
+        // The general's persistent objective; local weapon targeting may select an interceptor instead.
+        public int AttackOrderTargetUnitId = -1;
         public TileUnitOrder CurrentOrder;
         public readonly List<TileUnitAction> QueuedActions = new List<TileUnitAction>();
 
@@ -157,6 +203,8 @@ namespace ProjectX.TileBattle
         public TileFacing Facing;
         public int IntervalPermille = 1000;
         public static TileUnitAction Move(TileCoord target) => new TileUnitAction { Type = TileActionType.Move, Target = target };
+        public static TileUnitAction Charge(TileCoord target, int targetUnitId = -1) => new TileUnitAction
+            { Type = TileActionType.Charge, Target = target, TargetUnitId = targetUnitId };
         public static TileUnitAction Attack(TileCoord target) => new TileUnitAction { Type = TileActionType.Attack, Target = target };
         public static TileUnitAction Attack(int targetUnitId, TileCoord lastKnownPosition) => new TileUnitAction
             { Type = TileActionType.Attack, Target = lastKnownPosition, TargetUnitId = targetUnitId };
@@ -171,6 +219,7 @@ namespace ProjectX.TileBattle
     {
         public int UnitId;
         public string Purpose;
+        public bool SuppressAutomaticAttacks;
         public readonly List<TileUnitAction> Actions = new List<TileUnitAction>();
     }
 
@@ -254,16 +303,22 @@ namespace ProjectX.TileBattle
         public int CommandRounds;
         public string EndReason;
         public readonly Dictionary<int, int> RemainingStrength = new Dictionary<int, int>();
+        // Campaign-level formations restored to the victorious army after battlefield casualties were applied.
+        public readonly Dictionary<int, int> RecoveredFormations = new Dictionary<int, int>();
     }
 
     [Serializable]
     public sealed class TileBattleUnitViewState
     {
         public int Id, Side, Strength, Morale, Cohesion, Ammunition;
+        public int WeaponAttackProgressTicks, AttackOrderTargetUnitId;
         public TileCoord Position;
         public TileFacing Facing;
         public TileUnitState State;
         public bool Deployed;
+        public bool UsingRangedWeapon, ChargeActive, HoldPosition, SuppressAutomaticAttacks;
+        public int ChargeMomentum, ChargeTargetUnitId;
+        public TileCoord ChargeTarget;
     }
 
     [Serializable]

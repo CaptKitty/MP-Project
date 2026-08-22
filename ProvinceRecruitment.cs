@@ -81,11 +81,14 @@ public class ProvinceConstructionOrder
     public string buildingId;
     public int targetLevel = 1;
     public int remainingTicks;
+    public bool initiatedByAI;
 }
 
 [Serializable]
 public class ProvinceMercenaryPool
 {
+    // Data is retained for saves and future reactivation, but all recruitment paths respect this switch.
+    public const bool Enabled = false;
     public UnitSaveData unit;
     public int available;
     public int capacity = 3;
@@ -94,6 +97,7 @@ public class ProvinceMercenaryPool
 
     public void Regenerate()
     {
+        if (!Enabled) return;
         if (unit == null || available >= capacity) return;
         regenerationProgress += regenerationPerTurn;
         int gained = Mathf.FloorToInt(regenerationProgress);

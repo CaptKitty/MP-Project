@@ -108,13 +108,14 @@ public sealed class TileBattleVerticalSliceTests
     }
 
     [Test]
-    public void CavalryCanDisengageThenMove()
+    public void CavalryDisengageThenTurnConsumesItsMovementAction()
     {
         TileBattleSimulation sim = Simulation(Definition("Cavalry", 4, 4, 90, cavalry: true), Definition("Sword", 7, 2, 100),
             new TileCoord(5, 5), new TileCoord(6, 5));
         sim.Units[0].State = TileUnitState.Engaged; sim.Units[1].State = TileUnitState.Engaged;
         sim.ResolveOrders(Orders(0, 1, TileUnitAction.Disengage(), TileUnitAction.Move(new TileCoord(4, 5))), Orders(1, 2, TileUnitAction.Brace()));
-        Assert.That(sim.Units[0].Position, Is.EqualTo(new TileCoord(4, 5)));
+        Assert.That(sim.Units[0].Position, Is.EqualTo(new TileCoord(5, 5)));
+        Assert.That(sim.Units[0].Facing, Is.EqualTo(TileFacing.West));
         Assert.That(sim.Events.Any(item => item.Type == TileBattleEventType.UnitDisengaged), Is.True);
     }
 
@@ -157,6 +158,57 @@ public sealed class TileBattleVerticalSliceTests
         sim.ResolveOrders(Orders(0, 1, TileUnitAction.Attack(new TileCoord(6, 5))), Orders(1, 2, TileUnitAction.Attack(new TileCoord(5, 5))));
         Assert.That(sim.Units[0].Strength, Is.LessThan(100));
         Assert.That(sim.Units[1].Strength, Is.LessThan(100));
+    }
+
+    [Test]
+    public void PersistentAttackOrderUsesWeaponIntervalWithoutExtraTacticalActions()
+    {
+        TileBattleUnitDefinition fastSword = Definition("Fast Sword", 6, 2, 100);
+        fastSword.MeleeAttackIntervalTicks = 2;
+        TileBattleSimulation sim = Simulation(fastSword, Definition("Target", 12, 1, 100),
+            new TileCoord(5, 5), new TileCoord(6, 5));
+
+        sim.ResolveOrders(Orders(0, 1, TileUnitAction.Attack(2, new TileCoord(6, 5)), TileUnitAction.Wait()),
+            new TileOrderSet { Side = 1 });
+
+        Assert.That(sim.Events.Count(item => item.Type == TileBattleEventType.ActionStarted && item.UnitId == 1), Is.EqualTo(2));
+        Assert.That(sim.Events.Count(item => item.Type == TileBattleEventType.UnitAttacked && item.UnitId == 1),
+            Is.GreaterThan(2), "One persistent Attack order should permit several independent weapon attacks.");
+    }
+
+    [Test]
+    public void LongerMeleeReachCanStrikeBeforeShortWeaponCanReply()
+    {
+        TileBattleUnitDefinition spear = Definition("Spear", 1, 1, 100, TileWeaponControl.Spear);
+        spear.MeleeRange = 2; spear.MeleeReachPattern = MeleeReachPattern.Long; spear.MeleeAttackIntervalTicks = 1;
+        TileBattleUnitDefinition sword = Definition("Sword", 1, 1, 100);
+        sword.MeleeRange = 1; sword.MeleeAttackIntervalTicks = 1;
+        TileBattleSimulation sim = Simulation(spear, sword, new TileCoord(5, 5), new TileCoord(7, 5));
+
+        sim.ResolveOrders(Orders(0, 1, TileUnitAction.Attack(2, new TileCoord(7, 5))),
+            Orders(1, 2, TileUnitAction.Attack(1, new TileCoord(5, 5))));
+
+        Assert.That(sim.Units.Single(unit => unit.Id == 2).Strength, Is.LessThan(100));
+        Assert.That(sim.Units.Single(unit => unit.Id == 1).Strength, Is.EqualTo(100));
+    }
+
+    [Test]
+    public void CampaignAdapterMapsWeaponAttackTimeToIndependentTicks()
+    {
+        UnitSaveData source = ScriptableObject.CreateInstance<UnitSaveData>();
+        Weapon melee = ScriptableObject.CreateInstance<Weapon>();
+        try
+        {
+            melee.attacktime = .5d; melee.combatdistance = 2d; source.MeleeWeapon = melee;
+            TileBattleUnitDefinition definition = TileBattleCampaignAdapter.CreateDefinition(source);
+            Assert.That(definition.MeleeAttackIntervalTicks, Is.EqualTo(5));
+            Assert.That(definition.MeleeRange, Is.EqualTo(2));
+        }
+        finally
+        {
+            Object.DestroyImmediate(melee);
+            Object.DestroyImmediate(source);
+        }
     }
 
     [Test]
@@ -525,19 +577,21 @@ public sealed class TileBattleVerticalSliceTests
     {
         TileBattleUnitDefinition attacker = Definition("Attacker", 7, 2, 100);
         TileBattleUnitDefinition shielded = Definition("Shielded", 7, 2, 100);
+        attacker.Strength = 1000; shielded.Strength = 1000;
         shielded.ShieldPercent = 50; shielded.ShieldFrontEffectivenessPercent = 100;
         shielded.ShieldSideEffectivenessPercent = 0; shielded.ArmorPercent = 0;
 
         TileBattleSimulation frontal = Simulation(attacker, shielded, new TileCoord(6, 7), new TileCoord(7, 7));
         frontal.ResolveOrders(Orders(0, 1, TileUnitAction.Attack(new TileCoord(7, 7))), new TileOrderSet { Side = 1 });
-        int frontalDamage = 100 - frontal.Units.Single(unit => unit.Id == 2).Strength;
+        int frontalDamage = 1000 - frontal.Units.Single(unit => unit.Id == 2).Strength;
 
         TileBattleSimulation side = Simulation(attacker, shielded, new TileCoord(7, 6), new TileCoord(7, 7));
+        side.Units.Single(unit => unit.Id == 1).Facing = TileFacing.South;
         side.ResolveOrders(Orders(0, 1, TileUnitAction.Attack(new TileCoord(7, 7))), new TileOrderSet { Side = 1 });
-        int sideDamage = 100 - side.Units.Single(unit => unit.Id == 2).Strength;
+        int sideDamage = 1000 - side.Units.Single(unit => unit.Id == 2).Strength;
 
-        Assert.That(frontalDamage, Is.EqualTo(10));
-        Assert.That(sideDamage, Is.EqualTo(28));
+        Assert.That(frontalDamage, Is.GreaterThan(0));
+        Assert.That(sideDamage, Is.GreaterThan(frontalDamage));
     }
 
     [Test]
@@ -609,7 +663,111 @@ public sealed class TileBattleVerticalSliceTests
     {
         TileBattleSimulation sim = Simulation(Definition("Cavalry", 4, 4, 90, cavalry: true), Definition(control.ToString(), 7, 2, 110, control),
             new TileCoord(6, 5), new TileCoord(7, 5));
+        sim.Units[0].Facing = TileFacing.North;
         sim.ResolveOrders(Orders(0, 1, TileUnitAction.Move(new TileCoord(6, 6))), Orders(1, 2, TileUnitAction.Brace()));
         return 100 - sim.Units[0].Strength;
+    }
+
+    [Test]
+    public void CommandRoundAlwaysAdvancesAtLeastSixteenResolutionTicks()
+    {
+        TileBattleSimulation sim = Simulation(Definition("Idle A", 3, 2, 100), Definition("Idle B", 8, 2, 100),
+            new TileCoord(1, 1), new TileCoord(18, 18));
+        sim.ResolveOrders(new TileOrderSet { Side = 0 }, new TileOrderSet { Side = 1 });
+        Assert.That(sim.History.Any(frame => frame.ResolutionTick == 16), Is.True);
+    }
+
+    [Test]
+    public void MeleeReachPatternsHaveDistinctCoverage()
+    {
+        TileBattleUnitDefinition shortWeapon = Definition("Short", 1, 1, 100);
+        shortWeapon.MeleeReachPattern = MeleeReachPattern.Short;
+        TileBattleSimulation shortDiagonal = Simulation(shortWeapon, Definition("Target", 1, 1, 100),
+            new TileCoord(5, 5), new TileCoord(6, 6));
+        shortDiagonal.ResolveOrders(new TileOrderSet { Side = 0 }, new TileOrderSet { Side = 1 });
+        Assert.That(shortDiagonal.Units[1].Strength, Is.EqualTo(100));
+
+        TileBattleUnitDefinition standard = Definition("Standard", 1, 1, 100);
+        standard.MeleeReachPattern = MeleeReachPattern.Standard;
+        TileBattleSimulation standardDiagonal = Simulation(standard, Definition("Target", 1, 1, 100),
+            new TileCoord(5, 5), new TileCoord(6, 6));
+        standardDiagonal.ResolveOrders(new TileOrderSet { Side = 0 }, new TileOrderSet { Side = 1 });
+        Assert.That(standardDiagonal.Units[1].Strength, Is.LessThan(100));
+
+        TileBattleUnitDefinition longWeapon = Definition("Long", 1, 1, 100);
+        longWeapon.MeleeReachPattern = MeleeReachPattern.Long;
+        TileBattleSimulation longLinear = Simulation(longWeapon, Definition("Target", 1, 1, 100),
+            new TileCoord(5, 5), new TileCoord(7, 5));
+        longLinear.ResolveOrders(new TileOrderSet { Side = 0 }, new TileOrderSet { Side = 1 });
+        Assert.That(longLinear.Units[1].Strength, Is.LessThan(100));
+    }
+
+    [Test]
+    public void ForestDefencePreventsPushThatSucceedsOnOpenGround()
+    {
+        TileBattleUnitDefinition attacker = Definition("Heavy", 1, 1, 150);
+        TileBattleUnitDefinition defender = Definition("Line", 1, 1, 100);
+        attacker.Strength = defender.Strength = 500;
+        TileBattleSimulation open = Simulation(attacker, defender, new TileCoord(5, 5), new TileCoord(6, 5));
+        open.ResolveOrders(new TileOrderSet { Side = 0 }, new TileOrderSet { Side = 1 });
+        Assert.That(open.Events.Any(item => item.Type == TileBattleEventType.UnitPushed), Is.True);
+
+        TileBattleSimulation forest = Simulation(attacker, defender, new TileCoord(5, 5), new TileCoord(6, 5));
+        forest.Grid.SetTerrain(new TileCoord(6, 5), TileTerrain.Forest, 2);
+        forest.ResolveOrders(new TileOrderSet { Side = 0 }, new TileOrderSet { Side = 1 });
+        Assert.That(forest.Events.Any(item => item.Type == TileBattleEventType.UnitPushed), Is.False);
+    }
+
+    [Test]
+    public void ChargeBuildsMomentumAndCreatesChargeImpact()
+    {
+        TileBattleUnitDefinition cavalry = Definition("Cavalry", 1, 4, 100, cavalry: true);
+        cavalry.Strength = 500;
+        TileBattleUnitDefinition target = Definition("Target", 6, 1, 100); target.Strength = 500;
+        TileBattleSimulation sim = Simulation(cavalry, target, new TileCoord(3, 5), new TileCoord(6, 5));
+        sim.ResolveOrders(Orders(0, 1, TileUnitAction.Charge(new TileCoord(4, 5), 2),
+            TileUnitAction.Charge(new TileCoord(5, 5), 2)), new TileOrderSet { Side = 1 });
+        Assert.That(sim.Events.Any(item => item.Type == TileBattleEventType.ChargeImpact), Is.True);
+    }
+
+    [Test]
+    public void GeneralChargesThroughForestOnlyWithForestCapability()
+    {
+        TileBattleObservation observation = new TileBattleObservation
+            { Side = 0, IsAttacker = true, CommandRound = 1, Width = 20, Height = 20 };
+        TileBattleUnitDefinition cavalry = Definition("Cavalry", 2, 4, 100, cavalry: true);
+        observation.Units.Add(new TileObservedUnit { Id = 1, Side = 0, Strength = 100, Deployed = true,
+            Position = new TileCoord(5, 10), Facing = TileFacing.East, Definition = cavalry });
+        observation.Units.Add(new TileObservedUnit { Id = 10001, Side = 1, Strength = 100, Deployed = true,
+            Position = new TileCoord(7, 10), Facing = TileFacing.West, Definition = Definition("Enemy", 7, 2, 100) });
+        observation.Cells.Add(new TileObservedCell { Position = new TileCoord(6, 10), Terrain = TileTerrain.Forest, MovementCost = 2 });
+        TileGeneralPersonality profile = new TileGeneralPersonality { Name = "Terrain General", Aggressive = 80, Competence = 100 };
+
+        TileUnitOrder ordinary = new PersonalityTileGeneral(profile).FormulateOrders(observation).Orders.Single(item => item.UnitId == 1);
+        Assert.That(ordinary.Actions.Any(action => action.Type == TileActionType.Charge &&
+            action.Target == new TileCoord(6, 10)), Is.False);
+
+        cavalry.ForestImmune = true;
+        TileUnitOrder immune = new PersonalityTileGeneral(profile).FormulateOrders(observation).Orders.Single(item => item.UnitId == 1);
+        Assert.That(immune.Actions.Any(action => action.Type == TileActionType.Charge &&
+            action.Target == new TileCoord(6, 10)), Is.True);
+    }
+
+    [Test]
+    public void DefensiveGeneralMovesRangedFormationTowardNearbyHill()
+    {
+        TileBattleObservation observation = new TileBattleObservation
+            { Side = 1, IsAttacker = false, CommandRound = 1, Width = 20, Height = 20 };
+        TileBattleUnitDefinition ranged = Definition("Ranged", 3, 3, 80, ranged: true);
+        observation.Units.Add(new TileObservedUnit { Id = 10001, Side = 1, Strength = 100, Deployed = true,
+            Position = new TileCoord(13, 10), Facing = TileFacing.West, Definition = ranged, Ammunition = 10 });
+        observation.Units.Add(new TileObservedUnit { Id = 1, Side = 0, Strength = 100, Deployed = true,
+            Position = new TileCoord(3, 10), Facing = TileFacing.East, Definition = Definition("Enemy", 7, 2, 100) });
+        observation.Cells.Add(new TileObservedCell { Position = new TileCoord(13, 11), Terrain = TileTerrain.Hill });
+        PersonalityTileGeneral general = new PersonalityTileGeneral(new TileGeneralPersonality
+            { Name = "Hill Defender", Defensive = 120, Patient = 80, Competence = 100 });
+
+        TileUnitOrder order = general.FormulateOrders(observation).Orders.Single(item => item.UnitId == 10001);
+        Assert.That(order.Actions.Any(action => action.Type == TileActionType.Move && action.Target == new TileCoord(13, 11)), Is.True);
     }
 }

@@ -21,6 +21,14 @@ namespace ProjectX.TileBattle
             public TileUnitAction Action;
         }
 
+        private sealed class MeleeImpact
+        {
+            public TileBattleUnit Attacker;
+            public TileBattleUnit Defender;
+            public int Momentum;
+            public bool WasCharge;
+        }
+
         public TileBattleRules Rules { get; }
         public TileBattleGrid Grid { get; }
         public readonly List<TileBattleUnit> Units = new List<TileBattleUnit>();
@@ -102,6 +110,12 @@ namespace ProjectX.TileBattle
                     Position = unit.Position, Facing = unit.Facing,
                     State = unit.State, Definition = unit.Definition, IsReserve = unit.IsReserve, Deployed = unit.Deployed });
             }
+            for (int y = 0; y < Grid.Height; y++) for (int x = 0; x < Grid.Width; x++)
+            {
+                TileBattleCell cell = Grid.Get(new TileCoord(x, y));
+                result.Cells.Add(new TileObservedCell { Position = cell.Coordinate, Terrain = cell.Terrain,
+                    MovementCost = cell.MovementCost });
+            }
             return result;
         }
 
@@ -110,6 +124,11 @@ namespace ProjectX.TileBattle
             ulong hash = 1469598103934665603UL;
             Hash(ref hash, CommandRound); Hash(ref hash, ResolutionTick); Hash(ref hash, (int)Phase);
             Hash(ref hash, Result.Finished ? 1 : 0); Hash(ref hash, Result.WinningSide);
+            for (int y = 0; y < Grid.Height; y++) for (int x = 0; x < Grid.Width; x++)
+            {
+                TileBattleCell cell = Grid.Get(new TileCoord(x, y)); Hash(ref hash, (int)cell.Terrain);
+                Hash(ref hash, cell.MovementCost);
+            }
             for (int i = 0; i < Units.Count; i++)
             {
                 TileBattleUnit unit = Units[i];
@@ -117,6 +136,11 @@ namespace ProjectX.TileBattle
                 Hash(ref hash, (int)unit.Facing); Hash(ref hash, (int)unit.State); Hash(ref hash, unit.Strength);
                 Hash(ref hash, unit.Morale); Hash(ref hash, unit.Cohesion); Hash(ref hash, unit.Deployed ? 1 : 0);
                 Hash(ref hash, unit.Ammunition);
+                Hash(ref hash, unit.WeaponAttackProgressTicks); Hash(ref hash, unit.AttackOrderTargetUnitId);
+                Hash(ref hash, unit.UsingRangedWeapon ? 1 : 0); Hash(ref hash, unit.ChargeActive ? 1 : 0);
+                Hash(ref hash, unit.ChargeMomentum); Hash(ref hash, unit.ChargeTargetUnitId);
+                Hash(ref hash, unit.ChargeTarget.X); Hash(ref hash, unit.ChargeTarget.Y); Hash(ref hash, unit.HoldPosition ? 1 : 0);
+                Hash(ref hash, unit.SuppressAutomaticAttacks ? 1 : 0);
                 Hash(ref hash, unit.IsReserve ? 1 : 0); Hash(ref hash, unit.DeploymentRound);
             }
             return hash;
@@ -136,6 +160,12 @@ namespace ProjectX.TileBattle
                 TileBattleUnit unit = Units[i];
                 snapshot.Units.Add(new TileBattleUnitViewState { Id = unit.Id, Side = unit.Side, Strength = unit.Strength,
                     Morale = unit.Morale, Cohesion = unit.Cohesion, Ammunition = unit.Ammunition,
+                    WeaponAttackProgressTicks = unit.WeaponAttackProgressTicks,
+                    AttackOrderTargetUnitId = unit.AttackOrderTargetUnitId,
+                    UsingRangedWeapon = unit.UsingRangedWeapon, ChargeActive = unit.ChargeActive,
+                    ChargeMomentum = unit.ChargeMomentum, ChargeTargetUnitId = unit.ChargeTargetUnitId,
+                    ChargeTarget = unit.ChargeTarget, HoldPosition = unit.HoldPosition,
+                    SuppressAutomaticAttacks = unit.SuppressAutomaticAttacks,
                     Position = unit.Position, Facing = unit.Facing,
                     State = unit.State, Deployed = unit.Deployed });
             }
@@ -152,11 +182,14 @@ namespace ProjectX.TileBattle
             timeline.Sort((a, b) => { int tick = a.Tick.CompareTo(b.Tick); if (tick != 0) return tick;
                 int unit = a.UnitId.CompareTo(b.UnitId); return unit != 0 ? unit : a.Sequence.CompareTo(b.Sequence); });
             int index = 0;
-            while (index < timeline.Count && !Result.Finished)
+            int finalTick = Math.Max(Rules.MinimumResolutionTicks,
+                timeline.Count > 0 ? timeline[timeline.Count - 1].Tick : 0);
+            for (int tick = 1; tick <= finalTick && !Result.Finished; tick++)
             {
-                int tick = timeline[index].Tick; int end = index + 1;
+                int start = index;
+                int end = start;
                 while (end < timeline.Count && timeline[end].Tick == tick) end++;
-                ResolutionTick = tick; ResolveSimultaneousTick(timeline, index, end); index = end;
+                ResolutionTick = tick; ResolveSimultaneousTick(timeline, start, end); index = end;
                 EvaluateBattleEnd();
                 CaptureSnapshot();
             }
@@ -178,12 +211,18 @@ namespace ProjectX.TileBattle
             {
                 TileUnitOrder order = set.Orders[i]; TileBattleUnit unit = FindUnit(order.UnitId);
                 if (unit == null || unit.Side != set.Side || !unit.Active || unit.IsReserve) continue;
-                unit.CurrentOrder = order; unit.QueuedActions.Clear(); unit.AttackedThisRound = false; unit.Braced = false;
+                unit.CurrentOrder = order; unit.QueuedActions.Clear(); unit.Braced = false;
                 int count = Math.Min(unit.Definition.Actions, order.Actions.Count); int tick = 0;
+                unit.HoldPosition = order.Purpose != null && order.Purpose.IndexOf("hold", StringComparison.OrdinalIgnoreCase) >= 0;
+                unit.SuppressAutomaticAttacks = order.SuppressAutomaticAttacks;
                 for (int a = 0; a < count; a++)
                 {
                     TileUnitAction action = order.Actions[a]; unit.QueuedActions.Add(action);
-                    int interval = Math.Max(1, unit.Definition.Initiative * Math.Max(100, action.IntervalPermille) / 1000);
+                    int intervalPermille = Math.Max(100, action.IntervalPermille);
+                    if ((action.Type == TileActionType.Move || action.Type == TileActionType.Charge) &&
+                        Grid.Get(action.Target) != null && Grid.Get(action.Target).Terrain == TileTerrain.Forest &&
+                        !unit.Definition.ForestImmune) intervalPermille = intervalPermille * Rules.ForestMoveIntervalPermille / 1000;
+                    int interval = Math.Max(1, unit.Definition.ReactionTime * intervalPermille / 1000);
                     tick += interval;
                     timeline.Add(new ScheduledAction { Tick = tick, Sequence = a, UnitId = unit.Id, Action = action });
                 }
@@ -196,22 +235,43 @@ namespace ProjectX.TileBattle
         {
             // All validation and intents are collected from the same pre-tick state.
             List<MoveIntent> moves = new List<MoveIntent>();
-            List<ScheduledAction> attacks = new List<ScheduledAction>();
+            List<ScheduledAction> attackOrders = new List<ScheduledAction>();
             List<ScheduledAction> remaining = new List<ScheduledAction>();
             for (int i = start; i < end; i++)
             {
                 ScheduledAction scheduled = timeline[i]; TileBattleUnit unit = FindUnit(scheduled.UnitId);
                 if (unit == null || !unit.Active || unit.State == TileUnitState.Routing) continue;
                 Emit(TileBattleEventType.ActionStarted, unit.Id, message: scheduled.Action.Type + " completes");
-                if (scheduled.Action.Type == TileActionType.Move)
+                if (scheduled.Action.Type == TileActionType.Move || scheduled.Action.Type == TileActionType.Charge)
+                {
+                    if (scheduled.Action.Type == TileActionType.Move && unit.ChargeActive)
+                        EndCharge(unit, "charge order abandoned");
+                    if (scheduled.Action.Type == TileActionType.Charge && !unit.ChargeActive)
+                    {
+                        unit.ChargeActive = true;
+                        if (!unit.Definition.RetainsMomentum) unit.ChargeMomentum = 0;
+                        unit.ChargeTargetUnitId = scheduled.Action.TargetUnitId; unit.ChargeTarget = scheduled.Action.Target;
+                        Emit(TileBattleEventType.ChargeStarted, unit.Id, scheduled.Action.TargetUnitId,
+                            unit.Position, scheduled.Action.Target, message: "Unit " + unit.Id + " begins a charge");
+                        TileBattleCell startCell = Grid.Get(unit.Position);
+                        if (startCell != null && startCell.Terrain == TileTerrain.Forest && !unit.Definition.ForestImmune)
+                            EndCharge(unit, "cannot begin a charge in forest");
+                    }
                     moves.Add(new MoveIntent { Unit = unit, From = unit.Position, To = scheduled.Action.Target, Action = scheduled.Action });
-                else if (scheduled.Action.Type == TileActionType.Attack) attacks.Add(scheduled);
-                else remaining.Add(scheduled);
+                }
+                else if (scheduled.Action.Type == TileActionType.Attack) attackOrders.Add(scheduled);
+                else
+                {
+                    if (scheduled.Action.Type == TileActionType.Disengage || scheduled.Action.Type == TileActionType.Wait)
+                        unit.AttackOrderTargetUnitId = -1;
+                    remaining.Add(scheduled);
+                }
                 unit.ActionsRemaining = Math.Max(0, unit.ActionsRemaining - 1);
             }
             ResolveTurnsAndPreparation(remaining);
             ResolveMoves(moves);
-            ResolveAttacks(attacks);
+            ResolveAttackOrders(attackOrders);
+            AdvanceWeaponCombat();
         }
 
         private void ResolveTurnsAndPreparation(List<ScheduledAction> actions)
@@ -265,10 +325,17 @@ namespace ProjectX.TileBattle
             for (int i = 0; i < moves.Count; i++)
             {
                 MoveIntent move = moves[i]; if (resolved.Contains(move.Unit.Id) || !move.Unit.Active) continue;
+                if (move.From.ManhattanDistance(move.To) > 1) move.To = StepToward(move.From, move.To);
                 if (!Grid.Contains(move.To) || move.From.ManhattanDistance(move.To) != 1)
                 { Emit(TileBattleEventType.UnitBlocked, move.Unit.Id, from: move.From, to: move.To, message: "Invalid movement"); continue; }
-                if (move.Unit.State == TileUnitState.Engaged)
-                { Emit(TileBattleEventType.UnitBlocked, move.Unit.Id, message: "Engaged unit requires Disengage before moving"); continue; }
+                TileFacing desiredFacing = FacingFromDelta(move.To.X - move.From.X, move.To.Y - move.From.Y);
+                if (move.Unit.Facing != desiredFacing)
+                {
+                    move.Unit.Facing = desiredFacing;
+                    Emit(TileBattleEventType.UnitTurned, move.Unit.Id, from: move.From, to: move.From,
+                        message: "Movement action turns unit " + move.Unit.Id + " toward " + desiredFacing);
+                    continue;
+                }
                 MoveIntent reciprocal = moves.Find(item => item.Unit.Id != move.Unit.Id && item.From == move.To && item.To == move.From);
                 if (reciprocal != null)
                 {
@@ -299,7 +366,7 @@ namespace ProjectX.TileBattle
                             ApplyThreatInterception(move.Unit, move.To, beyond);
                             if (!move.Unit.Active) continue;
                             Grid.SetOccupant(move.From, -1); Grid.SetOccupant(beyond, move.Unit.Id); move.Unit.Position = beyond;
-                            move.Unit.Facing = FacingFromDelta(beyond.X - move.From.X, beyond.Y - move.From.Y);
+                            AfterSuccessfulMove(move.Unit, move.From, beyond, move.Action);
                             Emit(TileBattleEventType.UnitMoved, move.Unit.Id, occupant.Id, move.From, beyond,
                                 message: "Formation passes through friendly formation " + occupant.Id);
                         }
@@ -311,7 +378,7 @@ namespace ProjectX.TileBattle
                 resolved.Add(move.Unit.Id); ApplyThreatInterception(move.Unit, move.From, move.To);
                 if (!move.Unit.Active) continue;
                 Grid.SetOccupant(move.From, -1); Grid.SetOccupant(move.To, move.Unit.Id); move.Unit.Position = move.To;
-                move.Unit.Facing = FacingFromDelta(move.To.X - move.From.X, move.To.Y - move.From.Y);
+                AfterSuccessfulMove(move.Unit, move.From, move.To, move.Action);
                 Emit(TileBattleEventType.UnitMoved, move.Unit.Id, from: move.From, to: move.To, message: "Unit " + move.Unit.Id + " moved");
             }
         }
@@ -334,6 +401,7 @@ namespace ProjectX.TileBattle
             ApplyThreatInterception(best.Unit, best.From, destination);
             if (!best.Unit.Active) return;
             Grid.SetOccupant(best.From, -1); Grid.SetOccupant(destination, best.Unit.Id); best.Unit.Position = destination;
+            AfterSuccessfulMove(best.Unit, best.From, destination, best.Action);
             Emit(TileBattleEventType.UnitMoved, best.Unit.Id, from: best.From, to: destination, message: "Greater mass wins destination");
             for (int i = 0; i < contenders.Count; i++) if (contenders[i] != best)
                 Emit(TileBattleEventType.UnitBlocked, contenders[i].Unit.Id, to: destination, message: "Displaced by heavier simultaneous mover");
@@ -341,78 +409,332 @@ namespace ProjectX.TileBattle
 
         private void ResolveCollision(TileBattleUnit mover, TileBattleUnit defender, TileCoord origin, TileCoord destination)
         {
-            int moverMass = mover.EffectiveMass(Rules, mover.Facing); int defenderMass = defender.EffectiveMass(Rules, Opposite(mover.Facing));
-            if (moverMass * 1000 >= defenderMass * Rules.OverwhelmingMassPermille)
-            {
-                TileCoord pushTo = new TileCoord(defender.Position.X + (destination.X - origin.X), defender.Position.Y + (destination.Y - origin.Y));
-                if (Grid.Contains(pushTo) && Grid.OccupantAt(pushTo) < 0)
-                {
-                    Grid.SetOccupant(defender.Position, -1); Grid.SetOccupant(pushTo, defender.Id); defender.Position = pushTo;
-                    defender.Cohesion = Math.Max(0, defender.Cohesion - Rules.BreakthroughCohesionDamage);
-                    Grid.SetOccupant(origin, -1); Grid.SetOccupant(destination, mover.Id); mover.Position = destination;
-                    Emit(TileBattleEventType.UnitPushed, mover.Id, defender.Id, origin, pushTo, Rules.BreakthroughCohesionDamage, "Overwhelming mass breaks through");
-                    return;
-                }
-            }
-            if (moverMass * 1000 >= defenderMass * Rules.SimilarMassPermille)
-            {
-                TileCoord pushTo = new TileCoord(defender.Position.X + (destination.X - origin.X), defender.Position.Y + (destination.Y - origin.Y));
-                if (Grid.Contains(pushTo) && Grid.OccupantAt(pushTo) < 0)
-                {
-                    Grid.SetOccupant(defender.Position, -1); Grid.SetOccupant(pushTo, defender.Id); defender.Position = pushTo;
-                    defender.Cohesion = Math.Max(0, defender.Cohesion - Rules.PushCohesionDamage);
-                    Grid.SetOccupant(origin, -1); Grid.SetOccupant(destination, mover.Id); mover.Position = destination;
-                    Emit(TileBattleEventType.UnitPushed, mover.Id, defender.Id, destination, pushTo, Rules.PushCohesionDamage, "Heavier formation pushes defender");
-                }
-            }
             mover.State = TileUnitState.Engaged; defender.State = TileUnitState.Engaged;
+            mover.AttackOrderTargetUnitId = defender.Id;
             Emit(TileBattleEventType.UnitEngaged, mover.Id, defender.Id, origin, destination, 0, "Movement collision creates engagement");
         }
 
-        private void ResolveAttacks(List<ScheduledAction> attacks)
+        private void AfterSuccessfulMove(TileBattleUnit unit, TileCoord from, TileCoord to, TileUnitAction action)
         {
-            Dictionary<int, int> damage = new Dictionary<int, int>();
+            TileBattleCell destination = Grid.Get(to);
+            if (!unit.ChargeActive) return;
+            if (destination != null && destination.Terrain == TileTerrain.Forest && !unit.Definition.ForestImmune)
+            {
+                EndCharge(unit, "forest ends the charge");
+                return;
+            }
+            if (action.Type == TileActionType.Charge)
+            {
+                unit.ChargeMomentum = Math.Min(Math.Max(2, unit.Definition.Actions), unit.ChargeMomentum + 1);
+                if (unit.Definition.Forester && destination != null && destination.Terrain == TileTerrain.Forest)
+                    unit.ChargeMomentum++;
+            }
+        }
+
+        private void EndCharge(TileBattleUnit unit, string reason)
+        {
+            if (unit == null || !unit.ChargeActive) return;
+            bool impactRetention = reason != null && reason.IndexOf("impact", StringComparison.OrdinalIgnoreCase) >= 0;
+            unit.ChargeActive = false;
+            unit.ChargeMomentum = unit.Definition.RetainsMomentum && impactRetention ? unit.ChargeMomentum / 2 : 0;
+            unit.ChargeTargetUnitId = -1;
+            Emit(TileBattleEventType.ChargeEnded, unit.Id, from: unit.Position, to: unit.Position,
+                amount: unit.ChargeMomentum, message: "Unit " + unit.Id + " charge ends: " + reason);
+        }
+
+        private void ResolveAttackOrders(List<ScheduledAction> attacks)
+        {
             attacks.Sort((a, b) => a.UnitId.CompareTo(b.UnitId));
             for (int i = 0; i < attacks.Count; i++)
             {
-                TileBattleUnit attacker = FindUnit(attacks[i].UnitId); if (attacker == null || !attacker.Active || attacker.AttackedThisRound) continue;
+                TileBattleUnit attacker = FindUnit(attacks[i].UnitId);
+                if (attacker == null || !attacker.Active) continue;
                 TileUnitAction action = attacks[i].Action;
-                TileBattleUnit defender = action.TargetUnitId >= 0
+                TileBattleUnit ordered = action.TargetUnitId >= 0
                     ? FindUnit(action.TargetUnitId)
                     : FindUnit(Grid.OccupantAt(action.Target));
-                bool rangedAttack = attacker.Definition.Ranged && attacker.Ammunition > 0;
-                int range = rangedAttack ? Math.Max(1, attacker.Definition.RangedRange) : 1;
-                if (defender == null || !defender.Active || defender.Side == attacker.Side || attacker.Position.ManhattanDistance(defender.Position) > range)
-                { Emit(TileBattleEventType.UnitBlocked, attacker.Id, defender != null ? defender.Id : -1,
-                    attacker.Position, defender != null ? defender.Position : action.Target,
-                    message: "Attack target moved or is outside current weapon range"); continue; }
+                attacker.AttackOrderTargetUnitId = ordered != null && ordered.Active && ordered.Side != attacker.Side
+                    ? ordered.Id : -1;
+            }
+        }
+
+        private void AdvanceWeaponCombat()
+        {
+            Dictionary<int, int> damage = new Dictionary<int, int>();
+            List<MeleeImpact> impacts = new List<MeleeImpact>();
+            for (int i = 0; i < Units.Count; i++)
+            {
+                TileBattleUnit attacker = Units[i];
+                if (!attacker.Active || attacker.State == TileUnitState.Routing || attacker.SuppressAutomaticAttacks) continue;
+                bool enemyAdjacent = Units.Exists(enemy => enemy.Active && enemy.Side != attacker.Side &&
+                    attacker.Position.ManhattanDistance(enemy.Position) == 1);
+                TileBattleCell attackerCell = Grid.Get(attacker.Position);
+                bool forestAllowsShooting = attackerCell == null || attackerCell.Terrain != TileTerrain.Forest || attacker.Definition.ForestImmune;
+                bool rangedAttack = attacker.Definition.Ranged && attacker.Ammunition > 0 && !enemyAdjacent && forestAllowsShooting;
+                if (attacker.UsingRangedWeapon != rangedAttack)
+                {
+                    attacker.UsingRangedWeapon = rangedAttack;
+                    attacker.WeaponAttackProgressTicks = 0;
+                }
+                int interval = rangedAttack ? Math.Max(1, attacker.Definition.RangedAttackIntervalTicks)
+                    : Math.Max(1, attacker.Definition.MeleeAttackIntervalTicks);
+                attacker.WeaponAttackProgressTicks = Math.Min(interval, attacker.WeaponAttackProgressTicks + 1);
+                if (attacker.WeaponAttackProgressTicks < interval) continue;
+                int range = rangedAttack ? Math.Max(1, attacker.Definition.RangedRange)
+                    : Math.Max(1, attacker.Definition.MeleeRange);
+                if (rangedAttack && attackerCell != null && attackerCell.Terrain == TileTerrain.Hill)
+                    range += Rules.HillRangedRangeBonus;
+                TileBattleUnit defender = FindImmediateCombatTarget(attacker, range, rangedAttack);
+                if (defender == null) continue; // A ready weapon stays ready until a valid target enters reach.
                 int raw = rangedAttack ? attacker.Definition.RangedDamage : attacker.Definition.MeleeDamage;
                 if (raw <= 0) raw = Rules.BaseMeleeDamage;
-                TileFacing incoming = FacingFromDelta(attacker.Position.X - defender.Position.X, attacker.Position.Y - defender.Position.Y);
-                bool rearAttack = incoming == Opposite(defender.Facing);
-                bool frontAttack = incoming == defender.Facing;
+                bool frontAttack = IsInFacingArc(defender.Facing, defender.Position, attacker.Position);
+                bool rearAttack = IsInFacingArc(Opposite(defender.Facing), defender.Position, attacker.Position);
                 if (rearAttack) raw = raw * Rules.RearDamagePermille / 1000;
                 else if (!frontAttack) raw = raw * Rules.FlankDamagePermille / 1000;
                 raw = raw * Math.Max(250, attacker.Cohesion) / 1000;
+                if (rangedAttack && attackerCell != null && attackerCell.Terrain == TileTerrain.Hill)
+                    raw = raw * Rules.HillRangedDamagePermille / 1000;
+                TileBattleCell defenderCell = Grid.Get(defender.Position);
+                if (rangedAttack && defenderCell != null && defenderCell.Terrain == TileTerrain.Forest)
+                    raw = raw * Rules.ForestIncomingRangedDamagePermille / 1000;
+                bool wasCharge = !rangedAttack && attacker.ChargeActive;
+                int impactMomentum = wasCharge ? attacker.ChargeMomentum : 0;
+                if (impactMomentum > 0)
+                {
+                    raw = raw * (1000 + impactMomentum * Rules.ChargeDamagePermillePerMomentum) / 1000;
+                    if (attacker.Definition.FormationType == TileFormationType.CavalryCharge && HasFormationSupport(attacker))
+                        raw = raw * Rules.CavalryFormationChargePermille / 1000;
+                    if (attacker.Definition.Forester && attackerCell != null && attackerCell.Terrain == TileTerrain.Forest)
+                        raw = raw * Rules.ForesterMassPermille / 1000;
+                    Emit(TileBattleEventType.ChargeImpact, attacker.Id, defender.Id, attacker.Position, defender.Position,
+                        impactMomentum, "Charge impacts unit " + defender.Id + " with " + impactMomentum + " momentum");
+                }
                 int shieldEffectiveness = frontAttack ? defender.Definition.ShieldFrontEffectivenessPercent :
                     rearAttack ? 0 : defender.Definition.ShieldSideEffectivenessPercent;
-                int effectiveShield = defender.Definition.ShieldPercent * Math.Max(0, Math.Min(100, shieldEffectiveness)) / 100;
+                int shieldPercent = defender.Definition.ShieldPercent;
+                if (HasFormationSupport(defender))
+                {
+                    if (defender.Definition.FormationType == TileFormationType.Shieldwall)
+                        shieldPercent = shieldPercent * Rules.ShieldwallShieldPermille / 1000;
+                    else if (defender.Definition.FormationType == TileFormationType.Testudo)
+                    {
+                        shieldPercent = shieldPercent * Rules.TestudoShieldPermille / 1000;
+                        shieldEffectiveness = Math.Min(100, shieldEffectiveness + Rules.TestudoCoverageBonusPercent);
+                    }
+                }
+                int effectiveShield = shieldPercent * Math.Max(0, Math.Min(100, shieldEffectiveness)) / 100;
                 int effectiveArmor = Math.Min(80, defender.Definition.ArmorPercent + effectiveShield);
                 int finalDamage = Math.Max(1, raw * (100 - effectiveArmor) / 100);
                 damage[defender.Id] = damage.TryGetValue(defender.Id, out int existing) ? existing + finalDamage : finalDamage;
-                attacker.AttackedThisRound = true;
+                attacker.WeaponAttackProgressTicks = Math.Max(0, attacker.WeaponAttackProgressTicks - interval);
                 if (rangedAttack)
                 {
                     attacker.Ammunition = Math.Max(0, attacker.Ammunition - 1);
                     Emit(TileBattleEventType.ProjectileLaunched, attacker.Id, defender.Id, attacker.Position, defender.Position,
                         finalDamage, attacker.Definition.DisplayName + " launches a projectile");
                 }
-                if (!rangedAttack) { attacker.State = TileUnitState.Engaged; defender.State = TileUnitState.Engaged; }
+                if (!rangedAttack)
+                {
+                    attacker.State = TileUnitState.Engaged; defender.State = TileUnitState.Engaged;
+                    impacts.Add(new MeleeImpact { Attacker = attacker, Defender = defender,
+                        Momentum = impactMomentum, WasCharge = wasCharge });
+                }
                 Emit(TileBattleEventType.UnitAttacked, attacker.Id, defender.Id, attacker.Position, defender.Position,
                     finalDamage, "Attack committed simultaneously", rangedAttack);
             }
             List<int> ids = new List<int>(damage.Keys); ids.Sort();
             for (int i = 0; i < ids.Count; i++) ApplyDamage(FindUnit(ids[i]), damage[ids[i]], "simultaneous attacks");
+            ResolveSimultaneousPushes(impacts);
+            for (int i = 0; i < impacts.Count; i++)
+                if (impacts[i].WasCharge) EndCharge(impacts[i].Attacker, "impact momentum consumed");
+        }
+
+        private TileBattleUnit FindImmediateCombatTarget(TileBattleUnit attacker, int range, bool ranged)
+        {
+            TileBattleUnit bestLocal = null;
+            int bestLocalDistance = int.MaxValue;
+            for (int i = 0; i < Units.Count; i++)
+            {
+                TileBattleUnit enemy = Units[i];
+                if (!enemy.Active || enemy.Side == attacker.Side) continue;
+                int distance = attacker.Position.ManhattanDistance(enemy.Position);
+                if (!CanAttack(attacker, enemy, range, ranged)) continue;
+                if (distance < bestLocalDistance || distance == bestLocalDistance && (bestLocal == null || enemy.Id < bestLocal.Id))
+                { bestLocal = enemy; bestLocalDistance = distance; }
+            }
+            if (!ranged && bestLocal != null) return bestLocal;
+            TileBattleUnit ordered = FindUnit(attacker.AttackOrderTargetUnitId);
+            if (ordered != null && ordered.Active && ordered.Side != attacker.Side && CanAttack(attacker, ordered, range, ranged)) return ordered;
+            return bestLocal;
+        }
+
+        private bool CanAttack(TileBattleUnit attacker, TileBattleUnit defender, int range, bool ranged)
+        {
+            int dx = defender.Position.X - attacker.Position.X, dy = defender.Position.Y - attacker.Position.Y;
+            RelativeToFacing(attacker.Facing, dx, dy, out int forward, out int lateral);
+            if (forward <= 0) return false;
+            if (ranged) return forward <= range && Math.Abs(lateral) <= range;
+            if (attacker.Definition.MeleeReachPattern == MeleeReachPattern.Short)
+                return forward == 1 && lateral == 0;
+            if (attacker.Definition.MeleeReachPattern == MeleeReachPattern.Long)
+                return forward == 1 && Math.Abs(lateral) <= 1 || forward == 2 && lateral == 0;
+            return forward == 1 && Math.Abs(lateral) <= 1;
+        }
+
+        private void ResolveAttackPush(MeleeImpact impact)
+        {
+            TileBattleUnit attacker = impact.Attacker, defender = impact.Defender;
+            int attackMass = EffectiveCombatMass(attacker, defender, true, impact.Momentum);
+            int defenceMass = EffectiveCombatMass(defender, attacker, false, 0);
+            bool overwhelming = attackMass * 1000 >= defenceMass * Rules.OverwhelmingMassPermille;
+            bool succeeds = overwhelming || attackMass * 1000 >= defenceMass * Rules.SimilarMassPermille;
+            if (!succeeds) return;
+
+            TileCoord vector = FacingVector(attacker.Facing);
+            TileCoord pushTo = new TileCoord(defender.Position.X + vector.X, defender.Position.Y + vector.Y);
+            TileCoord defenderFrom = defender.Position;
+            bool canDisplace = Grid.Contains(pushTo) && Grid.OccupantAt(pushTo) < 0;
+            if (!canDisplace)
+            {
+                ApplyPushTrauma(defender, Rules.BlockedPushHealthDamage, Rules.BlockedPushMoraleDamage,
+                    Rules.BreakthroughCohesionDamage, "blocked push");
+                Emit(TileBattleEventType.UnitBlocked, attacker.Id, defender.Id, attacker.Position, defender.Position,
+                    Rules.BlockedPushHealthDamage, "Defender cannot give ground and is crushed against an obstruction");
+                return;
+            }
+
+            Grid.SetOccupant(defenderFrom, -1); Grid.SetOccupant(pushTo, defender.Id); defender.Position = pushTo;
+            int health = overwhelming ? Rules.OverwhelmingPushHealthDamage : Rules.PushHealthDamage;
+            int morale = overwhelming ? Rules.OverwhelmingPushMoraleDamage : Rules.PushMoraleDamage;
+            int cohesion = overwhelming ? Rules.BreakthroughCohesionDamage : Rules.PushCohesionDamage;
+            ApplyPushTrauma(defender, health, morale, cohesion, overwhelming ? "overwhelming push" : "pushback");
+            Emit(TileBattleEventType.UnitPushed, attacker.Id, defender.Id, defenderFrom, pushTo, health,
+                overwhelming ? "Overwhelming assault drives defender back" : "Assault drives defender back");
+
+            bool adjacentCardinal = attacker.Position.ManhattanDistance(defenderFrom) == 1;
+            if (!attacker.HoldPosition && adjacentCardinal && attacker.Active && Grid.OccupantAt(defenderFrom) < 0)
+            {
+                TileCoord from = attacker.Position;
+                Grid.SetOccupant(from, -1); Grid.SetOccupant(defenderFrom, attacker.Id); attacker.Position = defenderFrom;
+                Emit(TileBattleEventType.UnitMoved, attacker.Id, defender.Id, from, defenderFrom,
+                    message: "Attacker follows the push and occupies the ground won");
+            }
+        }
+
+        private void ResolveSimultaneousPushes(List<MeleeImpact> impacts)
+        {
+            impacts.Sort((a, b) => a.Attacker.Id.CompareTo(b.Attacker.Id));
+            HashSet<int> resolvedAttackers = new HashSet<int>();
+            HashSet<int> pushedDefenders = new HashSet<int>();
+            for (int i = 0; i < impacts.Count; i++)
+            {
+                MeleeImpact impact = impacts[i];
+                if (resolvedAttackers.Contains(impact.Attacker.Id) || !impact.Attacker.Active || !impact.Defender.Active) continue;
+                MeleeImpact reciprocal = impacts.Find(other => other.Attacker.Id == impact.Defender.Id &&
+                    other.Defender.Id == impact.Attacker.Id);
+                if (reciprocal != null && !resolvedAttackers.Contains(reciprocal.Attacker.Id))
+                {
+                    resolvedAttackers.Add(impact.Attacker.Id); resolvedAttackers.Add(reciprocal.Attacker.Id);
+                    int firstMass = EffectiveCombatMass(impact.Attacker, impact.Defender, true, impact.Momentum);
+                    int secondMass = EffectiveCombatMass(reciprocal.Attacker, reciprocal.Defender, true, reciprocal.Momentum);
+                    if (firstMass > secondMass) ResolveAttackPush(impact);
+                    else if (secondMass > firstMass) ResolveAttackPush(reciprocal);
+                    continue;
+                }
+                resolvedAttackers.Add(impact.Attacker.Id);
+                if (pushedDefenders.Contains(impact.Defender.Id)) continue;
+                ResolveAttackPush(impact); pushedDefenders.Add(impact.Defender.Id);
+            }
+        }
+
+        private int EffectiveCombatMass(TileBattleUnit unit, TileBattleUnit opponent, bool attacking, int momentum)
+        {
+            int mass = unit.Definition.BaseMass * Math.Max(250, unit.Cohesion) / 1000;
+            if (!attacking && unit.Braced && IsInFacingArc(unit.Facing, unit.Position, opponent.Position))
+                mass = mass * Rules.BraceMassPermille / 1000;
+            TileBattleCell cell = Grid.Get(unit.Position);
+            if (cell != null && cell.Terrain == TileTerrain.Forest)
+            {
+                if (unit.Definition.Forester) mass = mass * Rules.ForesterMassPermille / 1000;
+                else if (!unit.Definition.ForestImmune)
+                    mass = mass * (attacking ? Rules.ForestAttackMassPermille : Rules.ForestDefenceMassPermille) / 1000;
+            }
+            if (HasFormationSupport(unit))
+            {
+                mass = mass * Rules.FormationMassPermille / 1000;
+                if (attacking && unit.Definition.FormationType == TileFormationType.Phalanx)
+                    mass = mass * Rules.PhalanxPushPermille / 1000;
+                if (momentum > 0 && unit.Definition.FormationType == TileFormationType.CavalryCharge)
+                    mass = mass * Rules.CavalryFormationChargePermille / 1000;
+            }
+            if (attacking && momentum > 0) mass = mass * (1000 + momentum * 250) / 1000;
+            TileBattleCell otherCell = Grid.Get(opponent.Position);
+            if (attacking && cell != null && otherCell != null)
+            {
+                if (cell.Terrain == TileTerrain.Hill && otherCell.Terrain != TileTerrain.Hill)
+                    mass = mass * Rules.HillPushPermille / 1000;
+                else if (cell.Terrain != TileTerrain.Hill && otherCell.Terrain == TileTerrain.Hill)
+                    mass = mass * Rules.UphillPushPermille / 1000;
+            }
+            return Math.Max(1, mass);
+        }
+
+        private bool HasFormationSupport(TileBattleUnit unit)
+        {
+            if (unit == null || unit.Definition.FormationType == TileFormationType.None) return false;
+            TileBattleCell cell = Grid.Get(unit.Position);
+            if (cell != null && cell.Terrain == TileTerrain.Forest) return false;
+            TileCoord[] directions = { new TileCoord(1, 0), new TileCoord(-1, 0), new TileCoord(0, 1), new TileCoord(0, -1) };
+            for (int i = 0; i < directions.Length; i++)
+            {
+                TileBattleUnit ally = FindUnit(Grid.OccupantAt(new TileCoord(unit.Position.X + directions[i].X,
+                    unit.Position.Y + directions[i].Y)));
+                TileBattleCell allyCell = ally != null ? Grid.Get(ally.Position) : null;
+                if (ally != null && ally.Active && ally.State != TileUnitState.Routing && ally.Side == unit.Side &&
+                    (allyCell == null || allyCell.Terrain != TileTerrain.Forest) && ally.Facing == unit.Facing &&
+                    ally.Definition.FormationType == unit.Definition.FormationType)
+                    return true;
+            }
+            return false;
+        }
+
+        private void ApplyPushTrauma(TileBattleUnit target, int health, int morale, int cohesion, string reason)
+        {
+            if (target == null || !target.Active) return;
+            ApplyDamage(target, health, reason);
+            if (!target.Active) return;
+            target.Morale = Math.Max(0, target.Morale - morale);
+            target.Cohesion = Math.Max(0, target.Cohesion - cohesion);
+        }
+
+        private static bool IsInFacingArc(TileFacing facing, TileCoord origin, TileCoord target)
+        {
+            RelativeToFacing(facing, target.X - origin.X, target.Y - origin.Y, out int forward, out int lateral);
+            return forward > 0 && Math.Abs(lateral) <= forward;
+        }
+
+        private static void RelativeToFacing(TileFacing facing, int dx, int dy, out int forward, out int lateral)
+        {
+            if (facing == TileFacing.East) { forward = dx; lateral = dy; }
+            else if (facing == TileFacing.West) { forward = -dx; lateral = -dy; }
+            else if (facing == TileFacing.North) { forward = dy; lateral = -dx; }
+            else { forward = -dy; lateral = dx; }
+        }
+
+        private static TileCoord FacingVector(TileFacing facing)
+        {
+            if (facing == TileFacing.East) return new TileCoord(1, 0);
+            if (facing == TileFacing.West) return new TileCoord(-1, 0);
+            if (facing == TileFacing.North) return new TileCoord(0, 1);
+            return new TileCoord(0, -1);
+        }
+
+        private static TileCoord StepToward(TileCoord from, TileCoord target)
+        {
+            if (from.X != target.X) return new TileCoord(from.X + Math.Sign(target.X - from.X), from.Y);
+            if (from.Y != target.Y) return new TileCoord(from.X, from.Y + Math.Sign(target.Y - from.Y));
+            return from;
         }
 
         private void ApplyThreatInterception(TileBattleUnit mover, TileCoord from, TileCoord to)

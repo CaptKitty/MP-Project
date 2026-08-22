@@ -15,9 +15,11 @@ MonoBehaviour:
   content:
     units:
     - unit: {fileID: 11400000, guid: 6908971fc78bb8843ae5d18483671e72, type: 2}
-      minimumBarracksLevel: 0
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 0
     - unit: {fileID: 11400000, guid: 532f59a396dcfa04596c6704595f7feb, type: 2}
-      minimumBarracksLevel: 1
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 1
     buildings: []
     generalNames:
     - Barkus Aurelius
@@ -30,4 +32,18 @@ MonoBehaviour:
     - Gayus Brutus
     - Fabius Brutus
     - Marius Brutus
-    flags: []
+    flags:
+    - CitizenMilitia
+    levies:
+    - id: 
+      building: {fileID: 11400000, guid: 42f8062780014adc9668816a333e84c1, type: 2}
+      minimumBuildingLevel: 1
+      maximumBuildingLevel: 5
+      unit: {fileID: 11400000, guid: 59069d3402bf14c44936b61dc9a80810, type: 2}
+      formationsPerBuilding: 1
+      mobilizationTicks: 0
+      recoveryTicks: 0
+      demobilizationTicks: 0
+      requiredNationFlags:
+      - CitizenMilitia
+      excludedNationFlags: []

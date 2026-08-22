@@ -454,9 +454,12 @@ public static class CampaignBattleStateAdapter
         return new BattleUnitDefinition
         {
             DefinitionId = id, UnitName = unit.name,
-            MembersPerCampaignUnit = Mathf.Max(1, unit.formationSize),
-            HealthPerMember = Mathf.Max(1, unit.memberHealth > 0 ? unit.memberHealth : unit.health),
-            SpeedMilliPerTick = Mathf.Max(40, unit.speed * 90),
+            MembersPerCampaignUnit = 1,
+            HealthPerMember = Mathf.Max(1, unit.health),
+            SpeedMilliPerTick = unit.unittype == UnitTypes.LightCavalry ? 220 :
+                unit.unittype == UnitTypes.HeavyCavalry ? 180 :
+                unit.unittype == UnitTypes.LightInfantry ? 120 :
+                unit.unittype == UnitTypes.Ranged ? 100 : 90,
             MeleeDamage = Mathf.Max(1, melee != null ? melee.attack : 1),
             MeleeReachMilli = Mathf.Max(350, Mathf.RoundToInt((float)(melee != null ? melee.combatdistance : 1d) * 1000f)),
             AttackCooldownTicks = Mathf.Max(1, Mathf.RoundToInt((float)(melee != null ? melee.attacktime : 1d) * stateTickRate)),
@@ -472,8 +475,8 @@ public static class CampaignBattleStateAdapter
                 : unit.unittype == UnitTypes.Ranged ? BattleUnitRole.Ranged : BattleUnitRole.Infantry,
             Mass = unit.unittype == UnitTypes.HeavyCavalry ? 220 : unit.unittype == UnitTypes.LightCavalry ? 150 :
                 unit.unittype == UnitTypes.HeavyInfantry ? 120 : 80,
-            ChargeDamage = unit.unittype == UnitTypes.HeavyCavalry ? Mathf.Max(8, unit.speed * 8) :
-                unit.unittype == UnitTypes.LightCavalry ? Mathf.Max(5, unit.speed * 5) : 0,
+            ChargeDamage = unit.unittype == UnitTypes.HeavyCavalry ? 16 :
+                unit.unittype == UnitTypes.LightCavalry ? 10 : 0,
             ChargeSpeedMultiplier = unit.unittype == UnitTypes.HeavyCavalry || unit.unittype == UnitTypes.LightCavalry ? 1800 : 1000,
             MinimumChargeDistanceMilli = 3000,
             ChargeCooldownTicks = 100,
@@ -482,7 +485,7 @@ public static class CampaignBattleStateAdapter
             ForestryImmune = unit.flaglist != null && unit.flaglist.Contains("Forestry_Immunity"),
             Forester = unit.flaglist != null && unit.flaglist.Contains("Forester"),
             FormationTerrainPenalty = unit.flaglist != null && unit.flaglist.Contains("Formation"),
-            PreferredFrontage = Mathf.Clamp(Mathf.CeilToInt(Mathf.Sqrt(Mathf.Max(1, unit.formationSize))) +
+            PreferredFrontage = Mathf.Clamp(1 +
                 (unit.unittype == UnitTypes.Ranged ? 2 : 0), 2, 12)
         };
     }

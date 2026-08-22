@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
 public class FieldArmyHolder : MonoBehaviour
 {
@@ -140,6 +141,17 @@ public class FieldArmyHolder : MonoBehaviour
     }
     public void OnDestroy()
     {
+        if ((NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening || NetworkManager.Singleton.IsServer) &&
+            fieldArmy != null && fieldArmy.formationRecords != null)
+        {
+            foreach (ArmyFormationRecord record in new List<ArmyFormationRecord>(fieldArmy.formationRecords))
+            {
+                if (record == null || record.origin != CampaignUnitOrigin.Levy || string.IsNullOrEmpty(record.entitlementId) || Owners.Instance == null) continue;
+                Province source = Owners.Instance.provincelist.Find(province => province != null && province.levyEntitlements != null &&
+                    province.levyEntitlements.Exists(item => item != null && item.id == record.entitlementId));
+                if (source != null) source.BeginLevyRecovery(record.entitlementId);
+            }
+        }
         if (InspectedArmy == this) InspectedArmy = null;
         if (SelectedPlayerArmy == this) SelectedPlayerArmy = null;
         try{
@@ -427,6 +439,8 @@ public class FieldArmyHolder : MonoBehaviour
         }
         if (nation != null)
         {
+            if (fieldArmy.nation != null && fieldArmy.nation != nation)
+                fieldArmy.nation.armies.Remove(this);
             fieldArmy.nation = nation;
             if (!nation.armies.Contains(this))
             {

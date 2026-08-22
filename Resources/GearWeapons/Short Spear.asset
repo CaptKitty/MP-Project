@@ -14,15 +14,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sprite: {fileID: 21300000, guid: 9551fde8601a24e4bba887117b0717b1, type: 3}
   combatdistance: 2
+  meleeReachPattern: 2
   speed: 1
   attack: 25
   attacktype: pierce
   attacktime: 0.75
   NextAvailableAttack: 0
   animationtype: Spear
+  animationClass: {fileID: 0}
+  overrideVisualPose: 0
+  visualOffset: {x: 0.146, y: -0.082}
+  visualAngle: 0
+  projectileSprite: {fileID: 0}
   Throwable: {fileID: 0}
   ammo: 0
   modifier: {fileID: 0}
   armor:
     armor: 0
     rangedarmor: 0
+  shieldFrontEffectiveness: 100
+  shieldSideEffectiveness: 0

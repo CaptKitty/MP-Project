@@ -36,6 +36,31 @@ public sealed class FormationVisualSelection : MonoBehaviour
     public int FormationId; public DeterministicBattlePresentation Owner;
     public void Select() { if (Owner != null) Owner.SelectFormation(FormationId); }
 }
+public sealed class DroppedBattleEquipmentVisual : MonoBehaviour
+{
+    private Vector2 start;
+    private float startAngle;
+    private float startTime;
+    private float direction;
+
+    public void Begin(float horizontalDirection)
+    {
+        RectTransform rect = (RectTransform)transform;
+        start = rect.anchoredPosition;
+        startAngle = rect.localEulerAngles.z;
+        startTime = Time.unscaledTime;
+        direction = horizontalDirection;
+    }
+
+    private void Update()
+    {
+        float progress = Mathf.Clamp01((Time.unscaledTime - startTime) / .55f);
+        RectTransform rect = (RectTransform)transform;
+        rect.anchoredPosition = start + new Vector2(direction * 14f * progress, -22f * progress) +
+            Vector2.up * Mathf.Sin(progress * Mathf.PI) * 10f;
+        rect.localRotation = Quaternion.Euler(0f, 0f, startAngle + direction * 100f * progress);
+    }
+}
 public sealed class LayeredBattleUnitVisual : MonoBehaviour
 {
     public FormationStatus Status;
@@ -53,6 +78,12 @@ public sealed class LayeredBattleUnitVisual : MonoBehaviour
     private float weaponPresentationAngle;
     private Quaternion presentationFacing = Quaternion.identity;
     private bool hasPresentationFacing;
+    private bool equipmentDropped;
+    private readonly List<GameObject> droppedEquipment = new List<GameObject>();
+    private bool continuousCheer;
+    private float nextCheerTime;
+    private float presentationFallAngle;
+    private bool presentationFallen;
     public bool UsesLegacyAnimator => legacyAnimator != null && legacyAnimator.runtimeAnimatorController != null;
 
     public void Configure(UnitSaveData unit, Material material)
@@ -137,6 +168,58 @@ public sealed class LayeredBattleUnitVisual : MonoBehaviour
             legacyAnimator.SetTrigger("Cheer");
     }
 
+    public void SetContinuousCheer(bool active)
+    {
+        continuousCheer = active;
+        if (!active) nextCheerTime = 0f;
+    }
+
+    public void SetPresentationFallen(bool fallen, float angle)
+    {
+        if (presentationFallen != fallen && legacyAnimator != null)
+        {
+            legacyAnimator.enabled = !fallen;
+            if (!fallen) { legacyAnimator.Rebind(); legacyAnimator.Update(0f); }
+        }
+        presentationFallen = fallen;
+        presentationFallAngle = angle;
+    }
+
+    public void DropEquipment(float horizontalDirection)
+    {
+        if (!equipmentDropped)
+        {
+            equipmentDropped = true;
+            RectTransform unitRect = (RectTransform)transform;
+            for (int i = 0; i < Mathf.Min(2, layers.Count); i++)
+            {
+                Image source = layers[i];
+                if (source == null || source.sprite == null || !source.gameObject.activeSelf) continue;
+                GameObject dropped = new GameObject(i == 0 ? "Dropped Shield" : "Dropped Weapon",
+                    typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(DroppedBattleEquipmentVisual));
+                dropped.transform.SetParent(transform.parent, false);
+                RectTransform rect = (RectTransform)dropped.transform;
+                rect.anchorMin = rect.anchorMax = new Vector2(.5f, .5f);
+                rect.sizeDelta = unitRect.sizeDelta;
+                rect.anchoredPosition = unitRect.anchoredPosition;
+                Image image = dropped.GetComponent<Image>();
+                image.sprite = source.sprite; image.material = source.material; image.color = source.color;
+                image.type = Image.Type.Sliced; image.raycastTarget = false;
+                dropped.GetComponent<DroppedBattleEquipmentVisual>().Begin(horizontalDirection * (i == 0 ? .8f : 1.2f));
+                droppedEquipment.Add(dropped);
+            }
+        }
+        for (int i = 0; i < Mathf.Min(2, layers.Count); i++) layers[i].gameObject.SetActive(false);
+    }
+
+    public void RestoreEquipment()
+    {
+        if (!equipmentDropped) return;
+        equipmentDropped = false;
+        for (int i = 0; i < droppedEquipment.Count; i++) if (droppedEquipment[i] != null) Destroy(droppedEquipment[i]);
+        droppedEquipment.Clear();
+    }
+
     private void ConfigureLegacyAnimator(UnitSaveData unit)
     {
         string key = unit != null ? unit.name : string.Empty;
@@ -163,6 +246,7 @@ public sealed class LayeredBattleUnitVisual : MonoBehaviour
         legacyAnimator = driver.AddComponent<Animator>(); legacyAnimator.runtimeAnimatorController = sourceAnimator.runtimeAnimatorController;
         legacyAnimator.updateMode = AnimatorUpdateMode.UnscaledTime; legacyAnimator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
         legacyAnimator.Rebind(); legacyAnimator.Update(0f);
+        legacyAnimator.enabled = !presentationFallen;
         Weapon presentationWeapon = unit.RangedWeapon != null ? unit.RangedWeapon : unit.MeleeWeapon;
         string style = presentationWeapon != null ? presentationWeapon.BattleAnimationType ?? string.Empty : string.Empty;
         SetWeaponBool("Sword", style); SetWeaponBool("Spear", style); SetWeaponBool("Javelin", style);
@@ -248,12 +332,21 @@ public sealed class LayeredBattleUnitVisual : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (continuousCheer && Time.unscaledTime >= nextCheerTime)
+        {
+            TriggerLegacyCheer();
+            nextCheerTime = Time.unscaledTime + .85f;
+        }
         phase += Time.unscaledDeltaTime * (Status == FormationStatus.Charging ? 10f : 5f);
-        float bob = Status == FormationStatus.Advancing || Status == FormationStatus.Charging ? Mathf.Sin(phase) * 0.025f : 0f;
-        float lunge = Attacking && !UsesLegacyAnimator ? (0.025f + Mathf.Abs(Mathf.Sin(phase * 1.5f)) * 0.045f) : 0f;
-        float routeTilt = Status == FormationStatus.Routing ? Mathf.Sin(phase * 0.6f) * 12f : 0f;
-        if (hasPresentationFacing) transform.localRotation = presentationFacing * Quaternion.Euler(0f, 0f, routeTilt);
-        else transform.localRotation = Quaternion.Euler(0f, 0f, routeTilt);
+        float bob = !presentationFallen && (Status == FormationStatus.Advancing || Status == FormationStatus.Charging)
+            ? Mathf.Sin(phase) * 0.025f : 0f;
+        if (!presentationFallen && continuousCheer && !UsesLegacyAnimator) bob += Mathf.Abs(Mathf.Sin(phase * 1.4f)) * .08f;
+        float lunge = !presentationFallen && Attacking && !UsesLegacyAnimator
+            ? (0.025f + Mathf.Abs(Mathf.Sin(phase * 1.5f)) * 0.045f) : 0f;
+        float routeTilt = !presentationFallen && Status == FormationStatus.Routing ? Mathf.Sin(phase * 0.6f) * 12f : 0f;
+        float totalTilt = routeTilt + presentationFallAngle;
+        if (hasPresentationFacing) transform.localRotation = presentationFacing * Quaternion.Euler(0f, 0f, totalTilt);
+        else transform.localRotation = Quaternion.Euler(0f, 0f, totalTilt);
         transform.localScale = new Vector3(1f + lunge, 1f + bob, 1f);
         if (UsesLegacyAnimator)
         {
@@ -657,7 +750,7 @@ public sealed class DeterministicBattlePresentation : MonoBehaviour
         Faction faction = GetFaction(side);
         Material baseMaterial = unitMaterial != null ? unitMaterial : FindArmyUnitMaterial(side);
         if (baseMaterial == null || faction == null) return baseMaterial;
-        Color third = unit != null && unit.Mercenary ? unit.color3 : faction.color3;
+        Color third = unit != null && unit.Mercenary ? unit.nativeSkintone : faction.color3;
         string key = faction.GetInstanceID() + ":" + (unit != null && unit.Mercenary ? ColorUtility.ToHtmlStringRGBA(third) : "faction");
         Material material;
         if (factionMaterialCache.TryGetValue(key, out material) && material != null) return material;

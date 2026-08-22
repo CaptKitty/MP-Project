@@ -15,14 +15,16 @@ MonoBehaviour:
   content:
     units:
     - unit: {fileID: 11400000, guid: 47df4b1323052964c82b10d37a0c945a, type: 2}
-      minimumBarracksLevel: 1
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 1
     - unit: {fileID: 11400000, guid: ee30590a308de1749bac4bc02c264797, type: 2}
-      minimumBarracksLevel: 2
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 2
     buildings: []
     generalNames:
+    - Friedrich Friedrichsson
     - Jay
     - Wilhelm Wilhelmsson
-    - Friedrich Friedrichsson
     - Johan Johansson
     - Sven Svensson
     - Karl Kalsson

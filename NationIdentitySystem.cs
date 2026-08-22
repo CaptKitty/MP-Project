@@ -22,6 +22,8 @@ public class NationContentLayer
     public List<BuildingDefinition> buildings = new List<BuildingDefinition>();
     public List<string> generalNames = new List<string>();
     public List<string> flags = new List<string>();
+    [Header("Recoverable levies")]
+    public List<LevyGrantRule> levies = new List<LevyGrantRule>();
 }
 
 [Serializable]
@@ -145,6 +147,57 @@ public static class NationContentResolver
 
     public static bool HasBuilding(Nation nation, string buildingId) =>
         ResolveBuildings(nation).Exists(value => SameId(value, buildingId));
+
+    public static int UsefulBuildingMaximumLevel(Nation nation, string buildingId)
+    {
+        if (nation == null || string.IsNullOrWhiteSpace(buildingId)) return 0;
+        BuildingDefinition definition = BuildingDefinition.Find(buildingId);
+        int configuredMaximum = definition != null
+            ? Mathf.Max(1, definition.maximumLevel)
+            : ProvinceBuilding.MaximumLevelFor(buildingId);
+        int highestUnlockLevel = 0;
+        List<NationUnitEntry> roster = ResolveUnits(nation);
+        foreach (NationUnitEntry entry in roster)
+        {
+            if (entry != null && entry.unit != null && SameId(entry.RequiredBuildingId, buildingId))
+                highestUnlockLevel = Mathf.Max(highestUnlockLevel, entry.minimumBuildingLevel);
+        }
+
+        if (definition != null && definition.levels != null)
+        {
+            foreach (BuildingLevelDefinition level in definition.levels)
+            {
+                if (level == null || level.unitUnlocks == null) continue;
+                foreach (UnitSaveData unit in level.unitUnlocks)
+                    if (unit != null && roster.Exists(entry => entry != null && entry.unit == unit))
+                        highestUnlockLevel = Mathf.Max(highestUnlockLevel, level.level);
+            }
+        }
+
+        if (!IsRecruitmentBuilding(buildingId, roster, definition)) return configuredMaximum;
+        return Mathf.Clamp(highestUnlockLevel, 0, configuredMaximum);
+    }
+
+    public static bool CanConstructBuildingLevel(Nation nation, string buildingId, int targetLevel)
+    {
+        return targetLevel >= 1 && targetLevel <= UsefulBuildingMaximumLevel(nation, buildingId);
+    }
+
+    public static bool IsRecruitmentBuilding(Nation nation, string buildingId)
+    {
+        BuildingDefinition definition = BuildingDefinition.Find(buildingId);
+        return IsRecruitmentBuilding(buildingId, ResolveUnits(nation), definition);
+    }
+
+    private static bool IsRecruitmentBuilding(string buildingId, List<NationUnitEntry> roster,
+        BuildingDefinition definition)
+    {
+        if (SameId(buildingId, "Barracks") ||
+            buildingId.IndexOf("Mercenary", StringComparison.OrdinalIgnoreCase) >= 0) return true;
+        if (roster.Exists(entry => entry != null && SameId(entry.RequiredBuildingId, buildingId))) return true;
+        return definition != null && definition.levels != null && definition.levels.Exists(level =>
+            level != null && level.unitUnlocks != null && level.unitUnlocks.Count > 0);
+    }
 
     public static bool HasFlag(Nation nation, string flag)
     {

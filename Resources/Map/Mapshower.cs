@@ -31,6 +31,8 @@ public class Mapshower : MonoBehaviour
     public Camera OverheadCamera;
 
     Color32[] remapArr;
+    Color32[] paletteArr;
+    Color32[] ownerArr;
     Texture2D paletteTex;
     Texture2D ownerTex;
 
@@ -134,10 +136,11 @@ public class Mapshower : MonoBehaviour
             remapArr[i] = remapColor;
         }
 
-        var paletteArr = new Color32[256*256];
+        paletteArr = new Color32[256*256];
         for(int i=0; i<paletteArr.Length; i++){
             paletteArr[i] = new Color32(255, 255, 255, 255);
         }
+        ownerArr = (Color32[])paletteArr.Clone();
 
         var remapTex = new Texture2D(width, height, TextureFormat.RGBA32, false);
         remapTex.filterMode = FilterMode.Point;
@@ -153,7 +156,7 @@ public class Mapshower : MonoBehaviour
 
         ownerTex = new Texture2D(256, 256, TextureFormat.RGBA32, false);
         ownerTex.filterMode = FilterMode.Point;
-        ownerTex.SetPixels32(paletteArr);
+        ownerTex.SetPixels32(ownerArr);
         ownerTex.Apply(false);
         material.SetTexture("_OwnerTex", ownerTex);
 
@@ -164,20 +167,15 @@ public class Mapshower : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            if (Owners.Instance != null) Owners.Instance.CampaignPaused = !Owners.Instance.CampaignPaused;
-        }
         if (Input.GetKeyDown("escape"))
         {
             RePaint();
             //Application.Quit();
         }
-        if (Input.GetKeyDown("1"))
-        {
-            if (Owners.Instance != null) Owners.Instance.CampaignSimulationSpeed =
-                Mathf.Approximately(Owners.Instance.CampaignSimulationSpeed, 1f) ? CampaignTimeScale : 1f;
-        }
+        if (Input.GetKeyDown(KeyCode.Alpha6) || Input.GetKeyDown(KeyCode.Keypad6)) SetCampaignSpeed(0f);
+        if (Input.GetKeyDown(KeyCode.Alpha7) || Input.GetKeyDown(KeyCode.Keypad7)) SetCampaignSpeed(.25f);
+        if (Input.GetKeyDown(KeyCode.Alpha8) || Input.GetKeyDown(KeyCode.Keypad8)) SetCampaignSpeed(1f);
+        if (Input.GetKeyDown(KeyCode.Alpha9) || Input.GetKeyDown(KeyCode.Keypad9)) SetCampaignSpeed(10f);
         if (Input.GetKey("1"))
         {
             RePaint();
@@ -250,128 +248,78 @@ public class Mapshower : MonoBehaviour
             StartDragPosition = Input.mousePosition;
         }
     }
+
+    private static void SetCampaignSpeed(float speed)
+    {
+        if (Owners.Instance == null) return;
+        Owners.Instance.CampaignSimulationSpeed = Mathf.Max(0f, speed);
+        Owners.Instance.CampaignPaused = speed <= 0f;
+    }
     public void Paint()
     {
-        int i = 0;
-        try
+        if (!CanPaint()) return;
+        foreach (Province province in Owners.Instance.provincelist)
         {
-            foreach (Province province in Owners.Instance.provincelist)
-            {
-                i = i + 1;
-                int x = (int)province.position.x;
-                int y = (int)province.position.y;
-
-                var remapColor = remapArr[x + y * width];
-                int xp = remapColor[0];
-                int yp = remapColor[1];
-
-                if (!selectAny || !prevColor.Equals(remapColor))
-                {
-                    selectAny = true;
-                    prevColor = remapColor;
-                    paletteTex.SetPixel(xp, yp, province.nation.ownerIdentity);
-                }
-            }
-            paletteTex.Apply(false);
+            if (!TryGetProvinceRemap(province, out Color32 remapColor) || province.nation == null) continue;
+            SetPaletteColor(remapColor, province.nation.ownerIdentity);
         }
-        catch { }
-        
+        UploadPalette();
     }
     public void RePaint()
     {
+        if (!CanPaint()) return;
         currentMapMode = CampaignMapMode.Ownership;
         highlightedProvince = null;
         foreach(Province province in Owners.Instance.provincelist)
         {
-            int x = (int)province.position.x;
-            int y = (int)province.position.y;
-
-            var remapColor = remapArr[x + y * width];
-            int xp = remapColor[0];
-            int yp = remapColor[1];
-
-            if(!selectAny || !prevColor.Equals(remapColor)){
-                selectAny = true;
-                prevColor = remapColor;
-                paletteTex.SetPixel(xp, yp, province.nation.ownerIdentity);
-            }
+            if (!TryGetProvinceRemap(province, out Color32 remapColor) || province.nation == null) continue;
+            SetPaletteColor(remapColor, province.nation.ownerIdentity);
         }
-        paletteTex.Apply(false);
+        UploadPalette();
     }
     public void PopPaint()
     {
+        if (!CanPaint()) return;
         foreach(Province province in Owners.Instance.provincelist)
         {
-            int x = (int)province.position.x;
-            int y = (int)province.position.y;
-
-            var remapColor = remapArr[x + y * width];
-            int xp = remapColor[0];
-            int yp = remapColor[1];
-
-            if(!selectAny || !prevColor.Equals(remapColor)){
-                selectAny = true;
-                prevColor = remapColor;
-                paletteTex.SetPixel(xp, yp, PopToColor(province.population));
-            }
+            if (!TryGetProvinceRemap(province, out Color32 remapColor)) continue;
+            SetPaletteColor(remapColor, PopToColor(province.population));
         }
-        paletteTex.Apply(false);
+        UploadPalette();
     }
     public void SupplyPaint()
     {
+        if (!CanPaint()) return;
         currentMapMode = CampaignMapMode.Supply;
         foreach(Province province in Owners.Instance.provincelist)
         {
-            int x = (int)province.position.x;
-            int y = (int)province.position.y;
-
-            var remapColor = remapArr[x + y * width];
-            int xp = remapColor[0];
-            int yp = remapColor[1];
-
-            if(!selectAny || !prevColor.Equals(remapColor)){
-                selectAny = true;
-                prevColor = remapColor;
-                paletteTex.SetPixel(xp, yp, PopToColor(province.supply));
-            }
+            if (!TryGetProvinceRemap(province, out Color32 remapColor)) continue;
+            SetPaletteColor(remapColor, PopToColor(province.supply));
         }
-        paletteTex.Apply(false);
+        UploadPalette();
     }
     public void CulturePaint()
     {
+        if (!CanPaint()) return;
         currentMapMode = CampaignMapMode.OriginalOwners;
         foreach (Province province in Owners.Instance.provincelist)
         {
-            int x = (int)province.position.x;
-            int y = (int)province.position.y;
-
-            var remapColor = remapArr[x + y * width];
-            int xp = remapColor[0];
-            int yp = remapColor[1];
-
-            if (!selectAny || !prevColor.Equals(remapColor))
-            {
-                selectAny = true;
-                prevColor = remapColor;
-                paletteTex.SetPixel(xp, yp, province.OriginalNation.ownerIdentity);//province.cultures[0].ownerIdentity);
-            }
+            if (!TryGetProvinceRemap(province, out Color32 remapColor) || province.OriginalNation == null) continue;
+            SetPaletteColor(remapColor, province.OriginalNation.ownerIdentity);
         }
-        paletteTex.Apply(false);
+        UploadPalette();
     }
     public void RegionPaint()
     {
         currentMapMode = CampaignMapMode.Regions;
-        if (Owners.Instance == null || paletteTex == null || remapArr == null) return;
+        if (!CanPaint()) return;
         foreach (Province province in Owners.Instance.provincelist)
         {
-            int x = (int)province.position.x;
-            int y = (int)province.position.y;
-            var remapColor = remapArr[x + y * width];
+            if (!TryGetProvinceRemap(province, out Color32 remapColor)) continue;
             CampaignRegion region = Owners.Instance.CallRegionByString(province.region);
-            paletteTex.SetPixel(remapColor[0], remapColor[1],
-                region != null ? region.identity : new Color32(96, 96, 96, 255));
+            SetPaletteColor(remapColor, region != null ? region.identity : new Color32(96, 96, 96, 255));
         }
-        paletteTex.Apply(false);
+        UploadPalette();
     }
     public void OnMouseOver()
     {
@@ -417,7 +365,7 @@ public class Mapshower : MonoBehaviour
 
 
 
-                var remapColor = remapArr[x + y * width];
+                if (!TryGetRemap(x, y, out Color32 remapColor)) return;
                 int xp = remapColor[0];
                 int yp = remapColor[1];
 
@@ -448,7 +396,7 @@ public class Mapshower : MonoBehaviour
                         {
                             x = (int)provinces.position.x;
                             y = (int)provinces.position.y;
-                            remapColor = remapArr[x + y * width];
+                            if (!TryGetProvinceRemap(provinces, out remapColor)) continue;
                             bool highlighted = currentMapMode == CampaignMapMode.Regions
                                 ? province.region == provinces.region
                                 : province.nation == provinces.nation;
@@ -460,10 +408,10 @@ public class Mapshower : MonoBehaviour
                         x = (int)Mathf.Floor(p.x) + width / 2;
                         y = (int)Mathf.Floor(p.y) + height / 2;
 
-                        remapColor = remapArr[x + y * width];
+                        if (!TryGetRemap(x, y, out remapColor)) return;
                         changeColors(remapColor, new Color32(255, 255, 255, 255));
 
-                        ownerTex.Apply(false);
+                        UploadOwner();
                     }
 
                     if (Input.GetMouseButtonDown(0))
@@ -686,18 +634,68 @@ public class Mapshower : MonoBehaviour
         sw.Close();
     }
 
-    void changeColor(Color32 remapColor, Color32 showColor){
-        int xp = remapColor[0];
-        int yp = remapColor[1];
+    private bool CanPaint()
+    {
+        return Owners.Instance != null && Owners.Instance.provincelist != null &&
+               remapArr != null && paletteArr != null && paletteTex != null &&
+               width > 0 && height > 0 && remapArr.Length == width * height;
+    }
 
-        paletteTex.SetPixel(xp, yp, showColor);
+    private bool TryGetProvinceRemap(Province province, out Color32 remapColor)
+    {
+        remapColor = default;
+        if (province == null || remapArr == null || width <= 0 || height <= 0) return false;
+        int x = (int)province.position.x;
+        int y = (int)province.position.y;
+        return TryGetRemap(x, y, out remapColor);
+    }
+
+    private bool TryGetRemap(int x, int y, out Color32 remapColor)
+    {
+        remapColor = default;
+        if (remapArr == null || width <= 0 || height <= 0) return false;
+        if ((uint)x >= (uint)width || (uint)y >= (uint)height) return false;
+        int index = x + y * width;
+        if ((uint)index >= (uint)remapArr.Length) return false;
+        remapColor = remapArr[index];
+        return true;
+    }
+
+    private static int PaletteIndex(Color32 remapColor)
+    {
+        return remapColor.r + remapColor.g * 256;
+    }
+
+    private void SetPaletteColor(Color32 remapColor, Color32 showColor)
+    {
+        int index = PaletteIndex(remapColor);
+        if (paletteArr == null || (uint)index >= (uint)paletteArr.Length) return;
+        paletteArr[index] = showColor;
+    }
+
+    private void UploadPalette()
+    {
+        if (paletteTex == null || paletteArr == null || paletteArr.Length != 256 * 256) return;
+        paletteTex.SetPixels32(paletteArr);
+        paletteTex.Apply(false, false);
+    }
+
+    private void UploadOwner()
+    {
+        if (ownerTex == null || ownerArr == null || ownerArr.Length != 256 * 256) return;
+        ownerTex.SetPixels32(ownerArr);
+        ownerTex.Apply(false, false);
+    }
+
+    void changeColor(Color32 remapColor, Color32 showColor){
+        SetPaletteColor(remapColor, showColor);
     }
 
     void changeColors(Color32 remapColor, Color32 showColor){
-        int xp = remapColor[0];
-        int yp = remapColor[1];
+        int index = PaletteIndex(remapColor);
+        if (ownerArr == null || (uint)index >= (uint)ownerArr.Length) return;
 
-        ownerTex.SetPixel(xp, yp, showColor);
+        ownerArr[index] = showColor;
     }
     public Color PopToColor(int population)
     {

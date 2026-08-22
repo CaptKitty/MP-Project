@@ -20,15 +20,20 @@ namespace ProjectX.TileBattle
             {
                 Id = source.name,
                 DisplayName = !string.IsNullOrEmpty(source.unitname) ? source.unitname : source.name,
-                Initiative = Mathf.Max(1, source.Initiative),
+                ReactionTime = source.ReactionTime,
                 Actions = Mathf.Max(1, source.actions),
                 BaseMass = mass,
                 Strength = Mathf.Max(1, source.health),
                 MeleeDamage = melee != null ? Mathf.Max(1, melee.attack) : 10,
+                MeleeRange = melee != null ? Mathf.Max(1, Mathf.RoundToInt((float)melee.combatdistance)) : 1,
+                MeleeReachPattern = ReachPattern(melee),
+                MeleeAttackIntervalTicks = AttackIntervalTicks(melee),
                 ArmorPercent = ArmorOf(source),
                 ShieldPercent = ShieldOf(source),
-                ShieldFrontEffectivenessPercent = Mathf.Clamp(source.shieldFrontEffectiveness, 0, 100),
-                ShieldSideEffectivenessPercent = Mathf.Clamp(source.shieldSideEffectiveness, 0, 100),
+                ShieldFrontEffectivenessPercent = source.Shield != null
+                    ? Mathf.Clamp(source.Shield.shieldFrontEffectiveness, 0, 100) : 0,
+                ShieldSideEffectivenessPercent = source.Shield != null
+                    ? Mathf.Clamp(source.Shield.shieldSideEffectiveness, 0, 100) : 0,
                 FrontThreat = control == TileWeaponControl.Pike ? 3 : control == TileWeaponControl.Spear ? 2 : 1,
                 SideThreat = 0,
                 WeaponControl = control,
@@ -36,7 +41,13 @@ namespace ProjectX.TileBattle
                 Ranged = rangedUnit,
                 RangedRange = ranged != null ? Mathf.Max(1, Mathf.RoundToInt((float)ranged.combatdistance)) : 0,
                 RangedDamage = ranged != null ? Mathf.Max(1, ranged.attack) : 0,
-                Ammunition = ranged != null ? Mathf.Max(0, ranged.ammo) : 0
+                RangedAttackIntervalTicks = AttackIntervalTicks(ranged),
+                Ammunition = ranged != null ? Mathf.Max(0, ranged.ammo) : 0,
+                FormationType = FormationType(source),
+                ForestImmune = HasFlag(source, "Forest Immune") || HasFlag(source, "ForestImmune") ||
+                    HasFlag(source, "Forestry_Immunity") || HasFlag(source, "Forester"),
+                Forester = HasFlag(source, "Forester"),
+                RetainsMomentum = HasFlag(source, "Momentum")
             };
         }
 
@@ -122,9 +133,35 @@ namespace ProjectX.TileBattle
             return TileWeaponControl.Sword;
         }
 
+        private static int AttackIntervalTicks(Weapon weapon)
+        {
+            double seconds = weapon != null ? weapon.attacktime : 1d;
+            return Mathf.Max(1, Mathf.RoundToInt((float)(Math.Max(.01d, seconds) * TileBattleRules.DefaultTicksPerSecond)));
+        }
+
+        private static MeleeReachPattern ReachPattern(Weapon weapon)
+        {
+            if (weapon == null) return MeleeReachPattern.Standard;
+            if (weapon.meleeReachPattern != MeleeReachPattern.Auto) return weapon.meleeReachPattern;
+            return weapon.combatdistance >= 1.5d ? MeleeReachPattern.Long : MeleeReachPattern.Standard;
+        }
+
+        private static bool HasFlag(UnitSaveData source, string flag) => source != null && source.flaglist != null &&
+            source.flaglist.Exists(item => string.Equals(item, flag, StringComparison.OrdinalIgnoreCase));
+
+        private static TileFormationType FormationType(UnitSaveData source)
+        {
+            if (HasFlag(source, "Testudo")) return TileFormationType.Testudo;
+            if (HasFlag(source, "Phalanx")) return TileFormationType.Phalanx;
+            if (HasFlag(source, "Shieldwall") || HasFlag(source, "Shield Wall")) return TileFormationType.Shieldwall;
+            if (HasFlag(source, "CavalryCharge") || HasFlag(source, "Cavalry Charge")) return TileFormationType.CavalryCharge;
+            return TileFormationType.None;
+        }
+
         private static int ArmorOf(UnitSaveData source)
         {
-            int armor = source.Armor != null && source.Armor.armor != null ? source.Armor.armor.armor : 0;
+            int armor = source.Armor != null && source.Armor.armor != null
+                ? Mathf.Max(source.Armor.armor.armor, source.Armor.armor.rangedarmor) : 0;
             return Mathf.Clamp(armor, 0, 80);
         }
 

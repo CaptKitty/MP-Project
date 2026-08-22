@@ -20,8 +20,6 @@ MonoBehaviour:
   speed: 1
   actions: 3
   Initiative: 6
-  shieldFrontEffectiveness: 100
-  shieldSideEffectiveness: 0
   flaglist: []
   RangedWeapon: {fileID: 11400000, guid: bf1160ed2ea0f6244afb063ee96c00d0, type: 2}
   MeleeWeapon: {fileID: 11400000, guid: 5687f1ea8a99c2d4cb4382d3b12854b2, type: 2}

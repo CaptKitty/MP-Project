@@ -9,6 +9,8 @@ public class FieldArmy : ScriptableObject
     public Faction faction;
     public Nation nation;
     public List<ArmyReserves> USDReserves = new List<ArmyReserves>();
+    [Tooltip("Per-formation campaign provenance. Kept alongside USDReserves for compatibility with existing combat/UI code.")]
+    public List<ArmyFormationRecord> formationRecords = new List<ArmyFormationRecord>();
     public int ArmySupply;
     public int MaxArmySize = 20;
     public List<ArmyRecruitmentOrder> recruitmentOrders = new List<ArmyRecruitmentOrder>();
@@ -72,6 +74,11 @@ public class FieldArmy : ScriptableObject
     }
     public void AddTroop(UnitSaveData UnitToAdd, int amount = 1, bool ForceRecruit = false)
     {
+        AddTroop(UnitToAdd, amount, ForceRecruit, UnitToAdd != null && UnitToAdd.Mercenary ? CampaignUnitOrigin.Mercenary : CampaignUnitOrigin.Professional, null);
+    }
+    public void AddTroop(UnitSaveData UnitToAdd, int amount, bool ForceRecruit, CampaignUnitOrigin origin, string entitlementId)
+    {
+        if (UnitToAdd == null || amount == 0) return;
         if (amount > 0 && GrabArmySize() > MaxArmySize && ForceRecruit == false)
         {
             return;
@@ -87,7 +94,7 @@ public class FieldArmy : ScriptableObject
                     {
                         item.amount = 0;
                     }
-                    //UpdateUI();
+                    SyncFormationRecords(UnitToAdd, amount, origin, entitlementId);
                     return;
                 }
             }
@@ -104,6 +111,71 @@ public class FieldArmy : ScriptableObject
         UR.USD = UnitToAdd;
         UR.amount = amount;
         USDReserves.Add(UR);
+        SyncFormationRecords(UnitToAdd, amount, origin, entitlementId);
+    }
+    private void SyncFormationRecords(UnitSaveData unit, int delta, CampaignUnitOrigin origin, string entitlementId)
+    {
+        if (formationRecords == null) formationRecords = new List<ArmyFormationRecord>();
+        if (delta > 0)
+            for (int i = 0; i < delta; i++) formationRecords.Add(new ArmyFormationRecord { unit = unit, origin = origin, entitlementId = entitlementId });
+        else
+            for (int i = 0; i < -delta; i++)
+            {
+                int index = formationRecords.FindLastIndex(record => record != null && record.unit != null && record.unit.name == unit.name);
+                if (index >= 0) formationRecords.RemoveAt(index);
+            }
+    }
+    public void ReconcileFormationRecords()
+    {
+        if (formationRecords == null) formationRecords = new List<ArmyFormationRecord>();
+        formationRecords.RemoveAll(record => record == null || record.unit == null);
+        formationRecords.RemoveAll(record => !USDReserves.Exists(reserve => reserve != null && reserve.USD != null &&
+            reserve.amount > 0 && reserve.USD.name == record.unit.name));
+        foreach (ArmyReserves reserve in USDReserves)
+        {
+            if (reserve == null || reserve.USD == null) continue;
+            int count = formationRecords.FindAll(record => record.unit != null && record.unit.name == reserve.USD.name).Count;
+            for (int i = count; i < reserve.amount; i++) formationRecords.Add(new ArmyFormationRecord { unit = reserve.USD,
+                origin = reserve.USD.Mercenary ? CampaignUnitOrigin.Mercenary : CampaignUnitOrigin.Professional });
+            while (count-- > reserve.amount)
+            {
+                int index = formationRecords.FindLastIndex(record => record.unit != null && record.unit.name == reserve.USD.name);
+                if (index >= 0) formationRecords.RemoveAt(index);
+            }
+        }
+    }
+    public int GetUpkeep()
+    {
+        ReconcileFormationRecords(); int total = 0;
+        foreach (ArmyFormationRecord record in formationRecords)
+            if (record != null && record.unit != null && record.origin == CampaignUnitOrigin.Professional)
+                total += CampaignEconomy.UnitUpkeep(record.unit);
+        return total;
+    }
+    public bool DemobilizeLevy(string entitlementId)
+    {
+        if (string.IsNullOrEmpty(entitlementId)) return false;
+        ReconcileFormationRecords();
+        int recordIndex = formationRecords.FindIndex(record => record != null && record.origin == CampaignUnitOrigin.Levy &&
+            record.entitlementId == entitlementId && record.unit != null);
+        if (recordIndex < 0) return false;
+        UnitSaveData unit = formationRecords[recordIndex].unit;
+        formationRecords.RemoveAt(recordIndex);
+        ArmyReserves reserve = USDReserves.Find(item => item != null && item.USD != null && item.USD.name == unit.name);
+        if (reserve != null) reserve.amount = Mathf.Max(0, reserve.amount - 1);
+        if (Owners.Instance != null)
+        foreach (Province province in Owners.Instance.provincelist)
+        {
+            ProvinceLevyEntitlement entitlement = province != null && province.levyEntitlements != null
+                ? province.levyEntitlements.Find(item => item != null && item.id == entitlementId) : null;
+            if (entitlement == null) continue;
+            LevyGrantRule rule = LevySystem.FindRule(province.nation, entitlement.ruleId);
+            entitlement.state = LevyEntitlementState.Recovering; entitlement.raisedArmyId = null;
+            entitlement.remainingTicks = rule != null ? Mathf.Max(0, rule.demobilizationTicks) : 0;
+            if (entitlement.remainingTicks == 0 && entitlement.eligible) entitlement.state = LevyEntitlementState.Available;
+            break;
+        }
+        return true;
     }
     public void UpdateUI()
     {

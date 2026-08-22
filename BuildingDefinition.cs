@@ -15,7 +15,7 @@ public class BuildingDefinition : ScriptableObject
     [Header("Progression")]
     [Min(1)] public int maximumLevel = 5;
     [Tooltip("Used when a level does not provide its own positive construction time.")]
-    [Min(1)] public int defaultConstructionTicks = 3;
+    [Min(1)] public int defaultConstructionTicks = 10;
     public List<BuildingLevelDefinition> levels = new List<BuildingLevelDefinition>();
 
     public string StableId => !string.IsNullOrWhiteSpace(id) ? id.Trim() : name;
@@ -36,8 +36,9 @@ public class BuildingDefinition : ScriptableObject
     public int ConstructionTicksForLevel(int level)
     {
         BuildingLevelDefinition entry = GetLevel(level);
-        return entry != null && entry.constructionTicks > 0
-            ? entry.constructionTicks : Mathf.Max(1, defaultConstructionTicks);
+        if (entry != null && entry.constructionTicks > 0) return entry.constructionTicks;
+        int levelScaledTicks = 10 + (Mathf.Max(1, level) - 1) * 5;
+        return Mathf.Clamp(Mathf.Max(defaultConstructionTicks, levelScaledTicks), 10, 30);
     }
 
     public static BuildingDefinition Find(string stableId)
@@ -52,7 +53,7 @@ public class BuildingDefinition : ScriptableObject
     {
         BuildingDefinition definition = Find(stableId);
         BuildingLevelDefinition configured = definition != null ? definition.GetLevel(level) : null;
-        return definition != null ? definition.ConstructionTicksForLevel(level) : 3;
+        return definition != null ? definition.ConstructionTicksForLevel(level) : Mathf.Clamp(10 + (Mathf.Max(1, level) - 1) * 5, 10, 30);
     }
 
     private void OnValidate()
@@ -83,4 +84,6 @@ public class BuildingLevelDefinition
     public int garrisonCapacity;
     public List<UnitSaveData> unitUnlocks = new List<UnitSaveData>();
     public List<string> flags = new List<string>();
+    [Tooltip("Additional player-facing effects supplied by this level. These are accumulated in building tooltips.")]
+    public List<string> displayedEffects = new List<string>();
 }

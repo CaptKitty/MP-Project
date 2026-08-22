@@ -44,6 +44,7 @@ namespace ProjectX.TileBattle
         public readonly Dictionary<int, string> UnitSourceNames = new Dictionary<int, string>();
         public readonly Dictionary<int, UnitSaveData> UnitSources = new Dictionary<int, UnitSaveData>();
         public readonly Dictionary<int, FieldArmyHolder> UnitArmySources = new Dictionary<int, FieldArmyHolder>();
+        public readonly Dictionary<int, ArmyFormationRecord> UnitFormationSources = new Dictionary<int, ArmyFormationRecord>();
         public readonly List<FieldArmyHolder> LeftParticipants = new List<FieldArmyHolder>();
         public readonly List<FieldArmyHolder> RightParticipants = new List<FieldArmyHolder>();
         public readonly Dictionary<string, int> ParticipantJoinRounds = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -56,6 +57,9 @@ namespace ProjectX.TileBattle
         [Min(0.1f)] public float CommandRoundsPerCampaignSecond = 1f;
         [Range(1, 20)] public int MaximumRoundsPerFrame = 5;
         public bool EnableDiagnosticLogging;
+        [Header("Prototype battle presentation")]
+        public bool LeaveFallenUnitsOnField = true;
+        public bool DropEquipmentOnDeath = true;
         public readonly List<TileCampaignBattle> ActiveBattles = new List<TileCampaignBattle>();
         private int battleSequence;
 
@@ -64,6 +68,8 @@ namespace ProjectX.TileBattle
             Instance = this;
             TileBattlePresentation presentation = GetComponent<TileBattlePresentation>();
             if (presentation == null) presentation = gameObject.AddComponent<TileBattlePresentation>();
+            presentation.LeaveFallenUnitsOnField = LeaveFallenUnitsOnField;
+            presentation.DropEquipmentOnDeath = DropEquipmentOnDeath;
             presentation.Initialize(this);
         }
         private void OnDestroy() { if (Instance == this) Instance = null; }
@@ -303,6 +309,8 @@ namespace ProjectX.TileBattle
         private static void AddArmy(TileBattleSimulation simulation, TileCampaignBattle battle, FieldArmy army, int side,
             FieldArmyHolder sourceArmy, bool reinforcement)
         {
+            army.ReconcileFormationRecords();
+            List<ArmyFormationRecord> unusedRecords = new List<ArmyFormationRecord>(army.formationRecords);
             List<ArmyReserves> reserves = new List<ArmyReserves>(army.USDReserves);
             reserves.Sort((a, b) => string.CompareOrdinal(a != null && a.USD != null ? a.USD.name : string.Empty,
                 b != null && b.USD != null ? b.USD.name : string.Empty));
@@ -348,7 +356,10 @@ namespace ProjectX.TileBattle
                     Strength = definition.Strength, IsVanguard = vanguard, IsReserve = reserve,
                     DeploymentRound = deploymentRound, Deployed = vanguard };
                 simulation.AddUnit(unit); battle.UnitSourceNames[id] = source.name; battle.UnitSources[id] = source;
-                battle.UnitArmySources[id] = sourceArmy; index++;
+                battle.UnitArmySources[id] = sourceArmy;
+                int recordIndex = unusedRecords.FindIndex(record => record != null && record.unit != null && record.unit.name == source.name);
+                if (recordIndex >= 0) { battle.UnitFormationSources[id] = unusedRecords[recordIndex]; unusedRecords.RemoveAt(recordIndex); }
+                index++;
             }
         }
 
@@ -363,12 +374,13 @@ namespace ProjectX.TileBattle
             for (int x = 0; x < grid.Width; x++)
             {
                 TileTerrain terrain = TileTerrain.Open; int cost = 1;
-                if (profile == CampaignTerrainProfile.Forested && (x + y) % 3 == 0) { terrain = TileTerrain.Forest; cost = 2; }
-                else if ((profile == CampaignTerrainProfile.Hilly || profile == CampaignTerrainProfile.Mountainous) && y > grid.Height * 2 / 3)
-                { terrain = TileTerrain.Hill; cost = 2; }
-                else if ((profile == CampaignTerrainProfile.Marshland || profile == CampaignTerrainProfile.RiverValley) && x == grid.Width / 2)
-                { terrain = TileTerrain.Marsh; cost = 2; }
-                else if (profile == CampaignTerrainProfile.RoughCountry && (x * 3 + y) % 5 == 0) { terrain = TileTerrain.Rough; cost = 2; }
+                // Strong battlefield identities: forests are connected bands and hills occupy a defensible sector.
+                if (profile == CampaignTerrainProfile.Forested &&
+                    (y >= grid.Height / 4 && y < grid.Height * 3 / 4 || x >= grid.Width * 2 / 5 && x < grid.Width * 3 / 5))
+                { terrain = TileTerrain.Forest; cost = 2; }
+                else if ((profile == CampaignTerrainProfile.Hilly || profile == CampaignTerrainProfile.Mountainous) &&
+                    x >= grid.Width / 3 && x < grid.Width * 2 / 3 && y >= grid.Height / 3 && y < grid.Height * 5 / 6)
+                { terrain = TileTerrain.Hill; cost = 1; }
                 grid.SetTerrain(new TileCoord(x, y), terrain, cost);
             }
         }
@@ -426,6 +438,24 @@ namespace ProjectX.TileBattle
                 ArmyReserves reserve = army.USDReserves[i]; if (reserve == null || reserve.USD == null) continue;
                 reserve.amount = survivors.TryGetValue(reserve.USD.name, out int count) ? count : 0;
             }
+            army.formationRecords.Clear();
+            for (int i = 0; i < battle.Simulation.Units.Count; i++)
+            {
+                TileBattleUnit unit = battle.Simulation.Units[i];
+                if (unit.Side == side && unit.Strength > 0 && unit.State != TileUnitState.Destroyed &&
+                    battle.UnitArmySources.TryGetValue(unit.Id, out FieldArmyHolder origin) && origin == sourceArmy &&
+                    battle.UnitFormationSources.TryGetValue(unit.Id, out ArmyFormationRecord record)) army.formationRecords.Add(record);
+            }
+            // Destroyed levies return to their province's recoverable entitlement pool.
+            foreach (KeyValuePair<int, ArmyFormationRecord> pair in battle.UnitFormationSources)
+            {
+                ArmyFormationRecord record = pair.Value;
+                if (record == null || record.origin != CampaignUnitOrigin.Levy || string.IsNullOrEmpty(record.entitlementId) ||
+                    !battle.UnitArmySources.TryGetValue(pair.Key, out FieldArmyHolder origin) || origin != sourceArmy) continue;
+                TileBattleUnit unit = battle.Simulation.Units.Find(candidate => candidate.Id == pair.Key);
+                if (unit != null && unit.Strength > 0 && unit.State != TileUnitState.Destroyed) continue;
+                BeginLevyRecovery(record.entitlementId);
+            }
         }
 
         private static void RecoverVictoryLosses(TileCampaignBattle battle, FieldArmyHolder army, int side, int maximum)
@@ -438,7 +468,36 @@ namespace ProjectX.TileBattle
                 if (unit.Side != side || !battle.UnitArmySources.TryGetValue(unit.Id, out FieldArmyHolder source) || source != army ||
                     unit.Strength > 0 && unit.State != TileUnitState.Destroyed) continue;
                 if (battle.UnitSources.TryGetValue(unit.Id, out UnitSaveData data) && data != null)
-                { army.fieldArmy.AddTroop(data, 1, true); recovered++; }
+                {
+                    if (battle.UnitFormationSources.TryGetValue(unit.Id, out ArmyFormationRecord record) && record != null)
+                    {
+                        army.fieldArmy.AddTroop(data, 1, true, record.origin, record.entitlementId);
+                        if (record.origin == CampaignUnitOrigin.Levy) MarkLevyRaised(record.entitlementId, army.NetworkArmyId);
+                    }
+                    else army.fieldArmy.AddTroop(data, 1, true);
+                    battle.Simulation.Result.RecoveredFormations[unit.Id] = 1;
+                    recovered++;
+                }
+            }
+        }
+
+        private static void BeginLevyRecovery(string entitlementId)
+        {
+            if (Owners.Instance == null) return;
+            Province province = Owners.Instance.provincelist.Find(candidate => candidate != null && candidate.levyEntitlements != null &&
+                candidate.levyEntitlements.Exists(item => item != null && item.id == entitlementId));
+            if (province != null) province.BeginLevyRecovery(entitlementId);
+        }
+
+        private static void MarkLevyRaised(string entitlementId, string armyId)
+        {
+            if (Owners.Instance == null) return;
+            foreach (Province province in Owners.Instance.provincelist)
+            {
+                ProvinceLevyEntitlement entitlement = province != null && province.levyEntitlements != null
+                    ? province.levyEntitlements.Find(item => item != null && item.id == entitlementId) : null;
+                if (entitlement == null) continue;
+                entitlement.state = LevyEntitlementState.Raised; entitlement.raisedArmyId = armyId; entitlement.remainingTicks = 0; return;
             }
         }
 

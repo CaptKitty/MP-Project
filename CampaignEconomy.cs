@@ -4,7 +4,6 @@ public static class CampaignEconomy
 {
     public const int StartingGold = 500;
     public const int ArmyCreationCost = 250;
-    public const int BaseProvinceIncome = 10;
     public const int FarmIncomePerLevel = 5;
     public const float GoldIncomeRate = 0.5f;
 
@@ -13,6 +12,9 @@ public static class CampaignEconomy
 
     public static int UnitGoldCost(UnitSaveData unit, int amount = 1) =>
         unit == null ? 0 : Mathf.Max(1, unit.cost) * Mathf.Max(1, amount);
+
+    public static int UnitUpkeep(UnitSaveData unit, int amount = 1) =>
+        unit == null ? 0 : Mathf.Max(0, unit.upkeep) * Mathf.Max(0, amount);
 
     public static int BuildingGoldCost(string buildingId, int targetLevel)
     {

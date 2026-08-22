@@ -14,11 +14,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sprite: {fileID: 21300000, guid: 2a17cfdacd044a541970e4e76ba4245d, type: 3}
   combatdistance: 0.75
+  meleeReachPattern: 1
   speed: 1
   attack: 10
+  attacktype: attack
   attacktime: 1
   NextAvailableAttack: 0
   animationtype: Sword
+  animationClass: {fileID: 0}
+  overrideVisualPose: 0
+  visualOffset: {x: 0.146, y: -0.082}
+  visualAngle: 0
+  projectileSprite: {fileID: 0}
   Throwable: {fileID: 0}
   ammo: 0
   modifier: {fileID: 0}
+  armor:
+    armor: 0
+    rangedarmor: 0
+  shieldFrontEffectiveness: 100
+  shieldSideEffectiveness: 0

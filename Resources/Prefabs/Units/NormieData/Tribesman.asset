@@ -18,6 +18,7 @@ MonoBehaviour:
   cost: 75
   health: 300
   speed: 1
+  recruitmentTicks: 3
   actions: 3
   Initiative: 6
   flaglist:
@@ -41,7 +42,7 @@ MonoBehaviour:
   bodyparts:
   - {fileID: 21300000, guid: 578aa4cd40cc64b4380327009a5f0cbc, type: 3}
   - {fileID: 21300000, guid: fce9cd9c7a2aaac4d88d13c49a6ea115, type: 3}
-  - {fileID: 21300000, guid: 81cb0454a27daf34d9b550739b4e5b88, type: 3}
+  - {fileID: 21300000, guid: 9551fde8601a24e4bba887117b0717b1, type: 3}
   Mercenary: 0
   Big: 0
   useFormation: 0

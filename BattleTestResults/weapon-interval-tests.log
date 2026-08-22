@@ -1,0 +1,26 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.2/staging' branch; Version is '6000.2.9f1 (e0c4e791ab71) revision 14730471'; Using compiler version '194234433'; Build Type 'Release'
+[Licensing::IpcConnector] Channel LicenseClient-Gebruiker doesn't exist
+OS: 'Windows 10  (10.0.19045) 64bit Professional' Language: 'nl' Physical Memory: 16316 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+Date: 2026-08-21T14:43:16Z
+[Licensing::Module] Successfully launched the LicensingClient (PId: 22692)
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.2.9f1\Editor\Unity.exe
+-batchmode
+-quit
+-projectPath
+C:\Users\Gebruiker\Documents\My project - kopie\projectx
+-runTests
+-testPlatform
+EditMode
+-testFilter
+TileBattleVerticalSliceTests
+-testResults
+C:\Users\Gebruiker\Documents\My project - kopie\projectx\Assets\BattleTestResults\weapon-interval-tests.xml
+-logFile
+C:\Users\Gebruiker\Documents\My project - kopie\projectx\Assets\BattleTestResults\weapon-interval-tests.log
+Successfully changed project path to: C:\Users\Gebruiker\Documents\My project - kopie\projectx
+C:/Users/Gebruiker/Documents/My project - kopie/projectx
+Exiting without the bug reporter. Application will terminate with return code 1

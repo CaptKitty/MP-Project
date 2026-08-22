@@ -20,6 +20,14 @@ namespace ProjectX.TileBattle
         public int Width;
         public int Height;
         public readonly List<TileObservedUnit> Units = new List<TileObservedUnit>();
+        public readonly List<TileObservedCell> Cells = new List<TileObservedCell>();
+    }
+
+    public sealed class TileObservedCell
+    {
+        public TileCoord Position;
+        public TileTerrain Terrain;
+        public int MovementCost;
     }
 
     public sealed class TileObservedUnit
@@ -116,7 +124,7 @@ namespace ProjectX.TileBattle
 
         private List<TilePlanScore> ScorePlans(TileBattleObservation observation)
         {
-            int own = 0, enemy = 0, cavalry = 0, enemyCavalry = 0, ownRanged = 0;
+            int own = 0, enemy = 0, cavalry = 0, enemyCavalry = 0, ownRanged = 0, forestAdapted = 0;
             int enemyUpper = 0, enemyLower = 0, enemyCentre = 0;
             List<TileObservedUnit> observedEnemies = new List<TileObservedUnit>();
             for (int i = 0; i < observation.Units.Count; i++)
@@ -124,7 +132,8 @@ namespace ProjectX.TileBattle
                 TileObservedUnit unit = observation.Units[i];
                 if (!unit.Deployed || unit.State == TileUnitState.Destroyed) continue;
                 if (unit.Side == observation.Side)
-                { own += unit.Strength; if (unit.Definition.Cavalry) cavalry++; if (unit.Definition.Ranged) ownRanged++; }
+                { own += unit.Strength; if (unit.Definition.Cavalry) cavalry++; if (unit.Definition.Ranged) ownRanged++;
+                    if (unit.Definition.ForestImmune || unit.Definition.Forester) forestAdapted++; }
                 else
                 {
                     enemy += unit.Strength; if (unit.Definition.Cavalry) enemyCavalry++;
@@ -148,6 +157,11 @@ namespace ProjectX.TileBattle
             int upperOpportunity = Math.Max(-30, (enemyCentre - enemyUpper) / 8);
             int lowerOpportunity = Math.Max(-30, (enemyCentre - enemyLower) / 8);
             int lateralPreference = StableLateralPreference(personality.Name);
+            int forestCells = observation.Cells.FindAll(cell => cell.Terrain == TileTerrain.Forest).Count;
+            int hillCells = observation.Cells.FindAll(cell => cell.Terrain == TileTerrain.Hill).Count;
+            int forestOpportunity = forestAdapted > 0 ? Math.Min(24, forestCells / Math.Max(1, observation.Height)) :
+                -Math.Min(16, forestCells / Math.Max(1, observation.Height));
+            int defensiveTerrain = Math.Min(24, hillCells / Math.Max(1, observation.Height) + ownRanged * 2);
             DebugState.OwnStrength = own; DebugState.EnemyStrength = enemy; DebugState.StrengthTrend = trend;
             DebugState.Assessment = "Strength " + own + " vs " + enemy + "; trend " + trend +
                 "; enemy line lower/centre/upper " + enemyLower + "/" + enemyCentre + "/" + enemyUpper;
@@ -159,21 +173,21 @@ namespace ProjectX.TileBattle
             {
                 new TilePlanScore { Plan = TileBattlePlan.AttackCentre, BaseScore = 125,
                     PersonalityInfluence = personality.Bold + personality.Aggressive - personality.Cautious,
-                    SituationInfluence = (advantage / 12 + centreOpportunity * 2) * competence / 50,
+                    SituationInfluence = (advantage / 12 + centreOpportunity * 2 + forestOpportunity) * competence / 50,
                     Reason = "Concentrate infantry and reserves against the enemy centre while flank units pin" },
                 new TilePlanScore { Plan = TileBattlePlan.FlankLeft, BaseScore = 90,
                     PersonalityInfluence = personality.CavalryMinded + personality.Methodical + personality.Opportunistic + cavalry * 8,
-                    SituationInfluence = (advantage / 20 + upperOpportunity + cavalry * 4) * competence / 50 + lateralPreference,
+                    SituationInfluence = (advantage / 20 + upperOpportunity + cavalry * 4 + forestOpportunity) * competence / 50 + lateralPreference,
                     Reason = "Pin the centre while mobile formations turn the upper flank" },
                 new TilePlanScore { Plan = TileBattlePlan.FlankRight, BaseScore = 90,
                     PersonalityInfluence = personality.CavalryMinded + personality.Methodical + personality.Opportunistic + cavalry * 8,
-                    SituationInfluence = (advantage / 20 + lowerOpportunity + cavalry * 4) * competence / 50 - lateralPreference,
+                    SituationInfluence = (advantage / 20 + lowerOpportunity + cavalry * 4 + forestOpportunity) * competence / 50 - lateralPreference,
                     Reason = "Pin the centre while mobile formations turn the lower flank" }
             };
             if (!observation.IsAttacker)
                 result.Add(new TilePlanScore { Plan = TileBattlePlan.Hold, BaseScore = 100,
                     PersonalityInfluence = personality.Defensive + personality.Patient + personality.Cautious - personality.Impatient(),
-                    SituationInfluence = (-advantage / 12 + ownRanged * 5 + (trend < 0 ? 12 : 0)) * competence / 50,
+                    SituationInfluence = (-advantage / 12 + ownRanged * 5 + defensiveTerrain + (trend < 0 ? 12 : 0)) * competence / 50,
                     Reason = "Defend ground, exploit ranged troops and retain a counterattack reserve" });
             return result;
         }
@@ -221,7 +235,7 @@ namespace ProjectX.TileBattle
                     if (distance < nearestDistance && (unit.State == TileUnitState.Engaged || nearest == null))
                     { nearest = enemies[e]; nearestDistance = distance; }
                 }
-                int attackRange = unit.Definition.Ranged && unit.Ammunition > 0 ? Math.Max(1, unit.Definition.RangedRange) : 1;
+                int attackRange = EffectiveAttackRange(unit, observation);
                 if (hesitant && unit.State != TileUnitState.Engaged)
                 {
                     order.Actions.Add(TileUnitAction.Wait());
@@ -240,7 +254,8 @@ namespace ProjectX.TileBattle
                     order.Purpose = "Skirmish withdrawal";
                     if (personality.Competence < 40 && !hasTakenLosses && unit.Definition.Actions > 1)
                         order.Actions.Add(TileUnitAction.Wait());
-                    if (closestThreatDistance <= attackRange) order.Actions.Add(TileUnitAction.Attack(closestThreat.Id, closestThreat.Position));
+                    if (CanCurrentlyAttack(unit, closestThreat, observation))
+                        order.Actions.Add(TileUnitAction.Attack(closestThreat.Id, closestThreat.Position));
                     TileCoord planned = unit.Position;
                     for (int action = order.Actions.Count; action < unit.Definition.Actions; action++)
                     {
@@ -277,10 +292,16 @@ namespace ProjectX.TileBattle
                         ": exploits an open side/rear tile around pinned enemy " + nearest.Id);
                     continue;
                 }
-                if (nearest != null && (unit.State == TileUnitState.Engaged || nearestDistance <= attackRange))
+                if (nearest != null && (unit.State == TileUnitState.Engaged || CanCurrentlyAttack(unit, nearest, observation)))
                 {
+                    if (!FacesTarget(unit.Facing, unit.Position, nearest.Position))
+                        order.Actions.Add(TileUnitAction.Move(nearest.Position));
                     order.Actions.Add(TileUnitAction.Attack(nearest.Id, nearest.Position));
-                    set.Orders.Add(order); DebugState.OrdersIssued.Add("Unit " + unit.Id + ": attack " + nearest.Id);
+                    if (set.Plan != TileBattlePlan.Hold)
+                        while (order.Actions.Count < unit.Definition.Actions)
+                            order.Actions.Add(TileUnitAction.Move(nearest.Position));
+                    set.Orders.Add(order); DebugState.OrdersIssued.Add("Unit " + unit.Id +
+                        ": fight toward and occupy the ground held by " + nearest.Id);
                     continue;
                 }
                 if (set.Plan == TileBattlePlan.Hold)
@@ -288,6 +309,8 @@ namespace ProjectX.TileBattle
                     order.Purpose = "Form defensive line and hold";
                     TileCoord planned = unit.Position;
                     TileCoord slot = holdSlots.TryGetValue(unit.Id, out TileCoord assignedSlot) ? assignedSlot : unit.Position;
+                    if (NoticesOpportunity(unit, observation.CommandRound, 73))
+                        slot = PreferHillPosition(unit, slot, observation, occupied);
                     for (int action = 0; action < unit.Definition.Actions; action++)
                     {
                         if (planned == slot)
@@ -315,7 +338,7 @@ namespace ProjectX.TileBattle
                     for (int action = 0; action < unit.Definition.Actions; action++)
                     {
                         TileObservedUnit target = nearest; int distance = target != null ? planned.ManhattanDistance(target.Position) : int.MaxValue;
-                        if (target != null && distance <= attackRange)
+                        if (target != null && distance <= attackRange && FacesTarget(unit.Facing, planned, target.Position))
                         { order.Actions.Add(TileUnitAction.Attack(target.Id, target.Position)); break; }
                         TileCoord next;
                         bool executeFlank = flankers.Contains(unit.Id);
@@ -330,7 +353,20 @@ namespace ProjectX.TileBattle
                         if (immobileFriendlies.Contains(next) || stepReservations[action].Contains(next))
                             next = FindDetourStep(planned, approachRow, unit.Id, observation.Width, observation.Height,
                                 occupied, stepReservations[action]);
-                        order.Actions.Add(TileUnitAction.Move(next)); planned = next;
+                        if (HasFormationSupport(unit, allies, observation) && unit.Definition.FormationType != TileFormationType.CavalryCharge &&
+                            next.Y != planned.Y && target != null && target.Position.X != planned.X)
+                            next = new TileCoord(planned.X + Math.Sign(target.Position.X - planned.X), planned.Y);
+                        next = PreferTerrainStep(unit, planned, next, target != null ? target.Position : next,
+                            observation, occupied, stepReservations[action]);
+                        int chargeMoves = unit.Definition.Cavalry ? Math.Min(4, unit.Definition.Actions) : Math.Min(2, unit.Definition.Actions);
+                        bool recognizesCounter = target != null && NoticesOpportunity(unit, observation.CommandRound, 91) &&
+                            IsFrontalAntiChargeThreat(target, planned) && personality.Bold < 70;
+                        bool chargeAdvance = target != null && unit.State != TileUnitState.Engaged && distance <= chargeMoves + 1 &&
+                            CanChargeThrough(unit, planned, next, observation) && !recognizesCounter;
+                        order.Actions.Add(chargeAdvance
+                            ? TileUnitAction.Charge(next, target.Id)
+                            : TileUnitAction.Move(next));
+                        planned = next;
                         stepReservations[action].Add(next);
                     }
                 }
@@ -419,6 +455,125 @@ namespace ProjectX.TileBattle
                 result[ordered[i].Id] = new TileCoord(Math.Max(0, Math.Min(width - 1, frontX + rearDirection * rank)), row);
             }
             return result;
+        }
+
+        private static int EffectiveAttackRange(TileObservedUnit unit, TileBattleObservation observation)
+        {
+            if (unit == null || unit.Definition == null) return 1;
+            TileTerrain terrain = TerrainAt(observation, unit.Position);
+            bool canShoot = unit.Definition.Ranged && unit.Ammunition > 0 &&
+                (terrain != TileTerrain.Forest || unit.Definition.ForestImmune);
+            if (canShoot) return Math.Max(1, unit.Definition.RangedRange + (terrain == TileTerrain.Hill ? 1 : 0));
+            return unit.Definition.MeleeReachPattern == MeleeReachPattern.Long ? 2 : 1;
+        }
+
+        private static bool CanCurrentlyAttack(TileObservedUnit unit, TileObservedUnit target, TileBattleObservation observation)
+        {
+            if (unit == null || target == null || unit.Definition == null) return false;
+            int dx = target.Position.X - unit.Position.X, dy = target.Position.Y - unit.Position.Y;
+            RelativeToFacing(unit.Facing, dx, dy, out int forward, out int lateral);
+            if (forward <= 0) return false;
+            TileTerrain terrain = TerrainAt(observation, unit.Position);
+            bool ranged = unit.Definition.Ranged && unit.Ammunition > 0 &&
+                (terrain != TileTerrain.Forest || unit.Definition.ForestImmune);
+            if (ranged)
+            {
+                int range = Math.Max(1, unit.Definition.RangedRange + (terrain == TileTerrain.Hill ? 1 : 0));
+                return forward <= range && Math.Abs(lateral) <= range;
+            }
+            if (unit.Definition.MeleeReachPattern == MeleeReachPattern.Short) return forward == 1 && lateral == 0;
+            if (unit.Definition.MeleeReachPattern == MeleeReachPattern.Long)
+                return forward == 1 && Math.Abs(lateral) <= 1 || forward == 2 && lateral == 0;
+            return forward == 1 && Math.Abs(lateral) <= 1;
+        }
+
+        private static bool FacesTarget(TileFacing facing, TileCoord from, TileCoord target)
+        {
+            RelativeToFacing(facing, target.X - from.X, target.Y - from.Y, out int forward, out int lateral);
+            return forward > 0 && Math.Abs(lateral) <= forward;
+        }
+
+        private static bool IsFrontalAntiChargeThreat(TileObservedUnit target, TileCoord chargerPosition)
+        {
+            return target != null && target.Definition != null &&
+                (target.Definition.WeaponControl == TileWeaponControl.Spear || target.Definition.WeaponControl == TileWeaponControl.Pike) &&
+                FacesTarget(target.Facing, target.Position, chargerPosition);
+        }
+
+        private static void RelativeToFacing(TileFacing facing, int dx, int dy, out int forward, out int lateral)
+        {
+            if (facing == TileFacing.East) { forward = dx; lateral = dy; }
+            else if (facing == TileFacing.West) { forward = -dx; lateral = -dy; }
+            else if (facing == TileFacing.North) { forward = dy; lateral = -dx; }
+            else { forward = -dy; lateral = dx; }
+        }
+
+        private static TileTerrain TerrainAt(TileBattleObservation observation, TileCoord position)
+        {
+            if (observation == null) return TileTerrain.Open;
+            TileObservedCell cell = observation.Cells.Find(item => item.Position == position);
+            return cell != null ? cell.Terrain : TileTerrain.Open;
+        }
+
+        private static bool CanChargeThrough(TileObservedUnit unit, TileCoord from, TileCoord to, TileBattleObservation observation)
+        {
+            if (unit == null || unit.Definition == null || from.ManhattanDistance(to) != 1) return false;
+            return TerrainAt(observation, from) != TileTerrain.Forest && TerrainAt(observation, to) != TileTerrain.Forest ||
+                unit.Definition.ForestImmune;
+        }
+
+        private static bool HasFormationSupport(TileObservedUnit unit, List<TileObservedUnit> allies,
+            TileBattleObservation observation)
+        {
+            if (unit == null || unit.Definition == null || unit.Definition.FormationType == TileFormationType.None ||
+                TerrainAt(observation, unit.Position) == TileTerrain.Forest) return false;
+            return allies.Exists(ally => ally.Id != unit.Id && ally.Strength > 0 && ally.State != TileUnitState.Routing &&
+                ally.Definition != null && ally.Definition.FormationType == unit.Definition.FormationType &&
+                ally.Facing == unit.Facing && ally.Position.ManhattanDistance(unit.Position) == 1 &&
+                TerrainAt(observation, ally.Position) != TileTerrain.Forest);
+        }
+
+        private static TileCoord PreferHillPosition(TileObservedUnit unit, TileCoord assigned, TileBattleObservation observation,
+            HashSet<TileCoord> occupied)
+        {
+            if (unit == null || unit.Definition == null || !unit.Definition.Ranged || observation == null) return assigned;
+            TileCoord best = assigned; int bestDistance = int.MaxValue;
+            for (int i = 0; i < observation.Cells.Count; i++)
+            {
+                TileObservedCell cell = observation.Cells[i];
+                if (cell.Terrain != TileTerrain.Hill || occupied.Contains(cell.Position)) continue;
+                int distance = assigned.ManhattanDistance(cell.Position);
+                if (distance < bestDistance || distance == bestDistance && cell.Position.CompareTo(best) < 0)
+                { best = cell.Position; bestDistance = distance; }
+            }
+            return bestDistance <= Math.Max(3, unit.Definition.Actions * 2) ? best : assigned;
+        }
+
+        private static TileCoord PreferTerrainStep(TileObservedUnit unit, TileCoord from, TileCoord desired, TileCoord goal,
+            TileBattleObservation observation, HashSet<TileCoord> occupied, HashSet<TileCoord> reserved)
+        {
+            if (unit == null || unit.Definition == null || observation == null) return desired;
+            TileCoord[] candidates = { desired, new TileCoord(from.X + 1, from.Y), new TileCoord(from.X - 1, from.Y),
+                new TileCoord(from.X, from.Y + 1), new TileCoord(from.X, from.Y - 1) };
+            TileCoord best = desired; int bestScore = int.MaxValue;
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                TileCoord candidate = candidates[i];
+                if (from.ManhattanDistance(candidate) != 1 || candidate.X < 0 || candidate.X >= observation.Width ||
+                    candidate.Y < 0 || candidate.Y >= observation.Height || reserved.Contains(candidate) ||
+                    occupied.Contains(candidate) && candidate != goal) continue;
+                int score = candidate.ManhattanDistance(goal) * 4 + (candidate == desired ? -2 : 0);
+                TileTerrain terrain = TerrainAt(observation, candidate);
+                if (terrain == TileTerrain.Forest)
+                {
+                    if (unit.Definition.Forester) score -= 5;
+                    else if (!unit.Definition.ForestImmune) score += unit.Definition.Ranged ? 14 : 8;
+                }
+                if (terrain == TileTerrain.Hill && unit.Definition.Ranged) score -= 4;
+                if (score < bestScore || score == bestScore && candidate.CompareTo(best) < 0)
+                { best = candidate; bestScore = score; }
+            }
+            return best;
         }
 
         private bool CanAttemptEncirclement(TileObservedUnit unit)
@@ -541,6 +696,7 @@ namespace ProjectX.TileBattle
         {
             if (plan != TileBattlePlan.FlankLeft && plan != TileBattlePlan.FlankRight) return false;
             if (ally.Definition.Cavalry) return true;
+            if (ally.Definition.ReactionTime <= 4 || ally.Definition.Actions >= 3) return true;
             return plan == TileBattlePlan.FlankLeft
                 ? index >= Math.Max(1, allyCount * 2 / 3)
                 : index < Math.Max(1, allyCount / 3);

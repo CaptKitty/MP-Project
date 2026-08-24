@@ -347,10 +347,13 @@ namespace ProjectX.TileBattle
                     ? army.battleDeployment.Formations.Find(item => item != null && item.UnitName == source.name) : null;
                 bool explicitlyReserved = saved != null && saved.Reserve;
                 bool vanguard = f < vanguardSlots && !explicitlyReserved;
-                bool reserve = reinforcement || explicitlyReserved || !vanguard && f >= formations.Count - reserveSlots;
+                // A reinforcing army is an arriving main force, not a collection of tactical reserves.
+                // Deploy all of its formations together on the round after it reaches the battle.
+                bool reserve = !reinforcement && (explicitlyReserved || !vanguard && f >= formations.Count - reserveSlots);
                 if (reinforcement) vanguard = false;
                 if (vanguard) x = side == 0 ? 0 : simulation.Grid.Width - 1;
-                int deploymentRound = !vanguard && !reserve ? simulation.Rules.VanguardRounds + 1 + mainEntryIndex++ % 2 : 0;
+                int deploymentRound = reinforcement ? simulation.CommandRound + 1 :
+                    !vanguard && !reserve ? simulation.Rules.VanguardRounds + 1 + mainEntryIndex++ % 2 : 0;
                 TileBattleUnit unit = new TileBattleUnit { Id = id, Side = side, Definition = definition,
                     Position = new TileCoord(x, row), Facing = side == 0 ? TileFacing.East : TileFacing.West,
                     Strength = definition.Strength, IsVanguard = vanguard, IsReserve = reserve,

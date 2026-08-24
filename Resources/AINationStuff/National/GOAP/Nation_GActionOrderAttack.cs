@@ -19,7 +19,8 @@ public class Nation_GActionOrderAttack : Nation_GAction
         }
         foreach(var a in nation.armies)
         {
-            if(a == null || a.IsPlayer || a.flaglist.Contains("Battle") || a.fieldArmy == null || a.fieldArmy.GrabArmySize() <= 0)
+            if(a == null || a.IsPlayer || a.flaglist.Contains("Battle") || a.fieldArmy == null ||
+                !nation.IsArmyCombatReady(a) || a.fieldArmy.GrabQueuedArmySize() > 0)
             {
                 continue;
             }
@@ -85,6 +86,8 @@ public class Nation_GActionOrderAttack : Nation_GAction
                 continue;
             }
             float score = prio.value - army.GrabDistanceToProvince(prio.province) / 5f + AggroNumber(prio.province);
+            int enemyStrength = nation.GetHostileFieldArmyStrengthNear(prio.province);
+            score -= Mathf.Max(0, enemyStrength - army.fieldArmy.GrabArmySize()) * 10f;
             if (b == null || score > bestScore || Mathf.Approximately(score, bestScore) &&
                 string.CompareOrdinal(prio.province.name, b.province.name) < 0)
             {

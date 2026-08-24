@@ -774,10 +774,13 @@ namespace ProjectX.TileBattle
         private void UpdatePhase()
         {
             if (CommandRound <= Rules.VanguardRounds) Phase = TileBattlePhase.Vanguard;
-            else if (CommandRound <= Rules.VanguardRounds + 2) { Phase = TileBattlePhase.MainDeployment; DeployMainArmy(); }
+            else if (CommandRound <= Rules.VanguardRounds + 2) Phase = TileBattlePhase.MainDeployment;
             else if (CommandRound < Rules.ReserveRound) Phase = TileBattlePhase.MainBattle;
             else if (CommandRound == Rules.ReserveRound) Phase = TileBattlePhase.Reserves;
             else Phase = TileBattlePhase.Decisive;
+            // This also admits complete reinforcing armies whose deployment round occurs
+            // after the battle's initial main-deployment phase.
+            DeployMainArmy();
         }
 
         private void CommitGeneralReserves()

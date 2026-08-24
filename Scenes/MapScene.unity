@@ -1422,6 +1422,8 @@ RectTransform:
   - {fileID: 1783597429}
   - {fileID: 1535873080}
   - {fileID: 1738312642}
+  - {fileID: 1227387001}
+  - {fileID: 714176384}
   m_Father: {fileID: 453340826}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -4126,6 +4128,82 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 689507523}
   m_CullTransparentMesh: 1
+--- !u!1 &714176383
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 714176384}
+  - component: {fileID: 714176386}
+  - component: {fileID: 714176385}
+  m_Layer: 5
+  m_Name: LoyaltyMenu
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &714176384
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 714176383}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 936806392}
+  m_Father: {fileID: 226103556}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: -375}
+  m_SizeDelta: {x: 100, y: 50}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &714176385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 714176383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 0.53396225, b: 0.53396225, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &714176386
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 714176383}
+  m_CullTransparentMesh: 1
 --- !u!1 &718409099
 GameObject:
   m_ObjectHideFlags: 0
@@ -5466,6 +5544,85 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &936806391
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 936806392}
+  - component: {fileID: 936806394}
+  - component: {fileID: 936806393}
+  m_Layer: 5
+  m_Name: LoyaltyCounter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &936806392
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 936806391}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 714176384}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 50}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &936806393
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 936806391}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Text
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 14
+    m_FontStyle: 0
+    m_BestFit: 0
+    m_MinSize: 10
+    m_MaxSize: 40
+    m_Alignment: 4
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: New Text
+--- !u!222 &936806394
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 936806391}
+  m_CullTransparentMesh: 1
 --- !u!1 &969087893
 GameObject:
   m_ObjectHideFlags: 0
@@ -7105,6 +7262,81 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1225632868}
+  m_CullTransparentMesh: 1
+--- !u!1 &1227387000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1227387001}
+  - component: {fileID: 1227387003}
+  - component: {fileID: 1227387002}
+  m_Layer: 5
+  m_Name: CultureMenu
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1227387001
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1227387000}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 226103556}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: -450}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1227387002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1227387000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1227387003
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1227387000}
   m_CullTransparentMesh: 1
 --- !u!1 &1241735696
 GameObject:
@@ -11723,6 +11955,10 @@ MonoBehaviour:
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    LastGrossIncome: 0
+    LastUnitUpkeep: 0
+    UpkeepDebt: 0
+    AIMinimumCampaignArmySize: 10
   SelectedProvince:
     name: 
     identity:
@@ -11746,6 +11982,10 @@ MonoBehaviour:
       NextAIInfrastructureTurn: 0
       AIInfrastructureIntervalTurns: 12
       NextAIEconomyTurn: 0
+      LastGrossIncome: 0
+      LastUnitUpkeep: 0
+      UpkeepDebt: 0
+      AIMinimumCampaignArmySize: 10
     OriginalNation:
       name: 
       ownerIdentity:
@@ -11764,6 +12004,10 @@ MonoBehaviour:
       NextAIInfrastructureTurn: 0
       AIInfrastructureIntervalTurns: 12
       NextAIEconomyTurn: 0
+      LastGrossIncome: 0
+      LastUnitUpkeep: 0
+      UpkeepDebt: 0
+      AIMinimumCampaignArmySize: 10
     state: 
     region: 
     position: {x: 0, y: 0}
@@ -11781,6 +12025,7 @@ MonoBehaviour:
     buildings: []
     constructionOrders: []
     mercenaryPools: []
+    levyEntitlements: []
   width: 0
   height: 0
   OverheadCamera: {fileID: 54361176}
@@ -11829,6 +12074,10 @@ MonoBehaviour:
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    LastGrossIncome: 0
+    LastUnitUpkeep: 0
+    UpkeepDebt: 0
+    AIMinimumCampaignArmySize: 10
   - name: Carthage
     ownerIdentity:
       serializedVersion: 2
@@ -11846,6 +12095,10 @@ MonoBehaviour:
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    LastGrossIncome: 0
+    LastUnitUpkeep: 0
+    UpkeepDebt: 0
+    AIMinimumCampaignArmySize: 10
   - name: Gaul
     ownerIdentity:
       serializedVersion: 2
@@ -11863,6 +12116,10 @@ MonoBehaviour:
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    LastGrossIncome: 0
+    LastUnitUpkeep: 0
+    UpkeepDebt: 0
+    AIMinimumCampaignArmySize: 10
   - name: Spain
     ownerIdentity:
       serializedVersion: 2
@@ -11880,6 +12137,10 @@ MonoBehaviour:
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    LastGrossIncome: 0
+    LastUnitUpkeep: 0
+    UpkeepDebt: 0
+    AIMinimumCampaignArmySize: 10
   - name: Galicia
     ownerIdentity:
       serializedVersion: 2
@@ -11897,6 +12158,10 @@ MonoBehaviour:
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    LastGrossIncome: 0
+    LastUnitUpkeep: 0
+    UpkeepDebt: 0
+    AIMinimumCampaignArmySize: 10
   - name: Egypt
     ownerIdentity:
       serializedVersion: 2
@@ -11914,6 +12179,10 @@ MonoBehaviour:
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    LastGrossIncome: 0
+    LastUnitUpkeep: 0
+    UpkeepDebt: 0
+    AIMinimumCampaignArmySize: 10
   - name: Germania
     ownerIdentity:
       serializedVersion: 2
@@ -11931,6 +12200,10 @@ MonoBehaviour:
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    LastGrossIncome: 0
+    LastUnitUpkeep: 0
+    UpkeepDebt: 0
+    AIMinimumCampaignArmySize: 10
   - name: Franks
     ownerIdentity:
       serializedVersion: 2
@@ -11948,6 +12221,10 @@ MonoBehaviour:
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    LastGrossIncome: 0
+    LastUnitUpkeep: 0
+    UpkeepDebt: 0
+    AIMinimumCampaignArmySize: 10
   - name: Frisia
     ownerIdentity:
       serializedVersion: 2
@@ -11965,6 +12242,10 @@ MonoBehaviour:
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    LastGrossIncome: 0
+    LastUnitUpkeep: 0
+    UpkeepDebt: 0
+    AIMinimumCampaignArmySize: 10
   - name: Hadue
     ownerIdentity:
       serializedVersion: 2
@@ -11982,6 +12263,10 @@ MonoBehaviour:
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    LastGrossIncome: 0
+    LastUnitUpkeep: 0
+    UpkeepDebt: 0
+    AIMinimumCampaignArmySize: 10
   statelist: []
   regionlist: []
   culturelist:
@@ -13406,6 +13691,10 @@ MonoBehaviour:
       NextAIInfrastructureTurn: 0
       AIInfrastructureIntervalTurns: 12
       NextAIEconomyTurn: 0
+      LastGrossIncome: 0
+      LastUnitUpkeep: 0
+      UpkeepDebt: 0
+      AIMinimumCampaignArmySize: 10
     OriginalNation:
       name: 
       ownerIdentity:
@@ -13424,6 +13713,10 @@ MonoBehaviour:
       NextAIInfrastructureTurn: 0
       AIInfrastructureIntervalTurns: 12
       NextAIEconomyTurn: 0
+      LastGrossIncome: 0
+      LastUnitUpkeep: 0
+      UpkeepDebt: 0
+      AIMinimumCampaignArmySize: 10
     state: 
     region: 
     position: {x: 0, y: 0}
@@ -13441,6 +13734,7 @@ MonoBehaviour:
     buildings: []
     constructionOrders: []
     mercenaryPools: []
+    levyEntitlements: []
   turnCounter: 0
   _RecruitTimer: 2
   _DomesticSupplyUsage: 1

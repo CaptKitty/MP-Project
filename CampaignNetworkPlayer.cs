@@ -488,6 +488,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             candidate.fieldArmy.nation.name == sender.AssignedNation);
         Province current = army != null ? army.GrabNearestProvince() : null;
         if (current == null || current.nation != army.fieldArmy.nation) return;
+        if (!army.IsTargetNull()) return;
         current.RaiseAllAvailableRegionLevies(army);
     }
 
@@ -505,6 +506,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         if (army == null || source == null || current == null || source.nation != army.fieldArmy.nation ||
             !current.SharesRegionWith(source)) return;
         source.ReconcileLevyEntitlements();
+        if (!army.IsTargetNull()) return;
         source.RaiseLevy(entitlementId.ToString(), army);
     }
 
@@ -652,7 +654,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 candidate.fieldArmy != null && candidate.fieldArmy.nation != null &&
                 candidate.fieldArmy.nation.name == sender.AssignedNation)
             : FindHumanArmy(rpcParams.Receive.SenderClientId, sender.AssignedNation);
-        if (army == null || army.fieldArmy == null || army.fieldArmy.nation == null)
+        if (army == null || army.fieldArmy == null || army.fieldArmy.nation == null || !army.IsTargetNull())
         {
             return;
         }

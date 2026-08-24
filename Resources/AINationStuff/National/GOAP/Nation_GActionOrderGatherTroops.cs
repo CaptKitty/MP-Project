@@ -30,7 +30,7 @@ public class Nation_GActionOrderGatherTroops : Nation_GAction
                 continue;
             }
             //if(a.CanArmyAct() == true)
-            if(a.fieldArmy.MaxArmySize == a.fieldArmy.GrabArmySize())
+            if(nationalbrainy.GrabNation().IsArmyCombatReady(a, true))
             {
                 continue;
             }

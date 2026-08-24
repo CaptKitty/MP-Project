@@ -428,6 +428,15 @@ public class UIBuildingMenu : MonoBehaviour
         int garrison = building.definition != null ? building.DefinitionGarrisonCapacity :
             building.BuildingId.Equals("Fort", System.StringComparison.OrdinalIgnoreCase) ? building.level * 3 : 0;
         if (garrison > 0) { text.Append("\n- Garrison capacity: +").Append(garrison); any = true; }
+        if (building.BuildingId.Equals("Fort", System.StringComparison.OrdinalIgnoreCase))
+        { text.Append("\n- Regional loyalty: +").Append((building.level * .1f).ToString("0.#")).Append(" per turn"); any = true; }
+        if (building.BuildingId.Equals("Temple", System.StringComparison.OrdinalIgnoreCase))
+        {
+            text.Append("\n- Regional loyalty: +").Append((building.level * .1f).ToString("0.#")).Append(" per turn");
+            text.Append("\n- Provincial primary culture: +").Append((building.level * .1f).ToString("0.#")).Append("% per turn");
+            text.Append("\n- Upkeep: 1 gold per turn");
+            any = true;
+        }
         if (names.Count > 0) { text.Append("\n- Recruitment:\n  ").Append(string.Join("\n  ", names)); any = true; }
 
         if (province != null && province.nation != null)

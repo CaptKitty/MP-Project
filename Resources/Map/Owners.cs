@@ -252,7 +252,9 @@ public class Owners : MonoBehaviour
     {
         turncounter++;
         foreach (FieldArmyHolder army in armylist)
-            if (army != null && army.fieldArmy != null) army.fieldArmy.ProcessRecruitmentTick();
+            if (army != null && army.fieldArmy != null && army.IsTargetNull()) army.fieldArmy.ProcessRecruitmentTick();
+        foreach (CampaignRegion region in regionlist)
+            if (region != null) region.ProcessLoyaltyTurn();
         foreach (var nation in nationlist)
         {
             nation.TakeTurn();
@@ -290,6 +292,16 @@ public class Province
     public List<string> AdjacentProvinces = new List<string>();
 
     public List<Culture> cultures;
+    public Culture PrimaryCulture => cultures != null && cultures.Count > 0 ? cultures[0] : null;
+    public float GetCulturePercentage(string cultureName)
+    {
+        if (string.IsNullOrEmpty(cultureName) || cultures == null || population <= 0) return 0f;
+        int culturalPopulation = 0;
+        foreach (Culture culture in cultures)
+            if (culture != null && string.Equals(culture.name, cultureName, System.StringComparison.OrdinalIgnoreCase))
+                culturalPopulation += Mathf.Max(0, culture.population);
+        return culturalPopulation * 100f / population;
+    }
     public int taxincome;
     public int taxpercentage;
     public int levyincome;
@@ -345,11 +357,27 @@ public class Province
             });
         }
     }
+    public void EnsureCulture()
+    {
+        if (cultures == null) cultures = new List<Culture>();
+        cultures.RemoveAll(culture => culture == null);
+        if (cultures.Count > 0) return;
+        string cultureName = nation != null && nation.culture != null
+            ? nation.culture.name
+            : nation != null ? nation.name : "Unassigned";
+        cultures.Add(new Culture
+        {
+            name = cultureName,
+            ownerIdentity = nation != null ? nation.ownerIdentity : new Color32(128, 128, 128, 255),
+            population = Mathf.Max(1, population)
+        });
+    }
     public void ReconcileLevyEntitlements()
     {
         if (levyEntitlements == null) levyEntitlements = new List<ProvinceLevyEntitlement>();
         foreach (ProvinceLevyEntitlement entitlement in levyEntitlements) if (entitlement != null) entitlement.eligible = false;
-        if (nation == null) return;
+        CampaignRegion campaignRegion = Owners.Instance != null ? Owners.Instance.CallRegionByString(region) : null;
+        if (nation == null || campaignRegion != null && !campaignRegion.AllowsLevyCallups(nation)) return;
         foreach (LevyGrantRule rule in LevySystem.ResolveRules(nation))
         foreach (ProvinceBuilding building in buildings)
         {
@@ -399,6 +427,8 @@ public class Province
     public List<ProvinceLevyEntitlement> GetAvailableRegionLevies(Nation owner)
     {
         List<ProvinceLevyEntitlement> result = new List<ProvinceLevyEntitlement>();
+        CampaignRegion campaignRegion = Owners.Instance != null ? Owners.Instance.CallRegionByString(region) : null;
+        if (campaignRegion != null && !campaignRegion.AllowsLevyCallups(owner)) return result;
         foreach (Province province in GetOccupiedRegionProvinces(owner))
         {
             province.ReconcileLevyEntitlements();
@@ -411,8 +441,10 @@ public class Province
 
     public bool RaiseLevy(string entitlementId, FieldArmyHolder army)
     {
+        CampaignRegion campaignRegion = Owners.Instance != null ? Owners.Instance.CallRegionByString(region) : null;
         ProvinceLevyEntitlement entitlement = levyEntitlements.Find(item => item != null && item.id == entitlementId);
-        if (entitlement == null || army == null || army.fieldArmy == null || !entitlement.eligible ||
+        if (campaignRegion != null && !campaignRegion.AllowsLevyCallups(nation) || entitlement == null || army == null ||
+            army.fieldArmy == null || !army.IsTargetNull() || !entitlement.eligible ||
             entitlement.state != LevyEntitlementState.Available || army.fieldArmy.nation != nation ||
             army.fieldArmy.GrabArmySize() + army.fieldArmy.GrabQueuedArmySize() >= army.fieldArmy.MaxArmySize) return false;
         LevyGrantRule rule = LevySystem.FindRule(nation, entitlement.ruleId);
@@ -555,7 +587,33 @@ public class Province
             if (building != null && building.definition != null) income += building.DefinitionGoldIncome;
         if (farm != null && farm.definition == null)
             income += Mathf.Max(0, farm.level) * CampaignEconomy.FarmIncomePerLevel;
-        return CampaignEconomy.ApplyGoldIncomeRate(income);
+        CampaignRegion campaignRegion = Owners.Instance != null ? Owners.Instance.CallRegionByString(region) : null;
+        float loyalty = campaignRegion != null ? campaignRegion.GetLoyalty(nation) : 100f;
+        int loyaltyAdjustedIncome = Mathf.RoundToInt(income * Mathf.Clamp(loyalty, 0f, 100f) / 100f);
+        return CampaignEconomy.ApplyGoldIncomeRate(loyaltyAdjustedIncome);
+    }
+
+    public int GetTempleUpkeep()
+    {
+        return buildings != null && buildings.Exists(building => building != null &&
+            building.BuildingId.Equals("Temple", System.StringComparison.OrdinalIgnoreCase)) ? 1 : 0;
+    }
+
+    public void ApplyTempleCultureInfluence()
+    {
+        ProvinceBuilding temple = GetBuilding("Temple");
+        Culture primary = PrimaryCulture;
+        if (temple == null || primary == null || cultures == null || cultures.Count < 2 || population <= 0) return;
+        int transfer = Mathf.Max(1, Mathf.RoundToInt(population * .001f * Mathf.Max(1, temple.level)));
+        for (int i = cultures.Count - 1; i >= 0 && transfer > 0; i--)
+        {
+            Culture culture = cultures[i];
+            if (culture == null || culture == primary || culture.population <= 0) continue;
+            int moved = Mathf.Min(transfer, culture.population);
+            culture.population -= moved;
+            primary.population += moved;
+            transfer -= moved;
+        }
     }
 
     public ProvinceBuilding GetBuildingInSlot(int slotIndex)
@@ -761,6 +819,30 @@ public class Nation
     public int LastGrossIncome;
     public int LastUnitUpkeep;
     public int UpkeepDebt;
+    [Min(1)] public int AIMinimumCampaignArmySize = 10;
+
+    public bool IsArmyCombatReady(FieldArmyHolder army, bool includeQueuedRecruitment = false)
+    {
+        if (army == null || army.fieldArmy == null) return false;
+        int maximum = Mathf.Max(1, army.fieldArmy.MaxArmySize);
+        int size = army.fieldArmy.GrabArmySize();
+        if (includeQueuedRecruitment) size += army.fieldArmy.GrabQueuedArmySize();
+        return size >= Mathf.Min(maximum, Mathf.Max(1, AIMinimumCampaignArmySize));
+    }
+
+    public int GetHostileFieldArmyStrengthNear(Province province, float radius = 75f)
+    {
+        if (province == null || Owners.Instance == null) return 0;
+        int strongest = 0;
+        foreach (FieldArmyHolder other in Owners.Instance.armylist)
+        {
+            if (other == null || other.fieldArmy == null || other.fieldArmy.nation == null ||
+                other.fieldArmy.nation == this || other.flaglist.Contains("Battle")) continue;
+            if (other.GrabDistanceToProvince(province) <= radius)
+                strongest = Mathf.Max(strongest, other.fieldArmy.GrabArmySize());
+        }
+        return strongest;
+    }
 
     public void TakeTurn()
     {
@@ -772,6 +854,8 @@ public class Nation
         LastUnitUpkeep = 0;
         foreach (FieldArmyHolder army in armies)
             if (army != null && army.fieldArmy != null) LastUnitUpkeep += army.fieldArmy.GetUpkeep();
+        foreach (Province province in Owners.Instance.provincelist)
+            if (province != null && province.nation == this) LastUnitUpkeep += province.GetTempleUpkeep();
         int netIncome = LastGrossIncome - LastUnitUpkeep;
         if (netIncome >= 0) Gold += netIncome;
         else
@@ -830,60 +914,85 @@ public class Nation
         string selectedBuildingId = null;
         Province selectedProvince = null;
         ProvinceBuilding selectedExisting = null;
-        float lowestCompletion = float.MaxValue;
+        float bestValue = 0f;
         foreach (string buildingId in NationContentResolver.ResolveBuildings(this))
         {
-            if (!NationContentResolver.IsRecruitmentBuilding(this, buildingId)) continue;
-            int usefulMaximum = NationContentResolver.UsefulBuildingMaximumLevel(this, buildingId);
-            if (usefulMaximum <= 0) continue;
+            if (string.Equals(buildingId, "Farm", System.StringComparison.OrdinalIgnoreCase)) continue;
             bool alreadyConstructing = Owners.Instance.provincelist.Exists(province =>
                 province != null && province.nation == this && province.constructionOrders != null &&
                 province.constructionOrders.Exists(order => order != null &&
                     string.Equals(order.buildingId, buildingId, System.StringComparison.OrdinalIgnoreCase)));
             if (alreadyConstructing) continue;
 
-            Province selected = null;
-            ProvinceBuilding existing = null;
             foreach (Province province in Owners.Instance.provincelist)
             {
                 if (province == null || province.nation != this) continue;
-                ProvinceBuilding candidate = province.GetBuilding(buildingId);
-                if (candidate == null || candidate.level >= usefulMaximum) continue;
-                if (existing == null || candidate.level > existing.level)
-                {
-                    selected = province;
-                    existing = candidate;
-                }
+                ProvinceBuilding existing = province.GetBuilding(buildingId);
+                int candidateLevel = existing != null ? existing.level + 1 : 1;
+                if ((existing == null && FirstFreeBuildingSlot(province) < 0) ||
+                    !NationContentResolver.CanConstructBuildingLevel(this, buildingId, candidateLevel)) continue;
+                float value = EvaluateBuildingLevel(province, buildingId, candidateLevel, existing);
+                if (value <= bestValue) continue;
+                bestValue = value;
+                selectedBuildingId = buildingId;
+                selectedProvince = province;
+                selectedExisting = existing;
             }
-
-            if (existing == null)
-            {
-                selected = Owners.Instance.provincelist.Find(province =>
-                    province != null && province.nation == this && FirstFreeBuildingSlot(province) >= 0);
-                if (selected == null) continue;
-            }
-
-            float completion = existing != null ? (float)existing.level / usefulMaximum : 0f;
-            if (completion >= lowestCompletion) continue;
-            lowestCompletion = completion;
-            selectedBuildingId = buildingId;
-            selectedProvince = selected;
-            selectedExisting = existing;
         }
 
         if (selectedProvince == null || string.IsNullOrEmpty(selectedBuildingId)) return;
-        int targetLevel = selectedExisting != null ? selectedExisting.level + 1 : 1;
+        int selectedTargetLevel = selectedExisting != null ? selectedExisting.level + 1 : 1;
         int slot = selectedExisting != null ? selectedExisting.slotIndex : FirstFreeBuildingSlot(selectedProvince);
-        int goldCost = CampaignEconomy.BuildingGoldCost(selectedBuildingId, targetLevel);
-        if (Gold < goldCost || !selectedProvince.BeginBuildingConstruction(slot, selectedBuildingId, targetLevel,
-            BuildingDefinition.ConstructionTicks(selectedBuildingId, targetLevel), true)) return;
+        int goldCost = CampaignEconomy.BuildingGoldCost(selectedBuildingId, selectedTargetLevel);
+        if (Gold < goldCost || !selectedProvince.BeginBuildingConstruction(slot, selectedBuildingId, selectedTargetLevel,
+            BuildingDefinition.ConstructionTicks(selectedBuildingId, selectedTargetLevel), true)) return;
 
         Gold -= goldCost;
         if (selectedBuildingId.Equals("Barracks", System.StringComparison.OrdinalIgnoreCase))
-            faction.BarracksLevel = Mathf.Max(faction.BarracksLevel, targetLevel);
+            faction.BarracksLevel = Mathf.Max(faction.BarracksLevel, selectedTargetLevel);
         else if (selectedBuildingId.IndexOf("Mercenary", System.StringComparison.OrdinalIgnoreCase) >= 0)
-            faction.MercLevel = Mathf.Max(faction.MercLevel, targetLevel);
+            faction.MercLevel = Mathf.Max(faction.MercLevel, selectedTargetLevel);
         NextAIInfrastructureTurn = Owners.Instance.turncounter + Mathf.Max(1, AIInfrastructureIntervalTurns);
+    }
+
+    private float EvaluateBuildingLevel(Province province, string buildingId, int targetLevel, ProvinceBuilding existing)
+    {
+        BuildingDefinition definition = BuildingDefinition.Find(buildingId);
+        BuildingLevelDefinition level = definition != null ? definition.GetLevel(targetLevel) : null;
+        float benefit = 0f;
+        if (level != null)
+        {
+            CampaignRegion campaignRegion = Owners.Instance != null ? Owners.Instance.CallRegionByString(province.region) : null;
+            float incomeEfficiency = (campaignRegion != null ? Mathf.Clamp(campaignRegion.GetLoyalty(this), 0f, 100f) : 100f) / 100f;
+            benefit += Mathf.Max(0, level.goldIncome) * incomeEfficiency * (LastGrossIncome < LastUnitUpkeep ? 16f : 8f);
+            benefit += Mathf.Max(0, level.garrisonCapacity) * 8f;
+            benefit += level.unitUnlocks != null ? level.unitUnlocks.Count * 70f : 0f;
+            benefit += level.flags != null ? level.flags.Count * 45f : 0f;
+            benefit += level.displayedEffects != null ? level.displayedEffects.Count * 30f : 0f;
+        }
+
+        foreach (NationUnitEntry entry in NationContentResolver.ResolveUnits(this))
+            if (entry != null && entry.unit != null && entry.minimumBuildingLevel == targetLevel &&
+                string.Equals(entry.RequiredBuildingId, buildingId, System.StringComparison.OrdinalIgnoreCase))
+                benefit += 55f + NationContentResolver.GetUnitTier(this, entry.unit) * 20f;
+
+        ProvinceBuilding projected = new ProvinceBuilding
+        {
+            definition = definition, id = buildingId, level = targetLevel,
+            maxLevel = definition != null ? definition.maximumLevel : ProvinceBuilding.MaximumLevelFor(buildingId),
+            slotIndex = existing != null ? existing.slotIndex : FirstFreeBuildingSlot(province)
+        };
+        foreach (LevyGrantRule rule in LevySystem.ResolveRules(this))
+            if (rule != null && rule.Applies(province, projected) &&
+                (existing == null || !rule.Applies(province, existing)))
+                benefit += Mathf.Max(1, rule.formationsPerBuilding) *
+                    (90f + (rule.unit != null ? Mathf.Max(0, rule.unit.cost) * .15f : 0f));
+
+        if (benefit <= 0f) return 0f;
+        int cost = CampaignEconomy.BuildingGoldCost(buildingId, targetLevel);
+        int ticks = BuildingDefinition.ConstructionTicks(buildingId, targetLevel);
+        float affordability = Gold >= cost + 100 ? 1f : Gold >= cost ? .55f : 0f;
+        return benefit * affordability / (1f + cost / 250f + ticks / 30f);
     }
 
     private void OrderIdleFullArmiesToFrontier()
@@ -901,15 +1010,20 @@ public class Nation
         {
             if (army == null || army.IsHumanControlled || army.fieldArmy == null ||
                 army.flaglist.Contains("Battle") || !army.IsTargetNull()) continue;
-            if (army.fieldArmy.GrabArmySize() < Mathf.Max(1, army.fieldArmy.MaxArmySize)) continue;
+            // Ten formations are enough to campaign against ordinary provinces.
+            // Requiring 100% strength deadlocked low-income factions below their cap.
+            if (!IsArmyCombatReady(army) || army.fieldArmy.GrabQueuedArmySize() > 0) continue;
             Province targetProvince = null;
             float bestDistance = float.MaxValue;
             foreach (Province candidate in candidates)
             {
                 float distance = army.GrabDistanceToProvince(candidate);
-                if (distance < bestDistance || Mathf.Approximately(distance, bestDistance) &&
+                int enemyStrength = GetHostileFieldArmyStrengthNear(candidate);
+                int danger = Mathf.Max(0, enemyStrength - army.fieldArmy.GrabArmySize());
+                float riskAdjustedDistance = distance + danger * 50f;
+                if (riskAdjustedDistance < bestDistance || Mathf.Approximately(riskAdjustedDistance, bestDistance) &&
                     (targetProvince == null || string.CompareOrdinal(candidate.name, targetProvince.name) < 0))
-                { targetProvince = candidate; bestDistance = distance; }
+                { targetProvince = candidate; bestDistance = riskAdjustedDistance; }
             }
             if (targetProvince == null) continue;
             army.SetTarget(targetProvince);
@@ -936,7 +1050,7 @@ public class Nation
     }
     public bool ReinforceArmy(FieldArmyHolder army)
     {
-        if (army == null || army.fieldArmy == null ||
+        if (army == null || army.fieldArmy == null || !army.IsTargetNull() ||
             army.fieldArmy.GrabArmySize() + army.fieldArmy.GrabQueuedArmySize() >= army.fieldArmy.MaxArmySize) return false;
         if (Owners.Instance.turncounter < army.NextAIReinforcementTurn) return false;
         Province province = army.GrabNearestProvince();
@@ -945,10 +1059,8 @@ public class Nation
             List<ProvinceLevyEntitlement> availableLevies = province.GetAvailableRegionLevies(this);
             if (availableLevies.Count > 0)
             {
-                ProvinceLevyEntitlement levy = availableLevies[0];
-                Province levyProvince = province.GetOccupiedRegionProvinces(this).Find(candidate =>
-                    candidate.levyEntitlements != null && candidate.levyEntitlements.Contains(levy));
-                if (levyProvince != null && levyProvince.RaiseLevy(levy.id, army))
+                int raised = province.RaiseAllAvailableRegionLevies(army);
+                if (raised > 0)
                 {
                     army.NextAIReinforcementTurn = Owners.Instance.turncounter + Mathf.Max(1, army.AIReinforcementIntervalTurns);
                     return true;
@@ -1073,11 +1185,142 @@ public class State
 }
 
 [System.Serializable]
+public class RegionalLoyaltyShare
+{
+    public string nationName;
+    [Range(0f, 100f)] public float loyalty;
+}
+
+[System.Serializable]
 public class CampaignRegion
 {
     public string name;
     public Color32 identity;
+    [Range(0f, 100f)] public float loyalty = 0f;
+    public List<RegionalLoyaltyShare> loyaltyShares = new List<RegionalLoyaltyShare>();
     public List<Province> provincelist = new List<Province>();
+
+    public float GetLoyalty(Nation nation)
+    {
+        if (nation == null) return loyalty;
+        if (loyaltyShares == null) loyaltyShares = new List<RegionalLoyaltyShare>();
+        RegionalLoyaltyShare share = loyaltyShares.Find(item => item != null && item.nationName == nation.name);
+        return share != null ? share.loyalty : 0f;
+    }
+
+    public bool AllowsLevyCallups(Nation nation) => GetLoyalty(nation) > 50f;
+
+    public void SetLoyalty(Nation nation, float value)
+    {
+        if (nation == null) { loyalty = Mathf.Clamp(value, 0f, 100f); return; }
+        if (loyaltyShares == null) loyaltyShares = new List<RegionalLoyaltyShare>();
+        RegionalLoyaltyShare share = loyaltyShares.Find(item => item != null && item.nationName == nation.name);
+        if (share == null) { share = new RegionalLoyaltyShare { nationName = nation.name }; loyaltyShares.Add(share); }
+        share.loyalty = Mathf.Clamp(value, 0f, 100f);
+    }
+
+    public void ChangeLoyalty(Nation nation, float amount) { SetLoyalty(nation, GetLoyalty(nation) + amount); }
+
+    public Nation ControllingNation()
+    {
+        Nation result = null;
+        int best = 0;
+        if (provincelist == null) return null;
+        foreach (Province province in provincelist)
+        {
+            if (province == null || province.nation == null) continue;
+            int count = provincelist.FindAll(candidate => candidate != null && candidate.nation == province.nation).Count;
+            if (count > best) { best = count; result = province.nation; }
+        }
+        return result;
+    }
+
+    public float PrimaryCultureShare(Nation controllingNation)
+    {
+        if (controllingNation == null || controllingNation.culture == null || string.IsNullOrEmpty(controllingNation.culture.name)) return 0f;
+        int total = 0;
+        int matching = 0;
+        foreach (Province province in GetProvincesOwnedBy(controllingNation))
+        {
+            total += Mathf.Max(0, province.population);
+            if (province.cultures == null) continue;
+            foreach (Culture culture in province.cultures)
+                if (culture != null && string.Equals(culture.name, controllingNation.culture.name,
+                    System.StringComparison.OrdinalIgnoreCase)) matching += Mathf.Max(0, culture.population);
+        }
+        return total > 0 ? Mathf.Clamp01((float)matching / total) : 0f;
+    }
+
+    public float LoyaltyDelta(Nation controllingNation)
+    {
+        if (controllingNation == null) return 0f;
+        float delta = -.2f;
+        delta += .5f * PrimaryCultureShare(controllingNation);
+        foreach (Province province in GetProvincesOwnedBy(controllingNation))
+        {
+            ProvinceBuilding fort = province.GetBuilding("Fort");
+            ProvinceBuilding temple = province.GetBuilding("Temple");
+            if (fort != null) delta += .1f * Mathf.Max(1, fort.level);
+            if (temple != null) delta += .1f * Mathf.Max(1, temple.level);
+        }
+        return delta;
+    }
+
+    public List<string> LoyaltyInfluenceLines(Nation controllingNation)
+    {
+        List<string> result = new List<string> { "Taxes: -0.2" };
+        float cultureShare = PrimaryCultureShare(controllingNation);
+        result.Add("Primary culture (" + (cultureShare * 100f).ToString("0.#") + "%): +" +
+            (.5f * cultureShare).ToString("0.##"));
+        int fortLevels = 0, templeLevels = 0;
+        foreach (Province province in GetProvincesOwnedBy(controllingNation))
+        {
+            ProvinceBuilding fort = province.GetBuilding("Fort");
+            ProvinceBuilding temple = province.GetBuilding("Temple");
+            if (fort != null) fortLevels += Mathf.Max(1, fort.level);
+            if (temple != null) templeLevels += Mathf.Max(1, temple.level);
+        }
+        result.Add("Forts (" + fortLevels + " levels): +" + (fortLevels * .1f).ToString("0.#"));
+        result.Add("Temples (" + templeLevels + " levels): +" + (templeLevels * .1f).ToString("0.#"));
+        result.Add("Net per turn: " + (LoyaltyDelta(controllingNation) >= 0f ? "+" : string.Empty) +
+            LoyaltyDelta(controllingNation).ToString("0.##"));
+        return result;
+    }
+
+    public void ProcessLoyaltyTurn()
+    {
+        List<Nation> owners = new List<Nation>();
+        foreach (Province province in provincelist)
+            if (province != null && province.nation != null && !owners.Contains(province.nation)) owners.Add(province.nation);
+        foreach (Nation owner in owners)
+        {
+            ChangeLoyalty(owner, LoyaltyDelta(owner));
+            foreach (Province province in GetProvincesOwnedBy(owner)) province.ApplyTempleCultureInfluence();
+            if (GetLoyalty(owner) < 25f) RepatriateLevies(owner);
+        }
+    }
+
+    private void RepatriateLevies(Nation owner)
+    {
+        if (Owners.Instance == null || provincelist == null) return;
+        foreach (Province province in GetProvincesOwnedBy(owner))
+        foreach (ProvinceLevyEntitlement entitlement in province.levyEntitlements)
+        {
+            if (entitlement == null) continue;
+            if (entitlement.state == LevyEntitlementState.Mobilizing)
+            {
+                entitlement.state = LevyEntitlementState.Available;
+                entitlement.remainingTicks = 0;
+                entitlement.raisedArmyId = null;
+            }
+            else if (entitlement.state == LevyEntitlementState.Raised)
+            {
+                FieldArmyHolder army = Owners.Instance.armylist.Find(candidate => candidate != null &&
+                    candidate.fieldArmy != null && candidate.NetworkArmyId == entitlement.raisedArmyId);
+                if (army != null) army.fieldArmy.DemobilizeLevy(entitlement.id);
+            }
+        }
+    }
 
     public int Population
     {

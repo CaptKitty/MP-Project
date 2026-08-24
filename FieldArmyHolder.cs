@@ -398,7 +398,14 @@ public class FieldArmyHolder : MonoBehaviour
     public void ConquerProvince(Province province)
     {
         Nation previousOwner = province.nation;
+        CampaignRegion conqueredRegion = Owners.Instance != null ? Owners.Instance.CallRegionByString(province.region) : null;
+        bool alreadyOwnedRegionPart = conqueredRegion != null && fieldArmy.nation != null &&
+            conqueredRegion.provincelist.Exists(candidate => candidate != null && candidate != province && candidate.nation == fieldArmy.nation);
         province.nation = fieldArmy.nation;
+        if (previousOwner != fieldArmy.nation && Owners.Instance != null)
+        {
+            if (conqueredRegion != null && !alreadyOwnedRegionPart) conqueredRegion.SetLoyalty(fieldArmy.nation, 0f);
+        }
         if (fieldArmy.nation != null && fieldArmy.nation.nationalbrainy != null)
             fieldArmy.nation.nationalbrainy.ReSetPriorities();
         if (previousOwner != null && previousOwner != fieldArmy.nation && previousOwner.nationalbrainy != null)

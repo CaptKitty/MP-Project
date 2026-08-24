@@ -190,6 +190,11 @@ public class RecruitmentMenu : MonoBehaviour
                 button.gameObject.AddComponent<LayoutElement>().preferredHeight = 64f;
             }
         }
+        if (!army.IsTargetNull())
+        {
+            AddMessage("Recruitment and levy call-ups are paused while this army is moving.");
+            return;
+        }
         AddHeader("Regional units");
         if (current.nation != army.fieldArmy.nation)
         {
@@ -248,6 +253,7 @@ public class RecruitmentMenu : MonoBehaviour
 
     private void Recruit(UnitSaveData unit, bool mercenary, Province source)
     {
+        if (army == null || !army.IsTargetNull()) return;
         if (mercenary && !ProvinceMercenaryPool.Enabled) return;
         if (CampaignNetworkPlayer.Local != null && CampaignNetworkPlayer.Local.IsSpawned)
         {
@@ -282,6 +288,7 @@ public class RecruitmentMenu : MonoBehaviour
 
     private void RaiseLevy(ProvinceLevyEntitlement entitlement, Province source)
     {
+        if (army == null || !army.IsTargetNull()) return;
         if (entitlement == null || source == null || army == null) return;
         if (CampaignNetworkPlayer.Local != null && CampaignNetworkPlayer.Local.IsSpawned)
             CampaignNetworkPlayer.Local.RequestRaiseLevy(entitlement.id, source.name);

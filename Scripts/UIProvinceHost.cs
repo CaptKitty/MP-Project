@@ -9,8 +9,13 @@ public class UIProvinceHost : MonoBehaviour
     private Text provinceName;
     private Text provinceOwnerName;
     private UIBuildingMenu buildingMenu;
+    private UIRegionalCultureChart cultureChart;
+    private UIRegionalLoyaltyDisplay loyaltyDisplay;
     private string lastOwnerName;
+    private string lastAdministrationSummary;
     private int lastBuildingSignature;
+    private int lastCultureSignature;
+    private int lastRegionalLoyalty = int.MinValue;
     private int lastNationGold = int.MinValue;
     private Button raiseArmyButton;
     private Button recruitUnitsButton;
@@ -39,7 +44,8 @@ public class UIProvinceHost : MonoBehaviour
         {
             string owner = LoadedProvince.nation != null ? LoadedProvince.nation.name : "Unowned";
             int gold = LoadedProvince.nation != null ? LoadedProvince.nation.Gold : 0;
-            if (owner != lastOwnerName || gold != lastNationGold) RefreshHeader();
+            string administration = AdministrationSummary(LoadedProvince);
+            if (owner != lastOwnerName || gold != lastNationGold || administration != lastAdministrationSummary) RefreshHeader();
             int signature = RegionBuildingSignature(LoadedProvince);
             if (signature != lastBuildingSignature)
             {
@@ -47,6 +53,15 @@ public class UIProvinceHost : MonoBehaviour
                 if (buildingMenu != null) buildingMenu.LoadProvince(LoadedProvince, this);
                 RepositionRecruitUnitsButton();
             }
+            int cultureSignature = RegionCultureSignature(LoadedProvince);
+            if (cultureSignature != lastCultureSignature)
+            {
+                lastCultureSignature = cultureSignature;
+                RefreshCultureChart();
+            }
+            CampaignRegion loadedRegion = Owners.Instance != null ? Owners.Instance.CallRegionByString(LoadedProvince.region) : null;
+            int regionalLoyalty = loadedRegion != null ? Mathf.RoundToInt(loadedRegion.loyalty * 10f) : 0;
+            if (regionalLoyalty != lastRegionalLoyalty) RefreshLoyaltyDisplay();
         }
 
         FieldArmyHolder selectedArmy = FieldArmyHolder.SelectedPlayerArmy;
@@ -63,6 +78,8 @@ public class UIProvinceHost : MonoBehaviour
         ResolveReferences();
         LoadedProvince = province;
         lastBuildingSignature = RegionBuildingSignature(province);
+        lastCultureSignature = RegionCultureSignature(province);
+        lastRegionalLoyalty = int.MinValue;
         RefreshHeader();
         if (buildingMenu != null) buildingMenu.LoadProvince(province, this);
         RepositionRecruitUnitsButton();
@@ -73,6 +90,37 @@ public class UIProvinceHost : MonoBehaviour
         provinceName = provinceName != null ? provinceName : FindText("ProvinceName");
         provinceOwnerName = provinceOwnerName != null ? provinceOwnerName : FindText("ProvinceOwnerName");
         buildingMenu = buildingMenu != null ? buildingMenu : GetComponentInChildren<UIBuildingMenu>(true);
+        if (cultureChart == null)
+        {
+            Transform cultureMenu = FindTransform("CultureMenu");
+            if (cultureMenu != null)
+            {
+                Image oldBackground = cultureMenu.GetComponent<Image>();
+                if (oldBackground != null) oldBackground.enabled = false;
+                cultureChart = cultureMenu.GetComponentInChildren<UIRegionalCultureChart>(true);
+                if (cultureChart == null)
+                {
+                    GameObject chartObject = new GameObject("RegionalCultureChart", typeof(RectTransform),
+                        typeof(CanvasRenderer), typeof(UIRegionalCultureChart));
+                    chartObject.layer = gameObject.layer;
+                    chartObject.transform.SetParent(cultureMenu, false);
+                    RectTransform chartRect = chartObject.GetComponent<RectTransform>();
+                    chartRect.anchorMin = Vector2.zero;
+                    chartRect.anchorMax = Vector2.one;
+                    chartRect.offsetMin = chartRect.offsetMax = Vector2.zero;
+                    cultureChart = chartObject.GetComponent<UIRegionalCultureChart>();
+                }
+            }
+        }
+        if (loyaltyDisplay == null)
+        {
+            Transform loyaltyMenu = FindTransform("LoyaltyMenu");
+            if (loyaltyMenu != null)
+            {
+                loyaltyDisplay = loyaltyMenu.GetComponent<UIRegionalLoyaltyDisplay>();
+                if (loyaltyDisplay == null) loyaltyDisplay = loyaltyMenu.gameObject.AddComponent<UIRegionalLoyaltyDisplay>();
+            }
+        }
         if (raiseArmyButton == null) CreateRaiseArmyButton();
     }
 
@@ -84,6 +132,13 @@ public class UIProvinceHost : MonoBehaviour
         return null;
     }
 
+    private Transform FindTransform(string objectName)
+    {
+        Transform[] children = GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < children.Length; i++) if (children[i].name == objectName) return children[i];
+        return null;
+    }
+
     private void RefreshHeader()
     {
         if (LoadedProvince == null)
@@ -91,6 +146,7 @@ public class UIProvinceHost : MonoBehaviour
             if (provinceName != null) provinceName.text = "No province selected";
             if (provinceOwnerName != null) provinceOwnerName.text = string.Empty;
             lastOwnerName = null;
+            lastAdministrationSummary = null;
             return;
         }
 
@@ -99,9 +155,64 @@ public class UIProvinceHost : MonoBehaviour
             : LoadedProvince.name;
         lastOwnerName = LoadedProvince.nation != null ? LoadedProvince.nation.name : "Unowned";
         lastNationGold = LoadedProvince.nation != null ? LoadedProvince.nation.Gold : 0;
-        if (provinceOwnerName != null) provinceOwnerName.text = lastOwnerName;
+        lastAdministrationSummary = AdministrationSummary(LoadedProvince);
+        if (provinceOwnerName != null) provinceOwnerName.text = lastOwnerName + " | " + lastAdministrationSummary;
+        RefreshCultureChart();
+        RefreshLoyaltyDisplay();
         RefreshRaiseArmyButton();
         RefreshRecruitUnitsButton();
+    }
+
+    private static string AdministrationSummary(Province province)
+    {
+        if (province == null) return string.Empty;
+        string culture = "Unassigned 100%";
+        if (province.cultures != null && province.cultures.Count > 0)
+        {
+            System.Collections.Generic.List<string> shares = new System.Collections.Generic.List<string>();
+            foreach (Culture entry in province.cultures)
+                if (entry != null && !string.IsNullOrEmpty(entry.name))
+                    shares.Add(entry.name + " " + province.GetCulturePercentage(entry.name).ToString("0.#") + "%");
+            if (shares.Count > 0) culture = string.Join(", ", shares);
+        }
+        CampaignRegion region = Owners.Instance != null ? Owners.Instance.CallRegionByString(province.region) : null;
+        return "Cultures: " + culture + " | Region loyalty: " + (region != null ? region.loyalty.ToString("0.#") : "0") + "%";
+    }
+
+    private void RefreshCultureChart()
+    {
+        if (cultureChart == null || LoadedProvince == null) return;
+        CampaignRegion region = Owners.Instance != null ? Owners.Instance.CallRegionByString(LoadedProvince.region) : null;
+        cultureChart.LoadRegion(region, LoadedProvince);
+    }
+
+    private void RefreshLoyaltyDisplay()
+    {
+        if (loyaltyDisplay == null || LoadedProvince == null) return;
+        CampaignRegion region = Owners.Instance != null ? Owners.Instance.CallRegionByString(LoadedProvince.region) : null;
+        lastRegionalLoyalty = region != null ? Mathf.RoundToInt(region.loyalty * 10f) : 0;
+        loyaltyDisplay.LoadRegion(region);
+    }
+
+    private static int RegionCultureSignature(Province province)
+    {
+        unchecked
+        {
+            int hash = 17;
+            if (province == null) return hash;
+            CampaignRegion region = Owners.Instance != null ? Owners.Instance.CallRegionByString(province.region) : null;
+            System.Collections.Generic.IEnumerable<Province> provinces = region != null
+                ? region.provincelist : new[] { province };
+            foreach (Province member in provinces)
+                if (member != null && member.cultures != null)
+                    foreach (Culture culture in member.cultures)
+                    {
+                        if (culture == null) continue;
+                        hash = hash * 31 + (culture.name != null ? culture.name.GetHashCode() : 0);
+                        hash = hash * 31 + culture.population;
+                    }
+            return hash;
+        }
     }
 
     private void CreateRecruitUnitsButton()

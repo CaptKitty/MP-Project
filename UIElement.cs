@@ -206,10 +206,11 @@ public class UIElement : MonoBehaviour
         Province province = army != null ? army.GrabNearestProvince() : null;
         bool friendlyLocal = army != null && army.IsFriendlyToLocalPlayer() && province != null &&
             army.fieldArmy != null && province.nation == army.fieldArmy.nation;
+        bool stationary = friendlyLocal && army.IsTargetNull();
         int availableLevies = friendlyLocal ? province.GetAvailableRegionLevies(army.fieldArmy.nation).Count : 0;
         int capacity = friendlyLocal ? army.fieldArmy.MaxArmySize - army.fieldArmy.GrabArmySize() - army.fieldArmy.GrabQueuedArmySize() : 0;
-        recruitUnitsButton.interactable = friendlyLocal;
-        recruitAllLeviesButton.interactable = friendlyLocal && availableLevies > 0 && capacity > 0;
+        recruitUnitsButton.interactable = stationary;
+        recruitAllLeviesButton.interactable = stationary && availableLevies > 0 && capacity > 0;
         if (recruitUnitsLabel != null) recruitUnitsLabel.text = "Recruit Units";
         if (recruitAllLeviesLabel != null) recruitAllLeviesLabel.text = "Recruit All Available Levies (" +
             Mathf.Min(Mathf.Max(0, capacity), availableLevies) + ")";
@@ -219,7 +220,7 @@ public class UIElement : MonoBehaviour
     {
         FieldArmyHolder army = FieldArmyHolder.SelectedPlayerArmy;
         Province province = army != null ? army.GrabNearestProvince() : null;
-        if (army == null || !army.IsFriendlyToLocalPlayer() || province == null) return;
+        if (army == null || !army.IsFriendlyToLocalPlayer() || !army.IsTargetNull() || province == null) return;
         RecruitmentMenu.EnsureExists();
         if (RecruitmentMenu.Instance != null) RecruitmentMenu.Instance.Open(army, province);
     }

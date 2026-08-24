@@ -26,6 +26,8 @@ MonoBehaviour:
     garrisonCapacity: 3
     unitUnlocks: []
     flags: []
+    displayedEffects:
+    - '+0.1 regional loyalty per turn'
   - level: 2
     goldCost: 500
     constructionTicks: 0

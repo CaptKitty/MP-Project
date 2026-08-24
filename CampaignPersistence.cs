@@ -67,6 +67,7 @@ public class CampaignSaveData
 {
     public List<SavedNation> nations = new List<SavedNation>();
     public List<SavedProvince> provinces = new List<SavedProvince>();
+    public List<SavedRegion> regions = new List<SavedRegion>();
     public List<SavedArmy> armies = new List<SavedArmy>();
     public List<SavedActiveBattle> activeBattles = new List<SavedActiveBattle>();
     public List<ProjectX.TileBattle.SavedTileCampaignBattle> tileBattles = new List<ProjectX.TileBattle.SavedTileCampaignBattle>();
@@ -101,6 +102,12 @@ public class CampaignSaveData
                 unrest = province.unrest,
                 terrainProfile = (int)province.terrainProfile
             };
+            if (province.cultures != null)
+                foreach (Culture culture in province.cultures)
+                    if (culture != null) savedProvince.cultures.Add(new SavedCulture
+                    {
+                        name = culture.name, population = culture.population, color = culture.ownerIdentity
+                    });
             foreach (ProvinceBuilding building in province.buildings)
             {
                 if (building == null) continue;
@@ -134,6 +141,15 @@ public class CampaignSaveData
                     remainingTicks = levy.remainingTicks, raisedArmyId = levy.raisedArmyId });
             save.provinces.Add(savedProvince);
         }
+        foreach (CampaignRegion region in Owners.Instance.regionlist)
+            if (region != null)
+            {
+                SavedRegion savedRegion = new SavedRegion { name = region.name, loyalty = region.loyalty };
+                if (region.loyaltyShares != null) foreach (RegionalLoyaltyShare share in region.loyaltyShares)
+                    if (share != null) savedRegion.shares.Add(new SavedRegionalLoyaltyShare
+                        { nationName = share.nationName, loyalty = share.loyalty });
+                save.regions.Add(savedRegion);
+            }
         foreach (FieldArmyHolder army in Owners.Instance.armylist)
         {
             if (army == null || army.fieldArmy == null || army.fieldArmy.nation == null) continue;
@@ -202,6 +218,17 @@ public class CampaignSaveData
             province.population = state.population;
             province.supply = state.supply;
             province.unrest = state.unrest;
+            if (state.cultures != null && state.cultures.Count > 0)
+            {
+                province.cultures = new List<Culture>();
+                foreach (SavedCulture culture in state.cultures)
+                    province.cultures.Add(new Culture
+                    {
+                        name = culture.name, population = culture.population, ownerIdentity = culture.color
+                    });
+                province.UpdatePopulation();
+            }
+            else province.EnsureCulture();
             province.terrainProfile = state.terrainProfile >= (int)CampaignTerrainProfile.Auto &&
                 state.terrainProfile <= (int)CampaignTerrainProfile.Coastal
                 ? (CampaignTerrainProfile)state.terrainProfile : CampaignTerrainProfile.Auto;
@@ -257,6 +284,23 @@ public class CampaignSaveData
             }
             province.ReconcileLevyEntitlements();
         }
+        if (regions != null)
+            foreach (SavedRegion state in regions)
+            {
+                CampaignRegion region = Owners.Instance.CallRegionByString(state.name);
+                if (region != null)
+                {
+                    region.loyalty = state.loyalty;
+                    if (state.shares != null) foreach (SavedRegionalLoyaltyShare share in state.shares)
+                    {
+                        Nation nation = Owners.Instance.nationlist.Find(item => item != null && item.name == share.nationName);
+                        if (nation != null) region.SetLoyalty(nation, share.loyalty);
+                    }
+                    if (state.shares == null || state.shares.Count == 0)
+                        foreach (Province province in region.provincelist)
+                            if (province != null && province.nation != null) region.SetLoyalty(province.nation, state.loyalty);
+                }
+            }
         foreach (SavedArmy state in armies)
         {
             Nation nation = Owners.Instance.nationlist.Find(item => item.name == state.nation);
@@ -330,7 +374,10 @@ public class CampaignSaveData
 }
 
 [Serializable] public class SavedNation { public string name; public int manpower; public int gold = -1; public int armyNumber; public int barracksLevel; public int mercenaryLevel; public int farmLevel; public int income; public int upkeepDebt; public List<string> flags = new List<string>(); }
-[Serializable] public class SavedProvince { public string name; public string nation; public int population; public int supply; public int unrest; public int terrainProfile; public List<SavedBuilding> buildings = new List<SavedBuilding>(); public List<SavedConstructionOrder> construction = new List<SavedConstructionOrder>(); public List<SavedMercenaryPool> mercenaries = new List<SavedMercenaryPool>(); public List<SavedLevyEntitlement> levies = new List<SavedLevyEntitlement>(); }
+[Serializable] public class SavedProvince { public string name; public string nation; public int population; public int supply; public int unrest; public int terrainProfile; public List<SavedCulture> cultures = new List<SavedCulture>(); public List<SavedBuilding> buildings = new List<SavedBuilding>(); public List<SavedConstructionOrder> construction = new List<SavedConstructionOrder>(); public List<SavedMercenaryPool> mercenaries = new List<SavedMercenaryPool>(); public List<SavedLevyEntitlement> levies = new List<SavedLevyEntitlement>(); }
+[Serializable] public class SavedCulture { public string name; public int population; public Color32 color; }
+[Serializable] public class SavedRegion { public string name; public float loyalty = 100f; public List<SavedRegionalLoyaltyShare> shares = new List<SavedRegionalLoyaltyShare>(); }
+[Serializable] public class SavedRegionalLoyaltyShare { public string nationName; public float loyalty; }
 [Serializable] public class SavedBuilding { public string id; public int level; public int maxLevel; public int slotIndex = -1; }
 [Serializable] public class SavedConstructionOrder { public int slotIndex; public string buildingId; public int targetLevel; public int remainingTicks; public bool initiatedByAI; }
 [Serializable] public class SavedMercenaryPool { public string unitName; public int available; public int capacity; public float regenerationPerTurn; public float regenerationProgress; }

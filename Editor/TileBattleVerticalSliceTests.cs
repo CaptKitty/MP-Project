@@ -61,6 +61,28 @@ public sealed class TileBattleVerticalSliceTests
         Assert.That(tick8.Units.Single(unit => unit.Id == 1).Position, Is.EqualTo(new TileCoord(7, 5)));
     }
 
+    [Test]
+    public void ArrivingArmyDeploysAllFormationsOnItsDeploymentRound()
+    {
+        TileBattleUnitDefinition infantry = Definition("Reinforcing infantry", 7, 2, 120);
+        TileBattleSimulation simulation = new TileBattleSimulation(new TileBattleRules(), null, null);
+        simulation.AddUnit(new TileBattleUnit { Id = 1, Side = 0, Definition = infantry,
+            Position = new TileCoord(5, 5), Facing = TileFacing.East, Deployed = true });
+        simulation.AddUnit(new TileBattleUnit { Id = 10001, Side = 1, Definition = infantry,
+            Position = new TileCoord(15, 5), Facing = TileFacing.West, Deployed = true });
+        simulation.AddUnit(new TileBattleUnit { Id = 2, Side = 0, Definition = infantry,
+            Position = new TileCoord(2, 7), Facing = TileFacing.East, DeploymentRound = 2, Deployed = false });
+        simulation.AddUnit(new TileBattleUnit { Id = 3, Side = 0, Definition = infantry,
+            Position = new TileCoord(2, 8), Facing = TileFacing.East, DeploymentRound = 2, Deployed = false });
+
+        simulation.RunCommandRound();
+        Assert.That(simulation.Units.Single(unit => unit.Id == 2).Deployed, Is.False);
+        Assert.That(simulation.Units.Single(unit => unit.Id == 3).Deployed, Is.False);
+        simulation.RunCommandRound();
+        Assert.That(simulation.Units.Single(unit => unit.Id == 2).Deployed, Is.True);
+        Assert.That(simulation.Units.Single(unit => unit.Id == 3).Deployed, Is.True);
+    }
+
     private static TileBattleUnitDefinition Definition(string name, int initiative, int actions, int mass,
         TileWeaponControl control = TileWeaponControl.Sword, bool cavalry = false, bool ranged = false)
     {

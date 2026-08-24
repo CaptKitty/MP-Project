@@ -9,8 +9,8 @@ using System.Text;
 
 public class LoadProvinces : MonoBehaviour
 {
-    private const int MaximumProvincesPerRegion = 5;
-    private const int InitialRegionTarget = 10;
+    private const int MaximumProvincesPerRegion = 4;
+    private const int InitialRegionTarget = 12;
     public List<Province> provincelist;
     
     public void LoadStuff()
@@ -19,6 +19,7 @@ public class LoadProvinces : MonoBehaviour
 
 
         LoadinProvinces();
+        InitializeCulturalMixes();
         Owners.Instance.provincelist.Clear();
         Owners.Instance.provincelist = provincelist;
         AddStates();
@@ -197,13 +198,7 @@ public class LoadProvinces : MonoBehaviour
                 : regionname;
             newprovince.identity = color;
             newprovince.position = location;
-            if(newprovince.cultures.Count == 0)
-            {
-                culture.ownerIdentity = newprovince.nation.ownerIdentity;
-                culture.population = 1000;
-                culture.name = newprovince.nation.name;
-                newprovince.cultures.Add(culture);
-            }
+            newprovince.EnsureCulture();
             newprovince.UpdatePopulation();
             // newprovince.population = population;
             
@@ -261,8 +256,11 @@ public class LoadProvinces : MonoBehaviour
             {
                 name = regionName,
                 identity = RegionColor(Owners.Instance.regionlist.Count),
+                loyalty = 100f,
                 provincelist = members
             };
+            foreach (Nation owner in members.Where(province => province != null && province.nation != null)
+                .Select(province => province.nation).Distinct()) region.SetLoyalty(owner, 100f);
             foreach (Province province in members) province.region = regionName;
             Owners.Instance.regiondict.Add(regionName, region);
             Owners.Instance.regionlist.Add(region);
@@ -376,95 +374,105 @@ public class LoadProvinces : MonoBehaviour
         foreach (CampaignRegion oversized in Owners.Instance.regionlist
             .Where(region => region.provincelist.Count > MaximumProvincesPerRegion).ToList())
         {
-            List<Province> bestFirst = null;
-            List<Province> members = oversized.provincelist;
-            float bestScore = float.MaxValue;
-            for (int a = 0; a < members.Count - 2; a++)
-                for (int b = a + 1; b < members.Count - 1; b++)
-                    for (int c = b + 1; c < members.Count; c++)
-                    {
-                        List<Province> first = new List<Province> { members[a], members[b], members[c] };
-                        List<Province> second = members.Where(province => !first.Contains(province)).ToList();
-                        if (!ProvincesAreConnected(first) || !ProvincesAreConnected(second) ||
-                            second.Count > MaximumProvincesPerRegion) continue;
-                        float score = ProvinceGroupShapeScore(first) + ProvinceGroupShapeScore(second);
-                        if (score < bestScore)
-                        {
-                            bestScore = score;
-                            bestFirst = first;
-                        }
-                    }
-            if (bestFirst == null && members.Count == 9)
-                for (int a = 0; a < members.Count - 3; a++)
-                    for (int b = a + 1; b < members.Count - 2; b++)
-                        for (int c = b + 1; c < members.Count - 1; c++)
-                            for (int d = c + 1; d < members.Count; d++)
-                            {
-                                List<Province> first = new List<Province> { members[a], members[b], members[c], members[d] };
-                                List<Province> second = members.Where(province => !first.Contains(province)).ToList();
-                                if (!ProvincesAreConnected(first) || !ProvincesAreConnected(second)) continue;
-                                float score = ProvinceGroupShapeScore(first) + ProvinceGroupShapeScore(second);
-                                if (score < bestScore)
-                                {
-                                    bestScore = score;
-                                    bestFirst = first;
-                                }
-                            }
-            if (bestFirst == null && members.Count == 10)
-                for (int a = 0; a < members.Count - 4; a++)
-                    for (int b = a + 1; b < members.Count - 3; b++)
-                        for (int c = b + 1; c < members.Count - 2; c++)
-                            for (int d = c + 1; d < members.Count - 1; d++)
-                                for (int e = d + 1; e < members.Count; e++)
-                                {
-                                    List<Province> first = new List<Province>
-                                        { members[a], members[b], members[c], members[d], members[e] };
-                                    List<Province> second = members.Where(province => !first.Contains(province)).ToList();
-                                    if (!ProvincesAreConnected(first) || !ProvincesAreConnected(second)) continue;
-                                    float score = ProvinceGroupShapeScore(first) + ProvinceGroupShapeScore(second);
-                                    if (score < bestScore)
-                                    {
-                                        bestScore = score;
-                                        bestFirst = first;
-                                    }
-                                }
-            if (bestFirst == null)
+            int splitNumber = 2;
+            while (oversized.provincelist.Count > MaximumProvincesPerRegion)
             {
-                while (oversized.provincelist.Count > MaximumProvincesPerRegion)
+                int groupsNeeded = Mathf.CeilToInt(oversized.provincelist.Count /
+                    (float)MaximumProvincesPerRegion);
+                int desiredSize = Mathf.CeilToInt(oversized.provincelist.Count / (float)groupsNeeded);
+                List<Province> splitMembers = FindBestConnectedSubset(oversized.provincelist, desiredSize);
+                if (splitMembers == null)
                 {
                     Province detachable = oversized.provincelist.FirstOrDefault(province =>
                         ProvincesAreConnected(oversized.provincelist.Where(other => other != province).ToList()));
                     if (detachable == null) break;
-                    oversized.provincelist.Remove(detachable);
-                    string fallbackName = UniqueRegionName(oversized.name + " Split");
-                    CampaignRegion fallback = new CampaignRegion
-                    {
-                        name = fallbackName,
-                        identity = RegionColor(Owners.Instance.regionlist.Count),
-                        provincelist = new List<Province> { detachable }
-                    };
-                    detachable.region = fallbackName;
-                    Owners.Instance.regiondict.Add(fallbackName, fallback);
-                    Owners.Instance.regionlist.Add(fallback);
+                    splitMembers = new List<Province> { detachable };
                 }
-                continue;
+                foreach (Province province in splitMembers) oversized.provincelist.Remove(province);
+                string splitName = UniqueRegionName(oversized.name + " Part " + splitNumber++);
+                CampaignRegion split = new CampaignRegion
+                {
+                    name = splitName,
+                    identity = RegionColor(Owners.Instance.regionlist.Count),
+                    loyalty = 100f,
+                    provincelist = splitMembers
+                };
+                foreach (Nation owner in splitMembers.Where(province => province != null && province.nation != null)
+                    .Select(province => province.nation).Distinct()) split.SetLoyalty(owner, 100f);
+                foreach (Province province in splitMembers) province.region = splitName;
+                Owners.Instance.regiondict.Add(splitName, split);
+                Owners.Instance.regionlist.Add(split);
             }
-
-            List<Province> bestSecond = members.Where(province => !bestFirst.Contains(province)).ToList();
-            oversized.provincelist = bestFirst;
-            foreach (Province province in bestFirst) province.region = oversized.name;
-
-            string splitName = UniqueRegionName(oversized.name + " II");
-            CampaignRegion split = new CampaignRegion
-            {
-                name = splitName,
-                identity = RegionColor(Owners.Instance.regionlist.Count),
-                provincelist = bestSecond
-            };
-            foreach (Province province in bestSecond) province.region = splitName;
-            Owners.Instance.regiondict.Add(splitName, split);
-            Owners.Instance.regionlist.Add(split);
+            foreach (Province province in oversized.provincelist) province.region = oversized.name;
         }
+    }
+
+    void InitializeCulturalMixes()
+    {
+        List<Province> provinces = provincelist.Where(province => province != null).ToList();
+        Dictionary<Province, Culture> originalCultures = new Dictionary<Province, Culture>();
+        foreach (Province province in provinces)
+        {
+            province.EnsureCulture();
+            originalCultures[province] = province.PrimaryCulture;
+        }
+
+        foreach (Province province in provinces)
+        {
+            Culture primary = originalCultures[province];
+            int totalPopulation = Mathf.Max(1, province.population);
+            List<Culture> minorities = provinces.Where(other => other != province &&
+                    originalCultures[other] != null && primary != null &&
+                    !string.Equals(originalCultures[other].name, primary.name, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(other => Vector2.Distance(province.position, other.position))
+                .Select(other => originalCultures[other])
+                .GroupBy(culture => culture.name, StringComparer.OrdinalIgnoreCase)
+                .Select(group => group.First()).Take(2).ToList();
+
+            int firstMinority = minorities.Count > 0 ? Mathf.RoundToInt(totalPopulation * .15f) : 0;
+            int secondMinority = minorities.Count > 1 ? Mathf.RoundToInt(totalPopulation * .05f) : 0;
+            if (minorities.Count == 1) firstMinority = Mathf.RoundToInt(totalPopulation * .20f);
+            province.cultures = new List<Culture>
+            {
+                new Culture
+                {
+                    name = primary != null ? primary.name : "Unassigned",
+                    ownerIdentity = primary != null ? primary.ownerIdentity : province.identity,
+                    population = totalPopulation - firstMinority - secondMinority
+                }
+            };
+            if (minorities.Count > 0) province.cultures.Add(new Culture
+            {
+                name = minorities[0].name, ownerIdentity = minorities[0].ownerIdentity, population = firstMinority
+            });
+            if (minorities.Count > 1) province.cultures.Add(new Culture
+            {
+                name = minorities[1].name, ownerIdentity = minorities[1].ownerIdentity, population = secondMinority
+            });
+            province.UpdatePopulation();
+        }
+    }
+
+    static List<Province> FindBestConnectedSubset(List<Province> members, int desiredSize)
+    {
+        if (desiredSize <= 0 || desiredSize >= members.Count || members.Count > 30) return null;
+        List<Province> best = null;
+        float bestScore = float.MaxValue;
+        int limit = 1 << members.Count;
+        for (int mask = 1; mask < limit; mask++)
+        {
+            int bits = 0;
+            for (int value = mask; value != 0; value &= value - 1) bits++;
+            if (bits != desiredSize) continue;
+            List<Province> subset = new List<Province>();
+            List<Province> remainder = new List<Province>();
+            for (int index = 0; index < members.Count; index++)
+                if ((mask & 1 << index) != 0) subset.Add(members[index]); else remainder.Add(members[index]);
+            if (!ProvincesAreConnected(subset) || !ProvincesAreConnected(remainder)) continue;
+            float score = ProvinceGroupShapeScore(subset) + ProvinceGroupShapeScore(remainder);
+            if (score < bestScore) { bestScore = score; best = subset; }
+        }
+        return best;
     }
 
     string UniqueRegionName(string requestedName)
@@ -515,7 +523,8 @@ public class LoadProvinces : MonoBehaviour
             Province bestProvince = null;
             CampaignRegion bestDonor = null;
             float bestScore = float.MaxValue;
-            foreach (CampaignRegion donor in Owners.Instance.regionlist.Where(region => region.provincelist.Count == 5))
+            foreach (CampaignRegion donor in Owners.Instance.regionlist
+                .Where(region => region.provincelist.Count == MaximumProvincesPerRegion))
             {
                 foreach (Province candidate in donor.provincelist)
                 {

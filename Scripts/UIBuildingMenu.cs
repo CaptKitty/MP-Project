@@ -439,24 +439,6 @@ public class UIBuildingMenu : MonoBehaviour
         }
         if (names.Count > 0) { text.Append("\n- Recruitment:\n  ").Append(string.Join("\n  ", names)); any = true; }
 
-        if (province != null && province.nation != null)
-        {
-            foreach (LevyGrantRule rule in LevySystem.ResolveRules(province.nation))
-            {
-                if (rule == null || rule.unit == null || rule.building == null ||
-                    !rule.building.StableId.Equals(building.BuildingId, System.StringComparison.OrdinalIgnoreCase) ||
-                    building.level < rule.minimumBuildingLevel || building.level > rule.maximumBuildingLevel) continue;
-                bool flagsMatch = true;
-                foreach (string flag in rule.requiredNationFlags) if (!NationContentResolver.HasFlag(province.nation, flag)) flagsMatch = false;
-                foreach (string flag in rule.excludedNationFlags) if (NationContentResolver.HasFlag(province.nation, flag)) flagsMatch = false;
-                if (!flagsMatch) continue;
-                text.Append("\n- Levies: ").Append(Mathf.Max(1, rule.formationsPerBuilding)).Append("x ")
-                    .Append(!string.IsNullOrWhiteSpace(rule.unit.unitname) ? rule.unit.unitname : rule.unit.name);
-                if (rule.recoveryTicks > 0) text.Append(" (").Append(rule.recoveryTicks).Append(" recovery ticks)");
-                any = true;
-            }
-        }
-
         if (building.definition != null && building.definition.levels != null)
         foreach (BuildingLevelDefinition level in building.definition.levels)
         {

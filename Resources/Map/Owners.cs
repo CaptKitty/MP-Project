@@ -87,6 +87,7 @@ public class Owners : MonoBehaviour
             province.OriginalNation = province.nation;
             province.InitializeRecruitment();
         }
+        foreach (Province province in provincelist) province.InitializeHoldings();
         Mapshower.Instance.Paint();
 
         if (RecruitmentMenu.Instance == null)
@@ -263,6 +264,7 @@ public class Owners : MonoBehaviour
         {
             province.RegenerateMercenaries();
             province.ProcessConstructionTick();
+            province.ProcessHoldingConstructionTick();
             province.ProcessLevyTick();
         }
         if (CampaignNetworkPlayer.Local != null)
@@ -287,6 +289,7 @@ public class Province
     public CampaignTerrainProfile terrainProfile = CampaignTerrainProfile.Auto;
     public int population = 1000;
     public int supply = 1000;
+    [Range(0, 100)] public int urbanization;
     public FieldArmy garrison;
 
     public List<string> AdjacentProvinces = new List<string>();
@@ -311,13 +314,18 @@ public class Province
     public List<ProvinceConstructionOrder> constructionOrders = new List<ProvinceConstructionOrder>();
     public List<ProvinceMercenaryPool> mercenaryPools = new List<ProvinceMercenaryPool>();
     public List<ProvinceLevyEntitlement> levyEntitlements = new List<ProvinceLevyEntitlement>();
+    public List<ProvinceHolding> holdings = new List<ProvinceHolding>();
+    public List<HoldingConstructionOrder> holdingConstructionOrders = new List<HoldingConstructionOrder>();
 
     public void InitializeRecruitment()
     {
+        urbanization = Mathf.Clamp(urbanization, 0, 100);
         if (buildings == null) buildings = new List<ProvinceBuilding>();
         if (constructionOrders == null) constructionOrders = new List<ProvinceConstructionOrder>();
         if (mercenaryPools == null) mercenaryPools = new List<ProvinceMercenaryPool>();
         if (levyEntitlements == null) levyEntitlements = new List<ProvinceLevyEntitlement>();
+        if (holdings == null) holdings = new List<ProvinceHolding>();
+        if (holdingConstructionOrders == null) holdingConstructionOrders = new List<HoldingConstructionOrder>();
         Nation recruitmentNation = nation != null ? nation : OriginalNation;
         if (buildings.Count == 0 && NationContentResolver.HasBuilding(recruitmentNation, "Farm"))
         {
@@ -372,28 +380,130 @@ public class Province
             population = Mathf.Max(1, population)
         });
     }
+    public void InitializeHoldings()
+    {
+        if (holdings == null) holdings = new List<ProvinceHolding>();
+        holdings.RemoveAll(holding => holding == null);
+        if (holdings.Count == 0)
+        {
+            List<string> cultureNames = new List<string>();
+            EnsureCulture();
+            if (PrimaryCulture != null && !string.IsNullOrWhiteSpace(PrimaryCulture.name)) cultureNames.Add(PrimaryCulture.name);
+            if (Owners.Instance != null)
+            {
+                foreach (string adjacentName in AdjacentProvinces)
+                {
+                    Province adjacent = Owners.Instance.provincelist.Find(candidate => candidate != null && candidate.name == adjacentName);
+                    string adjacentCulture = adjacent != null && adjacent.PrimaryCulture != null ? adjacent.PrimaryCulture.name : null;
+                    if (!string.IsNullOrWhiteSpace(adjacentCulture) && !cultureNames.Exists(value =>
+                        string.Equals(value, adjacentCulture, System.StringComparison.OrdinalIgnoreCase))) cultureNames.Add(adjacentCulture);
+                    if (cultureNames.Count >= 3) break;
+                }
+                if (cultureNames.Count < 3)
+                    foreach (Province candidate in Owners.Instance.provincelist)
+                    {
+                        string candidateCulture = candidate != null && candidate.PrimaryCulture != null ? candidate.PrimaryCulture.name : null;
+                        if (!string.IsNullOrWhiteSpace(candidateCulture) && !cultureNames.Exists(value =>
+                            string.Equals(value, candidateCulture, System.StringComparison.OrdinalIgnoreCase))) cultureNames.Add(candidateCulture);
+                        if (cultureNames.Count >= 3) break;
+                    }
+            }
+            while (cultureNames.Count < 3) cultureNames.Add(cultureNames.Count > 0 ? cultureNames[0] : "Unassigned");
+            LevyGrantRule migrationRule = LevySystem.ResolveRules(nation).Find(rule => rule != null && rule.unit != null &&
+                buildings.Exists(building => rule.Applies(this, building)));
+            HoldingDefinition definition = migrationRule != null
+                ? HoldingDefinition.DefaultCitizenFarm(migrationRule.unit) : HoldingDefinition.DefaultCitizenFarm();
+            for (int i = 0; i < 10; i++) holdings.Add(new ProvinceHolding { instanceId = name + "-holding-" + i,
+                definition = definition, id = definition.StableId, level = 1, slotIndex = i,
+                cultureName = i < 7 ? cultureNames[0] : i < 9 ? cultureNames[1] : cultureNames[2],
+                socioEconomicClass = definition.defaultClass });
+        }
+        for (int i = 0; i < holdings.Count; i++)
+        {
+            ProvinceHolding holding = holdings[i];
+            if (holding.slotIndex < 0) holding.slotIndex = i;
+            if (string.IsNullOrWhiteSpace(holding.instanceId)) holding.instanceId = name + "-holding-" + holding.slotIndex;
+            if (holding.definition == null) holding.definition = HoldingDefinition.Find(holding.id);
+        }
+        RebuildPopulationFromHoldings();
+        ReconcileLevyEntitlements();
+    }
+
+    public void RebuildPopulationFromHoldings()
+    {
+        population = holdings != null ? holdings.FindAll(holding => holding != null).Count : 0;
+        Dictionary<string, int> totals = new Dictionary<string, int>(System.StringComparer.OrdinalIgnoreCase);
+        if (holdings != null) foreach (ProvinceHolding holding in holdings)
+        {
+            if (holding == null) continue;
+            string holdingCulture = !string.IsNullOrWhiteSpace(holding.cultureName) ? holding.cultureName : "Unassigned";
+            totals[holdingCulture] = totals.TryGetValue(holdingCulture, out int count) ? count + 1 : 1;
+        }
+        cultures = new List<Culture>();
+        foreach (KeyValuePair<string, int> pair in totals)
+        {
+            Culture source = Owners.Instance != null ? Owners.Instance.culturelist.Find(item => item != null &&
+                string.Equals(item.name, pair.Key, System.StringComparison.OrdinalIgnoreCase)) : null;
+            cultures.Add(new Culture { name = pair.Key, population = pair.Value,
+                ownerIdentity = source != null ? source.ownerIdentity : nation != null ? nation.ownerIdentity : identity });
+        }
+        cultures.Sort((left, right) => right.population.CompareTo(left.population));
+    }
+
+    public Dictionary<SocioEconomicClass, int> GetSocioEconomicComposition()
+    {
+        Dictionary<SocioEconomicClass, int> result = new Dictionary<SocioEconomicClass, int>();
+        if (holdings != null) foreach (ProvinceHolding holding in holdings)
+        {
+            if (holding == null) continue;
+            result[holding.socioEconomicClass] = result.TryGetValue(holding.socioEconomicClass, out int count) ? count + 1 : 1;
+        }
+        return result;
+    }
+
+    public ProvinceHolding AddHoldingPopulation(HoldingDefinition definition, string cultureName)
+    {
+        if (definition == null) return null;
+        if (holdings == null) holdings = new List<ProvinceHolding>();
+        int slot = 0; while (GetHoldingInSlot(slot) != null) slot++;
+        ProvinceHolding holding = new ProvinceHolding { instanceId = name + "-holding-" + System.Guid.NewGuid().ToString("N"),
+            definition = definition, id = definition.StableId, level = 1, slotIndex = slot,
+            cultureName = !string.IsNullOrWhiteSpace(cultureName) ? cultureName : PrimaryCulture != null ? PrimaryCulture.name : "Unassigned",
+            socioEconomicClass = definition.defaultClass };
+        holdings.Add(holding); RebuildPopulationFromHoldings(); ReconcileLevyEntitlements(); return holding;
+    }
+
+    public bool RemoveHoldingPopulation(string instanceId)
+    {
+        ProvinceHolding holding = GetHolding(instanceId);
+        if (holding == null || IsHoldingMobilized(instanceId)) return false;
+        holdings.Remove(holding); RebuildPopulationFromHoldings(); ReconcileLevyEntitlements(); return true;
+    }
     public void ReconcileLevyEntitlements()
     {
         if (levyEntitlements == null) levyEntitlements = new List<ProvinceLevyEntitlement>();
         foreach (ProvinceLevyEntitlement entitlement in levyEntitlements) if (entitlement != null) entitlement.eligible = false;
         CampaignRegion campaignRegion = Owners.Instance != null ? Owners.Instance.CallRegionByString(region) : null;
         if (nation == null || campaignRegion != null && !campaignRegion.AllowsLevyCallups(nation)) return;
-        foreach (LevyGrantRule rule in LevySystem.ResolveRules(nation))
-        foreach (ProvinceBuilding building in buildings)
+        foreach (ProvinceHolding holding in holdings)
         {
-            if (!rule.Applies(this, building)) continue;
-            for (int ordinal = 0; ordinal < Mathf.Max(1, rule.formationsPerBuilding); ordinal++)
+            if (holding == null || !holding.CanRaiseLevies) continue;
+            for (int ordinal = 0; ordinal < holding.LevyFormationCount; ordinal++)
             {
-                string entitlementId = name + "|" + building.slotIndex + "|" + rule.StableId + "|" + ordinal;
+                string entitlementId = name + "|" + nameof(ProvinceHolding) + "|" + holding.instanceId + "|" + ordinal;
                 ProvinceLevyEntitlement entitlement = levyEntitlements.Find(item => item != null && item.id == entitlementId);
                 if (entitlement == null)
                 {
-                    entitlement = new ProvinceLevyEntitlement { id = entitlementId, ruleId = rule.StableId,
-                        unitName = rule.unit.name, unit = rule.unit, buildingSlot = building.slotIndex, ordinal = ordinal,
+                    entitlement = new ProvinceLevyEntitlement { id = entitlementId, ruleId = string.Empty,
+                        holdingId = holding.HoldingId, holdingInstanceId = holding.instanceId,
+                        unitName = holding.definition.levyUnit.name,
+                        unit = holding.definition.levyUnit, buildingSlot = holding.slotIndex, ordinal = ordinal,
                         beneficiaryNation = nation.name, state = LevyEntitlementState.Available };
                     levyEntitlements.Add(entitlement);
                 }
-                entitlement.unit = rule.unit; entitlement.unitName = rule.unit.name; entitlement.eligible = true;
+                entitlement.holdingId = holding.HoldingId; entitlement.holdingInstanceId = holding.instanceId;
+                entitlement.unit = holding.definition.levyUnit;
+                entitlement.unitName = holding.definition.levyUnit.name; entitlement.eligible = true;
                 entitlement.beneficiaryNation = nation.name;
             }
         }
@@ -449,7 +559,9 @@ public class Province
             army.fieldArmy.GrabArmySize() + army.fieldArmy.GrabQueuedArmySize() >= army.fieldArmy.MaxArmySize) return false;
         LevyGrantRule rule = LevySystem.FindRule(nation, entitlement.ruleId);
         entitlement.raisedArmyId = army.NetworkArmyId;
-        entitlement.remainingTicks = rule != null ? Mathf.Max(0, rule.mobilizationTicks) : 0;
+        HoldingDefinition holding = HoldingDefinition.Find(entitlement.holdingId);
+        entitlement.remainingTicks = holding != null ? Mathf.Max(0, holding.levyMobilizationTicks) :
+            rule != null ? Mathf.Max(0, rule.mobilizationTicks) : 0;
         if (entitlement.remainingTicks > 0) entitlement.state = LevyEntitlementState.Mobilizing;
         else
         {
@@ -483,7 +595,9 @@ public class Province
         if (entitlement == null) return;
         LevyGrantRule rule = LevySystem.FindRule(nation, entitlement.ruleId);
         entitlement.state = LevyEntitlementState.Recovering; entitlement.raisedArmyId = null;
-        entitlement.remainingTicks = rule != null ? Mathf.Max(0, rule.recoveryTicks) : 20;
+        HoldingDefinition holding = HoldingDefinition.Find(entitlement.holdingId);
+        entitlement.remainingTicks = holding != null ? Mathf.Max(0, holding.levyRecoveryTicks) :
+            rule != null ? Mathf.Max(0, rule.recoveryTicks) : 20;
         if (entitlement.remainingTicks == 0 && entitlement.eligible) entitlement.state = LevyEntitlementState.Available;
     }
 
@@ -585,6 +699,7 @@ public class Province
         int income = 0;
         foreach (ProvinceBuilding building in buildings)
             if (building != null && building.definition != null) income += building.DefinitionGoldIncome;
+        income += GetHoldingOutput(HoldingOutputType.Income);
         if (farm != null && farm.definition == null)
             income += Mathf.Max(0, farm.level) * CampaignEconomy.FarmIncomePerLevel;
         CampaignRegion campaignRegion = Owners.Instance != null ? Owners.Instance.CallRegionByString(region) : null;
@@ -592,6 +707,19 @@ public class Province
         int loyaltyAdjustedIncome = Mathf.RoundToInt(income * Mathf.Clamp(loyalty, 0f, 100f) / 100f);
         return CampaignEconomy.ApplyGoldIncomeRate(loyaltyAdjustedIncome);
     }
+
+    public int GetHoldingOutput(HoldingOutputType type)
+    {
+        int total = 0;
+        if (holdings != null) foreach (ProvinceHolding holding in holdings)
+            if (holding != null) total += holding.GetOutput(type, urbanization, IsHoldingMobilized(holding.instanceId));
+        return total;
+    }
+
+    public bool IsHoldingMobilized(string holdingInstanceId) => !string.IsNullOrWhiteSpace(holdingInstanceId) &&
+        levyEntitlements != null && levyEntitlements.Exists(entitlement => entitlement != null && entitlement.eligible &&
+            entitlement.holdingInstanceId == holdingInstanceId && (entitlement.state == LevyEntitlementState.Mobilizing ||
+            entitlement.state == LevyEntitlementState.Raised));
 
     public int GetTempleUpkeep()
     {
@@ -603,22 +731,68 @@ public class Province
     {
         ProvinceBuilding temple = GetBuilding("Temple");
         Culture primary = PrimaryCulture;
-        if (temple == null || primary == null || cultures == null || cultures.Count < 2 || population <= 0) return;
-        int transfer = Mathf.Max(1, Mathf.RoundToInt(population * .001f * Mathf.Max(1, temple.level)));
-        for (int i = cultures.Count - 1; i >= 0 && transfer > 0; i--)
-        {
-            Culture culture = cultures[i];
-            if (culture == null || culture == primary || culture.population <= 0) continue;
-            int moved = Mathf.Min(transfer, culture.population);
-            culture.population -= moved;
-            primary.population += moved;
-            transfer -= moved;
-        }
+        if (temple == null || primary == null || holdings == null) return;
+        ProvinceHolding converted = holdings.FindLast(holding => holding != null &&
+            !string.Equals(holding.cultureName, primary.name, System.StringComparison.OrdinalIgnoreCase));
+        if (converted != null) { converted.cultureName = primary.name; RebuildPopulationFromHoldings(); }
     }
 
     public ProvinceBuilding GetBuildingInSlot(int slotIndex)
     {
         return buildings.Find(building => building != null && building.slotIndex == slotIndex);
+    }
+
+    public ProvinceHolding GetHoldingInSlot(int slotIndex) => holdings != null
+        ? holdings.Find(holding => holding != null && holding.slotIndex == slotIndex) : null;
+    public ProvinceHolding GetHolding(string instanceId) => holdings != null
+        ? holdings.Find(holding => holding != null && holding.instanceId == instanceId) : null;
+
+    public bool BeginHoldingTransformation(string instanceId, string targetHoldingId, int transformationTicks)
+    {
+        ProvinceHolding holding = GetHolding(instanceId);
+        return holding != null && BeginHoldingConstruction(holding.slotIndex, targetHoldingId, 1, transformationTicks);
+    }
+
+    public bool BeginHoldingConstruction(int slotIndex, string holdingId, int targetLevel, int constructionTicks)
+    {
+        if (slotIndex < 0 || string.IsNullOrWhiteSpace(holdingId)) return false;
+        if (holdings == null) holdings = new List<ProvinceHolding>();
+        if (holdingConstructionOrders == null) holdingConstructionOrders = new List<HoldingConstructionOrder>();
+        if (holdingConstructionOrders.Exists(order => order != null && order.slotIndex == slotIndex)) return false;
+        HoldingDefinition definition = HoldingDefinition.Find(holdingId);
+        if (definition == null || targetLevel < 1 || targetLevel > Mathf.Max(1, definition.maximumLevel)) return false;
+        ProvinceHolding existing = GetHoldingInSlot(slotIndex);
+        if (existing == null || existing.HoldingId.Equals(definition.StableId, System.StringComparison.OrdinalIgnoreCase)) return false;
+        HoldingConstructionOrder order = new HoldingConstructionOrder { slotIndex = slotIndex,
+            holdingInstanceId = existing.instanceId, holdingId = definition.StableId, targetLevel = 1,
+            remainingTicks = Mathf.Max(0, constructionTicks) };
+        holdingConstructionOrders.Add(order);
+        if (order.remainingTicks == 0) CompleteHoldingConstruction(order);
+        return true;
+    }
+
+    public void ProcessHoldingConstructionTick()
+    {
+        if (holdingConstructionOrders == null) return;
+        for (int i = holdingConstructionOrders.Count - 1; i >= 0; i--)
+        {
+            HoldingConstructionOrder order = holdingConstructionOrders[i];
+            if (order == null) { holdingConstructionOrders.RemoveAt(i); continue; }
+            order.remainingTicks--;
+            if (order.remainingTicks <= 0) CompleteHoldingConstruction(order);
+        }
+    }
+
+    private void CompleteHoldingConstruction(HoldingConstructionOrder order)
+    {
+        HoldingDefinition definition = HoldingDefinition.Find(order.holdingId);
+        if (definition == null) { holdingConstructionOrders.Remove(order); return; }
+        ProvinceHolding holding = GetHolding(order.holdingInstanceId) ?? GetHoldingInSlot(order.slotIndex);
+        if (holding == null) { holdingConstructionOrders.Remove(order); return; }
+        holding.definition = definition; holding.id = definition.StableId; holding.level = 1;
+        holding.socioEconomicClass = definition.defaultClass;
+        holdingConstructionOrders.Remove(order);
+        ReconcileLevyEntitlements();
     }
 
     public bool BeginBuildingConstruction(int slotIndex, string buildingId, int targetLevel, int constructionTicks,
@@ -781,19 +955,14 @@ public class Province
     
     public void UpdatePopulation()
     {
-        population = 0;
-        foreach (Culture culture in cultures)
-        {
-            population += culture.population;
-        }
+        RebuildPopulationFromHoldings();
     }
     public void LosePopulation(int percentage)
     {
-        foreach (Culture culture in cultures)
-        {
-            culture.population -= (int)(culture.population*percentage/100);
-        }
-        UpdatePopulation();
+        if (holdings == null || holdings.Count == 0) return;
+        int remove = Mathf.Clamp(Mathf.RoundToInt(holdings.Count * Mathf.Clamp(percentage, 0, 100) / 100f), 0, holdings.Count);
+        for (int i = 0; i < remove; i++) holdings.RemoveAt(holdings.Count - 1);
+        RebuildPopulationFromHoldings(); ReconcileLevyEntitlements();
     }
 }
 [System.Serializable]
@@ -847,7 +1016,10 @@ public class Nation
     public void TakeTurn()
     {
         int ownedProvinces = Owners.Instance.provincelist.FindAll(province => province.nation == this).Count;
-        Manpower += Mathf.Max(1, 1 + ownedProvinces / 4);
+        int holdingManpower = 0;
+        foreach (Province province in Owners.Instance.provincelist)
+            if (province != null && province.nation == this) holdingManpower += province.GetHoldingOutput(HoldingOutputType.Manpower);
+        Manpower += Mathf.Max(1, holdingManpower);
         LastGrossIncome = 0;
         foreach (Province province in Owners.Instance.provincelist)
             if (province != null && province.nation == this) LastGrossIncome += province.GetGoldIncome();
@@ -982,12 +1154,6 @@ public class Nation
             maxLevel = definition != null ? definition.maximumLevel : ProvinceBuilding.MaximumLevelFor(buildingId),
             slotIndex = existing != null ? existing.slotIndex : FirstFreeBuildingSlot(province)
         };
-        foreach (LevyGrantRule rule in LevySystem.ResolveRules(this))
-            if (rule != null && rule.Applies(province, projected) &&
-                (existing == null || !rule.Applies(province, existing)))
-                benefit += Mathf.Max(1, rule.formationsPerBuilding) *
-                    (90f + (rule.unit != null ? Mathf.Max(0, rule.unit.cost) * .15f : 0f));
-
         if (benefit <= 0f) return 0f;
         int cost = CampaignEconomy.BuildingGoldCost(buildingId, targetLevel);
         int ticks = BuildingDefinition.ConstructionTicks(buildingId, targetLevel);

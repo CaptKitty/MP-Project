@@ -32,17 +32,19 @@ public class UIRegionalCultureChart : MaskableGraphic, IPointerEnterHandler, IPo
             ? region.provincelist : new[] { fallbackProvince };
         foreach (Province province in provinces)
         {
-            if (province == null || province.cultures == null) continue;
-            foreach (Culture culture in province.cultures)
+            if (province == null || province.holdings == null) continue;
+            foreach (ProvinceHolding holding in province.holdings)
             {
-                if (culture == null || string.IsNullOrWhiteSpace(culture.name) || culture.population <= 0) continue;
-                totals.TryGetValue(culture.name, out Slice slice);
-                slice.name = culture.name;
-                slice.population += culture.population;
-                Color32 cultureColor = culture.ownerIdentity;
+                if (holding == null || string.IsNullOrWhiteSpace(holding.cultureName)) continue;
+                totals.TryGetValue(holding.cultureName, out Slice slice);
+                slice.name = holding.cultureName;
+                slice.population++;
+                Culture culture = Owners.Instance != null ? Owners.Instance.culturelist.Find(candidate => candidate != null &&
+                    string.Equals(candidate.name, holding.cultureName, StringComparison.OrdinalIgnoreCase)) : null;
+                Color32 cultureColor = culture != null ? culture.ownerIdentity : province.identity;
                 cultureColor.a = 255;
                 slice.color = cultureColor;
-                totals[culture.name] = slice;
+                totals[holding.cultureName] = slice;
             }
         }
         slices.Clear();
@@ -123,7 +125,7 @@ public class UIRegionalCultureChart : MaskableGraphic, IPointerEnterHandler, IPo
         EnsureLegend();
         int total = slices.Sum(slice => slice.population);
         string title = region != null ? region.name : "Province";
-        List<string> lines = new List<string> { title + " cultures" };
+        List<string> lines = new List<string> { title + " Holding cultures (" + total + " Holdings)" };
         foreach (Slice slice in slices)
         {
             float percentage = total > 0 ? slice.population * 100f / total : 0f;

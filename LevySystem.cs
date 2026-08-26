@@ -42,6 +42,8 @@ public class ProvinceLevyEntitlement
     public string unitName;
     public UnitSaveData unit;
     public int buildingSlot;
+    public string holdingId;
+    public string holdingInstanceId;
     public int ordinal;
     public string beneficiaryNation;
     public LevyEntitlementState state;

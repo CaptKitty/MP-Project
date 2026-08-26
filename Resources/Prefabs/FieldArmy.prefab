@@ -54,6 +54,11 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -75,6 +80,7 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 15
@@ -151,6 +157,11 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -172,6 +183,7 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 25
@@ -222,8 +234,8 @@ RectTransform:
   m_GameObject: {fileID: 3370597003599154533}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 15, y: 15, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 10, y: 10, z: 2}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1852326970986267061}
   - {fileID: 6759500542725623157}
@@ -252,6 +264,7 @@ MonoBehaviour:
   modification: {x: 1, y: 1, z: 0}
   offset: {x: 515, y: 325, z: 0}
   speed: 10
+  target: {x: 0, y: 0, z: 0}
   LocalProvince: {x: 0, y: 0, z: 0}
   TargetProvince:
     name: 
@@ -266,6 +279,20 @@ MonoBehaviour:
       IsPlayer: 0
       armies: []
       faction: {fileID: 0}
+      civilization: {fileID: 0}
+      culture: {fileID: 0}
+      religion: {fileID: 0}
+      nationalbrainy: {fileID: 0}
+      Manpower: 0
+      Gold: 500
+      ArmyNumber: 0
+      NextAIInfrastructureTurn: 0
+      AIInfrastructureIntervalTurns: 12
+      NextAIEconomyTurn: 0
+      LastGrossIncome: 0
+      LastUnitUpkeep: 0
+      UpkeepDebt: 0
+      AIMinimumCampaignArmySize: 10
     OriginalNation:
       name: 
       ownerIdentity:
@@ -274,17 +301,38 @@ MonoBehaviour:
       IsPlayer: 0
       armies: []
       faction: {fileID: 0}
+      civilization: {fileID: 0}
+      culture: {fileID: 0}
+      religion: {fileID: 0}
+      nationalbrainy: {fileID: 0}
+      Manpower: 0
+      Gold: 500
+      ArmyNumber: 0
+      NextAIInfrastructureTurn: 0
+      AIInfrastructureIntervalTurns: 12
+      NextAIEconomyTurn: 0
+      LastGrossIncome: 0
+      LastUnitUpkeep: 0
+      UpkeepDebt: 0
+      AIMinimumCampaignArmySize: 10
     state: 
+    region: 
     position: {x: 0, y: 0}
+    terrainProfile: 0
     population: 1000
     supply: 1000
     garrison: {fileID: 0}
+    AdjacentProvinces: []
     cultures: []
     taxincome: 0
     taxpercentage: 0
     levyincome: 0
     levypercentage: 0
     unrest: 0
+    buildings: []
+    constructionOrders: []
+    mercenaryPools: []
+    levyEntitlements: []
   turnCounter: 0
   _RecruitTimer: 4
   _DomesticSupplyUsage: 1
@@ -292,6 +340,17 @@ MonoBehaviour:
   _ActivityTimer: 10
   flaglist: []
   IsPlayer: 0
+  NetworkArmyId: 
+  NetworkOwnerClientId: 18446744073709551615
+  IsHumanControlled: 0
+  IsNetworkReplica: 0
+  PreserveConfiguredRoster: 0
+  AIReinforcementIntervalTurns: 8
+  NextAIReinforcementTurn: 0
+  CannotEngageUntilTurn: 0
+  MovementPenaltyUntilTurn: 0
+  NetworkInterpolationSpeed: 12
+  generalbrain: {fileID: 0}
 --- !u!61 &7352906316662432911
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -300,6 +359,7 @@ BoxCollider2D:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3370597003599154533}
   m_Enabled: 1
+  serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -323,8 +383,9 @@ BoxCollider2D:
     m_Bits: 4294967295
   m_IsTrigger: 1
   m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: -0.33}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -334,12 +395,11 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 1, y: 1.5}
   m_EdgeRadius: 0
 --- !u!50 &553731352768479759
 Rigidbody2D:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -350,8 +410,8 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDrag: 1
-  m_AngularDrag: 1
+  m_LinearDamping: 1
+  m_AngularDamping: 1
   m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -418,6 +478,11 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -439,6 +504,7 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 20

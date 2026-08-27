@@ -16,57 +16,22 @@ MonoBehaviour:
   displayName: Fort
   description: Permanent fortifications that increase the province's garrison capacity.
   icon: {fileID: 391309360109239665, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
-  maximumLevel: 5
+  maximumLevel: 1
   defaultConstructionTicks: 5
   levels:
   - level: 1
     goldCost: 250
     constructionTicks: 0
+    urbanizationResponse: 0
     goldIncome: 0
+    food: 0
+    foodConsumption: 0
     garrisonCapacity: 3
     unitUnlocks: []
     flags: []
     displayedEffects:
     - +0.1 regional loyalty per turn
+    holdingEconomyModifiers: []
     localModifiers:
       maxDevelopment: 0
-  - level: 2
-    goldCost: 500
-    constructionTicks: 0
-    goldIncome: 0
-    garrisonCapacity: 3
-    unitUnlocks: []
-    flags: []
-    displayedEffects: []
-    localModifiers:
-      maxDevelopment: 0
-  - level: 3
-    goldCost: 750
-    constructionTicks: 0
-    goldIncome: 0
-    garrisonCapacity: 3
-    unitUnlocks: []
-    flags: []
-    displayedEffects: []
-    localModifiers:
-      maxDevelopment: 0
-  - level: 4
-    goldCost: 1000
-    constructionTicks: 0
-    goldIncome: 0
-    garrisonCapacity: 3
-    unitUnlocks: []
-    flags: []
-    displayedEffects: []
-    localModifiers:
-      maxDevelopment: 0
-  - level: 5
-    goldCost: 1250
-    constructionTicks: 0
-    goldIncome: 0
-    garrisonCapacity: 3
-    unitUnlocks: []
-    flags: []
-    displayedEffects: []
-    localModifiers:
-      maxDevelopment: 0
+      holdingEconomyModifiers: []

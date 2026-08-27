@@ -16,13 +16,16 @@ MonoBehaviour:
   displayName: Temple
   description: 
   icon: {fileID: 4928747421176368004, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
-  maximumLevel: 5
+  maximumLevel: 1
   defaultConstructionTicks: 3
   levels:
   - level: 1
     goldCost: 150
     constructionTicks: 0
+    urbanizationResponse: 0
     goldIncome: 0
+    food: 0
+    foodConsumption: 0
     garrisonCapacity: 0
     unitUnlocks: []
     flags: []
@@ -30,5 +33,7 @@ MonoBehaviour:
     - +0.1 regional loyalty per turn
     - +0.1% provincial primary culture per turn
     - 1 gold upkeep per turn
+    holdingEconomyModifiers: []
     localModifiers:
       maxDevelopment: 0
+      holdingEconomyModifiers: []

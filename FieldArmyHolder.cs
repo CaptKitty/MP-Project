@@ -16,6 +16,7 @@ public class FieldArmyHolder : MonoBehaviour
     public Vector3 target;
     public Vector3 LocalProvince;
     public Province TargetProvince;
+    [System.NonSerialized] public Nation TargetOwnerAtOrder;
     private float timer;
     public int turnCounter = 0;
     private int NextRecruitTime = 0;
@@ -311,6 +312,7 @@ public class FieldArmyHolder : MonoBehaviour
     public void Act()
     {
         if (flaglist.Contains("Battle")) return;
+        if (!IsPlayer && CancelStaleAITarget()) return;
         if (IsPlayer && target.x + target.y != 0)
         {
             Move();
@@ -322,6 +324,19 @@ public class FieldArmyHolder : MonoBehaviour
             return;
         }
         //Move();
+    }
+    private bool CancelStaleAITarget()
+    {
+        if (IsTargetNull()) return false;
+        bool missingTarget = TargetProvince == null;
+        bool ownershipChanged = TargetProvince != null && TargetOwnerAtOrder != null &&
+            TargetProvince.nation != TargetOwnerAtOrder;
+        if (!missingTarget && !ownershipChanged) return false;
+        target = Vector3.zero;
+        TargetProvince = null;
+        TargetOwnerAtOrder = null;
+        if (generalbrain != null) generalbrain.CancelCurrentGoal();
+        return true;
     }
     public bool Move()
     {
@@ -357,6 +372,7 @@ public class FieldArmyHolder : MonoBehaviour
             }
             target = Vector3.zero;
             TargetProvince = null;
+            TargetOwnerAtOrder = null;
             //Debug.LogError("Arrived");
             return true;
         }
@@ -771,8 +787,15 @@ public class FieldArmyHolder : MonoBehaviour
     }
     public void SetTarget(Province province)
     {
+        if (province == null)
+        {
+            target = Vector3.zero; TargetProvince = null; TargetOwnerAtOrder = null;
+            return;
+        }
         ////Debug.LogError(province.position);
         SetTarget(province.position);
+        TargetProvince = province;
+        TargetOwnerAtOrder = province.nation;
         // int x = (int)Mathf.Floor(province.position.x) + Mapshower.Instance.width / 2;
         // int y = (int)Mathf.Floor(province.position.y) + Mapshower.Instance.height / 2;
         // SetTarget(new Vector3(x, y, 0));

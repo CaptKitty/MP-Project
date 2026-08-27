@@ -51,6 +51,15 @@ public class GeneralBrain : GAgent {
         goals.Add(s1, 5);
         //Debug.LogError(nation + " Ordered " + army.gameObject.name + " to " + NewGoal);
     }
+    public void CancelCurrentGoal()
+    {
+        if (currentAction != null) currentAction.running = false;
+        currentAction = null;
+        currentGoal = null;
+        actionQueue = null;
+        planner = null;
+        goals.Clear();
+    }
     public Nation GrabNation()
     {
         return Owners.Instance.nationdict[nation];

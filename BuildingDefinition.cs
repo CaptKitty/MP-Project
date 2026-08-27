@@ -68,6 +68,9 @@ public class BuildingDefinition : ScriptableObject
             levels[i].level = Mathf.Clamp(levels[i].level, 1, maximumLevel);
             levels[i].goldCost = Mathf.Max(0, levels[i].goldCost);
             levels[i].constructionTicks = Mathf.Max(0, levels[i].constructionTicks);
+            levels[i].food = Mathf.Max(0, levels[i].food);
+            levels[i].foodConsumption = Mathf.Max(0, levels[i].foodConsumption);
+            levels[i].urbanizationResponse = Mathf.Clamp(levels[i].urbanizationResponse, -100, 100);
         }
     }
 }
@@ -80,10 +83,19 @@ public class BuildingLevelDefinition
     [Min(0)] public int constructionTicks;
 
     [Header("Effects")]
+    [Tooltip("Negative favors rural provinces; positive favors urban provinces; zero ignores urbanization.")]
+    [Range(-100, 100)] public int urbanizationResponse;
     public int goldIncome;
+    [Tooltip("Food produced by this building level. Configure consumption separately.")]
+    [Min(0)] public int food;
+    [Tooltip("Food consumed as a separate cost by this building level.")]
+    [Min(0)] public int foodConsumption;
     public int garrisonCapacity;
     public List<UnitSaveData> unitUnlocks = new List<UnitSaveData>();
     public List<string> flags = new List<string>();
     [Tooltip("Additional player-facing effects supplied by this level. These are accumulated in building tooltips.")]
     public List<string> displayedEffects = new List<string>();
+    [Tooltip("Desired holding composition and tagged-output effects supplied while this level is active.")]
+    public List<HoldingTagModifier> holdingEconomyModifiers = new List<HoldingTagModifier>();
+    public ProvinceLocalModifiers localModifiers = new ProvinceLocalModifiers();
 }

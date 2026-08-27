@@ -14,8 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
   id: Farm
   displayName: Farm
-  description: Develops the province's agricultural land and produces additional gold income each turn.
-  icon: {fileID: 0}
+  description: Develops the province's agricultural land and produces additional
+    gold income each turn.
+  icon: {fileID: -2387518129825354025, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
   maximumLevel: 5
   defaultConstructionTicks: 3
   levels:
@@ -23,34 +24,54 @@ MonoBehaviour:
     goldCost: 150
     constructionTicks: 0
     goldIncome: 5
+    food: 5
     garrisonCapacity: 0
     unitUnlocks: []
     flags: []
+    displayedEffects: []
+    localModifiers:
+      maxDevelopment: 0
   - level: 2
     goldCost: 300
     constructionTicks: 0
     goldIncome: 5
+    food: 5
     garrisonCapacity: 0
     unitUnlocks: []
     flags: []
+    displayedEffects: []
+    localModifiers:
+      maxDevelopment: 0
   - level: 3
     goldCost: 450
     constructionTicks: 0
     goldIncome: 5
+    food: 5
     garrisonCapacity: 0
     unitUnlocks: []
     flags: []
+    displayedEffects: []
+    localModifiers:
+      maxDevelopment: 0
   - level: 4
     goldCost: 600
     constructionTicks: 0
     goldIncome: 5
+    food: 5
     garrisonCapacity: 0
     unitUnlocks: []
     flags: []
+    displayedEffects: []
+    localModifiers:
+      maxDevelopment: 0
   - level: 5
     goldCost: 750
     constructionTicks: 0
     goldIncome: 5
+    food: 5
     garrisonCapacity: 0
     unitUnlocks: []
     flags: []
+    displayedEffects: []
+    localModifiers:
+      maxDevelopment: 0

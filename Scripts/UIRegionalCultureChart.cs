@@ -39,9 +39,9 @@ public class UIRegionalCultureChart : MaskableGraphic, IPointerEnterHandler, IPo
                 totals.TryGetValue(holding.cultureName, out Slice slice);
                 slice.name = holding.cultureName;
                 slice.population++;
-                Culture culture = Owners.Instance != null ? Owners.Instance.culturelist.Find(candidate => candidate != null &&
-                    string.Equals(candidate.name, holding.cultureName, StringComparison.OrdinalIgnoreCase)) : null;
-                Color32 cultureColor = culture != null ? culture.ownerIdentity : province.identity;
+                Color32 cultureColor = Owners.Instance != null
+                    ? Owners.Instance.CultureColor(holding.cultureName, StableCultureColor(holding.cultureName))
+                    : StableCultureColor(holding.cultureName);
                 cultureColor.a = 255;
                 slice.color = cultureColor;
                 totals[holding.cultureName] = slice;
@@ -49,8 +49,57 @@ public class UIRegionalCultureChart : MaskableGraphic, IPointerEnterHandler, IPo
         }
         slices.Clear();
         slices.AddRange(totals.Values.OrderByDescending(slice => slice.population).ThenBy(slice => slice.name));
+        EnsureDistinctSliceColors();
         RefreshLegend(region);
         SetVerticesDirty();
+    }
+
+    private void EnsureDistinctSliceColors()
+    {
+        HashSet<uint> used = new HashSet<uint>();
+        for (int i = 0; i < slices.Count; i++)
+        {
+            Slice slice = slices[i];
+            uint packed = ((uint)slice.color.r << 16) | ((uint)slice.color.g << 8) | slice.color.b;
+            if (used.Contains(packed) || (slice.color.r < 8 && slice.color.g < 8 && slice.color.b < 8))
+            {
+                slice.color = StableCultureColor(slice.name);
+                packed = ((uint)slice.color.r << 16) | ((uint)slice.color.g << 8) | slice.color.b;
+                int attempt = 1;
+                while (used.Contains(packed))
+                {
+                    slice.color = PaletteColor(i + attempt++);
+                    packed = ((uint)slice.color.r << 16) | ((uint)slice.color.g << 8) | slice.color.b;
+                }
+                slices[i] = slice;
+            }
+            used.Add(packed);
+        }
+    }
+
+    private static Color32 StableCultureColor(string cultureName)
+    {
+        unchecked
+        {
+            uint hash = 2166136261;
+            string value = cultureName ?? "Unassigned";
+            for (int i = 0; i < value.Length; i++) hash = (hash ^ char.ToUpperInvariant(value[i])) * 16777619;
+            return PaletteColor((int)(hash % 12));
+        }
+    }
+
+    private static Color32 PaletteColor(int index)
+    {
+        Color32[] palette =
+        {
+            new Color32(202, 69, 55, 255), new Color32(54, 120, 190, 255),
+            new Color32(225, 157, 44, 255), new Color32(95, 166, 82, 255),
+            new Color32(137, 83, 177, 255), new Color32(42, 164, 157, 255),
+            new Color32(205, 91, 147, 255), new Color32(139, 103, 65, 255),
+            new Color32(109, 142, 203, 255), new Color32(178, 174, 54, 255),
+            new Color32(227, 119, 65, 255), new Color32(100, 100, 100, 255)
+        };
+        return palette[Mathf.Abs(index) % palette.Length];
     }
 
     protected override void OnPopulateMesh(VertexHelper vertexHelper)

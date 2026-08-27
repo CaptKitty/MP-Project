@@ -12,14 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4c1af54aeb37c444a6600ee648e8d94, type: 3}
   m_Name: Latin
   m_EditorClassIdentifier: Assembly-CSharp::NationCultureData
+  cultureName: Latin
+  color:
+    serializedVersion: 2
+    rgba: 4286611584
   content:
     units:
-    - unit: {fileID: 11400000, guid: 6908971fc78bb8843ae5d18483671e72, type: 2}
-      requiredBuilding: {fileID: 0}
-      minimumBuildingLevel: 0
     - unit: {fileID: 11400000, guid: 532f59a396dcfa04596c6704595f7feb, type: 2}
       requiredBuilding: {fileID: 0}
       minimumBuildingLevel: 1
+    - unit: {fileID: 11400000, guid: 6908971fc78bb8843ae5d18483671e72, type: 2}
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 0
     buildings: []
     generalNames:
     - Barkus Aurelius
@@ -34,6 +38,7 @@ MonoBehaviour:
     - Marius Brutus
     flags:
     - CitizenMilitia
+    holdingEconomyModifiers: []
     levies:
     - id: 
       building: {fileID: 11400000, guid: 42f8062780014adc9668816a333e84c1, type: 2}

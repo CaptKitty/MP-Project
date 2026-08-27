@@ -9,6 +9,7 @@ public class UIElement : MonoBehaviour
     public static UIElement NationHost;
     public static UIElement ProvinceHost;
     public static UIElement ArmyHost;
+    private static int lastArmySelectionFrame = -1;
     private Text currencyText;
     private Text armyNameText;
     private Text armyCompositionText;
@@ -27,8 +28,10 @@ public class UIElement : MonoBehaviour
     private int lastCompositionSignature = int.MinValue;
     private Button recruitUnitsButton;
     private Button recruitAllLeviesButton;
+    private Button demobilizeLeviesButton;
     private Text recruitUnitsLabel;
     private Text recruitAllLeviesLabel;
+    private Text demobilizeLeviesLabel;
     private float nextRecruitmentButtonRefresh;
 
     private void Awake()
@@ -55,6 +58,46 @@ public class UIElement : MonoBehaviour
     {
         if (gameObject.name == "NationHost") RefreshCurrency();
         if (gameObject.name == "ArmyHost") RefreshArmyPanel(true);
+        if (gameObject.name == "ProvinceHost" || gameObject.name == "ArmyHost")
+            gameObject.SetActive(false);
+    }
+
+    public static void ProvinceSelected()
+    {
+        // A click on an army can also pass through to the province map in the same
+        // frame. In that case both are selected and the army panel takes priority.
+        if (lastArmySelectionFrame != Time.frameCount)
+        {
+            FieldArmyHolder.InspectedArmy = null;
+            FieldArmyHolder.SelectedPlayerArmy = null;
+        }
+        RefreshSelectionPanels();
+    }
+
+    public static void ArmySelected(FieldArmyHolder army)
+    {
+        lastArmySelectionFrame = Time.frameCount;
+        FieldArmyHolder.InspectedArmy = army;
+        RefreshSelectionPanels();
+    }
+
+    public static void NothingSelected()
+    {
+        FieldArmyHolder.InspectedArmy = null;
+        FieldArmyHolder.SelectedPlayerArmy = null;
+        RefreshSelectionPanels();
+    }
+
+    public static void RefreshSelectionPanels()
+    {
+        bool hasExplicitArmy = FieldArmyHolder.InspectedArmy != null;
+        bool hasProvince = Mapshower.Instance != null && Mapshower.Instance.SelectedProvince != null;
+        if (ProvinceHost != null) ProvinceHost.gameObject.SetActive(hasProvince && !hasExplicitArmy);
+        if (ArmyHost != null)
+        {
+            ArmyHost.gameObject.SetActive(hasExplicitArmy);
+            if (hasExplicitArmy) ArmyHost.RefreshArmyPanel(true);
+        }
     }
 
     private void OnDestroy()
@@ -171,8 +214,11 @@ public class UIElement : MonoBehaviour
             new Color(.18f, .30f, .16f, .95f), OpenArmyRecruitment, out recruitUnitsLabel);
         recruitAllLeviesButton = CreateArmyActionButton("Recruit All Available Levies", new Vector2(.04f, .03f), new Vector2(.48f, .11f),
             new Color(.28f, .20f, .08f, .95f), RaiseAllAvailableLevies, out recruitAllLeviesLabel);
+        demobilizeLeviesButton = CreateArmyActionButton("Demobilize Levies", new Vector2(.04f, .03f), new Vector2(.48f, .11f),
+            new Color(.24f, .14f, .10f, .95f), DemobilizeAllLevies, out demobilizeLeviesLabel);
         ((RectTransform)recruitUnitsButton.transform).anchoredPosition = new Vector2(-50f, 60f);
         ((RectTransform)recruitAllLeviesButton.transform).anchoredPosition = new Vector2(-50f, 25f);
+        ((RectTransform)demobilizeLeviesButton.transform).anchoredPosition = new Vector2(-50f, -20f);
     }
 
     private Button CreateArmyActionButton(string objectName, Vector2 anchorMin, Vector2 anchorMax, Color color,
@@ -201,7 +247,7 @@ public class UIElement : MonoBehaviour
 
     private void RefreshArmyRecruitmentButtons()
     {
-        if (recruitUnitsButton == null || recruitAllLeviesButton == null) return;
+        if (recruitUnitsButton == null || recruitAllLeviesButton == null || demobilizeLeviesButton == null) return;
         FieldArmyHolder army = FieldArmyHolder.SelectedPlayerArmy;
         Province province = army != null ? army.GrabNearestProvince() : null;
         bool friendlyLocal = army != null && army.IsFriendlyToLocalPlayer() && province != null &&
@@ -209,11 +255,14 @@ public class UIElement : MonoBehaviour
         bool stationary = friendlyLocal && army.IsTargetNull();
         int availableLevies = friendlyLocal ? province.GetAvailableRegionLevies(army.fieldArmy.nation).Count : 0;
         int capacity = friendlyLocal ? army.fieldArmy.MaxArmySize - army.fieldArmy.GrabArmySize() - army.fieldArmy.GrabQueuedArmySize() : 0;
+        int raisedLevies = friendlyLocal ? army.fieldArmy.CountRaisedLevies() : 0;
         recruitUnitsButton.interactable = stationary;
         recruitAllLeviesButton.interactable = stationary && availableLevies > 0 && capacity > 0;
+        demobilizeLeviesButton.interactable = stationary && raisedLevies > 0;
         if (recruitUnitsLabel != null) recruitUnitsLabel.text = "Recruit Units";
         if (recruitAllLeviesLabel != null) recruitAllLeviesLabel.text = "Recruit All Available Levies (" +
             Mathf.Min(Mathf.Max(0, capacity), availableLevies) + ")";
+        if (demobilizeLeviesLabel != null) demobilizeLeviesLabel.text = "Demobilize Levies (" + raisedLevies + ")";
     }
 
     private void OpenArmyRecruitment()
@@ -232,8 +281,18 @@ public class UIElement : MonoBehaviour
         if (army == null || !army.IsFriendlyToLocalPlayer() || province == null) return;
         if (CampaignNetworkPlayer.Local != null && CampaignNetworkPlayer.Local.IsSpawned)
             CampaignNetworkPlayer.Local.RequestRaiseAllLevies();
-        else province.RaiseAllAvailableRegionLevies(army);
+        else province.RaiseAllAvailableRegionLevies(army, true);
         RefreshArmyRecruitmentButtons();
+    }
+
+    private void DemobilizeAllLevies()
+    {
+        FieldArmyHolder army = FieldArmyHolder.SelectedPlayerArmy;
+        if (army == null || !army.IsFriendlyToLocalPlayer() || !army.IsTargetNull() || army.fieldArmy == null) return;
+        if (CampaignNetworkPlayer.Local != null && CampaignNetworkPlayer.Local.IsSpawned)
+            CampaignNetworkPlayer.Local.RequestDemobilizeAllLevies();
+        else army.fieldArmy.DemobilizeAllLevies();
+        RefreshArmyPanel(true);
     }
 
     public void RefreshCurrency()

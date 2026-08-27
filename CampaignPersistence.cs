@@ -88,6 +88,7 @@ public class CampaignSaveData
                 farmLevel = nation.faction.FarmLevel,
                 income = nation.faction.Income,
                 upkeepDebt = nation.UpkeepDebt,
+                levyLawPermille = nation.LevyLawPermille,
                 flags = new List<string>(nation.faction.Flaglist)
             });
         }
@@ -99,7 +100,7 @@ public class CampaignSaveData
                 nation = province.nation.name,
                 population = province.population,
                 supply = province.supply,
-                urbanization = Mathf.Clamp(province.urbanization, 0, 100),
+                urbanization = Mathf.Clamp(province.urbanization, 0, province.MaximumDevelopment),
                 unrest = province.unrest,
                 terrainProfile = (int)province.terrainProfile
             };
@@ -145,7 +146,9 @@ public class CampaignSaveData
                 if (holding != null) savedProvince.holdings.Add(new SavedHolding { instanceId = holding.instanceId,
                     id = holding.HoldingId,
                     level = holding.level, slotIndex = holding.slotIndex, cultureName = holding.cultureName,
-                    socioEconomicClass = (int)holding.socioEconomicClass, levyEnabled = holding.levyEnabled });
+                    socioEconomicClass = (int)holding.socioEconomicClass, allegiance = holding.allegiance,
+                    levyEnabled = holding.levyEnabled, adaptationTargetId = holding.adaptationTargetId,
+                    adaptationPressure = holding.adaptationPressure, adaptationCooldownTicks = holding.adaptationCooldownTicks });
             if (province.holdingConstructionOrders != null)
                 foreach (HoldingConstructionOrder order in province.holdingConstructionOrders)
                     if (order != null) savedProvince.holdingConstruction.Add(new SavedHoldingConstructionOrder {
@@ -160,7 +163,8 @@ public class CampaignSaveData
                 SavedRegion savedRegion = new SavedRegion { name = region.name, loyalty = region.loyalty };
                 if (region.loyaltyShares != null) foreach (RegionalLoyaltyShare share in region.loyaltyShares)
                     if (share != null) savedRegion.shares.Add(new SavedRegionalLoyaltyShare
-                        { nationName = share.nationName, loyalty = share.loyalty });
+                        { nationName = share.nationName, loyalty = share.loyalty, foodStorage = share.foodStorage,
+                            foodStorageCapacity = share.foodStorageCapacity, lastFoodShortage = share.lastFoodShortage });
                 save.regions.Add(savedRegion);
             }
         foreach (FieldArmyHolder army in Owners.Instance.armylist)
@@ -219,6 +223,7 @@ public class CampaignSaveData
             nation.faction.FarmLevel = state.farmLevel;
             nation.faction.Income = state.income;
             nation.UpkeepDebt = Mathf.Max(0, state.upkeepDebt);
+            if (state.levyLawPermille >= 0) nation.LevyLawPermille = Mathf.Clamp(state.levyLawPermille, 0, 1000);
             nation.faction.Flaglist = new List<string>(state.flags ?? new List<string>());
             nation.faction.Set();
         }
@@ -229,7 +234,7 @@ public class CampaignSaveData
             if (province == null || nation == null) continue;
             province.nation = nation;
             province.supply = state.supply;
-            province.urbanization = Mathf.Clamp(state.urbanization, 0, 100);
+            province.urbanization = Mathf.Max(0, state.urbanization);
             province.unrest = state.unrest;
             if (state.cultures != null && state.cultures.Count > 0)
             {
@@ -295,7 +300,10 @@ public class CampaignSaveData
                     level = Mathf.Max(1, holding.level), slotIndex = holding.slotIndex,
                     cultureName = holding.cultureName,
                     socioEconomicClass = (SocioEconomicClass)Mathf.Clamp(holding.socioEconomicClass, 0, 8),
-                    levyEnabled = holding.levyEnabled });
+                    allegiance = holding.allegiance,
+                    levyEnabled = holding.levyEnabled, adaptationTargetId = holding.adaptationTargetId,
+                    adaptationPressure = Mathf.Max(0, holding.adaptationPressure),
+                    adaptationCooldownTicks = Mathf.Max(0, holding.adaptationCooldownTicks) });
             }
             province.holdingConstructionOrders = new List<HoldingConstructionOrder>();
             if (state.holdingConstruction != null)
@@ -314,6 +322,7 @@ public class CampaignSaveData
                     eligible = levy.eligible, remainingTicks = levy.remainingTicks, raisedArmyId = levy.raisedArmyId });
             }
             province.InitializeHoldings();
+            province.ClampDevelopment();
         }
         if (regions != null)
             foreach (SavedRegion state in regions)
@@ -325,7 +334,15 @@ public class CampaignSaveData
                     if (state.shares != null) foreach (SavedRegionalLoyaltyShare share in state.shares)
                     {
                         Nation nation = Owners.Instance.nationlist.Find(item => item != null && item.name == share.nationName);
-                        if (nation != null) region.SetLoyalty(nation, share.loyalty);
+                        if (nation != null)
+                        {
+                            region.SetLoyalty(nation, share.loyalty);
+                            RegionalLoyaltyShare loadedShare = region.GetLoyaltyShare(nation, true);
+                            loadedShare.foodStorageCapacity = share.foodStorageCapacity > 0 ? share.foodStorageCapacity : 1000;
+                            loadedShare.foodStorage = share.foodStorage >= 0
+                                ? Mathf.Clamp(share.foodStorage, 0, loadedShare.foodStorageCapacity) : loadedShare.foodStorageCapacity;
+                            loadedShare.lastFoodShortage = Mathf.Max(0, share.lastFoodShortage);
+                        }
                     }
                     if (state.shares == null || state.shares.Count == 0)
                         foreach (Province province in region.provincelist)
@@ -404,11 +421,11 @@ public class CampaignSaveData
     }
 }
 
-[Serializable] public class SavedNation { public string name; public int manpower; public int gold = -1; public int armyNumber; public int barracksLevel; public int mercenaryLevel; public int farmLevel; public int income; public int upkeepDebt; public List<string> flags = new List<string>(); }
+[Serializable] public class SavedNation { public string name; public int manpower; public int gold = -1; public int armyNumber; public int barracksLevel; public int mercenaryLevel; public int farmLevel; public int income; public int upkeepDebt; public int levyLawPermille = -1; public List<string> flags = new List<string>(); }
 [Serializable] public class SavedProvince { public string name; public string nation; public int population; public int supply; public int urbanization; public int unrest; public int terrainProfile; public List<SavedCulture> cultures = new List<SavedCulture>(); public List<SavedBuilding> buildings = new List<SavedBuilding>(); public List<SavedConstructionOrder> construction = new List<SavedConstructionOrder>(); public List<SavedMercenaryPool> mercenaries = new List<SavedMercenaryPool>(); public List<SavedLevyEntitlement> levies = new List<SavedLevyEntitlement>(); public List<SavedHolding> holdings = new List<SavedHolding>(); public List<SavedHoldingConstructionOrder> holdingConstruction = new List<SavedHoldingConstructionOrder>(); }
 [Serializable] public class SavedCulture { public string name; public int population; public Color32 color; }
 [Serializable] public class SavedRegion { public string name; public float loyalty = 100f; public List<SavedRegionalLoyaltyShare> shares = new List<SavedRegionalLoyaltyShare>(); }
-[Serializable] public class SavedRegionalLoyaltyShare { public string nationName; public float loyalty; }
+[Serializable] public class SavedRegionalLoyaltyShare { public string nationName; public float loyalty; public int foodStorage = -1; public int foodStorageCapacity = 1000; public int lastFoodShortage; }
 [Serializable] public class SavedBuilding { public string id; public int level; public int maxLevel; public int slotIndex = -1; }
 [Serializable] public class SavedConstructionOrder { public int slotIndex; public string buildingId; public int targetLevel; public int remainingTicks; public bool initiatedByAI; }
 [Serializable] public class SavedMercenaryPool { public string unitName; public int available; public int capacity; public float regenerationPerTurn; public float regenerationProgress; }
@@ -416,6 +433,6 @@ public class CampaignSaveData
 [Serializable] public class SavedUnit { public string name; public int amount; }
 [Serializable] public class SavedFormationRecord { public string unitName; public int origin; public string entitlementId; }
 [Serializable] public class SavedLevyEntitlement { public string id; public string ruleId; public string unitName; public int buildingSlot; public string holdingId; public string holdingInstanceId; public int ordinal; public string beneficiaryNation; public int state; public bool eligible; public int remainingTicks; public string raisedArmyId; }
-[Serializable] public class SavedHolding { public string instanceId; public string id; public int level; public int slotIndex; public string cultureName; public int socioEconomicClass; public bool levyEnabled = true; }
+[Serializable] public class SavedHolding { public string instanceId; public string id; public int level; public int slotIndex; public string cultureName; public int socioEconomicClass; public string allegiance; public bool levyEnabled = true; public string adaptationTargetId; public int adaptationPressure; public int adaptationCooldownTicks; }
 [Serializable] public class SavedHoldingConstructionOrder { public int slotIndex; public string holdingInstanceId; public string holdingId; public int targetLevel; public int remainingTicks; }
 [Serializable] public class SavedRecruitmentOrder { public string unitName; public int amount; public int remainingTicks; }

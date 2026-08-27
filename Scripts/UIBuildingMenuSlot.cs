@@ -11,6 +11,7 @@ public class UIBuildingMenuSlot : MonoBehaviour, IPointerEnterHandler, IPointerE
 
     private UIBuildingMenu menu;
     private Image background;
+    private Image buildingIcon;
     private Text label;
     private Button button;
 
@@ -22,6 +23,7 @@ public class UIBuildingMenuSlot : MonoBehaviour, IPointerEnterHandler, IPointerE
         button.onClick.RemoveListener(HandleClick);
         button.onClick.AddListener(HandleClick);
         EnsureLabel();
+        EnsureIcon();
     }
 
     public void Configure(UIBuildingMenu owner, Province province, ProvinceBuilding building, int slotIndex, bool showProvinceName)
@@ -36,10 +38,15 @@ public class UIBuildingMenuSlot : MonoBehaviour, IPointerEnterHandler, IPointerE
         ProvinceConstructionOrder construction = province != null && province.constructionOrders != null
             ? province.constructionOrders.Find(order => order != null && order.slotIndex == slotIndex)
             : null;
+        BuildingDefinition displayedDefinition = building != null ? building.definition :
+            construction != null ? BuildingDefinition.Find(construction.buildingId) : null;
+        Sprite displayedIcon = displayedDefinition != null ? displayedDefinition.icon : null;
+        SetIcon(displayedIcon);
         string prefix = showProvinceName && province != null ? province.name + "\n" : string.Empty;
         if (construction != null)
         {
-            label.text = prefix + "Constructing " + construction.buildingId + "\n" + construction.remainingTicks + " ticks";
+            label.text = displayedIcon != null ? string.Empty :
+                prefix + "Constructing " + construction.buildingId + "\n" + construction.remainingTicks + " ticks";
             if (background != null) background.color = new Color(.45f, .32f, .12f, .95f);
             if (button != null) button.interactable = false;
             return;
@@ -48,12 +55,12 @@ public class UIBuildingMenuSlot : MonoBehaviour, IPointerEnterHandler, IPointerE
 
         if (building == null)
         {
-            label.text = prefix + "Empty";
+            label.text = "Empty";
             if (background != null) background.color = new Color(.25f, .25f, .25f, .9f);
         }
         else
         {
-            label.text = prefix + building.DisplayName + "\nLv " + building.level;
+            label.text = displayedIcon != null ? string.Empty : prefix + building.DisplayName + "\nLv " + building.level;
             if (background != null) background.color = new Color(.22f, .38f, .24f, .95f);
         }
         if (background != null) background.raycastTarget = true;
@@ -81,6 +88,34 @@ public class UIBuildingMenuSlot : MonoBehaviour, IPointerEnterHandler, IPointerE
         RectTransform rect = label.rectTransform;
         rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one;
         rect.offsetMin = new Vector2(3f, 3f); rect.offsetMax = new Vector2(-3f, -3f);
+    }
+
+    private void EnsureIcon()
+    {
+        Transform existing = transform.Find("BuildingIcon");
+        if (existing != null) buildingIcon = existing.GetComponent<Image>();
+        if (buildingIcon == null)
+        {
+            GameObject child = new GameObject("BuildingIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            child.layer = gameObject.layer;
+            child.transform.SetParent(transform, false);
+            buildingIcon = child.GetComponent<Image>();
+        }
+        buildingIcon.raycastTarget = false;
+        buildingIcon.preserveAspect = true;
+        RectTransform rect = buildingIcon.rectTransform;
+        rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one;
+        rect.offsetMin = new Vector2(5f, 5f); rect.offsetMax = new Vector2(-5f, -5f);
+        // Keep the icon above the colored slot background but behind its descriptive text.
+        buildingIcon.transform.SetAsFirstSibling();
+    }
+
+    private void SetIcon(Sprite icon)
+    {
+        EnsureIcon();
+        buildingIcon.sprite = icon;
+        buildingIcon.color = Color.white;
+        buildingIcon.enabled = icon != null;
     }
 
     public void OnPointerEnter(PointerEventData eventData) { IsHovered = true; if (menu != null) menu.PointerEntered(this); }

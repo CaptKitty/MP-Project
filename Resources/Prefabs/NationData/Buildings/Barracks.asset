@@ -16,7 +16,7 @@ MonoBehaviour:
   displayName: Barracks
   description: Trains the nation's regular military roster. Each level unlocks units
     whose minimum barracks tier is equal to or below the building level.
-  icon: {fileID: 0}
+  icon: {fileID: 5371941052907562412, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
   maximumLevel: 10
   defaultConstructionTicks: 4
   levels:
@@ -27,6 +27,9 @@ MonoBehaviour:
     garrisonCapacity: 0
     unitUnlocks: []
     flags: []
+    displayedEffects: []
+    localModifiers:
+      maxDevelopment: 0
   - level: 2
     goldCost: 400
     constructionTicks: 0
@@ -34,6 +37,9 @@ MonoBehaviour:
     garrisonCapacity: 0
     unitUnlocks: []
     flags: []
+    displayedEffects: []
+    localModifiers:
+      maxDevelopment: 0
   - level: 3
     goldCost: 600
     constructionTicks: 0
@@ -41,6 +47,9 @@ MonoBehaviour:
     garrisonCapacity: 0
     unitUnlocks: []
     flags: []
+    displayedEffects: []
+    localModifiers:
+      maxDevelopment: 0
   - level: 4
     goldCost: 800
     constructionTicks: 0
@@ -48,6 +57,9 @@ MonoBehaviour:
     garrisonCapacity: 0
     unitUnlocks: []
     flags: []
+    displayedEffects: []
+    localModifiers:
+      maxDevelopment: 0
   - level: 5
     goldCost: 1000
     constructionTicks: 0
@@ -55,6 +67,9 @@ MonoBehaviour:
     garrisonCapacity: 0
     unitUnlocks: []
     flags: []
+    displayedEffects: []
+    localModifiers:
+      maxDevelopment: 0
   - level: 6
     goldCost: 1200
     constructionTicks: 0
@@ -62,6 +77,9 @@ MonoBehaviour:
     garrisonCapacity: 0
     unitUnlocks: []
     flags: []
+    displayedEffects: []
+    localModifiers:
+      maxDevelopment: 0
   - level: 7
     goldCost: 1400
     constructionTicks: 0
@@ -69,6 +87,9 @@ MonoBehaviour:
     garrisonCapacity: 0
     unitUnlocks: []
     flags: []
+    displayedEffects: []
+    localModifiers:
+      maxDevelopment: 0
   - level: 8
     goldCost: 1600
     constructionTicks: 0
@@ -76,6 +97,9 @@ MonoBehaviour:
     garrisonCapacity: 0
     unitUnlocks: []
     flags: []
+    displayedEffects: []
+    localModifiers:
+      maxDevelopment: 0
   - level: 9
     goldCost: 1800
     constructionTicks: 0
@@ -83,6 +107,9 @@ MonoBehaviour:
     garrisonCapacity: 0
     unitUnlocks: []
     flags: []
+    displayedEffects: []
+    localModifiers:
+      maxDevelopment: 0
   - level: 10
     goldCost: 2000
     constructionTicks: 0
@@ -90,3 +117,6 @@ MonoBehaviour:
     garrisonCapacity: 0
     unitUnlocks: []
     flags: []
+    displayedEffects: []
+    localModifiers:
+      maxDevelopment: 0

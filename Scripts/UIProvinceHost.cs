@@ -11,13 +11,23 @@ public class UIProvinceHost : MonoBehaviour
     private UIBuildingMenu buildingMenu;
     private UIRegionalCultureChart cultureChart;
     private UIRegionalLoyaltyDisplay loyaltyDisplay;
+    private UIRegionSummary regionSummary;
     private Text holdingsSummary;
+    private Transform holdingsSummaryRoot;
+    private Text holdingsCountText;
+    private Text urbanizationText;
+    private Text provincialTotalIncome;
+    private string holdingsCountTemplate;
+    private string urbanizationTemplate;
+    private readonly System.Collections.Generic.List<Transform> holdingSlots = new System.Collections.Generic.List<Transform>();
     private string lastOwnerName;
     private string lastAdministrationSummary;
     private int lastBuildingSignature;
     private int lastCultureSignature;
     private int lastRegionalLoyalty = int.MinValue;
+    private int lastRegionalFoodState = int.MinValue;
     private int lastNationGold = int.MinValue;
+    private int lastUrbanization = int.MinValue;
     private Button raiseArmyButton;
     private Button recruitUnitsButton;
     private Text recruitUnitsLabel;
@@ -47,6 +57,11 @@ public class UIProvinceHost : MonoBehaviour
             int gold = LoadedProvince.nation != null ? LoadedProvince.nation.Gold : 0;
             string administration = AdministrationSummary(LoadedProvince);
             if (owner != lastOwnerName || gold != lastNationGold || administration != lastAdministrationSummary) RefreshHeader();
+            if (LoadedProvince.urbanization != lastUrbanization)
+            {
+                lastUrbanization = LoadedProvince.urbanization;
+                RefreshHoldingsSummary();
+            }
             int signature = RegionBuildingSignature(LoadedProvince);
             if (signature != lastBuildingSignature)
             {
@@ -62,8 +77,16 @@ public class UIProvinceHost : MonoBehaviour
                 RefreshCultureChart();
             }
             CampaignRegion loadedRegion = Owners.Instance != null ? Owners.Instance.CallRegionByString(LoadedProvince.region) : null;
-            int regionalLoyalty = loadedRegion != null ? Mathf.RoundToInt(loadedRegion.loyalty * 10f) : 0;
+            int regionalLoyalty = loadedRegion != null ? Mathf.RoundToInt(loadedRegion.GetLoyalty(LoadedProvince.nation) * 10f) : 0;
             if (regionalLoyalty != lastRegionalLoyalty) RefreshLoyaltyDisplay();
+            RegionalLoyaltyShare foodShare = loadedRegion != null ? loadedRegion.GetLoyaltyShare(LoadedProvince.nation, true) : null;
+            int regionalFoodState = foodShare != null ? foodShare.foodStorage * 10000 +
+                foodShare.foodStorageCapacity * 100 + foodShare.lastFoodShortage : 0;
+            if (regionalFoodState != lastRegionalFoodState)
+            {
+                lastRegionalFoodState = regionalFoodState;
+                RefreshHoldingsSummary();
+            }
         }
 
         FieldArmyHolder selectedArmy = FieldArmyHolder.SelectedPlayerArmy;
@@ -82,6 +105,8 @@ public class UIProvinceHost : MonoBehaviour
         lastBuildingSignature = RegionBuildingSignature(province);
         lastCultureSignature = RegionCultureSignature(province);
         lastRegionalLoyalty = int.MinValue;
+        lastRegionalFoodState = int.MinValue;
+        lastUrbanization = province != null ? province.urbanization : int.MinValue;
         RefreshHeader();
         if (buildingMenu != null) buildingMenu.LoadProvince(province, this);
         RefreshHoldingsSummary();
@@ -92,7 +117,17 @@ public class UIProvinceHost : MonoBehaviour
     {
         provinceName = provinceName != null ? provinceName : FindText("ProvinceName");
         provinceOwnerName = provinceOwnerName != null ? provinceOwnerName : FindText("ProvinceOwnerName");
-        buildingMenu = buildingMenu != null ? buildingMenu : GetComponentInChildren<UIBuildingMenu>(true);
+        if (buildingMenu == null)
+        {
+            Transform namedBuildingMenu = FindTransform("BuildingMenu");
+            buildingMenu = namedBuildingMenu != null ? namedBuildingMenu.GetComponent<UIBuildingMenu>() : null;
+        }
+        if (regionSummary == null)
+        {
+            regionSummary = GetComponent<UIRegionSummary>();
+            if (regionSummary == null) regionSummary = gameObject.AddComponent<UIRegionSummary>();
+        }
+        provincialTotalIncome = provincialTotalIncome != null ? provincialTotalIncome : FindText("Provincial Total Income");
         if (cultureChart == null)
         {
             Transform cultureMenu = FindTransform("CultureMenu");
@@ -125,7 +160,7 @@ public class UIProvinceHost : MonoBehaviour
             }
         }
         if (raiseArmyButton == null) CreateRaiseArmyButton();
-        if (holdingsSummary == null) CreateHoldingsSummary();
+        ResolveHoldingsSummary();
     }
 
     private Text FindText(string objectName)
@@ -171,6 +206,7 @@ public class UIProvinceHost : MonoBehaviour
     private void CreateHoldingsSummary()
     {
         GameObject root = new GameObject("HoldingsSummary", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        holdingsSummaryRoot = root.transform;
         root.layer = gameObject.layer; root.transform.SetParent(transform, false);
         RectTransform rect = root.GetComponent<RectTransform>();
         rect.anchorMin = new Vector2(.03f, .11f); rect.anchorMax = new Vector2(.38f, .27f);
@@ -190,11 +226,73 @@ public class UIProvinceHost : MonoBehaviour
         labelRect.offsetMin = new Vector2(7f, 5f); labelRect.offsetMax = new Vector2(-7f, -5f);
     }
 
+    private void ResolveHoldingsSummary()
+    {
+        if (holdingsSummaryRoot == null) holdingsSummaryRoot = FindTransform("HoldingsSummary");
+        if (holdingsSummaryRoot == null)
+        {
+            CreateHoldingsSummary();
+            return;
+        }
+
+        holdingSlots.Clear();
+        for (int i = 0; i < holdingsSummaryRoot.childCount; i++)
+        {
+            Transform child = holdingsSummaryRoot.GetChild(i);
+            if (child != null && child.name.StartsWith("HoldingSlot", System.StringComparison.OrdinalIgnoreCase))
+                holdingSlots.Add(child);
+        }
+        holdingSlots.Sort((left, right) => NaturalSlotNumber(left.name).CompareTo(NaturalSlotNumber(right.name)));
+
+        Text[] texts = buildingMenu != null
+            ? buildingMenu.GetComponentsInChildren<Text>(true)
+            : holdingsSummaryRoot.GetComponentsInChildren<Text>(true);
+        foreach (Text text in texts)
+        {
+            if (text == null) continue;
+            if (holdingsCountText == null && (text.name.IndexOf("Holding", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                text.text.Contains("<X>")))
+            { holdingsCountText = text; holdingsCountTemplate = text.text; }
+            if (urbanizationText == null && (text.name.IndexOf("Urban", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                text.text.Contains("<Y>")))
+            { urbanizationText = text; urbanizationTemplate = text.text; }
+        }
+        // One combined template may contain both placeholders.
+        if (holdingsCountText != null && holdingsCountText == urbanizationText)
+            urbanizationTemplate = holdingsCountTemplate;
+    }
+
+    private static int NaturalSlotNumber(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return int.MaxValue;
+        int start = name.Length;
+        while (start > 0 && char.IsDigit(name[start - 1])) start--;
+        return int.TryParse(name.Substring(start), out int number) ? number : int.MaxValue;
+    }
+
     private void RefreshHoldingsSummary()
     {
-        if (holdingsSummary == null) return;
-        if (LoadedProvince == null) { holdingsSummary.transform.parent.gameObject.SetActive(false); return; }
-        holdingsSummary.transform.parent.gameObject.SetActive(true);
+        if (regionSummary != null) regionSummary.RefreshFor(LoadedProvince);
+        UIProvincePanelSummary panelSummary = buildingMenu != null
+            ? buildingMenu.GetComponent<UIProvincePanelSummary>() : null;
+        if (panelSummary != null)
+        {
+            panelSummary.RefreshFor(LoadedProvince);
+            return;
+        }
+        ResolveHoldingsSummary();
+        if (holdingsSummaryRoot == null) return;
+        if (LoadedProvince == null) { holdingsSummaryRoot.gameObject.SetActive(false); return; }
+        holdingsSummaryRoot.gameObject.SetActive(true);
+
+        int holdingCount = LoadedProvince.holdings != null
+            ? LoadedProvince.holdings.FindAll(holding => holding != null).Count : 0;
+        ApplyHoldingsTemplates(holdingCount, Mathf.RoundToInt(LoadedProvince.urbanization));
+        RefreshHoldingClassSlots();
+        RefreshProvincialTotalIncome();
+
+        // Preserve the generated legacy summary when loading an older scene without the new named slot layout.
+        if (holdingSlots.Count > 0 || holdingsSummary == null) return;
         System.Text.StringBuilder text = new System.Text.StringBuilder("Holdings");
         if (LoadedProvince.holdings == null || LoadedProvince.holdings.Count == 0) text.Append("\nNone");
         else foreach (ProvinceHolding holding in LoadedProvince.holdings)
@@ -203,26 +301,205 @@ public class UIProvinceHost : MonoBehaviour
             text.Append("\n").Append(holding.DisplayName).Append(" Lv ").Append(holding.level);
             if (!string.IsNullOrWhiteSpace(holding.cultureName)) text.Append(" - ").Append(holding.cultureName);
             text.Append(" - ").Append(holding.socioEconomicClass);
+            text.Append(" - ").Append(!string.IsNullOrWhiteSpace(holding.allegiance) ? holding.allegiance : "Unaligned");
             bool mobilized = LoadedProvince.IsHoldingMobilized(holding.instanceId);
             int income = holding.GetOutput(HoldingOutputType.Income, LoadedProvince.urbanization, mobilized);
             if (income != 0) text.Append(" - +").Append(income).Append(" gold");
             int food = holding.GetOutput(HoldingOutputType.Food, LoadedProvince.urbanization,
                 mobilized);
-            int influence = holding.GetOutput(HoldingOutputType.PoliticalInfluence, LoadedProvince.urbanization,
-                mobilized);
             int manpower = holding.GetOutput(HoldingOutputType.Manpower, LoadedProvince.urbanization,
                 mobilized);
             if (food != 0) text.Append(" - ").Append(food).Append(" food");
-            if (influence != 0) text.Append(" - ").Append(influence).Append(" influence");
             if (manpower != 0) text.Append(" - ").Append(manpower).Append(" manpower");
             if (mobilized) text.Append(" - MOBILIZED");
-            if (holding.CanRaiseLevies) text.Append(" - ").Append(holding.LevyFormationCount).Append(" levies");
+            if (holding.CanRaiseLevies) text.Append(" - ")
+                .Append(holding.EffectiveLevyContribution(LoadedProvince.nation).ToString("0.###")).Append(" levy capacity");
         }
         if (LoadedProvince.holdingConstructionOrders != null)
             foreach (HoldingConstructionOrder order in LoadedProvince.holdingConstructionOrders)
                 if (order != null) text.Append("\nTransforming to ").Append(order.holdingId)
                     .Append(" (").Append(order.remainingTicks).Append(" ticks)");
         holdingsSummary.text = text.ToString();
+    }
+
+    private void ApplyHoldingsTemplates(int count, int urbanization)
+    {
+        if (holdingsCountText != null)
+        {
+            string template = !string.IsNullOrEmpty(holdingsCountTemplate) ? holdingsCountTemplate : holdingsCountText.text;
+            holdingsCountText.text = template.Replace("<X>", count.ToString()).Replace("<x>", count.ToString())
+                .Replace("<Y>", urbanization.ToString()).Replace("<y>", urbanization.ToString());
+        }
+        if (urbanizationText != null && urbanizationText != holdingsCountText)
+        {
+            string template = !string.IsNullOrEmpty(urbanizationTemplate) ? urbanizationTemplate : urbanizationText.text;
+            urbanizationText.text = template.Replace("<X>", count.ToString()).Replace("<x>", count.ToString())
+                .Replace("<Y>", urbanization.ToString()).Replace("<y>", urbanization.ToString());
+        }
+    }
+
+    private void RefreshHoldingClassSlots()
+    {
+        if (holdingSlots.Count == 0) return;
+        System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<ProvinceHolding>> groups =
+            new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<ProvinceHolding>>(System.StringComparer.OrdinalIgnoreCase);
+        if (LoadedProvince.holdings != null) foreach (ProvinceHolding holding in LoadedProvince.holdings)
+        {
+            if (holding == null) continue;
+            string holdingType = !string.IsNullOrWhiteSpace(holding.HoldingId) ? holding.HoldingId : "Unassigned";
+            if (!groups.TryGetValue(holdingType, out System.Collections.Generic.List<ProvinceHolding> list))
+            { list = new System.Collections.Generic.List<ProvinceHolding>(); groups.Add(holdingType, list); }
+            list.Add(holding);
+        }
+        System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, System.Collections.Generic.List<ProvinceHolding>>> sorted =
+            new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, System.Collections.Generic.List<ProvinceHolding>>>(groups);
+        sorted.Sort((left, right) =>
+        {
+            int count = right.Value.Count.CompareTo(left.Value.Count);
+            return count != 0 ? count : string.Compare(left.Key, right.Key, System.StringComparison.OrdinalIgnoreCase);
+        });
+
+        for (int i = 0; i < holdingSlots.Count; i++)
+        {
+            Transform slot = holdingSlots[i];
+            Text label = EnsureHoldingSlotLabel(slot);
+            Tooltip tooltip = slot.GetComponent<Tooltip>();
+            if (tooltip == null) tooltip = slot.gameObject.AddComponent<Tooltip>();
+            tooltip.positions = new Vector3(120f, 30f, 0f);
+            if (i >= sorted.Count)
+            {
+                label.text = "0";
+                tooltip.message = "No holding type in this slot.";
+                continue;
+            }
+            System.Collections.Generic.List<ProvinceHolding> holdings = sorted[i].Value;
+            label.text = holdings.Count.ToString();
+            string displayName = holdings.Count > 0 ? holdings[0].DisplayName : sorted[i].Key;
+            System.Text.StringBuilder message = new System.Text.StringBuilder(displayName).Append(" (" + holdings.Count + ")");
+            holdings.Sort((left, right) => string.CompareOrdinal(left.DisplayName, right.DisplayName));
+            foreach (ProvinceHolding holding in holdings)
+                AppendHoldingTooltip(message, holding);
+            tooltip.message = message.ToString();
+        }
+    }
+
+    private void AppendHoldingTooltip(System.Text.StringBuilder message, ProvinceHolding holding)
+    {
+        bool mobilized = LoadedProvince.IsHoldingMobilized(holding.instanceId);
+        message.Append("\n- ").Append(holding.DisplayName).Append(" Lv ").Append(holding.level)
+            .Append(" - ").Append(!string.IsNullOrWhiteSpace(holding.cultureName) ? holding.cultureName : "Unassigned");
+        message.Append("\n    Class: ").Append(holding.socioEconomicClass);
+        message.Append("\n    Allegiance: ").Append(!string.IsNullOrWhiteSpace(holding.allegiance) ? holding.allegiance : "Unaligned");
+        if (holding.definition != null && holding.definition.outputs != null)
+            foreach (HoldingOutputDefinition output in holding.definition.outputs)
+                if (output != null && output.EffectiveUrbanizationResponse != 0)
+                    message.Append("\n    ").Append(HoldingOutputLabel(output.type)).Append(" urbanization response: ")
+                        .Append(output.EffectiveUrbanizationResponse > 0 ? "+" : string.Empty)
+                        .Append(output.EffectiveUrbanizationResponse);
+        int netFood = holding.GetOutput(HoldingOutputType.Food, LoadedProvince.urbanization, mobilized);
+        int grossFood = netFood + holding.FoodConsumption;
+        message.Append("\n    Food production: +").Append(grossFood);
+        message.Append("\n    Food consumption: -").Append(holding.FoodConsumption);
+        message.Append("\n    Net food: ").Append(netFood >= 0 ? "+" : string.Empty).Append(netFood);
+        bool anyOutput = false;
+        foreach (HoldingOutputType type in System.Enum.GetValues(typeof(HoldingOutputType)))
+        {
+            if (type == HoldingOutputType.Food || type == HoldingOutputType.PoliticalInfluence) continue;
+            int amount = holding.GetOutput(type, LoadedProvince.urbanization, mobilized);
+            if (amount == 0) continue;
+            message.Append("\n    ").Append(HoldingOutputLabel(type)).Append(": ").Append(amount > 0 ? "+" : string.Empty).Append(amount);
+            anyOutput = true;
+        }
+        System.Collections.Generic.List<ProvinceLevyEntitlement> holdingLevies =
+            LoadedProvince.GetRegionalLevyEntitlementsForHolding(holding.instanceId);
+        int levyTotal = holdingLevies.Count;
+        float levyContribution = holding.EffectiveLevyContribution(LoadedProvince.nation);
+        if (levyContribution > 0f)
+        {
+            int available = 0;
+            foreach (ProvinceLevyEntitlement entitlement in holdingLevies)
+                if (entitlement != null && entitlement.state == LevyEntitlementState.Available) available++;
+            message.Append("\n    Levy contribution: ").Append(levyContribution.ToString("0.###"));
+            message.Append("\n    Levies: ").Append(available).Append("/").Append(levyTotal).Append(" available");
+            anyOutput = true;
+        }
+        if (holding.definition != null && holding.definition.levels != null)
+        foreach (HoldingLevelDefinition level in holding.definition.levels)
+        {
+            if (level == null || level.level > holding.level) continue;
+            if (!string.IsNullOrWhiteSpace(level.displayedEffect))
+                message.Append("\n    Effect: ").Append(level.displayedEffect.Trim());
+            if (level.localModifiers != null && level.localModifiers.maxDevelopment != 0)
+                message.Append("\n    ").Append(ProvinceLocalModifiers.FormatMaxDevelopment(level.localModifiers.maxDevelopment));
+        }
+        if (mobilized) message.Append("\n    Mobilized (affected outputs already reduced)");
+        else if (!anyOutput) message.Append("\n    No configured production");
+    }
+
+    private void RefreshProvincialTotalIncome()
+    {
+        if (provincialTotalIncome == null || LoadedProvince == null) return;
+        System.Text.StringBuilder text = new System.Text.StringBuilder("Income");
+        text.Append("\nGold: ").Append(LoadedProvince.GetGoldIncome());
+        foreach (HoldingOutputType type in System.Enum.GetValues(typeof(HoldingOutputType)))
+        {
+            if (type == HoldingOutputType.Income || type == HoldingOutputType.PoliticalInfluence) continue;
+            text.Append(" | ").Append(HoldingOutputLabel(type)).Append(": ").Append(LoadedProvince.GetHoldingOutput(type));
+        }
+        int totalLevies = 0, availableLevies = 0, mobilizedLevies = 0, recoveringLevies = 0;
+        if (LoadedProvince.levyEntitlements != null) foreach (ProvinceLevyEntitlement entitlement in LoadedProvince.levyEntitlements)
+        {
+            if (entitlement == null || !entitlement.eligible) continue;
+            totalLevies++;
+            if (entitlement.state == LevyEntitlementState.Available) availableLevies++;
+            else if (entitlement.state == LevyEntitlementState.Mobilizing || entitlement.state == LevyEntitlementState.Raised) mobilizedLevies++;
+            else if (entitlement.state == LevyEntitlementState.Recovering) recoveringLevies++;
+        }
+        text.Append("\nLevies: ").Append(availableLevies).Append(" available / ").Append(totalLevies).Append(" total");
+        if (mobilizedLevies > 0) text.Append(" | ").Append(mobilizedLevies).Append(" mobilized");
+        if (recoveringLevies > 0) text.Append(" | ").Append(recoveringLevies).Append(" recovering");
+
+        System.Collections.Generic.List<string> modifiers = new System.Collections.Generic.List<string>();
+        string development = ProvinceLocalModifiers.FormatMaxDevelopment(LoadedProvince.MaxDevelopmentModifier);
+        if (!string.IsNullOrEmpty(development)) modifiers.Add(development);
+        CampaignRegion region = Owners.Instance != null ? Owners.Instance.CallRegionByString(LoadedProvince.region) : null;
+        float loyalty = region != null ? region.GetLoyalty(LoadedProvince.nation) : 100f;
+        if (!Mathf.Approximately(loyalty, 100f)) modifiers.Add("Loyalty income: " + loyalty.ToString("0.#") + "%");
+        if (!Mathf.Approximately(CampaignEconomy.GoldIncomeRate, 1f))
+            modifiers.Add("Campaign income rate: " + (CampaignEconomy.GoldIncomeRate * 100f).ToString("0.#") + "%");
+        text.Append("\nModifiers: ").Append(modifiers.Count > 0 ? string.Join(" | ", modifiers) : "None");
+        provincialTotalIncome.text = text.ToString();
+        provincialTotalIncome.resizeTextForBestFit = true;
+        provincialTotalIncome.resizeTextMinSize = 8;
+        provincialTotalIncome.resizeTextMaxSize = 16;
+    }
+
+    private static string HoldingOutputLabel(HoldingOutputType type)
+    {
+        switch (type)
+        {
+            case HoldingOutputType.Income: return "Gold";
+            case HoldingOutputType.Food: return "Net food";
+            case HoldingOutputType.CulturalInfluence: return "Cultural influence";
+            case HoldingOutputType.ReligiousInfluence: return "Religious influence";
+            default: return type.ToString();
+        }
+    }
+
+    private Text EnsureHoldingSlotLabel(Transform slot)
+    {
+        Text label = slot.GetComponentInChildren<Text>(true);
+        if (label != null) return label;
+        GameObject labelObject = new GameObject("Count", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
+        labelObject.layer = slot.gameObject.layer; labelObject.transform.SetParent(slot, false);
+        label = labelObject.GetComponent<Text>();
+        Text reference = provinceName != null ? provinceName : GetComponentInChildren<Text>(true);
+        label.font = reference != null && reference.font != null ? reference.font : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        label.fontSize = 20; label.color = Color.white; label.alignment = TextAnchor.MiddleCenter;
+        label.raycastTarget = false;
+        RectTransform rect = label.rectTransform; rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one;
+        rect.offsetMin = rect.offsetMax = Vector2.zero;
+        return label;
     }
 
     private static string AdministrationSummary(Province province)
@@ -241,9 +518,12 @@ public class UIProvinceHost : MonoBehaviour
         System.Collections.Generic.List<string> classes = new System.Collections.Generic.List<string>();
         foreach (System.Collections.Generic.KeyValuePair<SocioEconomicClass, int> entry in province.GetSocioEconomicComposition())
             classes.Add(entry.Key + " " + entry.Value);
-        return "Population: " + province.population + " Holdings | Urbanization: " + Mathf.Clamp(province.urbanization, 0, 100) +
+        int developmentModifier = province.MaxDevelopmentModifier;
+        string developmentEffect = ProvinceLocalModifiers.FormatMaxDevelopment(developmentModifier);
+        return "Population: " + province.population + " Holdings | Urbanization: " + Mathf.Clamp(province.urbanization, 0, province.MaximumDevelopment) +
+            "/" + province.MaximumDevelopment + (!string.IsNullOrEmpty(developmentEffect) ? " (" + developmentEffect + ")" : string.Empty) +
             "% | Classes: " + (classes.Count > 0 ? string.Join(", ", classes) : "None") + " | Cultures: " + culture +
-            " | Region loyalty: " + (region != null ? region.loyalty.ToString("0.#") : "0") + "%";
+            " | Region loyalty: " + (region != null ? region.GetLoyalty(province.nation).ToString("0.#") : "0") + "%";
     }
 
     private void RefreshCultureChart()
@@ -257,8 +537,12 @@ public class UIProvinceHost : MonoBehaviour
     {
         if (loyaltyDisplay == null || LoadedProvince == null) return;
         CampaignRegion region = Owners.Instance != null ? Owners.Instance.CallRegionByString(LoadedProvince.region) : null;
-        lastRegionalLoyalty = region != null ? Mathf.RoundToInt(region.loyalty * 10f) : 0;
-        loyaltyDisplay.LoadRegion(region);
+        lastRegionalLoyalty = region != null ? Mathf.RoundToInt(region.GetLoyalty(LoadedProvince.nation) * 10f) : 0;
+        loyaltyDisplay.LoadRegion(region, LoadedProvince.nation);
+        UIProvincePanelSummary panelSummary = buildingMenu != null
+            ? buildingMenu.GetComponent<UIProvincePanelSummary>() : null;
+        if (panelSummary != null) panelSummary.RefreshFor(LoadedProvince);
+        else RefreshProvincialTotalIncome();
     }
 
     private static int RegionCultureSignature(Province province)
@@ -277,6 +561,7 @@ public class UIProvinceHost : MonoBehaviour
                         if (holding == null) continue;
                         hash = hash * 31 + (holding.instanceId != null ? holding.instanceId.GetHashCode() : 0);
                         hash = hash * 31 + (holding.cultureName != null ? holding.cultureName.GetHashCode() : 0);
+                        hash = hash * 31 + (holding.allegiance != null ? holding.allegiance.GetHashCode() : 0);
                     }
             return hash;
         }
@@ -421,7 +706,9 @@ public class UIProvinceHost : MonoBehaviour
         unchecked
         {
             int hash = 17;
-            if (province == null || province.buildings == null) return hash;
+            if (province == null) return hash;
+            hash = hash * 31 + Mathf.RoundToInt(province.urbanization * 100f);
+            if (province.buildings == null) return hash;
             hash = hash * 31 + province.buildings.Count;
             for (int i = 0; i < province.buildings.Count; i++)
             {
@@ -446,7 +733,9 @@ public class UIProvinceHost : MonoBehaviour
                     hash = hash * 31 + (holding.HoldingId != null ? holding.HoldingId.GetHashCode() : 0);
                     hash = hash * 31 + holding.level; hash = hash * 31 + holding.slotIndex;
                     hash = hash * 31 + (holding.cultureName != null ? holding.cultureName.GetHashCode() : 0);
-                    hash = hash * 31 + (int)holding.socioEconomicClass; hash = hash * 31 + holding.levyEnabled.GetHashCode();
+                    hash = hash * 31 + (int)holding.socioEconomicClass;
+                    hash = hash * 31 + (holding.allegiance != null ? holding.allegiance.GetHashCode() : 0);
+                    hash = hash * 31 + holding.levyEnabled.GetHashCode();
                 }
             if (province.holdingConstructionOrders != null)
                 foreach (HoldingConstructionOrder order in province.holdingConstructionOrders)
@@ -455,6 +744,15 @@ public class UIProvinceHost : MonoBehaviour
                     hash = hash * 31 + order.slotIndex; hash = hash * 31 + order.targetLevel;
                     hash = hash * 31 + order.remainingTicks;
                     hash = hash * 31 + (order.holdingId != null ? order.holdingId.GetHashCode() : 0);
+                }
+            if (province.levyEntitlements != null)
+                foreach (ProvinceLevyEntitlement entitlement in province.levyEntitlements)
+                {
+                    if (entitlement == null) { hash *= 31; continue; }
+                    hash = hash * 31 + (entitlement.id != null ? entitlement.id.GetHashCode() : 0);
+                    hash = hash * 31 + (int)entitlement.state;
+                    hash = hash * 31 + entitlement.remainingTicks;
+                    hash = hash * 31 + entitlement.eligible.GetHashCode();
                 }
             return hash;
         }

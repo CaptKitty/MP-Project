@@ -40,4 +40,12 @@ MonoBehaviour:
   - DoubleLocalRecruitment
   - CrusherOfGarrisons
   factionTheme: {fileID: 11400000, guid: c088128c897fb7d45a3b7bea8586fb9a, type: 2}
+  content:
+    units: []
+    buildings: []
+    generalNames: []
+    flags: []
+    levies: []
+  unitReplacements: []
+  buildingReplacements: []
   Income: 500

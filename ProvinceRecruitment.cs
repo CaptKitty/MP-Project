@@ -27,6 +27,8 @@ public class ProvinceBuilding
         definition != null ? definition.GetLevel(targetLevel) : null;
 
     public int DefinitionGoldIncome => SumDefinitionEffect(entry => entry.goldIncome);
+    public int DefinitionFoodOutput => SumDefinitionEffect(entry => entry.food);
+    public int DefinitionFoodConsumption => SumDefinitionEffect(entry => Mathf.Max(0, entry.foodConsumption));
     public int DefinitionGarrisonCapacity => SumDefinitionEffect(entry => entry.garrisonCapacity);
 
     private int SumDefinitionEffect(Func<BuildingLevelDefinition, int> selector)
@@ -35,6 +37,19 @@ public class ProvinceBuilding
         int total = 0;
         foreach (BuildingLevelDefinition entry in definition.levels)
             if (entry != null && entry.level <= level) total += selector(entry);
+        return total;
+    }
+
+    public int DefinitionGoldIncomeAt(int urbanization) => SumUrbanizedEffect(urbanization, entry => entry.goldIncome);
+    public int DefinitionFoodOutputAt(int urbanization) => SumUrbanizedEffect(urbanization, entry => entry.food);
+
+    private int SumUrbanizedEffect(int urbanization, Func<BuildingLevelDefinition, int> selector)
+    {
+        if (definition == null || definition.levels == null) return 0;
+        int total = 0;
+        foreach (BuildingLevelDefinition entry in definition.levels)
+            if (entry != null && entry.level <= level)
+                total += UrbanizationOutputScaling.Apply(selector(entry), entry.urbanizationResponse, urbanization);
         return total;
     }
 

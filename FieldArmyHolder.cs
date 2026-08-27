@@ -154,6 +154,7 @@ public class FieldArmyHolder : MonoBehaviour
         }
         if (InspectedArmy == this) InspectedArmy = null;
         if (SelectedPlayerArmy == this) SelectedPlayerArmy = null;
+        UIElement.RefreshSelectionPanels();
         try{
             fieldArmy.nation.armies.Remove(this);
         }catch{}
@@ -182,11 +183,14 @@ public class FieldArmyHolder : MonoBehaviour
     }
     public void OnMouseDown()
     {
+        if (Mapshower.Instance != null) Mapshower.Instance.ConsumeCurrentMapClick();
         InspectedArmy = this;
         if (IsFriendlyToLocalPlayer())
         {
             SelectedPlayerArmy = this;
         }
+        else SelectedPlayerArmy = null;
+        UIElement.ArmySelected(this);
         if (fieldArmy != null) fieldArmy.UpdateUI();
     }
     public bool IsFriendlyToLocalPlayer()
@@ -400,11 +404,13 @@ public class FieldArmyHolder : MonoBehaviour
         Nation previousOwner = province.nation;
         CampaignRegion conqueredRegion = Owners.Instance != null ? Owners.Instance.CallRegionByString(province.region) : null;
         bool alreadyOwnedRegionPart = conqueredRegion != null && fieldArmy.nation != null &&
-            conqueredRegion.provincelist.Exists(candidate => candidate != null && candidate != province && candidate.nation == fieldArmy.nation);
+            conqueredRegion.provincelist.Exists(candidate => candidate != null && candidate != province &&
+                candidate.nation == fieldArmy.nation);
         province.nation = fieldArmy.nation;
         if (previousOwner != fieldArmy.nation && Owners.Instance != null)
         {
-            if (conqueredRegion != null && !alreadyOwnedRegionPart) conqueredRegion.SetLoyalty(fieldArmy.nation, 0f);
+            if (conqueredRegion != null && fieldArmy.nation != null && !alreadyOwnedRegionPart)
+                conqueredRegion.SetLoyalty(fieldArmy.nation, 0f);
         }
         if (fieldArmy.nation != null && fieldArmy.nation.nationalbrainy != null)
             fieldArmy.nation.nationalbrainy.ReSetPriorities();

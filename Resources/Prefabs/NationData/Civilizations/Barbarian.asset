@@ -15,11 +15,14 @@ MonoBehaviour:
   content:
     units:
     - unit: {fileID: 11400000, guid: 8d26d17d75f9c5748a8f2e463b59e1ec, type: 2}
-      minimumBarracksLevel: 0
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 0
     - unit: {fileID: 11400000, guid: 288334bf104fae5448e61506ac62b986, type: 2}
-      minimumBarracksLevel: 1
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 1
     - unit: {fileID: 11400000, guid: fa4a84c0cf334da40bb64d728942e382, type: 2}
-      minimumBarracksLevel: 2
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 2
     buildings:
     - {fileID: 11400000, guid: 05fb6ded8375fbb4a81c7af3ff0cfff7, type: 2}
     - {fileID: 11400000, guid: 42f8062780014adc9668816a333e84c1, type: 2}
@@ -27,3 +30,5 @@ MonoBehaviour:
     generalNames: []
     flags:
     - Barbarian
+    holdingEconomyModifiers: []
+    levies: []

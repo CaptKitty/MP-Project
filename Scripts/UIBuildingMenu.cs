@@ -12,29 +12,42 @@ public class UIBuildingMenu : MonoBehaviour
     private readonly List<UIBuildingMenuSlot> generatedSlots = new List<UIBuildingMenuSlot>();
     private readonly List<Vector2> sceneSlotPositions = new List<Vector2>();
     private readonly List<float> sceneSlotTopOffsets = new List<float>();
+    private readonly List<Vector2> sceneSlotAnchorMins = new List<Vector2>();
+    private readonly List<Vector2> sceneSlotAnchorMaxs = new List<Vector2>();
     private int sceneSlotCount;
     private float sceneMenuHeight;
+    private float sceneMenuWidth;
     private Vector2 sceneMenuPosition;
     private UIProvinceHost host;
     private UIBuildingMenuSlot selectedSlot;
     private GameObject tooltipRoot;
     private Text tooltipText;
     private GameObject buildGridRoot;
+    private Text panelProvinceName;
     private bool buildGridOpen;
+    private bool isRegionClone;
+    private readonly List<UIBuildingMenu> provincePanelCopies = new List<UIBuildingMenu>();
+    private const float ProvincePanelSpacing = 12f;
     public int TestConstructionTicks = -1;
 
     private void Awake()
     {
+        if (GetComponent<UIProvincePanelSummary>() == null)
+            gameObject.AddComponent<UIProvincePanelSummary>();
         ResolveSlots();
+        ResolvePanelProvinceName();
         sceneSlotCount = slots.Count;
         RectTransform menuRect = GetComponent<RectTransform>();
         sceneMenuHeight = menuRect.sizeDelta.y;
+        sceneMenuWidth = menuRect.sizeDelta.x;
         sceneMenuPosition = menuRect.anchoredPosition;
         float menuTop = sceneMenuHeight * (1f - menuRect.pivot.y);
         for (int i = 0; i < sceneSlotCount; i++)
         {
             RectTransform slotRect = slots[i].GetComponent<RectTransform>();
             sceneSlotPositions.Add(slotRect.anchoredPosition);
+            sceneSlotAnchorMins.Add(slotRect.anchorMin);
+            sceneSlotAnchorMaxs.Add(slotRect.anchorMax);
             float slotPivotY = menuRect.InverseTransformPoint(slotRect.position).y;
             sceneSlotTopOffsets.Add(menuTop - slotPivotY);
         }
@@ -42,9 +55,44 @@ public class UIBuildingMenu : MonoBehaviour
 
     public void LoadProvince(Province province, UIProvinceHost owner)
     {
+        if (isRegionClone)
+        {
+            LoadSingleProvince(province, owner, true);
+            return;
+        }
+        List<Province> provinces = GetDisplayedProvinces(province);
+        if (province != null)
+        {
+            provinces.Remove(province);
+            provinces.Insert(0, province);
+        }
+        EnsureProvincePanelCopies(Mathf.Max(0, provinces.Count - 1));
+        LoadSingleProvince(provinces.Count > 0 ? provinces[0] : province, owner, provinces.Count > 1);
+        RectTransform masterRect = GetComponent<RectTransform>();
+        masterRect.sizeDelta = new Vector2(sceneMenuWidth, sceneMenuHeight);
+        masterRect.anchoredPosition = sceneMenuPosition;
+        for (int i = 0; i < provincePanelCopies.Count; i++)
+        {
+            bool active = i + 1 < provinces.Count;
+            UIBuildingMenu copy = provincePanelCopies[i];
+            copy.gameObject.SetActive(active);
+            if (!active) continue;
+            RectTransform copyRect = copy.GetComponent<RectTransform>();
+            copyRect.sizeDelta = new Vector2(sceneMenuWidth, sceneMenuHeight);
+            copyRect.anchoredPosition = sceneMenuPosition + Vector2.right *
+                ((i + 1) * (sceneMenuWidth + ProvincePanelSpacing));
+            copy.LoadSingleProvince(provinces[i + 1], owner, true);
+        }
+    }
+
+    private void LoadSingleProvince(Province province, UIProvinceHost owner, bool showProvinceName)
+    {
         bool preserveInteraction = province != null && province == LoadedProvince;
         host = owner;
         LoadedProvince = province;
+        ResolvePanelProvinceName();
+        if (panelProvinceName != null)
+            panelProvinceName.text = province != null ? province.name : "No province";
         if (!preserveInteraction)
         {
             selectedSlot = null;
@@ -58,20 +106,15 @@ public class UIBuildingMenu : MonoBehaviour
             HideBuildGrid();
         }
 
-        List<Province> provinces = GetDisplayedProvinces(province);
         int slotsPerProvince = Mathf.Max(4, sceneSlotCount);
-        EnsureSlotCount(provinces.Count * slotsPerProvince);
-        LayoutRegionSlots(provinces.Count, slotsPerProvince);
+        EnsureSlotCount(slotsPerProvince);
         int displayIndex = 0;
-        foreach (Province displayedProvince in provinces)
+        for (int slotIndex = 0; slotIndex < slotsPerProvince; slotIndex++)
         {
-            for (int slotIndex = 0; slotIndex < slotsPerProvince; slotIndex++)
-            {
-                ProvinceBuilding building = displayedProvince != null ? displayedProvince.GetBuildingInSlot(slotIndex) : null;
-                slots[displayIndex].gameObject.SetActive(true);
-                slots[displayIndex].Configure(this, displayedProvince, building, slotIndex, provinces.Count > 1);
-                displayIndex++;
-            }
+            ProvinceBuilding building = province != null ? province.GetBuildingInSlot(slotIndex) : null;
+            slots[displayIndex].gameObject.SetActive(true);
+            slots[displayIndex].Configure(this, province, building, slotIndex, showProvinceName);
+            displayIndex++;
         }
         for (int i = displayIndex; i < slots.Count; i++) slots[i].gameObject.SetActive(false);
         if (preserveInteraction && !buildGridOpen)
@@ -80,21 +123,30 @@ public class UIBuildingMenu : MonoBehaviour
             if (hovered != null) ShowTooltip(BuildBuildingDescription(hovered.Province, hovered.Building, hovered.SlotIndex));
             else if (selectedSlot != null) ShowTooltip(BuildUpgradeDescription(selectedSlot.Province, selectedSlot.Building, selectedSlot.SlotIndex));
         }
+        UIProvincePanelSummary summary = GetComponent<UIProvincePanelSummary>();
+        if (summary == null) summary = gameObject.AddComponent<UIProvincePanelSummary>();
+        summary.RefreshFor(province);
+    }
+
+    private void EnsureProvincePanelCopies(int required)
+    {
+        while (provincePanelCopies.Count < required)
+        {
+            GameObject cloneObject = Instantiate(gameObject, transform.parent);
+            cloneObject.name = gameObject.name + " Province Copy " + (provincePanelCopies.Count + 2);
+            UIBuildingMenu clone = cloneObject.GetComponent<UIBuildingMenu>();
+            clone.isRegionClone = true;
+            clone.provincePanelCopies.Clear();
+            provincePanelCopies.Add(clone);
+        }
     }
 
     private void LayoutRegionSlots(int provinceCount, int slotsPerProvince)
     {
         if (sceneSlotCount == 0 || sceneSlotPositions.Count == 0) return;
-        float minY = float.MaxValue;
-        float maxY = float.MinValue;
-        for (int i = 0; i < sceneSlotCount; i++)
-        {
-            RectTransform rect = slots[i].GetComponent<RectTransform>();
-            float halfHeight = rect.rect.height * .5f;
-            minY = Mathf.Min(minY, sceneSlotPositions[i].y - halfHeight);
-            maxY = Mathf.Max(maxY, sceneSlotPositions[i].y + halfHeight);
-        }
-        float groupHeight = Mathf.Max(1f, maxY - minY + 8f);
+        float groupWidth = Mathf.Max(1f, sceneMenuWidth);
+        float expandedWidth = sceneMenuWidth + Mathf.Max(0, provinceCount - 1) * groupWidth;
+        float addedWidth = expandedWidth - sceneMenuWidth;
         int visibleCount = provinceCount * slotsPerProvince;
         for (int i = 0; i < visibleCount && i < slots.Count; i++)
         {
@@ -102,23 +154,20 @@ public class UIBuildingMenu : MonoBehaviour
             int provinceIndex = i / slotsPerProvince;
             RectTransform rect = slots[i].GetComponent<RectTransform>();
             RectTransform templateRect = slots[Mathf.Min(templateIndex, sceneSlotCount - 1)].GetComponent<RectTransform>();
-            rect.anchorMin = templateRect.anchorMin;
-            rect.anchorMax = templateRect.anchorMax;
-            rect.anchorMin = new Vector2(rect.anchorMin.x, 1f);
-            rect.anchorMax = new Vector2(rect.anchorMax.x, 1f);
+            int sourceIndex = Mathf.Min(templateIndex, sceneSlotPositions.Count - 1);
+            Vector2 originalAnchorMin = sceneSlotAnchorMins[sourceIndex];
+            Vector2 originalAnchorMax = sceneSlotAnchorMaxs[sourceIndex];
+            float leftRelativeX = sceneMenuWidth * originalAnchorMin.x + sceneSlotPositions[sourceIndex].x;
+            rect.anchorMin = new Vector2(0f, originalAnchorMin.y);
+            rect.anchorMax = new Vector2(0f, originalAnchorMax.y);
             rect.pivot = templateRect.pivot;
             rect.sizeDelta = templateRect.sizeDelta;
-            int sourceIndex = Mathf.Min(templateIndex, sceneSlotPositions.Count - 1);
-            rect.anchoredPosition = new Vector2(sceneSlotPositions[sourceIndex].x,
-                -sceneSlotTopOffsets[sourceIndex] - provinceIndex * groupHeight);
+            rect.anchoredPosition = new Vector2(leftRelativeX + provinceIndex * groupWidth, sceneSlotPositions[sourceIndex].y);
         }
         RectTransform menuRect = GetComponent<RectTransform>();
-        float expandedHeight = sceneMenuHeight + Mathf.Max(0, provinceCount - 1) * groupHeight;
-        float addedHeight = expandedHeight - sceneMenuHeight;
-        menuRect.sizeDelta = new Vector2(menuRect.sizeDelta.x, expandedHeight);
-        // Keep the original top edge fixed and grow the region building list downward.
-        menuRect.anchoredPosition = sceneMenuPosition +
-            Vector2.down * (addedHeight * (1f - menuRect.pivot.y));
+        menuRect.sizeDelta = new Vector2(expandedWidth, sceneMenuHeight);
+        // Keep the original left edge fixed and grow the region building list to the right.
+        menuRect.anchoredPosition = sceneMenuPosition + Vector2.right * (addedWidth * menuRect.pivot.x);
     }
 
     private static List<Province> GetDisplayedProvinces(Province selectedProvince)
@@ -154,6 +203,18 @@ public class UIBuildingMenu : MonoBehaviour
         slots.Clear();
         slots.AddRange(GetComponentsInChildren<UIBuildingMenuSlot>(true));
         slots.Sort((a, b) => string.CompareOrdinal(a.gameObject.name, b.gameObject.name));
+    }
+
+    private void ResolvePanelProvinceName()
+    {
+        if (panelProvinceName != null && panelProvinceName.transform.IsChildOf(transform)) return;
+        panelProvinceName = null;
+        foreach (Transform child in GetComponentsInChildren<Transform>(true))
+        {
+            if (child == transform || !child.name.Equals("ProvinceName", System.StringComparison.OrdinalIgnoreCase)) continue;
+            panelProvinceName = child.GetComponent<Text>();
+            if (panelProvinceName != null) return;
+        }
     }
 
     public void PointerEntered(UIBuildingMenuSlot slot)
@@ -231,6 +292,7 @@ public class UIBuildingMenu : MonoBehaviour
         text.rectTransform.anchorMin = Vector2.zero; text.rectTransform.anchorMax = Vector2.one;
         text.rectTransform.offsetMin = text.rectTransform.offsetMax = Vector2.zero;
         option.GetComponent<Button>().onClick.AddListener(() => { buildGridOpen = false; HideBuildGrid(); });
+        LayoutBuildGrid();
     }
 
     private void AddBuildOption(UIBuildingMenuSlot slot, string buildingId, int targetLevel, string caption)
@@ -245,6 +307,7 @@ public class UIBuildingMenu : MonoBehaviour
         text.rectTransform.offsetMin = new Vector2(3f, 3f); text.rectTransform.offsetMax = new Vector2(-3f, -3f);
         option.GetComponent<Button>().onClick.AddListener(() => BeginConstruction(slot, buildingId, targetLevel));
         option.GetComponent<UIBuildingOptionHover>().Configure(this, slot != null ? slot.Province : null, buildingId, targetLevel);
+        LayoutBuildGrid();
     }
 
     public void ProspectiveBuildingEntered(Province province, string buildingId, int targetLevel)
@@ -330,12 +393,32 @@ public class UIBuildingMenu : MonoBehaviour
     {
         Text text = CreateGridText(buildGridRoot.transform, message, 12, TextAnchor.MiddleCenter);
         LayoutElement layout = text.gameObject.AddComponent<LayoutElement>(); layout.preferredWidth = 170f; layout.preferredHeight = 82f;
+        LayoutBuildGrid();
+    }
+
+    private void LayoutBuildGrid()
+    {
+        if (buildGridRoot == null) return;
+        GridLayoutGroup grid = buildGridRoot.GetComponent<GridLayoutGroup>();
+        RectTransform rect = buildGridRoot.GetComponent<RectTransform>();
+        int columns = Mathf.Max(1, grid.constraintCount);
+        int rows = Mathf.Max(1, Mathf.CeilToInt(buildGridRoot.transform.childCount / (float)columns));
+        float height = grid.padding.top + grid.padding.bottom + rows * grid.cellSize.y +
+            Mathf.Max(0, rows - 1) * grid.spacing.y;
+        rect.sizeDelta = new Vector2(190f, height);
+        Canvas.ForceUpdateCanvases();
+        ClampRectToCanvas(rect);
     }
 
     private void ClearBuildGrid()
     {
         if (buildGridRoot == null) return;
-        for (int i = buildGridRoot.transform.childCount - 1; i >= 0; i--) Destroy(buildGridRoot.transform.GetChild(i).gameObject);
+        for (int i = buildGridRoot.transform.childCount - 1; i >= 0; i--)
+        {
+            Transform child = buildGridRoot.transform.GetChild(i);
+            child.SetParent(null, false);
+            Destroy(child.gameObject);
+        }
     }
 
     private void HideBuildGrid()
@@ -418,11 +501,33 @@ public class UIBuildingMenu : MonoBehaviour
         }
         text.Append("\n\nProvides:");
         bool any = false;
-        int rawIncome = building.definition != null ? building.DefinitionGoldIncome :
+        if (building.definition != null && building.definition.levels != null)
+            foreach (BuildingLevelDefinition level in building.definition.levels)
+                if (level != null && level.level <= building.level && level.urbanizationResponse != 0)
+                {
+                    text.Append("\n- Level ").Append(level.level).Append(" urbanization response: ")
+                        .Append(level.urbanizationResponse > 0 ? "+" : string.Empty).Append(level.urbanizationResponse);
+                    any = true;
+                }
+        int rawIncome = building.definition != null ? building.DefinitionGoldIncomeAt(province != null ? province.urbanization : 0) :
             building.BuildingId.Equals("Farm", System.StringComparison.OrdinalIgnoreCase) ? building.level * CampaignEconomy.FarmIncomePerLevel : 0;
         if (rawIncome > 0)
         {
             text.Append("\n- Gold income: +").Append(CampaignEconomy.ApplyGoldIncomeRate(rawIncome)).Append(" per income tick");
+            any = true;
+        }
+        int food = building.definition != null ? building.DefinitionFoodOutputAt(province != null ? province.urbanization : 0) : 0;
+        if (food != 0)
+        {
+            text.Append("\n- Food production: ").Append(food > 0 ? "+" : string.Empty).Append(food);
+            any = true;
+        }
+        int foodConsumption = building.definition != null ? building.DefinitionFoodConsumption : 0;
+        if (foodConsumption > 0)
+        {
+            text.Append("\n- Food consumption: -").Append(foodConsumption);
+            text.Append("\n- Net food: ").Append(food - foodConsumption >= 0 ? "+" : string.Empty)
+                .Append(food - foodConsumption);
             any = true;
         }
         int garrison = building.definition != null ? building.DefinitionGarrisonCapacity :
@@ -447,6 +552,23 @@ public class UIBuildingMenu : MonoBehaviour
                 if (!string.IsNullOrWhiteSpace(flag)) { text.Append("\n- Effect: ").Append(flag); any = true; }
             if (level.displayedEffects != null) foreach (string effect in level.displayedEffects)
                 if (!string.IsNullOrWhiteSpace(effect)) { text.Append("\n- ").Append(effect.Trim()); any = true; }
+            if (level.holdingEconomyModifiers != null) foreach (HoldingTagModifier modifier in level.holdingEconomyModifiers)
+            {
+                if (modifier == null || modifier.tag == HoldingTag.None) continue;
+                if (!Mathf.Approximately(modifier.desiredWeight, 0f))
+                    text.Append("\n- ").Append(modifier.tag).Append(" holding desire: ")
+                        .Append(modifier.desiredWeight > 0f ? "+" : string.Empty).Append(modifier.desiredWeight.ToString("0.#"));
+                if (!Mathf.Approximately(modifier.outputEfficiencyPercent, 0f))
+                    text.Append("\n- ").Append(modifier.tag).Append(" holding efficiency: ")
+                        .Append(modifier.outputEfficiencyPercent > 0f ? "+" : string.Empty)
+                        .Append(modifier.outputEfficiencyPercent.ToString("0.#")).Append("%");
+                any = true;
+            }
+            if (level.localModifiers != null && level.localModifiers.maxDevelopment != 0)
+            {
+                text.Append("\n- ").Append(ProvinceLocalModifiers.FormatMaxDevelopment(level.localModifiers.maxDevelopment));
+                any = true;
+            }
         }
         if (!any) text.Append("\n- No configured effects.");
     }
@@ -495,6 +617,35 @@ public class UIBuildingMenu : MonoBehaviour
         float menuRight = menuRect.anchoredPosition.x + menuRect.sizeDelta.x * (1f - menuRect.pivot.x);
         float tooltipX = menuRight + 10f + tooltipRect.sizeDelta.x * tooltipRect.pivot.x;
         tooltipRect.anchoredPosition = new Vector2(tooltipX, tooltipY);
+        ClampRectToCanvas(tooltipRect);
+    }
+
+    private void ClampRectToCanvas(RectTransform tooltipRect)
+    {
+        Canvas canvas = GetComponentInParent<Canvas>();
+        RectTransform parentRect = tooltipRect != null ? tooltipRect.parent as RectTransform : null;
+        if (canvas == null || tooltipRect == null || parentRect == null) return;
+        Canvas rootCanvas = canvas.rootCanvas;
+        Camera eventCamera = rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : rootCanvas.worldCamera;
+        Rect bounds = rootCanvas.pixelRect;
+        Vector3[] corners = new Vector3[4]; tooltipRect.GetWorldCorners(corners);
+        Vector2 minimum = RectTransformUtility.WorldToScreenPoint(eventCamera, corners[0]);
+        Vector2 maximum = minimum;
+        for (int i = 1; i < corners.Length; i++)
+        {
+            Vector2 point = RectTransformUtility.WorldToScreenPoint(eventCamera, corners[i]);
+            minimum = Vector2.Min(minimum, point); maximum = Vector2.Max(maximum, point);
+        }
+        const float margin = 8f;
+        Vector2 shift = Vector2.zero;
+        if (minimum.x < bounds.xMin + margin) shift.x += bounds.xMin + margin - minimum.x;
+        if (maximum.x > bounds.xMax - margin) shift.x -= maximum.x - (bounds.xMax - margin);
+        if (minimum.y < bounds.yMin + margin) shift.y += bounds.yMin + margin - minimum.y;
+        if (maximum.y > bounds.yMax - margin) shift.y -= maximum.y - (bounds.yMax - margin);
+        if (shift.sqrMagnitude <= .01f) return;
+        Vector2 pivotScreen = RectTransformUtility.WorldToScreenPoint(eventCamera, tooltipRect.position) + shift;
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, pivotScreen, eventCamera, out Vector2 local))
+            tooltipRect.localPosition = new Vector3(local.x, local.y, tooltipRect.localPosition.z);
     }
 
     private void ShowTooltip(string contents)

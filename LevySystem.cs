@@ -50,6 +50,7 @@ public class ProvinceLevyEntitlement
     public bool eligible = true;
     public int remainingTicks;
     public string raisedArmyId;
+    [NonSerialized] public List<string> contributorHoldingInstanceIds = new List<string>();
 }
 
 [Serializable]

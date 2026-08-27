@@ -11,6 +11,28 @@ Location ={
 414
 308
 }
+Region ={
+Western Isles
+}
+Terrain ={
+Coastal
+}
+BaseDevelopment ={
+80
+}
+Urbanization ={
+20
+}
+Holdings ={
+CitizenFarm|8|Punic|Citizen|1|true
+CitizenFarm|2|Celtiberian|Freemen|1|true
+}
+Buildings ={
+Fort|1|1
+}
+Modifiers ={
+Island Province|-10
+}
 Population ={
 0
 

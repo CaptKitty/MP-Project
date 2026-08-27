@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 
 public class Mapshower : MonoBehaviour
 {
-    private enum CampaignMapMode { Ownership, Supply, OriginalOwners, Regions }
+    private enum CampaignMapMode { Ownership, Supply, Cultures, Regions }
     [Min(0.01f)] public float CampaignTimeScale = 0.25f;
     public string regionname;
     public int regionnumber;
@@ -47,6 +47,11 @@ public class Mapshower : MonoBehaviour
     public static Mapshower Instance;
 
     private Vector3 StartDragPosition;
+    private Vector3 dragPressPosition;
+    private bool mapPressStartedOutsideUI;
+    private bool mapDragExceededClickThreshold;
+    private bool suppressMapClickUntilMouseRelease;
+    private const float MapClickDragThresholdPixels = 6f;
 
     void Awake()
     {
@@ -182,11 +187,11 @@ public class Mapshower : MonoBehaviour
         }
         if (Input.GetKey("2"))
         {
-            SupplyPaint();
+            CulturePaint();
         }
         if (Input.GetKey("3"))
         {
-            CulturePaint();
+            SupplyPaint();
         }
         if (Input.GetKey("4"))
         {
@@ -234,13 +239,18 @@ public class Mapshower : MonoBehaviour
         {
             Camera.main.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y - amount * 0.1f, -10);
         }
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && !suppressMapClickUntilMouseRelease)
         {
             StartDragPosition = Input.mousePosition;
+            dragPressPosition = Input.mousePosition;
+            mapPressStartedOutsideUI = EventSystem.current == null || !EventSystem.current.IsPointerOverGameObject();
+            mapDragExceededClickThreshold = false;
         }
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0) && mapPressStartedOutsideUI)
         {
-            
+            if ((Input.mousePosition - dragPressPosition).sqrMagnitude >
+                MapClickDragThresholdPixels * MapClickDragThresholdPixels)
+                mapDragExceededClickThreshold = true;
             var difference = StartDragPosition - Input.mousePosition;
             var a = Camera.main.orthographicSize / 200;
             difference *= a;
@@ -301,11 +311,15 @@ public class Mapshower : MonoBehaviour
     public void CulturePaint()
     {
         if (!CanPaint()) return;
-        currentMapMode = CampaignMapMode.OriginalOwners;
+        currentMapMode = CampaignMapMode.Cultures;
         foreach (Province province in Owners.Instance.provincelist)
         {
-            if (!TryGetProvinceRemap(province, out Color32 remapColor) || province.OriginalNation == null) continue;
-            SetPaletteColor(remapColor, province.OriginalNation.ownerIdentity);
+            if (!TryGetProvinceRemap(province, out Color32 remapColor)) continue;
+            Culture primary = province.PrimaryCulture;
+            string cultureName = primary != null ? primary.name : province.nation != null && province.nation.culture != null
+                ? province.nation.culture.DisplayName : string.Empty;
+            Color32 fallback = province.nation != null ? province.nation.ownerIdentity : new Color32(96, 96, 96, 255);
+            SetPaletteColor(remapColor, Owners.Instance.CultureColor(cultureName, fallback));
         }
         UploadPalette();
     }
@@ -349,16 +363,17 @@ public class Mapshower : MonoBehaviour
 
                 if (Input.GetMouseButtonDown(1))
                 {
+                    if (FieldArmyHolder.SelectedPlayerArmy == null) return;
                     Vector3 mapTarget = new Vector3(x, y, 0);
                     if (CampaignNetworkPlayer.Local != null && CampaignNetworkPlayer.Local.IsSpawned)
                     {
                         CampaignNetworkPlayer.Local.RequestArmyMove(
-                            FieldArmyHolder.SelectedPlayerArmy != null ? FieldArmyHolder.SelectedPlayerArmy.NetworkArmyId : string.Empty,
+                            FieldArmyHolder.SelectedPlayerArmy.NetworkArmyId,
                             mapTarget);
                     }
-                    else if (FieldArmyHolder.SelectedPlayerArmy != null || FieldArmyHolder.PlayerFieldArmy != null)
+                    else
                     {
-                        FieldArmyHolder commanded = FieldArmyHolder.SelectedPlayerArmy != null ? FieldArmyHolder.SelectedPlayerArmy : FieldArmyHolder.PlayerFieldArmy;
+                        FieldArmyHolder commanded = FieldArmyHolder.SelectedPlayerArmy;
                         commanded.IsPlayer = true; commanded.IsHumanControlled = true; commanded.SetTarget(mapTarget);
                     }
                 }
@@ -379,6 +394,11 @@ public class Mapshower : MonoBehaviour
 
                 if (mainTex.GetPixel(x, y) == new Color32(0, 0, 0, 0))
                 {
+                    if (IsCompletedMapClick())
+                    {
+                        SelectedProvince = null;
+                        UIElement.NothingSelected();
+                    }
                     return;
                 }
 
@@ -399,7 +419,11 @@ public class Mapshower : MonoBehaviour
                             if (!TryGetProvinceRemap(provinces, out remapColor)) continue;
                             bool highlighted = currentMapMode == CampaignMapMode.Regions
                                 ? province.region == provinces.region
-                                : province.nation == provinces.nation;
+                                : currentMapMode == CampaignMapMode.Cultures
+                                    ? province.PrimaryCulture != null && provinces.PrimaryCulture != null &&
+                                      string.Equals(province.PrimaryCulture.name, provinces.PrimaryCulture.name,
+                                          StringComparison.OrdinalIgnoreCase)
+                                    : province.nation == provinces.nation;
                             changeColors(remapColor, highlighted
                                 ? new Color32(64, 64, 64, 255)
                                 : new Color32(0, 0, 0, 255));
@@ -414,7 +438,7 @@ public class Mapshower : MonoBehaviour
                         UploadOwner();
                     }
 
-                    if (Input.GetMouseButtonDown(0))
+                    if (IsCompletedMapClick())
                     {
                         //Province province = Owners.Instance.CallProvinceByColor(new Color(mainTex.GetPixel(x, y).r, mainTex.GetPixel(x, y).g, (mainTex.GetPixel(x, y).b), 0));
                         //print(x.ToString() + " " + y.ToString());
@@ -453,11 +477,20 @@ public class Mapshower : MonoBehaviour
     }
     public void SelectProvince(Province province)
     {
+        if (province == null)
+        {
+            SelectedProvince = null;
+            UIElement.NothingSelected();
+            return;
+        }
         SelectedNation = province.nation;
-        UIElement.NationHost.UpdateTitle(province.nation.name);
+        if (UIElement.NationHost != null && province.nation != null)
+            UIElement.NationHost.UpdateTitle(province.nation.name);
 
         SelectedProvince = province;
-        UIElement.ProvinceHost.UpdateTitle(province.name, province.supply.ToString());
+        if (UIElement.ProvinceHost != null)
+            UIElement.ProvinceHost.UpdateTitle(province.name, province.supply.ToString());
+        UIElement.ProvinceSelected();
     }
     public void SelectProvince(Vector3 spot)
     {
@@ -474,6 +507,7 @@ public class Mapshower : MonoBehaviour
             if (province == null)
             {
                 SelectedProvince = null;
+                UIElement.NothingSelected();
                 return;
             }
             SelectProvince(province);
@@ -639,6 +673,26 @@ public class Mapshower : MonoBehaviour
         return Owners.Instance != null && Owners.Instance.provincelist != null &&
                remapArr != null && paletteArr != null && paletteTex != null &&
                width > 0 && height > 0 && remapArr.Length == width * height;
+    }
+    private bool IsCompletedMapClick()
+    {
+        return Input.GetMouseButtonUp(0) && !suppressMapClickUntilMouseRelease &&
+            mapPressStartedOutsideUI && !mapDragExceededClickThreshold;
+    }
+
+    public void ConsumeCurrentMapClick()
+    {
+        suppressMapClickUntilMouseRelease = true;
+        mapPressStartedOutsideUI = false;
+        mapDragExceededClickThreshold = true;
+    }
+
+    private void LateUpdate()
+    {
+        // Keep an army click consumed through every Update/OnMouse callback and clear it only
+        // after the release frame has completely finished.
+        if (suppressMapClickUntilMouseRelease && Input.GetMouseButtonUp(0))
+            suppressMapClickUntilMouseRelease = false;
     }
 
     private bool TryGetProvinceRemap(Province province, out Color32 remapColor)

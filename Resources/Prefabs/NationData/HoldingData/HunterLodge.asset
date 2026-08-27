@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d02d5c403b94ed68e3d3521f324708d, type: 3}
+  m_Name: HunterLodge
+  m_EditorClassIdentifier: Assembly-CSharp::HoldingDefinition
+  id: HunterLodge
+  displayName: Hunter Lodge/Settlement
+  description: "Hunter Lodge/Settlement \u2014 tier 3 Hunters holding."
+  icon: {fileID: 0}
+  category: 8
+  categoryTier: 3
+  tags: 520
+  suggestedAllegiance: 
+  maximumLevel: 1
+  defaultConstructionTicks: 20
+  levels:
+  - level: 1
+    goldCost: 450
+    constructionTicks: 20
+    goldIncome: 0
+    urbanizationResponse: 0
+    displayedEffect: 
+    localModifiers:
+      maxDevelopment: 0
+      holdingEconomyModifiers: []
+  outputs:
+  - type: 1
+    baseValue: 5
+    scalesWithUrbanization: 0
+    suitability: 1
+    urbanizationResponse: -100
+    disabledWhileMobilized: 1
+  - type: 0
+    baseValue: 2
+    scalesWithUrbanization: 0
+    suitability: 1
+    urbanizationResponse: -100
+    disabledWhileMobilized: 1
+  transformations: []
+  foodConsumption: 1
+  defaultClass: 2
+  canRaiseLevies: 1
+  levyUnit: {fileID: 11400000, guid: 4d99ece718fb98241b6374a359995d2c, type: 2}
+  levyArchetype: 5
+  levyContributionPermillePerLevel: 900
+  levyFormationsPerLevel: 1
+  levyMobilizationTicks: 0
+  levyRecoveryTicks: 20
+  levyDemobilizationTicks: 0

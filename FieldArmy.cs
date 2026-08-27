@@ -179,6 +179,25 @@ public class FieldArmy : ScriptableObject
         }
         return true;
     }
+    public int CountRaisedLevies()
+    {
+        ReconcileFormationRecords();
+        int count = 0;
+        foreach (ArmyFormationRecord record in formationRecords)
+            if (record != null && record.origin == CampaignUnitOrigin.Levy && !string.IsNullOrEmpty(record.entitlementId)) count++;
+        return count;
+    }
+    public int DemobilizeAllLevies()
+    {
+        ReconcileFormationRecords();
+        List<string> entitlementIds = new List<string>();
+        foreach (ArmyFormationRecord record in formationRecords)
+            if (record != null && record.origin == CampaignUnitOrigin.Levy && !string.IsNullOrEmpty(record.entitlementId))
+                entitlementIds.Add(record.entitlementId);
+        int removed = 0;
+        foreach (string entitlementId in entitlementIds) if (DemobilizeLevy(entitlementId)) removed++;
+        return removed;
+    }
     public void UpdateUI()
     {
         if (UIElement.ArmyHost == null) return;

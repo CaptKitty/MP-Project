@@ -193,11 +193,13 @@ public class LoadProvinces : MonoBehaviour
             }
             
             newprovince.name = provincename;
+            newprovince.regionConfiguredFromData = !string.IsNullOrWhiteSpace(regionname);
             newprovince.region = string.IsNullOrWhiteSpace(regionname)
                 ? DeriveRegionName(provincename)
                 : regionname;
             newprovince.identity = color;
             newprovince.position = location;
+            ApplyOptionalProvinceData(item.text, newprovince, provincename);
             newprovince.EnsureCulture();
             newprovince.UpdatePopulation();
             // newprovince.population = population;
@@ -216,6 +218,30 @@ public class LoadProvinces : MonoBehaviour
         List<Province> remaining = Owners.Instance.provincelist
             .Where(province => province != null)
             .OrderBy(province => province.name, StringComparer.OrdinalIgnoreCase).ToList();
+
+        // Region blocks in province data are authoritative. Register those
+        // groups first and leave only legacy/unconfigured provinces for the
+        // automatic geographic region builder.
+        foreach (IGrouping<string, Province> configuredGroup in remaining
+            .Where(province => province.regionConfiguredFromData && !string.IsNullOrWhiteSpace(province.region))
+            .GroupBy(province => province.region.Trim(), StringComparer.OrdinalIgnoreCase).ToList())
+        {
+            List<Province> members = configuredGroup.OrderBy(province => province.name,
+                StringComparer.OrdinalIgnoreCase).ToList();
+            CampaignRegion configured = new CampaignRegion
+            {
+                name = configuredGroup.Key,
+                configuredFromProvinceData = true,
+                identity = RegionColor(Owners.Instance.regionlist.Count),
+                loyalty = 100f,
+                provincelist = members
+            };
+            foreach (Nation owner in members.Where(province => province.nation != null)
+                .Select(province => province.nation).Distinct()) configured.SetLoyalty(owner, 100f);
+            Owners.Instance.regiondict[configured.name] = configured;
+            Owners.Instance.regionlist.Add(configured);
+            foreach (Province member in members) remaining.Remove(member);
+        }
         foreach (Province province in remaining)
             if (string.IsNullOrWhiteSpace(province.region)) province.region = DeriveRegionName(province.name);
 
@@ -279,6 +305,7 @@ public class LoadProvinces : MonoBehaviour
         foreach (CampaignRegion region in Owners.Instance.regionlist)
         {
             if (region == null || region.provincelist == null || region.provincelist.Count == 0) continue;
+            if (region.configuredFromProvinceData) continue;
             Vector2 center = RegionCenter(region);
             Province centralProvince = region.provincelist
                 .Where(province => province != null)
@@ -338,6 +365,18 @@ public class LoadProvinces : MonoBehaviour
         }
 
         Owners.Instance.regiondict = new Dictionary<string, CampaignRegion>(StringComparer.OrdinalIgnoreCase);
+        foreach (CampaignRegion configured in Owners.Instance.regionlist
+            .Where(region => region != null && region.configuredFromProvinceData))
+        {
+            string configuredName = configured.name;
+            int suffix = 2;
+            while (Owners.Instance.regiondict.ContainsKey(configuredName))
+                configuredName = configured.name + " (" + suffix++ + ")";
+            configured.name = configuredName;
+            foreach (Province province in configured.provincelist)
+                if (province != null) province.region = configuredName;
+            Owners.Instance.regiondict.Add(configuredName, configured);
+        }
         Dictionary<string, int> collisions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         foreach (CampaignRegion region in Owners.Instance.regionlist)
         {
@@ -372,7 +411,8 @@ public class LoadProvinces : MonoBehaviour
     void SplitOversizedRegions()
     {
         foreach (CampaignRegion oversized in Owners.Instance.regionlist
-            .Where(region => region.provincelist.Count > MaximumProvincesPerRegion).ToList())
+            .Where(region => !region.configuredFromProvinceData &&
+                region.provincelist.Count > MaximumProvincesPerRegion).ToList())
         {
             int splitNumber = 2;
             while (oversized.provincelist.Count > MaximumProvincesPerRegion)
@@ -517,14 +557,15 @@ public class LoadProvinces : MonoBehaviour
     void BalanceTwoProvinceRegions()
     {
         foreach (CampaignRegion receiver in Owners.Instance.regionlist
-            .Where(region => region.provincelist.Count == 2)
+            .Where(region => !region.configuredFromProvinceData && region.provincelist.Count == 2)
             .OrderBy(region => region.name, StringComparer.OrdinalIgnoreCase).ToList())
         {
             Province bestProvince = null;
             CampaignRegion bestDonor = null;
             float bestScore = float.MaxValue;
             foreach (CampaignRegion donor in Owners.Instance.regionlist
-                .Where(region => region.provincelist.Count == MaximumProvincesPerRegion))
+                .Where(region => !region.configuredFromProvinceData &&
+                    region.provincelist.Count == MaximumProvincesPerRegion))
             {
                 foreach (Province candidate in donor.provincelist)
                 {
@@ -575,13 +616,13 @@ public class LoadProvinces : MonoBehaviour
         {
             merged = false;
             List<CampaignRegion> looseRegions = Owners.Instance.regionlist
-                .Where(region => region.provincelist.Count < 3)
+                .Where(region => !region.configuredFromProvinceData && region.provincelist.Count < 3)
                 .OrderBy(region => region.provincelist.Count).ThenBy(region => region.name,
                     StringComparer.OrdinalIgnoreCase).ToList();
             foreach (CampaignRegion loose in looseRegions)
             {
                 CampaignRegion target = Owners.Instance.regionlist
-                    .Where(region => region != loose &&
+                    .Where(region => region != loose && !region.configuredFromProvinceData &&
                         region.provincelist.Count + loose.provincelist.Count <= MaximumProvincesPerRegion &&
                         RegionsAreAdjacent(loose, region))
                     .OrderBy(region => CombinedRegionShapeScore(loose, region))
@@ -724,6 +765,105 @@ public class LoadProvinces : MonoBehaviour
         }
         return new Nation();
     }
+
+    static void ApplyOptionalProvinceData(string text, Province province, string provinceName)
+    {
+        List<string> terrain = ReadBlock(text, "Terrain");
+        if (terrain.Count > 0 && Enum.TryParse(terrain[0], true, out CampaignTerrainProfile terrainProfile))
+            province.terrainProfile = terrainProfile;
+
+        List<string> development = ReadBlock(text, "BaseDevelopment");
+        if (development.Count > 0 && int.TryParse(development[0], out int baseDevelopment))
+            province.baseMaximumDevelopment = Mathf.Max(0, baseDevelopment);
+
+        List<string> urbanization = ReadBlock(text, "Urbanization");
+        if (urbanization.Count > 0 && int.TryParse(urbanization[0], out int startingUrbanization))
+            province.urbanization = Mathf.Max(0, startingUrbanization);
+
+        List<string> holdingLines = ReadBlock(text, "Holdings");
+        if (holdingLines.Count > 0)
+        {
+            province.holdings = new List<ProvinceHolding>();
+            int slot = 0;
+            foreach (string holdingLine in holdingLines)
+            {
+                string[] fields = SplitFields(holdingLine);
+                if (fields.Length == 0 || string.IsNullOrWhiteSpace(fields[0])) continue;
+                HoldingDefinition definition = HoldingDefinition.Find(fields[0]);
+                if (definition == null) { Debug.LogWarning("Unknown holding '" + fields[0] + "' in " + provinceName); continue; }
+                int count = fields.Length > 1 && int.TryParse(fields[1], out int parsedCount) ? Mathf.Max(0, parsedCount) : 1;
+                string culture = fields.Length > 2 && !string.IsNullOrWhiteSpace(fields[2]) ? fields[2] : "Unassigned";
+                string className = fields.Length > 3 && fields[3].Equals("Peasants", StringComparison.OrdinalIgnoreCase)
+                    ? nameof(SocioEconomicClass.Freemen) : fields.Length > 3 ? fields[3] : string.Empty;
+                SocioEconomicClass socialClass = fields.Length > 3 && Enum.TryParse(className, true, out SocioEconomicClass parsedClass)
+                    ? parsedClass : definition.defaultClass;
+                int level = fields.Length > 4 && int.TryParse(fields[4], out int parsedLevel) ? Mathf.Max(1, parsedLevel) : 1;
+                bool levyEnabled = fields.Length <= 5 || !bool.TryParse(fields[5], out bool parsedLevy) || parsedLevy;
+                string allegiance = fields.Length > 6 ? fields[6].Trim() : string.Empty;
+                for (int index = 0; index < count; index++)
+                    province.holdings.Add(new ProvinceHolding {
+                        instanceId = provinceName + "-holding-" + slot, definition = definition,
+                        id = definition.StableId, level = Mathf.Min(level, definition.maximumLevel), slotIndex = slot++,
+                        cultureName = culture, socioEconomicClass = socialClass, allegiance = allegiance,
+                        levyEnabled = levyEnabled });
+            }
+        }
+
+        List<string> buildingLines = ReadBlock(text, "Buildings");
+        if (buildingLines.Count > 0)
+        {
+            province.buildings = new List<ProvinceBuilding>();
+            foreach (string buildingLine in buildingLines)
+            {
+                string[] fields = SplitFields(buildingLine);
+                if (fields.Length == 0 || string.IsNullOrWhiteSpace(fields[0])) continue;
+                BuildingDefinition definition = BuildingDefinition.Find(fields[0]);
+                if (definition == null) { Debug.LogWarning("Unknown building '" + fields[0] + "' in " + provinceName); continue; }
+                int level = fields.Length > 1 && int.TryParse(fields[1], out int parsedLevel) ? Mathf.Max(1, parsedLevel) : 1;
+                int slot = fields.Length > 2 && int.TryParse(fields[2], out int parsedSlot) ? Mathf.Max(0, parsedSlot) : province.buildings.Count;
+                province.buildings.Add(new ProvinceBuilding { definition = definition, id = definition.StableId,
+                    level = Mathf.Min(level, definition.maximumLevel), maxLevel = definition.maximumLevel, slotIndex = slot });
+            }
+        }
+
+        List<string> modifierLines = ReadBlock(text, "Modifiers");
+        if (modifierLines.Count > 0)
+        {
+            province.uniqueModifiers = new List<ProvinceNamedModifier>();
+            foreach (string modifierLine in modifierLines)
+            {
+                string[] fields = SplitFields(modifierLine);
+                if (fields.Length == 0 || string.IsNullOrWhiteSpace(fields[0])) continue;
+                int maxDevelopment = fields.Length > 1 && int.TryParse(fields[1], out int parsedModifier) ? parsedModifier : 0;
+                province.uniqueModifiers.Add(new ProvinceNamedModifier { name = fields[0],
+                    localModifiers = new ProvinceLocalModifiers { maxDevelopment = maxDevelopment } });
+            }
+        }
+    }
+
+    static List<string> ReadBlock(string text, string blockName)
+    {
+        List<string> result = new List<string>();
+        if (string.IsNullOrEmpty(text)) return result;
+        string[] lines = text.Replace("\r", string.Empty).Split('\n');
+        bool reading = false;
+        foreach (string raw in lines)
+        {
+            string line = raw.Trim();
+            if (!reading)
+            {
+                if (line.StartsWith(blockName, StringComparison.OrdinalIgnoreCase) && line.Contains("=")) reading = true;
+                continue;
+            }
+            if (line == "{") continue;
+            if (line == "}") break;
+            if (!string.IsNullOrWhiteSpace(line) && !line.StartsWith("#")) result.Add(line);
+        }
+        return result;
+    }
+
+    static string[] SplitFields(string line) => line.Split(new[] { '|' }, StringSplitOptions.None)
+        .Select(field => field.Trim()).ToArray();
 
     void LoadBasePopulation()
     {

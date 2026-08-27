@@ -1855,6 +1855,10 @@ MonoBehaviour:
       NextAIInfrastructureTurn: 0
       AIInfrastructureIntervalTurns: 12
       NextAIEconomyTurn: 0
+      LastGrossIncome: 0
+      LastUnitUpkeep: 0
+      UpkeepDebt: 0
+      AIMinimumCampaignArmySize: 10
     OriginalNation:
       name: 
       ownerIdentity:
@@ -1873,11 +1877,19 @@ MonoBehaviour:
       NextAIInfrastructureTurn: 0
       AIInfrastructureIntervalTurns: 12
       NextAIEconomyTurn: 0
+      LastGrossIncome: 0
+      LastUnitUpkeep: 0
+      UpkeepDebt: 0
+      AIMinimumCampaignArmySize: 10
     state: 
+    region: 
     position: {x: 0, y: 0}
     terrainProfile: 0
     population: 1000
     supply: 1000
+    urbanization: 0
+    baseMaximumDevelopment: 100
+    uniqueModifiers: []
     garrison: {fileID: 0}
     AdjacentProvinces: []
     cultures: []
@@ -1889,6 +1901,9 @@ MonoBehaviour:
     buildings: []
     constructionOrders: []
     mercenaryPools: []
+    levyEntitlements: []
+    holdings: []
+    holdingConstructionOrders: []
   savedArmy: {fileID: 0}
   savedFieldArmy: {fileID: 0}
   BattleStatus: None

@@ -11,6 +11,9 @@ Location ={
 417
 355
 }
+Region ={
+Western Isles
+}
 Population ={
 0
 

@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4c1af54aeb37c444a6600ee648e8d94, type: 3}
   m_Name: Germanic
   m_EditorClassIdentifier: Assembly-CSharp::NationCultureData
+  cultureName: Germanic
+  color: {r: 61, g: 112, b: 184, a: 255}
   content:
     units:
     - unit: {fileID: 11400000, guid: 47df4b1323052964c82b10d37a0c945a, type: 2}

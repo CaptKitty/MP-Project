@@ -50,19 +50,27 @@ public struct CampaignProvinceState : INetworkSerializable
     public ushort NationIndex;
     public int Supply;
     public int Population;
-    public byte Urbanization;
+    public int Urbanization;
     public byte TerrainProfile;
+    public int RegionalFoodStorage;
+    public int RegionalFoodStorageCapacity;
+    public int RegionalFoodShortage;
 
     public static CampaignProvinceState FromProvince(int provinceIndex, int nationIndex, Province province)
     {
+        CampaignRegion region = Owners.Instance != null ? Owners.Instance.CallRegionByString(province.region) : null;
+        RegionalLoyaltyShare foodShare = region != null ? region.GetLoyaltyShare(province.nation, true) : null;
         return new CampaignProvinceState
         {
             ProvinceIndex = (ushort)provinceIndex,
             NationIndex = (ushort)nationIndex,
             Supply = province.supply,
             Population = province.population,
-            Urbanization = (byte)Mathf.Clamp(province.urbanization, 0, 100),
-            TerrainProfile = (byte)province.terrainProfile
+            Urbanization = Mathf.Clamp(province.urbanization, 0, province.MaximumDevelopment),
+            TerrainProfile = (byte)province.terrainProfile,
+            RegionalFoodStorage = foodShare != null ? foodShare.foodStorage : 0,
+            RegionalFoodStorageCapacity = foodShare != null ? foodShare.foodStorageCapacity : 1000,
+            RegionalFoodShortage = foodShare != null ? foodShare.lastFoodShortage : 0
         };
     }
 
@@ -74,6 +82,9 @@ public struct CampaignProvinceState : INetworkSerializable
         serializer.SerializeValue(ref Population);
         serializer.SerializeValue(ref Urbanization);
         serializer.SerializeValue(ref TerrainProfile);
+        serializer.SerializeValue(ref RegionalFoodStorage);
+        serializer.SerializeValue(ref RegionalFoodStorageCapacity);
+        serializer.SerializeValue(ref RegionalFoodShortage);
     }
 }
 
@@ -139,6 +150,7 @@ public struct CampaignNationState : INetworkSerializable
     public int Income;
     public int Gold;
     public int UpkeepDebt;
+    public int LevyLawPermille;
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
@@ -150,6 +162,7 @@ public struct CampaignNationState : INetworkSerializable
         serializer.SerializeValue(ref Income);
         serializer.SerializeValue(ref Gold);
         serializer.SerializeValue(ref UpkeepDebt);
+        serializer.SerializeValue(ref LevyLawPermille);
     }
 }
 
@@ -192,14 +205,22 @@ public struct CampaignHoldingState : INetworkSerializable
     public int SlotIndex;
     public FixedString64Bytes CultureName;
     public byte SocioEconomicClass;
+    public FixedString64Bytes Allegiance;
     public bool LevyEnabled;
+    public FixedString64Bytes AdaptationTargetId;
+    public int AdaptationPressure;
+    public int AdaptationCooldownTicks;
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
         serializer.SerializeValue(ref ProvinceIndex); serializer.SerializeValue(ref InstanceId);
         serializer.SerializeValue(ref HoldingId);
         serializer.SerializeValue(ref Level); serializer.SerializeValue(ref SlotIndex);
         serializer.SerializeValue(ref CultureName); serializer.SerializeValue(ref SocioEconomicClass);
+        serializer.SerializeValue(ref Allegiance);
         serializer.SerializeValue(ref LevyEnabled);
+        serializer.SerializeValue(ref AdaptationTargetId);
+        serializer.SerializeValue(ref AdaptationPressure);
+        serializer.SerializeValue(ref AdaptationCooldownTicks);
     }
 }
 

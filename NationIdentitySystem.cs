@@ -22,6 +22,8 @@ public class NationContentLayer
     public List<BuildingDefinition> buildings = new List<BuildingDefinition>();
     public List<string> generalNames = new List<string>();
     public List<string> flags = new List<string>();
+    [Header("Holding economy")]
+    public List<HoldingTagModifier> holdingEconomyModifiers = new List<HoldingTagModifier>();
     [Header("Recoverable levies")]
     public List<LevyGrantRule> levies = new List<LevyGrantRule>();
 }

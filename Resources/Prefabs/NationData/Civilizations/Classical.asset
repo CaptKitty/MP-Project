@@ -15,13 +15,19 @@ MonoBehaviour:
   content:
     units:
     - unit: {fileID: 11400000, guid: 1c0e49bb946563549b1164e0979b86d2, type: 2}
-      minimumBarracksLevel: 1
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 1
     - unit: {fileID: 11400000, guid: 102f101b3742786458291061ffcac6fe, type: 2}
-      minimumBarracksLevel: 3
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 3
     buildings:
     - {fileID: 11400000, guid: 05fb6ded8375fbb4a81c7af3ff0cfff7, type: 2}
     - {fileID: 11400000, guid: 42f8062780014adc9668816a333e84c1, type: 2}
     - {fileID: 11400000, guid: 5d7da345adbd41bd80e4abf4439573c4, type: 2}
+    - {fileID: 11400000, guid: 8fc882db24aae7b41829e618229ee4c2, type: 2}
+    - {fileID: 11400000, guid: 5eaecf0524774e546982605765c61c6d, type: 2}
     generalNames: []
     flags:
     - Civilized
+    holdingEconomyModifiers: []
+    levies: []

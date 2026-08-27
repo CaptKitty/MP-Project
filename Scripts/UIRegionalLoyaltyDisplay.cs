@@ -9,6 +9,7 @@ public sealed class UIRegionalLoyaltyDisplay : MonoBehaviour, IPointerEnterHandl
     private GameObject tooltipRoot;
     private Text tooltipText;
     private CampaignRegion loadedRegion;
+    private Nation loadedNation;
 
     private void Awake()
     {
@@ -17,16 +18,17 @@ public sealed class UIRegionalLoyaltyDisplay : MonoBehaviour, IPointerEnterHandl
         EnsureVisuals();
     }
 
-    public void LoadRegion(CampaignRegion region)
+    public void LoadRegion(CampaignRegion region, Nation nation = null)
     {
         loadedRegion = region;
+        loadedNation = nation != null ? nation : region != null ? region.ControllingNation() : null;
         EnsureVisuals();
-        float loyalty = region != null ? Mathf.Clamp(region.loyalty, 0f, 100f) : 0f;
+        float loyalty = region != null ? Mathf.Clamp(region.GetLoyalty(loadedNation), 0f, 100f) : 0f;
         loyaltyCounter.text = loyalty.ToString("0.#") + "%";
-        tooltipText.text = BuildInfluenceBreakdown(region, loyalty);
+        tooltipText.text = BuildInfluenceBreakdown(region, loadedNation, loyalty);
     }
 
-    private static string BuildInfluenceBreakdown(CampaignRegion region, float loyalty)
+    private static string BuildInfluenceBreakdown(CampaignRegion region, Nation nation, float loyalty)
     {
         string regionName = region != null && !string.IsNullOrWhiteSpace(region.name) ? region.name : "No region";
         List<string> lines = new List<string>
@@ -34,7 +36,7 @@ public sealed class UIRegionalLoyaltyDisplay : MonoBehaviour, IPointerEnterHandl
             regionName + " loyalty",
             "Current loyalty: " + loyalty.ToString("0.#") + "%"
         };
-        if (region != null) lines.AddRange(region.LoyaltyInfluenceLines(region.ControllingNation()));
+        if (region != null) lines.AddRange(region.LoyaltyInfluenceLines(nation));
         lines.Add("Provincial income: " + loyalty.ToString("0.#") + "% of normal");
         lines.Add(loyalty > 50f ? "Levies: available" : "Levies: unavailable (requires >50%)");
         if (loyalty < 25f) lines.Add("Raised levies: repatriating");
@@ -108,7 +110,7 @@ public sealed class UIRegionalLoyaltyDisplay : MonoBehaviour, IPointerEnterHandl
     public void OnPointerEnter(PointerEventData eventData)
     {
         EnsureVisuals();
-        LoadRegion(loadedRegion);
+        LoadRegion(loadedRegion, loadedNation);
         tooltipRoot.SetActive(true);
         tooltipRoot.transform.SetAsLastSibling();
     }

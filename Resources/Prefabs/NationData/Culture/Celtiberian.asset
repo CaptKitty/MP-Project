@@ -12,10 +12,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4c1af54aeb37c444a6600ee648e8d94, type: 3}
   m_Name: Celtiberian
   m_EditorClassIdentifier: Assembly-CSharp::NationCultureData
+  cultureName: Celtiberian
+  color:
+    serializedVersion: 2
+    rgba: 4286611584
   content:
     units:
+    - unit: {fileID: 11400000, guid: 8d26d17d75f9c5748a8f2e463b59e1ec, type: 2}
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 0
+    - unit: {fileID: 11400000, guid: 288334bf104fae5448e61506ac62b986, type: 2}
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 1
+    - unit: {fileID: 11400000, guid: fa4a84c0cf334da40bb64d728942e382, type: 2}
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 2
     - unit: {fileID: 11400000, guid: 95b5752ae8079124891e8e5af6edf194, type: 2}
-      minimumBarracksLevel: 2
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 2
     buildings: []
     generalNames:
     - Wilhelm Wilhelmsson
@@ -25,3 +39,5 @@ MonoBehaviour:
     - Karl Kalsson
     - Grug Gruggson
     flags: []
+    holdingEconomyModifiers: []
+    levies: []

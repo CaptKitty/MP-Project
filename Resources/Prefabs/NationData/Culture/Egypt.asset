@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4c1af54aeb37c444a6600ee648e8d94, type: 3}
   m_Name: Egypt
   m_EditorClassIdentifier: Assembly-CSharp::NationCultureData
+  cultureName: Egyptian
+  color: {r: 218, g: 181, b: 54, a: 255}
   content:
     units:
     - unit: {fileID: 11400000, guid: 4cd6b8db7c6296a489a09d097c2cb76a, type: 2}

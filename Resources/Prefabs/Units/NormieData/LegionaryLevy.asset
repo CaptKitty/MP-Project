@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0328358a590af594aabff3322a37048d, type: 3}
   m_Name: LegionaryLevy
   m_EditorClassIdentifier: 
-  unitname: Levy Legionary
+  unitname: Hastati
   unittype: 1
   cost: 100
   health: 100
@@ -22,12 +22,12 @@ MonoBehaviour:
   reactionTime: 7
   flaglist:
   - Formation
-  RangedWeapon: {fileID: 0}
+  RangedWeapon: {fileID: 11400000, guid: 3c002b759a0622540b3c404b106800e3, type: 2}
   MeleeWeapon: {fileID: 11400000, guid: dd27822988f93bc469b2fe10ae3c23ca, type: 2}
   Armor: {fileID: 11400000, guid: 0c528521dbd964449a22c382d3668628, type: 2}
   Shield: {fileID: 11400000, guid: 391b1d4a466a19d40a0d7b9792737f1a, type: 2}
   modifierlist: []
-  Mercenary: 1
+  Mercenary: 0
   nativeSkintone: {r: 1, g: 0.5529412, b: 0.39607844, a: 0}
   upgradeModules:
   - {fileID: 11400000, guid: 9323025428561e94bb9bb3bec967c45f, type: 2}
@@ -38,7 +38,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 27c6938e9247e69499c14cbcf386bc81, type: 2}
   - {fileID: 11400000, guid: 94f71be92b55b3b4babda2edc54375ff, type: 2}
   bodyparts:
-  - {fileID: 21300000, guid: b0f6d172f4b245b47b49a0ef856267d1, type: 3}
+  - {fileID: 21300000, guid: 29c9f91564cf63b48ad82f9f09b91552, type: 3}
   - {fileID: 21300000, guid: 16ba57bdaddde4a4d84a2e70a94b9dfb, type: 3}
   - {fileID: 21300000, guid: 2a17cfdacd044a541970e4e76ba4245d, type: 3}
   Big: 0

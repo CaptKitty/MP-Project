@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0328358a590af594aabff3322a37048d, type: 3}
   m_Name: Phoenician Spear
   m_EditorClassIdentifier: 
-  unitname: Phoenician Spear
+  unitname: Hoplite
   unittype: 2
   cost: 250
   health: 600
@@ -22,6 +22,7 @@ MonoBehaviour:
   reactionTime: 10
   flaglist:
   - Formation
+  - Phalanx
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 11400000, guid: e16ead9d937412544bee2529d13783d3, type: 2}
   Armor: {fileID: 11400000, guid: c6fe3a90079e386418f1370598f70a5f, type: 2}

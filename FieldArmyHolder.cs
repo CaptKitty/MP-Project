@@ -38,6 +38,7 @@ public class FieldArmyHolder : MonoBehaviour
     [Header("AI Reinforcement")]
     [Min(1)] public int AIReinforcementIntervalTurns = 8;
     [HideInInspector] public int NextAIReinforcementTurn;
+    [HideInInspector] public int AIDesiredArmySize;
     [HideInInspector] public int CannotEngageUntilTurn;
     [HideInInspector] public int MovementPenaltyUntilTurn;
     [Min(0.1f)] public float NetworkInterpolationSpeed = 12f;
@@ -185,6 +186,11 @@ public class FieldArmyHolder : MonoBehaviour
     public void OnMouseDown()
     {
         if (Mapshower.Instance != null) Mapshower.Instance.ConsumeCurrentMapClick();
+        SelectFromMapClick();
+    }
+
+    public void SelectFromMapClick()
+    {
         InspectedArmy = this;
         if (IsFriendlyToLocalPlayer())
         {
@@ -417,12 +423,27 @@ public class FieldArmyHolder : MonoBehaviour
     }
     public void ConquerProvince(Province province)
     {
+        if (province == null || fieldArmy == null || fieldArmy.nation == null) return;
         Nation previousOwner = province.nation;
         CampaignRegion conqueredRegion = Owners.Instance != null ? Owners.Instance.CallRegionByString(province.region) : null;
         bool alreadyOwnedRegionPart = conqueredRegion != null && fieldArmy.nation != null &&
             conqueredRegion.provincelist.Exists(candidate => candidate != null && candidate != province &&
                 candidate.nation == fieldArmy.nation);
+        bool actualConquest = previousOwner != fieldArmy.nation;
         province.nation = fieldArmy.nation;
+        if (actualConquest)
+        {
+            province.ApplyConquestDevastation(previousOwner, fieldArmy.nation,
+                Owners.Instance != null ? Owners.Instance.turncounter : 0);
+            fieldArmy.nation.Gold += Mathf.Max(0,
+                fieldArmy.nation.ApplyLawModifiers(NationalLawEffectType.ConquestGold, 0));
+        }
+        if (province.holdings != null && fieldArmy.nation != null)
+        {
+            foreach (ProvinceHolding holding in province.holdings) fieldArmy.nation.ApplyHoldingClassLaws(holding);
+            province.RebuildPopulationFromHoldings();
+            province.ReconcileLevyEntitlements();
+        }
         if (previousOwner != fieldArmy.nation && Owners.Instance != null)
         {
             if (conqueredRegion != null && fieldArmy.nation != null && !alreadyOwnedRegionPart)

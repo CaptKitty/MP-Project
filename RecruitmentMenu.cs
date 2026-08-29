@@ -202,6 +202,11 @@ public class RecruitmentMenu : MonoBehaviour
         }
         else
         {
+            if (!current.AllowsRecruitment(army.fieldArmy.nation))
+            {
+                AddMessage("Regional loyalty must be at least 50% to recruit units or raise levies.");
+                return;
+            }
             List<UnitSaveData> locals = current.GetRecruitableRegionUnits(army.fieldArmy.nation);
             if (locals.Count == 0) AddMessage("No units are unlocked by occupied provinces in this region.");
             foreach (UnitSaveData unit in locals)
@@ -241,9 +246,15 @@ public class RecruitmentMenu : MonoBehaviour
 
     private void AddRecruitButton(UnitSaveData unit, bool mercenary, Province source, int stock)
     {
-        string label = unit.name.Replace("(Clone)", "") + " — " + CampaignEconomy.UnitGoldCost(unit) + " gold";
+        Nation recruitingNation = army != null && army.fieldArmy != null ? army.fieldArmy.nation : null;
+        CampaignUnitOrigin origin = mercenary ? CampaignUnitOrigin.Mercenary : CampaignUnitOrigin.Professional;
+        string label = unit.name.Replace("(Clone)", "") + " — " + CampaignEconomy.UnitGoldCost(unit, 1, recruitingNation, origin) + " gold";
         label += mercenary ? " — " + source.name + " (" + stock + ")" : " — " + source.name;
-        label += " | " + unit.EffectiveRecruitmentTicks + " ticks";
+        int recruitmentTicks = unit.EffectiveRecruitmentTicks;
+        if (recruitingNation != null && mercenary)
+            recruitmentTicks = Mathf.Max(1, recruitingNation.ApplyLawModifiers(
+                NationalLawEffectType.MercenaryRecruitmentTime, recruitmentTicks, null, origin));
+        label += " | " + recruitmentTicks + " ticks";
         Button button = CreateButton("Recruit " + unit.name, content, label, () => Recruit(unit, mercenary, source));
         LayoutElement layout = button.gameObject.AddComponent<LayoutElement>();
         layout.preferredHeight = 132f;
@@ -261,11 +272,14 @@ public class RecruitmentMenu : MonoBehaviour
         }
         else if (army != null && army.fieldArmy != null && army.fieldArmy.nation != null && source != null)
         {
-            Nation nation = army.fieldArmy.nation; int goldCost = CampaignEconomy.UnitGoldCost(unit);
+            Nation nation = army.fieldArmy.nation;
+            CampaignUnitOrigin origin = mercenary ? CampaignUnitOrigin.Mercenary : CampaignUnitOrigin.Professional;
+            int goldCost = CampaignEconomy.UnitGoldCost(unit, 1, nation, origin);
+            Province current = army.GrabNearestProvince();
+            if (current == null || !current.AllowsRecruitment(nation)) return;
             if (nation.Gold < goldCost || army.fieldArmy.GrabArmySize() + army.fieldArmy.GrabQueuedArmySize() >= army.fieldArmy.MaxArmySize) return;
             if (mercenary)
             {
-                Province current = army.GrabNearestProvince();
                 if (source != current) return;
                 ProvinceMercenaryPool pool = source.FindMercenary(unit.name);
                 int supplyCost = Mathf.Max(1, unit.cost / 50);
@@ -275,12 +289,11 @@ public class RecruitmentMenu : MonoBehaviour
             else
             {
                 int manpowerCost = Mathf.Max(1, unit.cost / 100);
-                Province current = army.GrabNearestProvince();
                 if (current == null || source.nation != nation || !current.SharesRegionWith(source) ||
                     !source.CanRecruitLocal(unit) || nation.Manpower < manpowerCost) return;
                 nation.Manpower -= manpowerCost;
             }
-            if (!army.fieldArmy.QueueRecruitment(unit, 1)) return;
+            if (!army.fieldArmy.QueueRecruitment(unit, 1, origin)) return;
             nation.Gold -= goldCost;
         }
         Invoke(nameof(Refresh), 0.2f);

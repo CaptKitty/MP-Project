@@ -470,13 +470,16 @@ namespace ProjectX.TileBattle
                     attacker.Position.ManhattanDistance(enemy.Position) == 1);
                 TileBattleCell attackerCell = Grid.Get(attacker.Position);
                 bool forestAllowsShooting = attackerCell == null || attackerCell.Terrain != TileTerrain.Forest || attacker.Definition.ForestImmune;
-                bool rangedAttack = attacker.Definition.Ranged && attacker.Ammunition > 0 && !enemyAdjacent && forestAllowsShooting;
+                bool openingChargeThrow = attacker.Definition.OpeningThrowable && attacker.ChargeActive &&
+                    attacker.Ammunition > 0;
+                bool rangedAttack = (attacker.Definition.Ranged || openingChargeThrow) && attacker.Ammunition > 0 &&
+                    !enemyAdjacent && forestAllowsShooting;
                 if (attacker.UsingRangedWeapon != rangedAttack)
                 {
                     attacker.UsingRangedWeapon = rangedAttack;
                     attacker.WeaponAttackProgressTicks = 0;
                 }
-                int interval = rangedAttack ? Math.Max(1, attacker.Definition.RangedAttackIntervalTicks)
+                int interval = openingChargeThrow ? 1 : rangedAttack ? Math.Max(1, attacker.Definition.RangedAttackIntervalTicks)
                     : Math.Max(1, attacker.Definition.MeleeAttackIntervalTicks);
                 attacker.WeaponAttackProgressTicks = Math.Min(interval, attacker.WeaponAttackProgressTicks + 1);
                 if (attacker.WeaponAttackProgressTicks < interval) continue;

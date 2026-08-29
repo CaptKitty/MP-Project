@@ -15,10 +15,10 @@ MonoBehaviour:
   id: Mine
   displayName: Mine
   description: "Mine \u2014 tier 2 Mining holding."
-  icon: {fileID: 0}
+  icon: {fileID: 1781684785519343535, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
   category: 9
   categoryTier: 2
-  tags: 72
+  tags: 64
   suggestedAllegiance: 
   maximumLevel: 1
   defaultConstructionTicks: 16
@@ -34,16 +34,17 @@ MonoBehaviour:
       holdingEconomyModifiers: []
   outputs:
   - type: 0
-    baseValue: 5
+    baseValue: 3
     scalesWithUrbanization: 0
     suitability: 1
-    urbanizationResponse: -10
+    urbanizationResponse: 0
     disabledWhileMobilized: 0
   transformations:
   - targetHoldingId: MiningSettlement
-    minimumUrbanization: 0
+    minimumUrbanization: -100
     maximumUrbanization: 100
-  foodConsumption: 2
+  foodConsumption: 1
+  foodUpkeep: 1
   defaultClass: 2
   canRaiseLevies: 0
   levyUnit: {fileID: 0}
@@ -51,5 +52,5 @@ MonoBehaviour:
   levyContributionPermillePerLevel: 0
   levyFormationsPerLevel: 1
   levyMobilizationTicks: 0
-  levyRecoveryTicks: 20
+  levyRecoveryTicks: 120
   levyDemobilizationTicks: 0

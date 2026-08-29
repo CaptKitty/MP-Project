@@ -15,7 +15,7 @@ MonoBehaviour:
   id: HunterCommunity
   displayName: Hunter Community
   description: "Hunter Community \u2014 tier 2 Hunters holding."
-  icon: {fileID: 0}
+  icon: {fileID: 2714555709402962611, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
   category: 8
   categoryTier: 2
   tags: 520
@@ -34,7 +34,7 @@ MonoBehaviour:
       holdingEconomyModifiers: []
   outputs:
   - type: 1
-    baseValue: 4
+    baseValue: 3
     scalesWithUrbanization: 0
     suitability: 1
     urbanizationResponse: -100
@@ -47,7 +47,7 @@ MonoBehaviour:
     disabledWhileMobilized: 1
   transformations:
   - targetHoldingId: HunterLodge
-    minimumUrbanization: 0
+    minimumUrbanization: -100
     maximumUrbanization: 100
   foodConsumption: 1
   defaultClass: 2
@@ -57,5 +57,5 @@ MonoBehaviour:
   levyContributionPermillePerLevel: 700
   levyFormationsPerLevel: 1
   levyMobilizationTicks: 0
-  levyRecoveryTicks: 20
+  levyRecoveryTicks: 120
   levyDemobilizationTicks: 0

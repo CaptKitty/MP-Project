@@ -13,7 +13,10 @@ MonoBehaviour:
   m_Name: Punic
   m_EditorClassIdentifier: Assembly-CSharp::NationCultureData
   cultureName: Punic
-  color: {r: 132, g: 73, b: 170, a: 255}
+  startingUrbanization: 50
+  color:
+    serializedVersion: 2
+    rgba: 4290165760
   content:
     units:
     - unit: {fileID: 11400000, guid: 0006aa33c11cc2947a6b49ac7c0b1504, type: 2}
@@ -37,3 +40,5 @@ MonoBehaviour:
     - Didobal
     - Barcabal
     flags: []
+    holdingEconomyModifiers: []
+    levies: []

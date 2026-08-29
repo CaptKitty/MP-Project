@@ -14,7 +14,7 @@ public class NationalBrain : GAgent {
 
     public int DiplomacyCooldown = 0;
     public int ArmySpawnCooldown = 0;
-    public int SetArmySpawnCooldown = 100;
+    public int SetArmySpawnCooldown = 24;
 
     public void Startie()
     {

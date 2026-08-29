@@ -41,4 +41,23 @@ MonoBehaviour:
   - Barbarian
   - Decentralized
   factionTheme: {fileID: 11400000, guid: 7a5e9e4fcf50ac14892d8fe0ce79a603, type: 2}
+  assemblyName: 
+  content:
+    units: []
+    buildings: []
+    generalNames: []
+    flags: []
+    holdingEconomyModifiers: []
+    levies: []
+    laws: []
+  unitReplacements:
+  - replace: {fileID: 11400000, guid: 8d26d17d75f9c5748a8f2e463b59e1ec, type: 2}
+    with: {fileID: 11400000, guid: 57eb2d5207ea83d429b585109863402b, type: 2}
+    requiredBuilding: {fileID: 0}
+    minimumBuildingLevel: 0
+  - replace: {fileID: 11400000, guid: fa4a84c0cf334da40bb64d728942e382, type: 2}
+    with: {fileID: 11400000, guid: d53fa0f4fda48eb4cba5304610ce3476, type: 2}
+    requiredBuilding: {fileID: 0}
+    minimumBuildingLevel: 0
+  buildingReplacements: []
   Income: 500

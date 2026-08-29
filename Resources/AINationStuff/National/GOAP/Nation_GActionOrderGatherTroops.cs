@@ -18,10 +18,6 @@ public class Nation_GActionOrderGatherTroops : Nation_GAction
         {
             return false;
         }
-        if(nationalbrainy.GrabNation().Manpower < 5)
-        {
-            return false;
-        }
         float weakestStrength = 2f;
         foreach(var a in nationalbrainy.GrabNation().armies)
         {

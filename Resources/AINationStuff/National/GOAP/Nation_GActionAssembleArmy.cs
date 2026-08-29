@@ -12,8 +12,7 @@ public class Nation_GActionAssembleArmy : Nation_GAction
     {
         Nation nation = nationalbrainy.GrabNation();
         nation.armies.RemoveAll(item => item == null);
-        int ownedProvinces = Owners.Instance.provincelist.FindAll(province => province.nation == nation).Count;
-        int desiredArmyLimit = Mathf.Clamp(1 + ownedProvinces / 4, 1, 5);
+        int desiredArmyLimit = nation.DesiredAIArmyLimit();
         // SpawnArmy uses the same cap. If the cap is already reached this action must be
         // unavailable, otherwise the highest-priority recruitment goal starves conquest.
         if (nation.armies.Count >= desiredArmyLimit)
@@ -24,9 +23,10 @@ public class Nation_GActionAssembleArmy : Nation_GAction
         {
             return false;
         }
+        if (nation.Gold < CampaignEconomy.ArmyCreationCost) return false;
         if(nation.Manpower >= armycost)
         {
-            if(nationalbrainy.ArmySpawnCooldown < Owners.Instance.timer)
+            if(nationalbrainy.ArmySpawnCooldown <= Owners.Instance.turncounter)
             {
                 return true;
             }   
@@ -41,10 +41,11 @@ public class Nation_GActionAssembleArmy : Nation_GAction
     {
         //Debug.LogError(nationalbrainy.nation + " Orders an army to assemble");
         
-        nationalbrainy.GrabNation().SpawnArmy();
-        nationalbrainy.GrabNation().Manpower -= armycost;
+        Nation nation = nationalbrainy.GrabNation();
+        if (!nation.SpawnArmy()) return false;
+        nation.Manpower -= armycost;
 
-        nationalbrainy.ArmySpawnCooldown = (int)Owners.Instance.timer + nationalbrainy.SetArmySpawnCooldown;
+        nationalbrainy.ArmySpawnCooldown = Owners.Instance.turncounter + nationalbrainy.SetArmySpawnCooldown;
         if(nationalbrainy.GrabNation().faction.HasFlag("Decentralized"))
         {
             nationalbrainy.ArmySpawnCooldown += nationalbrainy.SetArmySpawnCooldown;

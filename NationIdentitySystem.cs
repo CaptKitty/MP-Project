@@ -26,6 +26,8 @@ public class NationContentLayer
     public List<HoldingTagModifier> holdingEconomyModifiers = new List<HoldingTagModifier>();
     [Header("Recoverable levies")]
     public List<LevyGrantRule> levies = new List<LevyGrantRule>();
+    [Header("National laws")]
+    public List<NationalLaw> laws = new List<NationalLaw>();
 }
 
 [Serializable]
@@ -53,6 +55,42 @@ public class FactionBuildingReplacement
 public static class NationContentResolver
 {
     private static readonly string[] LegacyBuildings = { "Barracks", "Farm", "Fort" };
+
+    public static string ResolveAssemblyName(Nation nation)
+    {
+        if (nation == null) return "Council of Aristocrats";
+        if (nation.faction != null && !string.IsNullOrWhiteSpace(nation.faction.assemblyName))
+            return nation.faction.assemblyName.Trim();
+        if (nation.culture != null && !string.IsNullOrWhiteSpace(nation.culture.assemblyName))
+            return nation.culture.assemblyName.Trim();
+        if (nation.civilization != null && !string.IsNullOrWhiteSpace(nation.civilization.assemblyName))
+            return nation.civilization.assemblyName.Trim();
+        return "Council of Aristocrats";
+    }
+
+    public static List<NationalLaw> ResolveLaws(Nation nation)
+    {
+        List<NationalLaw> result = new List<NationalLaw>();
+        if (nation == null) return result;
+        AddLaws(result, nation.civilization != null ? nation.civilization.content : null);
+        AddLaws(result, nation.culture != null ? nation.culture.content : null);
+        AddLaws(result, nation.religion != null ? nation.religion.content : null);
+        AddLaws(result, nation.faction != null ? nation.faction.content : null);
+        return result;
+    }
+
+    private static void AddLaws(List<NationalLaw> target, NationContentLayer layer)
+    {
+        if (layer == null || layer.laws == null) return;
+        foreach (NationalLaw law in layer.laws)
+        {
+            if (law == null || string.IsNullOrWhiteSpace(law.id)) continue;
+            int existing = target.FindIndex(candidate => candidate != null &&
+                string.Equals(candidate.id, law.id, StringComparison.OrdinalIgnoreCase));
+            NationalLaw copy = law.Clone();
+            if (existing >= 0) target[existing] = copy; else target.Add(copy);
+        }
+    }
 
     public static List<NationUnitEntry> ResolveUnits(Nation nation)
     {

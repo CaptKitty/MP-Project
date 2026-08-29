@@ -595,6 +595,43 @@ public sealed class TileBattleVerticalSliceTests
     }
 
     [Test]
+    public void OpeningThrowableFiresOnceDuringChargeWithoutEndingCharge()
+    {
+        TileBattleUnitDefinition charger = Definition("Pilum infantry", 4, 2, 110);
+        charger.OpeningThrowable = true; charger.RangedRange = 3; charger.RangedDamage = 12;
+        charger.RangedAttackIntervalTicks = 99; charger.Ammunition = 1;
+        TileBattleSimulation simulation = Simulation(charger, Definition("Target", 7, 2, 120),
+            new TileCoord(5, 5), new TileCoord(8, 5));
+
+        simulation.ResolveOrders(Orders(0, 1, TileUnitAction.Charge(new TileCoord(6, 5), 2)),
+            new TileOrderSet { Side = 1 });
+
+        TileBattleUnit unit = simulation.Units.Single(item => item.Id == 1);
+        Assert.That(unit.Ammunition, Is.EqualTo(0));
+        Assert.That(unit.ChargeActive, Is.True);
+        Assert.That(unit.Position, Is.EqualTo(new TileCoord(6, 5)));
+        Assert.That(simulation.Events.Count(item => item.Type == TileBattleEventType.ProjectileLaunched), Is.EqualTo(1));
+    }
+
+    [Test]
+    public void CampaignOpeningThrowableKeepsMeleeTacticalRoleAndCapsAmmoAtOne()
+    {
+        UnitSaveData source = ScriptableObject.CreateInstance<UnitSaveData>();
+        Weapon ranged = ScriptableObject.CreateInstance<Weapon>();
+        try
+        {
+            source.name = "Pilum infantry"; source.health = 100; source.actions = 2;
+            ranged.rangedUsage = RangedWeaponUsage.OpeningThrowable; ranged.ammo = 8;
+            ranged.attack = 12; ranged.combatdistance = 3; source.RangedWeapon = ranged;
+            TileBattleUnitDefinition definition = TileBattleCampaignAdapter.CreateDefinition(source);
+            Assert.That(definition.Ranged, Is.False);
+            Assert.That(definition.OpeningThrowable, Is.True);
+            Assert.That(definition.Ammunition, Is.EqualTo(1));
+        }
+        finally { Object.DestroyImmediate(source); Object.DestroyImmediate(ranged); }
+    }
+
+    [Test]
     public void ShieldProtectsFrontButHasZeroSideEffectiveness()
     {
         TileBattleUnitDefinition attacker = Definition("Attacker", 7, 2, 100);

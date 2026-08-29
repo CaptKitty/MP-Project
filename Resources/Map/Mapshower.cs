@@ -239,6 +239,14 @@ public class Mapshower : MonoBehaviour
         {
             Camera.main.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y - amount * 0.1f, -10);
         }
+        if (Input.GetMouseButtonDown(0) && !suppressMapClickUntilMouseRelease &&
+            TrySelectArmyUnderPointer())
+        {
+            // Army markers use 2D colliders while the province map uses its own
+            // 3D/map-texture picking. Resolve the army first so a click on a marker
+            // cannot fall through and become a province selection.
+            ConsumeCurrentMapClick();
+        }
         if (Input.GetMouseButtonDown(0) && !suppressMapClickUntilMouseRelease)
         {
             StartDragPosition = Input.mousePosition;
@@ -257,6 +265,38 @@ public class Mapshower : MonoBehaviour
             Camera.main.transform.position = Camera.main.transform.position + difference;
             StartDragPosition = Input.mousePosition;
         }
+    }
+
+    private bool TrySelectArmyUnderPointer()
+    {
+        if (Camera.main == null ||
+            (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()))
+            return false;
+
+        Vector3 world = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Collider2D[] hits = Physics2D.OverlapPointAll(new Vector2(world.x, world.y));
+        FieldArmyHolder selected = null;
+        int selectedSortingOrder = int.MinValue;
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            FieldArmyHolder army = hits[i] != null
+                ? hits[i].GetComponentInParent<FieldArmyHolder>()
+                : null;
+            if (army == null || !army.isActiveAndEnabled) continue;
+
+            SpriteRenderer renderer = army.GetComponentInChildren<SpriteRenderer>();
+            int sortingOrder = renderer != null ? renderer.sortingOrder : 0;
+            if (selected == null || sortingOrder > selectedSortingOrder)
+            {
+                selected = army;
+                selectedSortingOrder = sortingOrder;
+            }
+        }
+
+        if (selected == null) return false;
+        selected.SelectFromMapClick();
+        return true;
     }
 
     private static void SetCampaignSpeed(float speed)

@@ -15,10 +15,10 @@ MonoBehaviour:
   id: PastoralHolding
   displayName: Pastoral Holding
   description: "Pastoral Holding \u2014 tier 2 Pastoralists holding."
-  icon: {fileID: 0}
+  icon: {fileID: -6456758386485410138, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
   category: 7
   categoryTier: 2
-  tags: 24
+  tags: 16
   suggestedAllegiance: 
   maximumLevel: 1
   defaultConstructionTicks: 16
@@ -34,28 +34,28 @@ MonoBehaviour:
       holdingEconomyModifiers: []
   outputs:
   - type: 1
-    baseValue: 5
+    baseValue: 3
     scalesWithUrbanization: 0
     suitability: 1
-    urbanizationResponse: -50
+    urbanizationResponse: 0
     disabledWhileMobilized: 1
   - type: 0
     baseValue: 2
     scalesWithUrbanization: 0
     suitability: 1
-    urbanizationResponse: -50
+    urbanizationResponse: 0
     disabledWhileMobilized: 1
   transformations:
   - targetHoldingId: PastoralEstate
-    minimumUrbanization: 0
+    minimumUrbanization: -100
     maximumUrbanization: 100
   foodConsumption: 1
   defaultClass: 2
   canRaiseLevies: 1
   levyUnit: {fileID: 11400000, guid: 8d26d17d75f9c5748a8f2e463b59e1ec, type: 2}
-  levyArchetype: 4
+  levyArchetype: 7
   levyContributionPermillePerLevel: 1000
   levyFormationsPerLevel: 1
   levyMobilizationTicks: 0
-  levyRecoveryTicks: 20
+  levyRecoveryTicks: 120
   levyDemobilizationTicks: 0

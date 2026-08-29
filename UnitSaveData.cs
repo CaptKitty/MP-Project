@@ -16,7 +16,7 @@ public class UnitSaveData : ScriptableObject
     [Min(1)] public int recruitmentTicks = 3;
     public int EffectiveRecruitmentTicks => recruitmentTicks > 0 ? recruitmentTicks : 3;
     [Tooltip("Gold charged every campaign economy tick for each professional formation. Levies ignore this value.")]
-    [Min(0)] public int upkeep = 1;
+    [Min(0)] public int upkeep = 2;
 
     [Header("Tile Battle Timing")]
     [Tooltip("Maximum number of pre-committed actions this formation may attempt in one command round.")]

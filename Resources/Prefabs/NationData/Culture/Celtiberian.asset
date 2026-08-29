@@ -13,9 +13,10 @@ MonoBehaviour:
   m_Name: Celtiberian
   m_EditorClassIdentifier: Assembly-CSharp::NationCultureData
   cultureName: Celtiberian
+  startingUrbanization: -50
   color:
     serializedVersion: 2
-    rgba: 4286611584
+    rgba: 4278223925
   content:
     units:
     - unit: {fileID: 11400000, guid: 8d26d17d75f9c5748a8f2e463b59e1ec, type: 2}

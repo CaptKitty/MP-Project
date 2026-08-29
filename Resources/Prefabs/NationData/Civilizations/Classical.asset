@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bcd7e51e799ed68459ac45f74d6d8f85, type: 3}
   m_Name: Classical
   m_EditorClassIdentifier: Assembly-CSharp::CivilizationData
+  assemblyName: Council of Aristocrats
   content:
     units:
     - unit: {fileID: 11400000, guid: 1c0e49bb946563549b1164e0979b86d2, type: 2}
@@ -26,6 +27,11 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 5d7da345adbd41bd80e4abf4439573c4, type: 2}
     - {fileID: 11400000, guid: 8fc882db24aae7b41829e618229ee4c2, type: 2}
     - {fileID: 11400000, guid: 5eaecf0524774e546982605765c61c6d, type: 2}
+    - {fileID: 11400000, guid: a15c73e0279a4a7fa562b2c842edc441, type: 2}
+    - {fileID: 11400000, guid: c7611d9213d74a66b5dc965a75e4f18b, type: 2}
+    - {fileID: 11400000, guid: f3068d8151f54539965173239269e2e8, type: 2}
+    - {fileID: 11400000, guid: b8aacba79c404fd6a4783cb563031fd8, type: 2}
+    - {fileID: 11400000, guid: 2bd5190344af43298421420a8399e4c8, type: 2}
     generalNames: []
     flags:
     - Civilized

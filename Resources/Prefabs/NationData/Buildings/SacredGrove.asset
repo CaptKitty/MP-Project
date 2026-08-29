@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56c9a7030e3fdb348bc8977e4e3f9973, type: 3}
+  m_Name: SacredGrove
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
+  id: SacredGrove
+  displayName: Sacred Grove
+  description: Protected sacred land discourages dense settlement and promotes ruralization.
+  icon: {fileID: -2387518129825354025, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
+  maximumLevel: 1
+  defaultConstructionTicks: 15
+  levels:
+  - level: 1
+    goldCost: 200
+    constructionTicks: 15
+    urbanizationResponse: 0
+    urbanizationTargetModifier: -20
+    goldIncome: 0
+    food: 0
+    foodConsumption: 0
+    garrisonCapacity: 0
+    unitUnlocks: []
+    flags: []
+    displayedEffects:
+    - -20 desired provincial urbanization (ruralization).
+    holdingEconomyModifiers: []
+    localModifiers:
+      maxDevelopment: 0
+      holdingEconomyModifiers: []

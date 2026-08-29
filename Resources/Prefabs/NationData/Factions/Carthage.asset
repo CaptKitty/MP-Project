@@ -43,4 +43,95 @@ MonoBehaviour:
   - ForeignBarbarianRecruitment
   - CrusherOfGarrisons
   factionTheme: {fileID: 11400000, guid: bc69b654c6f349c40b5b5b11dff99548, type: 2}
+  assemblyName: Adirim
+  content:
+    units: []
+    buildings: []
+    generalNames: []
+    flags: []
+    holdingEconomyModifiers: []
+    levies: []
+    laws:
+    - id: punic_citizen_obligation
+      displayName: Citizen Obligation
+      effects:
+      - type: 0
+        operation: 0
+        amountPermille: 100
+        target: 1
+        anySocioEconomicClass: 0
+        socioEconomicClass: 6
+        cultureScope: 1
+        cultureName: 
+        anyUnitOrigin: 1
+        unitOrigin: 0
+      classRules: []
+      amountPermille: 0
+      effect: 0
+      anySocioEconomicClass: 1
+      socioEconomicClass: 6
+      anyCulture: 1
+      cultureName: 
+    - id: punic_subject_muster
+      displayName: Subject Muster
+      effects:
+      - type: 0
+        operation: 0
+        amountPermille: 200
+        target: 1
+        anySocioEconomicClass: 0
+        socioEconomicClass: 2
+        cultureScope: 2
+        cultureName: 
+        anyUnitOrigin: 1
+        unitOrigin: 0
+      classRules: []
+      amountPermille: 0
+      effect: 0
+      anySocioEconomicClass: 1
+      socioEconomicClass: 6
+      anyCulture: 1
+      cultureName: 
+    - id: mercenary_contracts
+      displayName: Mercenary Contracts
+      effects:
+      - type: 1
+        operation: 1
+        amountPermille: -250
+        target: 2
+        anySocioEconomicClass: 1
+        socioEconomicClass: 6
+        cultureScope: 0
+        cultureName: 
+        anyUnitOrigin: 0
+        unitOrigin: 2
+      - type: 2
+        operation: 1
+        amountPermille: -100
+        target: 2
+        anySocioEconomicClass: 1
+        socioEconomicClass: 6
+        cultureScope: 0
+        cultureName: 
+        anyUnitOrigin: 0
+        unitOrigin: 2
+      - type: 3
+        operation: 1
+        amountPermille: 300
+        target: 3
+        anySocioEconomicClass: 1
+        socioEconomicClass: 6
+        cultureScope: 0
+        cultureName: 
+        anyUnitOrigin: 1
+        unitOrigin: 0
+      classRules: []
+      amountPermille: 0
+      effect: 0
+      anySocioEconomicClass: 1
+      socioEconomicClass: 6
+      anyCulture: 1
+      cultureName: 
+  unitReplacements: []
+  buildingReplacements: []
   Income: 500

@@ -13,10 +13,6 @@ public class General_GActionRecruit : General_GAction
 
     public override bool IsAchievable() 
     {
-        if(generalBrainy.GrabNation().Manpower < 5)
-        {
-            return false;
-        }
         countsmade = 0;
         running = true;
         return true;

@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56c9a7030e3fdb348bc8977e4e3f9973, type: 3}
+  m_Name: SubsistenceCommons
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
+  id: SubsistenceCommons
+  displayName: Subsistence Commons
+  description: Protects shared gathering and hunting grounds and encourages subsistence holdings.
+  icon: {fileID: -2387518129825354025, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
+  maximumLevel: 1
+  defaultConstructionTicks: 10
+  levels:
+  - level: 1
+    goldCost: 150
+    constructionTicks: 10
+    urbanizationResponse: -10
+    goldIncome: 0
+    food: 0
+    foodConsumption: 0
+    garrisonCapacity: 0
+    unitUnlocks: []
+    flags: []
+    displayedEffects:
+    - Encourages subsistence holdings and improves their output.
+    holdingEconomyModifiers:
+    - tag: 512
+      requiredNationFlag: 
+      desiredWeight: 25
+      outputEfficiencyPercent: 10
+    localModifiers:
+      maxDevelopment: 0
+      holdingEconomyModifiers: []

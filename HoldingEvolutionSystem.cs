@@ -79,16 +79,19 @@ public static class HoldingEvolutionSystem
         if (definition.tags != HoldingTag.None) return definition.tags;
         switch (definition.category)
         {
-            case HoldingCategory.FreeFarmers: return HoldingTag.Agricultural | HoldingTag.Rural;
+            case HoldingCategory.FreeFarmers:
+                // Free farmers are universal agriculture: both rural and urban pressure
+                // supports them, while their zero output response remains neutral.
+                return HoldingTag.Agricultural | HoldingTag.Rural | HoldingTag.Urban;
             case HoldingCategory.TribalSubsistence: return HoldingTag.Agricultural | HoldingTag.Rural | HoldingTag.Subsistence;
-            case HoldingCategory.EliteAgriculture: return HoldingTag.Agricultural | HoldingTag.Rural | HoldingTag.Elite;
+            case HoldingCategory.EliteAgriculture: return HoldingTag.Elite;
             case HoldingCategory.CommercialAgriculture: return HoldingTag.Agricultural | HoldingTag.Commercial;
-            case HoldingCategory.ServileAgriculture: return HoldingTag.Agricultural | HoldingTag.Rural | HoldingTag.Servile;
+            case HoldingCategory.ServileAgriculture: return HoldingTag.Agricultural | HoldingTag.Servile;
             case HoldingCategory.Artisans: return HoldingTag.Artisan | HoldingTag.Urban | HoldingTag.Commercial;
             case HoldingCategory.Commerce: return HoldingTag.Commercial | HoldingTag.Urban;
-            case HoldingCategory.Pastoralists: return HoldingTag.Pastoral | HoldingTag.Rural;
+            case HoldingCategory.Pastoralists: return HoldingTag.Pastoral;
             case HoldingCategory.Hunters: return HoldingTag.Rural | HoldingTag.Subsistence;
-            case HoldingCategory.Mining: return HoldingTag.Mining | HoldingTag.Rural;
+            case HoldingCategory.Mining: return HoldingTag.Mining;
             default: return HoldingTag.None;
         }
     }
@@ -133,7 +136,7 @@ public static class HoldingEvolutionSystem
     private static List<UnitSaveData> CulturalCandidates(Province province, string cultureName)
     {
         List<UnitSaveData> result = new List<UnitSaveData>();
-        if (cachedCultures == null) cachedCultures = Resources.LoadAll<NationCultureData>(string.Empty);
+        if (cachedCultures == null) cachedCultures = Resources.LoadAll<NationCultureData>("Prefabs/NationData/Culture");
         foreach (NationCultureData culture in cachedCultures)
             if (culture != null && culture.Matches(cultureName) && culture.content != null && culture.content.units != null)
                 foreach (NationUnitEntry entry in culture.content.units) AddUnit(result, entry != null ? entry.unit : null);
@@ -188,13 +191,25 @@ public static class HoldingEvolutionSystem
 
     public static Dictionary<HoldingTag, float> DesiredWeights(Province province)
     {
-        float urban = province != null ? Mathf.Clamp(province.urbanization, 0, 100) : 50f;
+        // At zero development neither explicitly urban nor explicitly rural holdings should
+        // dominate the economy. Both retain a modest 25% neutral demand, then rise toward
+        // 100% on their own side of the axis and fall toward zero on the opposite extreme.
+        float development = province != null ? Mathf.Clamp(province.urbanization, -100f, 100f) : 0f;
+        float urban = development >= 0f
+            ? Mathf.Lerp(25f, 100f, development / 100f)
+            : Mathf.Lerp(25f, 0f, -development / 100f);
+        float rural = development <= 0f
+            ? Mathf.Lerp(25f, 100f, -development / 100f)
+            : Mathf.Lerp(25f, 0f, development / 100f);
+        float ruralization = province != null ? Mathf.Clamp01(-province.urbanization / 100f) : 0f;
         Dictionary<HoldingTag, float> result = new Dictionary<HoldingTag, float>
         {
             { HoldingTag.Agricultural, 40f }, { HoldingTag.Commercial, 15f },
-            { HoldingTag.Urban, urban }, { HoldingTag.Rural, 100f - urban },
-            { HoldingTag.Pastoral, 10f }, { HoldingTag.Artisan, 10f }, { HoldingTag.Mining, 5f },
-            { HoldingTag.Elite, 10f }, { HoldingTag.Servile, 5f }, { HoldingTag.Subsistence, 10f },
+            { HoldingTag.Urban, urban }, { HoldingTag.Rural, rural },
+            { HoldingTag.Pastoral, 10f + ruralization * 30f },
+            { HoldingTag.Artisan, 10f }, { HoldingTag.Mining, 5f },
+            { HoldingTag.Elite, 10f }, { HoldingTag.Servile, 5f },
+            { HoldingTag.Subsistence, 10f + ruralization * 30f },
             { HoldingTag.Military, 5f }
         };
         if (province == null) return result;
@@ -234,6 +249,7 @@ public static class HoldingEvolutionSystem
     {
         if (province == null || definition == null) return 0f;
         float result = 0f; HoldingTag tags = EffectiveTags(definition);
+        result += HoldingDerivedEfficiencyPercent(province, definition);
         AccumulateEfficiency(ref result, tags, province.baseHoldingTagDesires, province.nation);
         if (province.buildings != null) foreach (ProvinceBuilding building in province.buildings)
             if (building != null && building.definition != null && building.definition.levels != null)
@@ -251,6 +267,20 @@ public static class HoldingEvolutionSystem
             AccumulateEfficiency(ref result, tags, province.nation.faction != null ? province.nation.faction.content.holdingEconomyModifiers : null, province.nation);
         }
         return Mathf.Clamp(result, -90f, 500f);
+    }
+
+    public static float HoldingDerivedEfficiencyPercent(Province province, HoldingDefinition receivingDefinition)
+    {
+        if (province == null || receivingDefinition == null || province.holdings == null ||
+            (EffectiveTags(receivingDefinition) & HoldingTag.Servile) == 0) return 0f;
+        float result = 0f;
+        foreach (ProvinceHolding source in province.holdings)
+        {
+            if (source == null || source.definition == null ||
+                source.definition.category != HoldingCategory.EliteAgriculture) continue;
+            result += Mathf.Clamp(source.definition.categoryTier, 1, 3) * 5f;
+        }
+        return result;
     }
 
     private static void AccumulateEfficiency(ref float result, HoldingTag tags, List<HoldingTagModifier> modifiers, Nation nation)
@@ -281,7 +311,13 @@ public static class HoldingEvolutionSystem
         foreach (ProvinceHolding item in province.holdings)
             if (item != null && item.definition != null) validCount++;
         if (validCount == 0) return;
-        int selectedIndex = (campaignTick / interval + PositiveHash(province.name)) % validCount;
+        int elapsedHoldingTicks = province.lastHoldingEvolutionTick < 0
+            ? interval * validCount
+            : Mathf.Max(interval, campaignTick - province.lastHoldingEvolutionTick);
+        province.lastHoldingEvolutionTick = campaignTick;
+        int pressureMultiplier = Mathf.Max(1,
+            Mathf.CeilToInt(elapsedHoldingTicks / (float)(interval * validCount)));
+        int selectedIndex = (PositiveHash(province.name) + province.holdingEvolutionCursor++) % validCount;
         ProvinceHolding selected = null;
         foreach (ProvinceHolding item in province.holdings)
         {
@@ -289,7 +325,7 @@ public static class HoldingEvolutionSystem
             if (selectedIndex-- == 0) { selected = item; break; }
         }
         if (selected == null) return;
-        EvaluateHolding(province, selected, settings);
+        EvaluateHolding(province, selected, settings, pressureMultiplier);
     }
 
     public static int DesiredUrbanization(Province province)
@@ -312,18 +348,30 @@ public static class HoldingEvolutionSystem
         // Commercial-development policy (most visibly marketplaces) breaks the low-urbanization
         // lock that otherwise prevents farms from reaching their commercial transformation path.
         target += Mathf.Max(0f, desired[HoldingTag.Commercial] - 15f) * .4f;
-        return Mathf.Clamp(Mathf.RoundToInt(target), 0, province.MaximumDevelopment);
+        if (province.buildings != null) foreach (ProvinceBuilding building in province.buildings)
+            if (building != null && building.definition != null && building.definition.levels != null)
+                foreach (BuildingLevelDefinition level in building.definition.levels)
+                    if (level != null && level.level <= building.level)
+                        target += level.urbanizationTargetModifier;
+        return Mathf.Clamp(Mathf.RoundToInt(target), -100, province.MaximumDevelopment);
     }
 
     private static void ProcessUrbanization(Province province, int campaignTick, HoldingEvolutionSettings settings)
     {
         int interval = Mathf.Max(1, settings.urbanizationChangeIntervalTicks);
-        if ((campaignTick + PositiveHash(province.name)) % interval != 0) return;
+        if (province.lastUrbanizationEvolutionTick < 0)
+            province.lastUrbanizationEvolutionTick = campaignTick - interval;
+        int elapsed = campaignTick - province.lastUrbanizationEvolutionTick;
+        if (elapsed < interval) return;
+        int elapsedSteps = Mathf.Max(1, elapsed / interval);
+        province.lastUrbanizationEvolutionTick += elapsedSteps * interval;
         int target = DesiredUrbanization(province);
         Dictionary<HoldingTag, float> desired = DesiredWeights(province);
         int growthStep = 1 + Mathf.FloorToInt(Mathf.Max(0f, desired[HoldingTag.Commercial] - 15f) / 25f);
-        if (province.urbanization < target) province.urbanization = Mathf.Min(target, province.urbanization + growthStep);
-        else if (province.urbanization > target) province.urbanization--;
+        if (province.urbanization < target)
+            province.urbanization = Mathf.Min(target, province.urbanization + growthStep * elapsedSteps);
+        else if (province.urbanization > target)
+            province.urbanization = Mathf.Max(target, province.urbanization - elapsedSteps);
         province.ClampDevelopment();
     }
 
@@ -337,12 +385,13 @@ public static class HoldingEvolutionSystem
         holding.adaptationPressure = Mathf.Max(0, holding.adaptationPressure + pressure);
     }
 
-    private static void EvaluateHolding(Province province, ProvinceHolding holding, HoldingEvolutionSettings settings)
+    private static void EvaluateHolding(Province province, ProvinceHolding holding, HoldingEvolutionSettings settings,
+        int pressureMultiplier)
     {
         if (holding.adaptationCooldownTicks > 0 || province.holdingConstructionOrders != null &&
             province.holdingConstructionOrders.Exists(order => order != null && order.slotIndex == holding.slotIndex)) return;
         Dictionary<HoldingTag, float> desired = DesiredWeights(province);
-        List<HoldingDefinition> candidates = NaturalCandidates(province, holding.definition);
+        List<HoldingDefinition> candidates = NaturalCandidates(province, holding);
         HoldingDefinition best = null; float bestImprovement = 0f;
         foreach (HoldingDefinition candidate in candidates)
         {
@@ -353,16 +402,18 @@ public static class HoldingEvolutionSystem
         }
         if (best == null || bestImprovement < Mathf.Max(0, settings.minimumImprovementPercent))
         {
-            holding.adaptationPressure = Mathf.Max(0, holding.adaptationPressure - Mathf.Max(0, settings.pressureDecayPerEvaluation));
+            holding.adaptationPressure = Mathf.Max(0, holding.adaptationPressure -
+                Mathf.Max(0, settings.pressureDecayPerEvaluation) * Mathf.Max(1, pressureMultiplier));
             if (holding.adaptationPressure == 0) holding.adaptationTargetId = string.Empty;
             return;
         }
         if (!string.Equals(holding.adaptationTargetId, best.StableId, StringComparison.OrdinalIgnoreCase))
         {
             holding.adaptationTargetId = best.StableId;
-            holding.adaptationPressure = Mathf.Max(0, holding.adaptationPressure - Mathf.Max(0, settings.pressureDecayPerEvaluation));
+            holding.adaptationPressure = Mathf.Max(0, holding.adaptationPressure -
+                Mathf.Max(0, settings.pressureDecayPerEvaluation) * Mathf.Max(1, pressureMultiplier));
         }
-        holding.adaptationPressure += Mathf.Max(1, settings.pressureGainPerEvaluation);
+        holding.adaptationPressure += Mathf.Max(1, settings.pressureGainPerEvaluation) * Mathf.Max(1, pressureMultiplier);
         if (holding.adaptationPressure < Mathf.Max(1, settings.pressureRequired)) return;
 
         // Natural evolution preserves the people attached to the holding. Only its economic form changes.
@@ -370,10 +421,13 @@ public static class HoldingEvolutionSystem
         holding.adaptationTargetId = string.Empty; holding.adaptationPressure = 0;
         holding.adaptationCooldownTicks = Mathf.Max(0, settings.transformationCooldownTicks);
         province.ClampDevelopment(); province.ReconcileLevyEntitlements();
+        province.RefreshGarrisonForFort();
     }
 
-    private static List<HoldingDefinition> NaturalCandidates(Province province, HoldingDefinition current)
+    private static List<HoldingDefinition> NaturalCandidates(Province province, ProvinceHolding holding)
     {
+        HoldingDefinition current = holding != null ? holding.definition : null;
+        if (current == null) return new List<HoldingDefinition>();
         HoldingArchetypeCatalog.ApplyMetadata(current);
         List<HoldingDefinition> all = AllDefinitions();
         List<HoldingDefinition> result = new List<HoldingDefinition>();
@@ -383,11 +437,21 @@ public static class HoldingEvolutionSystem
             AddDefinition(result, all.Find(item => item != null && item.StableId.Equals(option.targetHoldingId,
                 StringComparison.OrdinalIgnoreCase)));
         }
-        // Reverse edges allow holdings to decline or move back when their former conditions disappear.
+        // Reverse edges allow holdings to ruralize or otherwise move back only after the
+        // forward path's environmental requirements cease to be valid.
         foreach (HoldingDefinition possibleSource in all)
             if (possibleSource != null && possibleSource.transformations != null && possibleSource.transformations.Exists(option =>
-                option != null && option.targetHoldingId.Equals(current.StableId, StringComparison.OrdinalIgnoreCase)))
+                option != null && option.targetHoldingId.Equals(current.StableId, StringComparison.OrdinalIgnoreCase) &&
+                !option.IsAvailable(province)))
                 AddDefinition(result, possibleSource);
+
+        // Lateral economic adaptation is broad within a population class and tier. Urbanization,
+        // buildings, laws and local tag pressure decide the preferred form; class is preserved.
+        SocioEconomicClass holdingClass = SocioEconomicClassRules.Normalize(holding.socioEconomicClass);
+        foreach (HoldingDefinition candidate in all)
+            if (candidate != null && candidate.categoryTier == current.categoryTier &&
+                SocioEconomicClassRules.Normalize(candidate.defaultClass) == holdingClass)
+                AddDefinition(result, candidate);
         return result;
     }
 
@@ -395,10 +459,21 @@ public static class HoldingEvolutionSystem
     {
         if (cachedHoldingDefinitions != null) return cachedHoldingDefinitions;
         List<HoldingDefinition> result = new List<HoldingDefinition>();
-        foreach (HoldingDefinition item in Resources.LoadAll<HoldingDefinition>(string.Empty)) AddDefinition(result, item);
+        foreach (HoldingDefinition item in Resources.LoadAll<HoldingDefinition>("Prefabs/NationData/HoldingData")) AddDefinition(result, item);
         foreach (HoldingDefinition item in HoldingArchetypeCatalog.All()) AddDefinition(result, item);
         cachedHoldingDefinitions = result;
         return cachedHoldingDefinitions;
+    }
+
+    public static HoldingDefinition FindCategoryTier(HoldingCategory category, int tier)
+    {
+        HoldingDefinition best = null;
+        foreach (HoldingDefinition definition in AllDefinitions())
+        {
+            if (definition == null || definition.category != category || definition.categoryTier != tier) continue;
+            if (best == null || string.CompareOrdinal(definition.StableId, best.StableId) < 0) best = definition;
+        }
+        return best;
     }
 
     private static void AddDefinition(List<HoldingDefinition> result, HoldingDefinition item)

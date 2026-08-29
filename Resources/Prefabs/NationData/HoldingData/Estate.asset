@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: Estate
   m_EditorClassIdentifier: Assembly-CSharp::HoldingDefinition
   id: Estate
-  displayName: Estate
-  description: "Estate \u2014 tier 2 EliteAgriculture holding."
-  icon: {fileID: 0}
+  displayName: House of Notables
+  description: Established notables who organize and support the provincial garrison.
+  icon: {fileID: 4928747421176368004, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
   category: 2
   categoryTier: 2
-  tags: 137
+  tags: 128
   suggestedAllegiance: Pro-Elite
   maximumLevel: 1
   defaultConstructionTicks: 16
@@ -32,30 +32,20 @@ MonoBehaviour:
     localModifiers:
       maxDevelopment: 0
       holdingEconomyModifiers: []
-  outputs:
-  - type: 1
-    baseValue: 5
-    scalesWithUrbanization: 0
-    suitability: 1
-    urbanizationResponse: 0
-    disabledWhileMobilized: 0
-  - type: 0
-    baseValue: 4
-    scalesWithUrbanization: 0
-    suitability: 1
-    urbanizationResponse: 0
-    disabledWhileMobilized: 0
+  outputs: []
   transformations:
   - targetHoldingId: GreatEstate
-    minimumUrbanization: 0
+    minimumUrbanization: -100
     maximumUrbanization: 100
-  foodConsumption: 3
-  defaultClass: 2
+  foodConsumption: 1
+  foodUpkeep: 1
+  garrisonCapacity: 2
+  defaultClass: 5
   canRaiseLevies: 0
   levyUnit: {fileID: 0}
   levyArchetype: 0
   levyContributionPermillePerLevel: 0
   levyFormationsPerLevel: 1
   levyMobilizationTicks: 0
-  levyRecoveryTicks: 20
+  levyRecoveryTicks: 120
   levyDemobilizationTicks: 0

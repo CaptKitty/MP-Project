@@ -8,7 +8,7 @@ public sealed class UIRegionalClassChart : MaskableGraphic, IPointerEnterHandler
 {
     private struct Slice
     {
-        public SocioEconomicClass socialClass;
+        public string allegiance;
         public Color32 color;
         public int holdings;
     }
@@ -26,23 +26,29 @@ public sealed class UIRegionalClassChart : MaskableGraphic, IPointerEnterHandler
 
     public void LoadRegion(CampaignRegion region, Province fallbackProvince)
     {
-        Dictionary<SocioEconomicClass, int> totals = new Dictionary<SocioEconomicClass, int>();
+        Dictionary<string, int> totals = new Dictionary<string, int>(System.StringComparer.OrdinalIgnoreCase);
         IEnumerable<Province> provinces = region != null && region.provincelist != null
             ? region.provincelist : new[] { fallbackProvince };
         foreach (Province province in provinces)
         {
-            if (province == null) continue;
-            foreach (KeyValuePair<SocioEconomicClass, int> entry in province.GetSocioEconomicComposition())
-                totals[entry.Key] = totals.TryGetValue(entry.Key, out int current) ? current + entry.Value : entry.Value;
+            if (province == null || fallbackProvince != null && province.nation != fallbackProvince.nation ||
+                province.holdings == null) continue;
+            foreach (ProvinceHolding holding in province.holdings)
+            {
+                if (holding == null) continue;
+                string allegiance = !string.IsNullOrWhiteSpace(holding.allegiance) ? holding.allegiance.Trim() : "Unaligned";
+                totals[allegiance] = totals.TryGetValue(allegiance, out int current) ? current + 1 : 1;
+            }
         }
 
         slices.Clear();
-        foreach (KeyValuePair<SocioEconomicClass, int> entry in totals)
-            slices.Add(new Slice { socialClass = entry.Key, holdings = entry.Value, color = ClassColor(entry.Key) });
+        foreach (KeyValuePair<string, int> entry in totals)
+            slices.Add(new Slice { allegiance = entry.Key, holdings = entry.Value, color = AllegianceColor(entry.Key) });
         slices.Sort((left, right) =>
         {
             int count = right.holdings.CompareTo(left.holdings);
-            return count != 0 ? count : left.socialClass.CompareTo(right.socialClass);
+            return count != 0 ? count : string.Compare(left.allegiance, right.allegiance,
+                System.StringComparison.OrdinalIgnoreCase);
         });
         RefreshLegend(region);
         SetVerticesDirty();
@@ -118,29 +124,34 @@ public sealed class UIRegionalClassChart : MaskableGraphic, IPointerEnterHandler
         EnsureLegend();
         int total = slices.Sum(slice => slice.holdings);
         string title = region != null ? region.name : "Province";
-        List<string> lines = new List<string> { title + " social classes (" + total + " Holdings)" };
+        List<string> lines = new List<string> { title + " holding allegiances (" + total + " holdings)" };
         foreach (Slice slice in slices)
         {
             float percentage = total > 0 ? slice.holdings * 100f / total : 0f;
-            lines.Add("• " + slice.socialClass + " " + slice.holdings + " (" + percentage.ToString("0.#") + "%)");
+            lines.Add("- " + slice.allegiance + " " + slice.holdings + " (" + percentage.ToString("0.#") + "%)");
         }
         legend.text = string.Join("\n", lines);
     }
 
-    private static Color32 ClassColor(SocioEconomicClass socialClass)
+    private static Color32 AllegianceColor(string allegiance)
     {
-        switch (socialClass)
+        if (string.Equals(allegiance, "Unaligned", System.StringComparison.OrdinalIgnoreCase))
+            return new Color32(105, 105, 105, 255);
+        Color32[] palette =
         {
-            case SocioEconomicClass.Subsistence: return new Color32(112, 91, 65, 255);
-            case SocioEconomicClass.Laborers: return new Color32(133, 133, 133, 255);
-            case SocioEconomicClass.Freemen: return new Color32(102, 153, 72, 255);
-            case SocioEconomicClass.Burghers: return new Color32(218, 156, 55, 255);
-            case SocioEconomicClass.Clergy: return new Color32(230, 224, 190, 255);
-            case SocioEconomicClass.Aristocracy: return new Color32(132, 76, 173, 255);
-            case SocioEconomicClass.Citizen: return new Color32(62, 139, 204, 255);
-            case SocioEconomicClass.Elite: return new Color32(196, 62, 62, 255);
-            case SocioEconomicClass.Enslaved: return new Color32(70, 70, 70, 255);
-            default: return new Color32(160, 160, 160, 255);
+            new Color32(211, 72, 72, 255), new Color32(65, 123, 210, 255),
+            new Color32(224, 166, 54, 255), new Color32(131, 83, 192, 255),
+            new Color32(48, 164, 142, 255), new Color32(220, 111, 46, 255),
+            new Color32(101, 165, 62, 255), new Color32(202, 77, 143, 255),
+            new Color32(55, 164, 195, 255), new Color32(151, 103, 65, 255),
+            new Color32(179, 71, 105, 255), new Color32(108, 128, 205, 255)
+        };
+        unchecked
+        {
+            int hash = 17;
+            if (allegiance != null) for (int i = 0; i < allegiance.Length; i++)
+                hash = hash * 31 + char.ToUpperInvariant(allegiance[i]);
+            return palette[(hash & 0x7fffffff) % palette.Length];
         }
     }
 

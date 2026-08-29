@@ -26,9 +26,10 @@ public class UIProvinceHost : MonoBehaviour
     private int lastCultureSignature;
     private int lastRegionalLoyalty = int.MinValue;
     private int lastRegionalFoodState = int.MinValue;
+    private int lastRegionalLevyState = int.MinValue;
     private int lastNationGold = int.MinValue;
     private int lastUrbanization = int.MinValue;
-    private Button raiseArmyButton;
+    [SerializeField] private Button raiseArmyButton;
     private Button recruitUnitsButton;
     private Text recruitUnitsLabel;
     private FieldArmyHolder lastSelectedArmy;
@@ -85,7 +86,20 @@ public class UIProvinceHost : MonoBehaviour
             if (regionalFoodState != lastRegionalFoodState)
             {
                 lastRegionalFoodState = regionalFoodState;
-                RefreshHoldingsSummary();
+                // Food storage changes every economy tick but does not alter holding
+                // groups or their tooltips. Rebuilding the complete holdings UI here
+                // caused a visible WebGL layout/GC spike.
+                if (regionSummary != null) regionSummary.RefreshFor(LoadedProvince);
+                UIProvincePanelSummary panelSummary = buildingMenu != null
+                    ? buildingMenu.GetComponent<UIProvincePanelSummary>() : null;
+                if (panelSummary != null) panelSummary.RefreshFor(LoadedProvince);
+                else RefreshProvincialTotalIncome();
+            }
+            int regionalLevyState = RegionalLevyState(LoadedProvince);
+            if (regionalLevyState != lastRegionalLevyState)
+            {
+                lastRegionalLevyState = regionalLevyState;
+                if (regionSummary != null) regionSummary.RefreshFor(LoadedProvince);
             }
         }
 
@@ -106,6 +120,7 @@ public class UIProvinceHost : MonoBehaviour
         lastCultureSignature = RegionCultureSignature(province);
         lastRegionalLoyalty = int.MinValue;
         lastRegionalFoodState = int.MinValue;
+        lastRegionalLevyState = int.MinValue;
         lastUrbanization = province != null ? province.urbanization : int.MinValue;
         RefreshHeader();
         if (buildingMenu != null) buildingMenu.LoadProvince(province, this);
@@ -159,13 +174,24 @@ public class UIProvinceHost : MonoBehaviour
                 if (loyaltyDisplay == null) loyaltyDisplay = loyaltyMenu.gameObject.AddComponent<UIRegionalLoyaltyDisplay>();
             }
         }
-        if (raiseArmyButton == null) CreateRaiseArmyButton();
+        if (raiseArmyButton == null)
+        {
+            Transform raiseArmy = FindTransform("Raise Army");
+            raiseArmyButton = raiseArmy != null ? raiseArmy.GetComponent<Button>() : null;
+        }
+        if (raiseArmyButton != null)
+        {
+            raiseArmyButton.onClick.RemoveListener(RaiseArmy);
+            raiseArmyButton.onClick.AddListener(RaiseArmy);
+            Text label = raiseArmyButton.GetComponentInChildren<Text>(true);
+            if (label != null) label.text = "Raise Army (" + CampaignEconomy.ArmyCreationCost + " gold)";
+        }
         ResolveHoldingsSummary();
     }
 
     private Text FindText(string objectName)
     {
-        Transform[] children = GetComponentsInChildren<Transform>(true);
+        Transform[] children = AdministrationRoot().GetComponentsInChildren<Transform>(true);
         for (int i = 0; i < children.Length; i++)
             if (children[i].name == objectName) return children[i].GetComponent<Text>();
         return null;
@@ -173,9 +199,16 @@ public class UIProvinceHost : MonoBehaviour
 
     private Transform FindTransform(string objectName)
     {
-        Transform[] children = GetComponentsInChildren<Transform>(true);
+        Transform[] children = AdministrationRoot().GetComponentsInChildren<Transform>(true);
         for (int i = 0; i < children.Length; i++) if (children[i].name == objectName) return children[i];
         return null;
+    }
+
+    private Transform AdministrationRoot()
+    {
+        Transform parent = transform.parent;
+        return parent != null && parent.name.Equals("AdministrationMenu", System.StringComparison.OrdinalIgnoreCase)
+            ? parent : transform;
     }
 
     private void RefreshHeader()
@@ -224,6 +257,27 @@ public class UIProvinceHost : MonoBehaviour
         RectTransform labelRect = holdingsSummary.rectTransform;
         labelRect.anchorMin = Vector2.zero; labelRect.anchorMax = Vector2.one;
         labelRect.offsetMin = new Vector2(7f, 5f); labelRect.offsetMax = new Vector2(-7f, -5f);
+    }
+
+    private static int RegionalLevyState(Province province)
+    {
+        if (province == null || province.nation == null) return 0;
+        CampaignRegion region = Owners.Instance != null ? Owners.Instance.CallRegionByString(province.region) : null;
+        bool allowed = region == null || region.AllowsLevyCallups(province.nation);
+        int current = 0, maximum = 0;
+        System.Collections.Generic.IEnumerable<Province> provinces = region != null && region.provincelist != null
+            ? region.provincelist : new[] { province };
+        foreach (Province candidate in provinces)
+        {
+            if (candidate == null || candidate.nation != province.nation || candidate.levyEntitlements == null) continue;
+            foreach (ProvinceLevyEntitlement entitlement in candidate.levyEntitlements)
+            {
+                if (entitlement == null || entitlement.unit == null) continue;
+                maximum++;
+                if (allowed && entitlement.eligible && entitlement.state == LevyEntitlementState.Available) current++;
+            }
+        }
+        unchecked { return (current * 397) ^ maximum ^ (allowed ? 1 << 30 : 0); }
     }
 
     private void ResolveHoldingsSummary()
@@ -300,18 +354,17 @@ public class UIProvinceHost : MonoBehaviour
             if (holding == null) continue;
             text.Append("\n").Append(holding.DisplayName).Append(" Lv ").Append(holding.level);
             if (!string.IsNullOrWhiteSpace(holding.cultureName)) text.Append(" - ").Append(holding.cultureName);
-            text.Append(" - ").Append(holding.socioEconomicClass);
-            text.Append(" - ").Append(!string.IsNullOrWhiteSpace(holding.allegiance) ? holding.allegiance : "Unaligned");
+            text.Append(" - ").Append(SocioEconomicClassRules.DisplayName(holding.socioEconomicClass));
             bool mobilized = LoadedProvince.IsHoldingMobilized(holding.instanceId);
-            int income = holding.GetOutput(HoldingOutputType.Income, LoadedProvince.urbanization, mobilized);
+            int recoveryTicks = LoadedProvince.GetHoldingLevyRecoveryTicks(holding.instanceId);
+            int income = LoadedProvince.GetHoldingOutput(holding, HoldingOutputType.Income);
             if (income != 0) text.Append(" - +").Append(income).Append(" gold");
-            int food = holding.GetOutput(HoldingOutputType.Food, LoadedProvince.urbanization,
-                mobilized);
-            int manpower = holding.GetOutput(HoldingOutputType.Manpower, LoadedProvince.urbanization,
-                mobilized);
+            int food = LoadedProvince.GetHoldingOutput(holding, HoldingOutputType.Food);
+            int manpower = LoadedProvince.GetHoldingOutput(holding, HoldingOutputType.Manpower);
             if (food != 0) text.Append(" - ").Append(food).Append(" food");
             if (manpower != 0) text.Append(" - ").Append(manpower).Append(" manpower");
-            if (mobilized) text.Append(" - MOBILIZED");
+            if (recoveryTicks > 0) text.Append(" - LEVY LOSSES: NO PRODUCTION (").Append(recoveryTicks).Append(" ticks)");
+            else if (mobilized) text.Append(" - MOBILIZED");
             if (holding.CanRaiseLevies) text.Append(" - ")
                 .Append(holding.EffectiveLevyContribution(LoadedProvince.nation).ToString("0.###")).Append(" levy capacity");
         }
@@ -346,9 +399,9 @@ public class UIProvinceHost : MonoBehaviour
         if (LoadedProvince.holdings != null) foreach (ProvinceHolding holding in LoadedProvince.holdings)
         {
             if (holding == null) continue;
-            string holdingType = !string.IsNullOrWhiteSpace(holding.HoldingId) ? holding.HoldingId : "Unassigned";
-            if (!groups.TryGetValue(holdingType, out System.Collections.Generic.List<ProvinceHolding> list))
-            { list = new System.Collections.Generic.List<ProvinceHolding>(); groups.Add(holdingType, list); }
+            string category = HoldingCategoryRules.GroupName(holding);
+            if (!groups.TryGetValue(category, out System.Collections.Generic.List<ProvinceHolding> list))
+            { list = new System.Collections.Generic.List<ProvinceHolding>(); groups.Add(category, list); }
             list.Add(holding);
         }
         System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, System.Collections.Generic.List<ProvinceHolding>>> sorted =
@@ -369,13 +422,14 @@ public class UIProvinceHost : MonoBehaviour
             if (i >= sorted.Count)
             {
                 label.text = "0";
-                tooltip.message = "No holding type in this slot.";
+                UIHoldingSlotIcon.Set(slot, null);
+                tooltip.message = "No holding category in this slot.";
                 continue;
             }
             System.Collections.Generic.List<ProvinceHolding> holdings = sorted[i].Value;
             label.text = holdings.Count.ToString();
-            string displayName = holdings.Count > 0 ? holdings[0].DisplayName : sorted[i].Key;
-            System.Text.StringBuilder message = new System.Text.StringBuilder(displayName).Append(" (" + holdings.Count + ")");
+            UIHoldingSlotIcon.Set(slot, HoldingCategoryRules.RepresentativeIcon(holdings));
+            System.Text.StringBuilder message = new System.Text.StringBuilder(sorted[i].Key).Append(" (" + holdings.Count + ")");
             holdings.Sort((left, right) => string.CompareOrdinal(left.DisplayName, right.DisplayName));
             foreach (ProvinceHolding holding in holdings)
                 AppendHoldingTooltip(message, holding);
@@ -386,26 +440,28 @@ public class UIProvinceHost : MonoBehaviour
     private void AppendHoldingTooltip(System.Text.StringBuilder message, ProvinceHolding holding)
     {
         bool mobilized = LoadedProvince.IsHoldingMobilized(holding.instanceId);
+        int recoveryTicks = LoadedProvince.GetHoldingLevyRecoveryTicks(holding.instanceId);
         message.Append("\n- ").Append(holding.DisplayName).Append(" Lv ").Append(holding.level)
             .Append(" - ").Append(!string.IsNullOrWhiteSpace(holding.cultureName) ? holding.cultureName : "Unassigned");
-        message.Append("\n    Class: ").Append(holding.socioEconomicClass);
-        message.Append("\n    Allegiance: ").Append(!string.IsNullOrWhiteSpace(holding.allegiance) ? holding.allegiance : "Unaligned");
+        message.Append("\n    Class: ").Append(SocioEconomicClassRules.DisplayName(holding.socioEconomicClass));
         if (holding.definition != null && holding.definition.outputs != null)
             foreach (HoldingOutputDefinition output in holding.definition.outputs)
                 if (output != null && output.EffectiveUrbanizationResponse != 0)
                     message.Append("\n    ").Append(HoldingOutputLabel(output.type)).Append(" urbanization response: ")
                         .Append(output.EffectiveUrbanizationResponse > 0 ? "+" : string.Empty)
                         .Append(output.EffectiveUrbanizationResponse);
-        int netFood = holding.GetOutput(HoldingOutputType.Food, LoadedProvince.urbanization, mobilized);
+        if (recoveryTicks > 0)
+            message.Append("\n    LEVY CASUALTIES: no production for ").Append(recoveryTicks).Append(" more ticks");
+        int netFood = LoadedProvince.GetHoldingOutput(holding, HoldingOutputType.Food);
         int grossFood = netFood + holding.FoodConsumption;
         message.Append("\n    Food production: +").Append(grossFood);
-        message.Append("\n    Food consumption: -").Append(holding.FoodConsumption);
-        message.Append("\n    Net food: ").Append(netFood >= 0 ? "+" : string.Empty).Append(netFood);
+        if (holding.FoodUpkeep > 0)
+            message.Append("\n    Upkeep: ").Append(holding.FoodUpkeep).Append(" food");
         bool anyOutput = false;
         foreach (HoldingOutputType type in System.Enum.GetValues(typeof(HoldingOutputType)))
         {
             if (type == HoldingOutputType.Food || type == HoldingOutputType.PoliticalInfluence) continue;
-            int amount = holding.GetOutput(type, LoadedProvince.urbanization, mobilized);
+            int amount = LoadedProvince.GetHoldingOutput(holding, type);
             if (amount == 0) continue;
             message.Append("\n    ").Append(HoldingOutputLabel(type)).Append(": ").Append(amount > 0 ? "+" : string.Empty).Append(amount);
             anyOutput = true;
@@ -439,36 +495,7 @@ public class UIProvinceHost : MonoBehaviour
     private void RefreshProvincialTotalIncome()
     {
         if (provincialTotalIncome == null || LoadedProvince == null) return;
-        System.Text.StringBuilder text = new System.Text.StringBuilder("Income");
-        text.Append("\nGold: ").Append(LoadedProvince.GetGoldIncome());
-        foreach (HoldingOutputType type in System.Enum.GetValues(typeof(HoldingOutputType)))
-        {
-            if (type == HoldingOutputType.Income || type == HoldingOutputType.PoliticalInfluence) continue;
-            text.Append(" | ").Append(HoldingOutputLabel(type)).Append(": ").Append(LoadedProvince.GetHoldingOutput(type));
-        }
-        int totalLevies = 0, availableLevies = 0, mobilizedLevies = 0, recoveringLevies = 0;
-        if (LoadedProvince.levyEntitlements != null) foreach (ProvinceLevyEntitlement entitlement in LoadedProvince.levyEntitlements)
-        {
-            if (entitlement == null || !entitlement.eligible) continue;
-            totalLevies++;
-            if (entitlement.state == LevyEntitlementState.Available) availableLevies++;
-            else if (entitlement.state == LevyEntitlementState.Mobilizing || entitlement.state == LevyEntitlementState.Raised) mobilizedLevies++;
-            else if (entitlement.state == LevyEntitlementState.Recovering) recoveringLevies++;
-        }
-        text.Append("\nLevies: ").Append(availableLevies).Append(" available / ").Append(totalLevies).Append(" total");
-        if (mobilizedLevies > 0) text.Append(" | ").Append(mobilizedLevies).Append(" mobilized");
-        if (recoveringLevies > 0) text.Append(" | ").Append(recoveringLevies).Append(" recovering");
-
-        System.Collections.Generic.List<string> modifiers = new System.Collections.Generic.List<string>();
-        string development = ProvinceLocalModifiers.FormatMaxDevelopment(LoadedProvince.MaxDevelopmentModifier);
-        if (!string.IsNullOrEmpty(development)) modifiers.Add(development);
-        CampaignRegion region = Owners.Instance != null ? Owners.Instance.CallRegionByString(LoadedProvince.region) : null;
-        float loyalty = region != null ? region.GetLoyalty(LoadedProvince.nation) : 100f;
-        if (!Mathf.Approximately(loyalty, 100f)) modifiers.Add("Loyalty income: " + loyalty.ToString("0.#") + "%");
-        if (!Mathf.Approximately(CampaignEconomy.GoldIncomeRate, 1f))
-            modifiers.Add("Campaign income rate: " + (CampaignEconomy.GoldIncomeRate * 100f).ToString("0.#") + "%");
-        text.Append("\nModifiers: ").Append(modifiers.Count > 0 ? string.Join(" | ", modifiers) : "None");
-        provincialTotalIncome.text = text.ToString();
+        provincialTotalIncome.text = UIProvinceEconomySummary.Build(LoadedProvince);
         provincialTotalIncome.resizeTextForBestFit = true;
         provincialTotalIncome.resizeTextMinSize = 8;
         provincialTotalIncome.resizeTextMaxSize = 16;
@@ -520,7 +547,9 @@ public class UIProvinceHost : MonoBehaviour
             classes.Add(entry.Key + " " + entry.Value);
         int developmentModifier = province.MaxDevelopmentModifier;
         string developmentEffect = ProvinceLocalModifiers.FormatMaxDevelopment(developmentModifier);
-        return "Population: " + province.population + " Holdings | Urbanization: " + Mathf.Clamp(province.urbanization, 0, province.MaximumDevelopment) +
+        int development = Mathf.Clamp(province.urbanization, -100, province.MaximumDevelopment);
+        string developmentLabel = development < 0 ? "Ruralization: " + -development : "Urbanization: " + development;
+        return "Population: " + province.population + " Holdings | " + developmentLabel +
             "/" + province.MaximumDevelopment + (!string.IsNullOrEmpty(developmentEffect) ? " (" + developmentEffect + ")" : string.Empty) +
             "% | Classes: " + (classes.Count > 0 ? string.Join(", ", classes) : "None") + " | Cultures: " + culture +
             " | Region loyalty: " + (region != null ? region.GetLoyalty(province.nation).ToString("0.#") : "0") + "%";
@@ -634,28 +663,6 @@ public class UIProvinceHost : MonoBehaviour
         if (localProvince == null) return;
         RecruitmentMenu.EnsureExists();
         if (RecruitmentMenu.Instance != null) RecruitmentMenu.Instance.Open(army, localProvince);
-    }
-
-    private void CreateRaiseArmyButton()
-    {
-        GameObject root = new GameObject("Raise Army", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
-        root.transform.SetParent(transform, false);
-        RectTransform rect = root.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(.62f, .02f); rect.anchorMax = new Vector2(.97f, .10f);
-        rect.offsetMin = rect.offsetMax = Vector2.zero;
-        root.GetComponent<Image>().color = new Color(.35f, .08f, .04f, .95f);
-        raiseArmyButton = root.GetComponent<Button>(); raiseArmyButton.onClick.AddListener(RaiseArmy);
-        GameObject labelRoot = new GameObject("Label", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
-        labelRoot.transform.SetParent(root.transform, false); RectTransform labelRect = labelRoot.GetComponent<RectTransform>();
-        labelRect.anchorMin = Vector2.zero; labelRect.anchorMax = Vector2.one; labelRect.offsetMin = labelRect.offsetMax = Vector2.zero;
-        Text label = labelRoot.GetComponent<Text>();
-        Text existingText = GetComponentInChildren<Text>(true);
-        label.font = existingText != null && existingText.font != null
-            ? existingText.font
-            : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        label.alignment = TextAnchor.MiddleCenter; label.color = Color.white; label.resizeTextForBestFit = true;
-        label.text = "Raise Army (" + CampaignEconomy.ArmyCreationCost + " gold)";
-        RefreshRaiseArmyButton();
     }
 
     private void RefreshRaiseArmyButton()

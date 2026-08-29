@@ -17,10 +17,19 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
     private readonly List<Transform> slots = new List<Transform>();
     private GameObject tooltipRoot;
     private Text tooltipText;
+    private RectTransform tooltipRows;
+    private GameObject allegianceTooltipRoot;
+    private Text allegianceTooltipText;
     private Coroutine hideRoutine;
+    private bool productionTooltipPinned;
 
     public void RefreshFor(Province target)
     {
+        if (province != target)
+        {
+            productionTooltipPinned = false;
+            if (tooltipRoot != null) tooltipRoot.SetActive(false);
+        }
         province = target;
         ResolveReferences();
         if (province == null)
@@ -56,6 +65,15 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
         {
             Transform income = Find("Provincial Total Income");
             if (income != null) totalIncomeText = income.GetComponent<Text>();
+        }
+        if (totalIncomeText != null)
+        {
+            totalIncomeText.raycastTarget = true;
+            UIProvinceOutputHover hover = totalIncomeText.GetComponent<UIProvinceOutputHover>();
+            if (hover == null) hover = totalIncomeText.gameObject.AddComponent<UIProvinceOutputHover>();
+            hover.Configure(this);
+            Tooltip oldTooltip = totalIncomeText.GetComponent<Tooltip>();
+            if (oldTooltip != null) oldTooltip.enabled = false;
         }
         slots.Clear();
         if (summaryRoot != null)
@@ -135,9 +153,9 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
         if (province.holdings != null) foreach (ProvinceHolding holding in province.holdings)
         {
             if (holding == null) continue;
-            string holdingType = !string.IsNullOrWhiteSpace(holding.HoldingId) ? holding.HoldingId : "Unassigned";
-            if (!groups.TryGetValue(holdingType, out List<ProvinceHolding> group))
-            { group = new List<ProvinceHolding>(); groups.Add(holdingType, group); }
+            string category = HoldingCategoryRules.GroupName(holding);
+            if (!groups.TryGetValue(category, out List<ProvinceHolding> group))
+            { group = new List<ProvinceHolding>(); groups.Add(category, group); }
             group.Add(holding);
         }
         List<KeyValuePair<string, List<ProvinceHolding>>> sorted =
@@ -156,16 +174,19 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
             Tooltip oldTooltip = slot.GetComponent<Tooltip>(); if (oldTooltip != null) oldTooltip.enabled = false;
             if (i >= sorted.Count)
             {
-                label.text = "0"; hover.Configure(this, "No holding type in this slot."); continue;
+                label.text = "0"; UIHoldingSlotIcon.Set(slot, null);
+                HoldingTooltipData empty = new HoldingTooltipData { title = "No holding category in this slot." };
+                hover.Configure(this, empty); continue;
             }
             label.text = sorted[i].Value.Count.ToString();
-            hover.Configure(this, BuildTypeTooltip(sorted[i].Value));
+            UIHoldingSlotIcon.Set(slot, HoldingCategoryRules.RepresentativeIcon(sorted[i].Value));
+            hover.Configure(this, BuildTypeTooltip(sorted[i].Key, sorted[i].Value));
         }
     }
 
-    private string BuildTypeTooltip(List<ProvinceHolding> holdings)
+    private HoldingTooltipData BuildTypeTooltip(string category, List<ProvinceHolding> holdings)
     {
-        StringBuilder result = new StringBuilder();
+        HoldingTooltipData result = new HoldingTooltipData { title = category + " (" + holdings.Count + ")" };
         Dictionary<string, List<ProvinceHolding>> identical = new Dictionary<string, List<ProvinceHolding>>();
         foreach (ProvinceHolding holding in holdings)
         {
@@ -178,9 +199,27 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
         groups.Sort((left, right) => string.CompareOrdinal(left[0].DisplayName, right[0].DisplayName));
         foreach (List<ProvinceHolding> group in groups)
         {
-            if (result.Length > 0) result.Append("\n\n");
-            AppendHoldingGroup(result, group);
+            StringBuilder text = new StringBuilder();
+            AppendHoldingGroup(text, group);
+            result.entries.Add(new HoldingTooltipEntry { text = text.ToString(), allegianceDetails = BuildAllegianceDetails(group) });
         }
+        return result;
+    }
+
+    private static string BuildAllegianceDetails(List<ProvinceHolding> holdings)
+    {
+        Dictionary<string, int> totals = new Dictionary<string, int>(System.StringComparer.OrdinalIgnoreCase);
+        foreach (ProvinceHolding holding in holdings)
+        {
+            string allegiance = !string.IsNullOrWhiteSpace(holding.allegiance) ? holding.allegiance.Trim() : "Unaligned";
+            totals[allegiance] = totals.TryGetValue(allegiance, out int count) ? count + 1 : 1;
+        }
+        List<KeyValuePair<string, int>> sorted = new List<KeyValuePair<string, int>>(totals);
+        sorted.Sort((left, right) => right.Value != left.Value ? right.Value.CompareTo(left.Value) :
+            string.Compare(left.Key, right.Key, System.StringComparison.OrdinalIgnoreCase));
+        StringBuilder result = new StringBuilder("Allegiance breakdown");
+        foreach (KeyValuePair<string, int> entry in sorted)
+            result.Append("\n").Append(entry.Value).Append("x ").Append(entry.Key);
         return result.ToString();
     }
 
@@ -196,9 +235,33 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
             if (type == HoldingOutputType.PoliticalInfluence) continue;
             int total = 0;
             foreach (ProvinceHolding holding in group)
-                total += province.GetHoldingOutput(holding, type);
+                total += province.GetHoldingOutput(holding, type) +
+                    (type == HoldingOutputType.Food ? holding.FoodConsumption : 0);
             if (total == 0) continue;
             outputs.Add(OutputLabel(type) + " " + (total > 0 ? "+" : string.Empty) + total);
+            produced = true;
+        }
+        int garrisonCapacity = 0;
+        foreach (ProvinceHolding holding in group)
+            if (holding != null && holding.definition != null)
+                garrisonCapacity += Mathf.Max(0, holding.definition.garrisonCapacity);
+        if (garrisonCapacity > 0)
+        {
+            outputs.Add("Garrison +" + garrisonCapacity);
+            produced = true;
+        }
+        int foodUpkeep = 0;
+        foreach (ProvinceHolding holding in group)
+            if (holding != null) foodUpkeep += holding.FoodUpkeep;
+        if (foodUpkeep > 0)
+        {
+            outputs.Add("Upkeep: " + foodUpkeep + " food");
+            produced = true;
+        }
+        if (example.definition != null && example.definition.category == HoldingCategory.EliteAgriculture)
+        {
+            int servileEfficiency = Mathf.Clamp(example.definition.categoryTier, 1, 3) * 5 * group.Count;
+            outputs.Add("Servile output +" + servileEfficiency + "%");
             produced = true;
         }
         result.Append("\n").Append(produced ? string.Join(" | ", outputs) : "No output");
@@ -242,35 +305,185 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
     private void RefreshTotalProduction()
     {
         if (totalIncomeText == null) return;
-        StringBuilder text = new StringBuilder("Income\nGold: ").Append(province.GetGoldIncome());
-        foreach (HoldingOutputType type in System.Enum.GetValues(typeof(HoldingOutputType)))
-            if (type != HoldingOutputType.Income && type != HoldingOutputType.PoliticalInfluence)
-                text.Append(" | ").Append(OutputLabel(type)).Append(": ").Append(province.GetHoldingOutput(type));
-        int total = 0, available = 0, mobilized = 0, recovering = 0;
-        if (province.levyEntitlements != null) foreach (ProvinceLevyEntitlement entitlement in province.levyEntitlements)
-        {
-            if (entitlement == null || !entitlement.eligible) continue; total++;
-            if (entitlement.state == LevyEntitlementState.Available) available++;
-            else if (entitlement.state == LevyEntitlementState.Recovering) recovering++;
-            else mobilized++;
-        }
-        text.Append("\nLevies: ").Append(available).Append("/").Append(total);
-        if (province.nation != null)
-            text.Append(" | National levy law: ").Append((province.nation.LevyLawPermille / 10f).ToString("0.#")).Append("%");
-        if (mobilized > 0) text.Append(" | ").Append(mobilized).Append(" mobilized");
-        if (recovering > 0) text.Append(" | ").Append(recovering).Append(" recovering");
-        List<string> modifiers = new List<string>();
-        string development = ProvinceLocalModifiers.FormatMaxDevelopment(province.MaxDevelopmentModifier);
-        if (!string.IsNullOrEmpty(development)) modifiers.Add(development);
-        CampaignRegion region = Owners.Instance != null ? Owners.Instance.CallRegionByString(province.region) : null;
-        float loyalty = region != null ? region.GetLoyalty(province.nation) : 100f;
-        if (!Mathf.Approximately(loyalty, 100f)) modifiers.Add("Loyalty " + loyalty.ToString("0.#") + "%");
-        if (!Mathf.Approximately(CampaignEconomy.GoldIncomeRate, 1f)) modifiers.Add("Income rate " + (CampaignEconomy.GoldIncomeRate * 100f).ToString("0.#") + "%");
-        text.Append("\nModifiers: ").Append(modifiers.Count > 0 ? string.Join(" | ", modifiers) : "None");
-        AppendHoldingComposition(text);
-        totalIncomeText.text = text.ToString(); totalIncomeText.resizeTextForBestFit = true;
+        totalIncomeText.text = UIProvinceEconomySummary.Build(province); totalIncomeText.resizeTextForBestFit = true;
         totalIncomeText.resizeTextMinSize = 8; totalIncomeText.resizeTextMaxSize = 16;
     }
+
+    public void ShowProductionBreakdownTooltip()
+    {
+        HoldingTooltipData data = new HoldingTooltipData { title = "Provincial holding efficiencies" };
+        if (province == null || province.holdings == null || province.holdings.Count == 0)
+        {
+            data.entries.Add(new HoldingTooltipEntry { text = "No holdings." });
+            ShowHoldingTooltip(data, true);
+            return;
+        }
+
+        Dictionary<HoldingDefinition, List<ProvinceHolding>> groups =
+            new Dictionary<HoldingDefinition, List<ProvinceHolding>>();
+        foreach (ProvinceHolding holding in province.holdings)
+        {
+            if (holding == null || holding.definition == null) continue;
+            if (!groups.TryGetValue(holding.definition, out List<ProvinceHolding> group))
+            {
+                group = new List<ProvinceHolding>();
+                groups.Add(holding.definition, group);
+            }
+            group.Add(holding);
+        }
+
+        List<List<ProvinceHolding>> sorted = new List<List<ProvinceHolding>>(groups.Values);
+        sorted.Sort((left, right) => string.Compare(left[0].DisplayName, right[0].DisplayName,
+            System.StringComparison.OrdinalIgnoreCase));
+        foreach (List<ProvinceHolding> group in sorted)
+            data.entries.Add(new HoldingTooltipEntry
+            {
+                text = BuildProductionEfficiencySummary(group),
+                allegianceDetails = BuildProductionBreakdown(group)
+            });
+        ShowHoldingTooltip(data, true);
+    }
+
+    private string BuildProductionEfficiencySummary(List<ProvinceHolding> group)
+    {
+        ProvinceHolding example = group[0];
+        HoldingDefinition definition = example.definition;
+        float provincialEfficiency = HoldingEvolutionSystem.OutputEfficiencyPercent(province, definition);
+        StringBuilder result = new StringBuilder();
+        result.Append(group.Count).Append("x ").Append(example.DisplayName);
+
+        List<string> efficiencies = new List<string>();
+        if (definition != null && definition.outputs != null)
+            foreach (HoldingOutputDefinition output in definition.outputs)
+            {
+                if (output == null || output.type == HoldingOutputType.PoliticalInfluence || output.baseValue == 0) continue;
+                float urbanization = UrbanizationPercent(output.EffectiveUrbanizationResponse, province.urbanization);
+                float combined = ((1f + urbanization / 100f) * (1f + provincialEfficiency / 100f) - 1f) * 100f;
+                efficiencies.Add(OutputLabel(output.type) + " " + SignedPercent(combined));
+            }
+        if (efficiencies.Count == 0)
+            efficiencies.Add("Net efficiency " + SignedPercent(provincialEfficiency));
+        result.Append("\nNet efficiency: ").Append(string.Join(" | ", efficiencies));
+        result.Append("\nHover for breakdown");
+        return result.ToString();
+    }
+
+    public void ToggleProductionBreakdownTooltip()
+    {
+        if (productionTooltipPinned)
+        {
+            productionTooltipPinned = false;
+            if (tooltipRoot != null) tooltipRoot.SetActive(false);
+            HideAllegianceTooltip();
+            return;
+        }
+        productionTooltipPinned = true;
+        ShowProductionBreakdownTooltip();
+    }
+
+    public void ReleasePinnedProductionTooltip()
+    {
+        productionTooltipPinned = false;
+    }
+
+    private string BuildProductionBreakdown(List<ProvinceHolding> group)
+    {
+        ProvinceHolding example = group[0];
+        HoldingDefinition definition = example.definition;
+        float efficiency = HoldingEvolutionSystem.OutputEfficiencyPercent(province, definition);
+        string tags = HoldingEvolutionSystem.TagList(definition);
+        StringBuilder result = new StringBuilder();
+        if (group.Count > 1) result.Append(group.Count).Append("x ");
+        result.Append(example.DisplayName);
+
+        bool any = false;
+        if (definition.outputs != null) foreach (HoldingOutputDefinition output in definition.outputs)
+        {
+            if (output == null || output.type == HoldingOutputType.PoliticalInfluence || output.baseValue == 0) continue;
+            any = true;
+            int response = output.EffectiveUrbanizationResponse;
+            float urbanized = UrbanizationOutputScaling.ApplyUnrounded(output.baseValue, response, province.urbanization);
+            float final = urbanized * (1f + efficiency / 100f);
+            result.Append("\n").Append(OutputLabel(output.type)).Append(": ")
+                .Append(output.baseValue).Append(" base")
+                .Append(" x urbanization ").Append(SignedPercent(UrbanizationPercent(response, province.urbanization)))
+                .Append(" x provincial ").Append(tags).Append(" ").Append(SignedPercent(efficiency))
+                .Append(" = ").Append(final.ToString("0.###")).Append(" unrounded output added to region");
+        }
+
+        if (!any && example.GoldIncome != 0)
+        {
+            int urbanized = example.GoldIncomeAt(Mathf.RoundToInt(province.urbanization));
+            int final = Mathf.RoundToInt(urbanized * (1f + efficiency / 100f));
+            result.Append("\nGold: ").Append(example.GoldIncome).Append(" base")
+                .Append(" x provincial ").Append(tags).Append(" ").Append(SignedPercent(efficiency))
+                .Append(" = ").Append(final).Append(" (after rounding)");
+        }
+
+        List<string> buildingEffects = MatchingBuildingEfficiencyEffects(definition);
+        if (buildingEffects.Count > 0)
+            result.Append("\nBuildings: ").Append(string.Join(", ", buildingEffects));
+        string holdingEffects = HoldingEfficiencyEffects(definition);
+        if (!string.IsNullOrEmpty(holdingEffects))
+            result.Append("\nHoldings: ").Append(holdingEffects);
+        if (example.FoodConsumption > 0)
+            result.Append("\nFood consumed: ").Append(example.FoodConsumption).Append(" each");
+        if (group.Count > 1) result.Append("\nValues above are per holding.");
+        return result.ToString();
+    }
+
+    private List<string> MatchingBuildingEfficiencyEffects(HoldingDefinition definition)
+    {
+        List<string> result = new List<string>();
+        if (province == null || province.buildings == null || definition == null) return result;
+        HoldingTag tags = HoldingEvolutionSystem.EffectiveTags(definition);
+        foreach (ProvinceBuilding building in province.buildings)
+        {
+            if (building == null || building.definition == null || building.definition.levels == null) continue;
+            float amount = 0f;
+            foreach (BuildingLevelDefinition level in building.definition.levels)
+            {
+                if (level == null || level.level > building.level || level.holdingEconomyModifiers == null) continue;
+                foreach (HoldingTagModifier modifier in level.holdingEconomyModifiers)
+                    if (modifier != null && (modifier.tag & tags) != 0 &&
+                        (string.IsNullOrWhiteSpace(modifier.requiredNationFlag) ||
+                         NationContentResolver.HasFlag(province.nation, modifier.requiredNationFlag)))
+                        amount += modifier.outputEfficiencyPercent;
+            }
+            if (!Mathf.Approximately(amount, 0f))
+                result.Add(building.DisplayName + " " + SignedPercent(amount));
+        }
+        return result;
+    }
+
+    private string HoldingEfficiencyEffects(HoldingDefinition receivingDefinition)
+    {
+        if (province == null || province.holdings == null || receivingDefinition == null ||
+            (HoldingEvolutionSystem.EffectiveTags(receivingDefinition) & HoldingTag.Servile) == 0)
+            return string.Empty;
+        Dictionary<string, int> sources = new Dictionary<string, int>(System.StringComparer.OrdinalIgnoreCase);
+        float total = 0f;
+        foreach (ProvinceHolding holding in province.holdings)
+        {
+            if (holding == null || holding.definition == null ||
+                holding.definition.category != HoldingCategory.EliteAgriculture) continue;
+            float amount = Mathf.Clamp(holding.definition.categoryTier, 1, 3) * 5f;
+            string label = holding.DisplayName + " " + SignedPercent(amount);
+            sources[label] = sources.TryGetValue(label, out int count) ? count + 1 : 1;
+            total += amount;
+        }
+        if (sources.Count == 0) return string.Empty;
+        List<string> parts = new List<string>();
+        foreach (KeyValuePair<string, int> source in sources)
+            parts.Add((source.Value > 1 ? source.Value + "x " : string.Empty) + source.Key);
+        return string.Join(", ", parts) + " = " + SignedPercent(total) + " Servile output";
+    }
+
+    private static float UrbanizationPercent(int response, float urbanization) =>
+        Mathf.Clamp(response, -100, 100) * Mathf.Clamp(urbanization, -100f, 100f) / 100f;
+
+    private static string SignedPercent(float value) =>
+        (value >= 0f ? "+" : string.Empty) + value.ToString("0.#") + "%";
 
     private void AppendHoldingComposition(StringBuilder text)
     {
@@ -306,21 +519,65 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
         switch (type)
         {
             case HoldingOutputType.Income: return "Gold";
-            case HoldingOutputType.Food: return "Net food";
+            case HoldingOutputType.Food: return "Food produced";
             case HoldingOutputType.CulturalInfluence: return "Cultural influence";
             case HoldingOutputType.ReligiousInfluence: return "Religious influence";
             default: return type.ToString();
         }
     }
 
-    public void ShowHoldingTooltip(string message)
+    public void ShowHoldingTooltip(HoldingTooltipData data, bool productionPanel = false)
     {
-        EnsureTooltip(); KeepHoldingTooltipOpen(); tooltipText.text = message; tooltipRoot.SetActive(true);
+        EnsureTooltip(); KeepHoldingTooltipOpen(); HideAllegianceTooltip();
+        tooltipText.text = data != null ? data.title : string.Empty;
+        for (int i = tooltipRows.childCount - 1; i >= 0; i--) Destroy(tooltipRows.GetChild(i).gameObject);
+        float y = 0f;
+        if (data != null) foreach (HoldingTooltipEntry entry in data.entries)
+        {
+            int lines = 1; foreach (char character in entry.text) if (character == '\n') lines++;
+            float height = Mathf.Max(30f, lines * 16f + 8f);
+            GameObject row = new GameObject("HoldingRow", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(UIHoldingDetailRowHover));
+            row.layer = gameObject.layer; row.transform.SetParent(tooltipRows, false);
+            RectTransform rowRect = (RectTransform)row.transform; rowRect.anchorMin = new Vector2(0f, 1f); rowRect.anchorMax = new Vector2(1f, 1f);
+            rowRect.pivot = new Vector2(.5f, 1f); rowRect.anchoredPosition = new Vector2(0f, -y); rowRect.sizeDelta = new Vector2(0f, height);
+            row.GetComponent<Image>().color = new Color(1f, 1f, 1f, .035f);
+            UIHoldingDetailRowHover hover = row.GetComponent<UIHoldingDetailRowHover>(); hover.Configure(this, entry.allegianceDetails);
+            GameObject labelObject = new GameObject("Text", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
+            labelObject.layer = gameObject.layer; labelObject.transform.SetParent(row.transform, false);
+            Text label = labelObject.GetComponent<Text>(); label.font = tooltipText.font; label.fontSize = 12; label.color = Color.white;
+            label.alignment = TextAnchor.UpperLeft; label.horizontalOverflow = HorizontalWrapMode.Wrap; label.verticalOverflow = VerticalWrapMode.Overflow;
+            label.raycastTarget = false; label.text = entry.text;
+            RectTransform labelRect = label.rectTransform; labelRect.anchorMin = Vector2.zero; labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = new Vector2(4f, 3f); labelRect.offsetMax = new Vector2(-4f, -3f);
+            y += height + 4f;
+        }
+        RectTransform rootRect = (RectTransform)tooltipRoot.transform;
+        // Keep the panel attached just above Provincial Total Income (its top is
+        // approximately y=-10 in the BuildingMenu). A bottom pivot makes additional
+        // holding rows expand upward instead of opening a growing gap below it.
+        rootRect.anchorMin = rootRect.anchorMax = new Vector2(.5f, .5f);
+        rootRect.pivot = new Vector2(.5f, 0f);
+        rootRect.anchoredPosition = productionPanel ? new Vector2(0f, -5f) : new Vector2(200f, 60f);
+        rootRect.sizeDelta = new Vector2(600f, Mathf.Clamp(y + 54f, 180f, 700f));
         tooltipRoot.transform.SetAsLastSibling();
+        tooltipRoot.SetActive(true);
     }
+
+    public void ShowAllegianceTooltip(string message)
+    {
+        if (string.IsNullOrWhiteSpace(message)) { HideAllegianceTooltip(); return; }
+        EnsureTooltip(); KeepHoldingTooltipOpen(); allegianceTooltipText.text = message;
+        Canvas.ForceUpdateCanvases();
+        RectTransform rect = (RectTransform)allegianceTooltipRoot.transform;
+        rect.sizeDelta = new Vector2(460f, Mathf.Clamp(allegianceTooltipText.preferredHeight + 24f, 170f, 620f));
+        allegianceTooltipRoot.SetActive(true); allegianceTooltipRoot.transform.SetAsLastSibling();
+    }
+
+    public void HideAllegianceTooltip() { if (allegianceTooltipRoot != null) allegianceTooltipRoot.SetActive(false); }
 
     public void RequestHideHoldingTooltip()
     {
+        if (productionTooltipPinned) return;
         KeepHoldingTooltipOpen(); hideRoutine = StartCoroutine(HideAfterGrace());
     }
 
@@ -332,7 +589,7 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
     private IEnumerator HideAfterGrace()
     {
         yield return new WaitForSecondsRealtime(.25f); hideRoutine = null;
-        if (tooltipRoot != null) tooltipRoot.SetActive(false);
+        if (tooltipRoot != null) tooltipRoot.SetActive(false); HideAllegianceTooltip();
     }
 
     private void EnsureTooltip()
@@ -346,12 +603,15 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
             UIHoldingTooltipHoverArea hover = existing.GetComponent<UIHoldingTooltipHoverArea>();
             if (hover == null) hover = existing.gameObject.AddComponent<UIHoldingTooltipHoverArea>();
             hover.Owner = this;
-            return;
+            foreach (Transform child in existing) if (child.name == "Rows") tooltipRows = child as RectTransform;
+            if (tooltipRows == null) tooltipRows = CreateRowsRoot(existing);
+            EnsureAllegianceTooltip(); return;
         }
         tooltipRoot = new GameObject("HoldingDetailsTooltip", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(UIHoldingTooltipHoverArea));
         tooltipRoot.layer = gameObject.layer; tooltipRoot.transform.SetParent(transform, false);
         RectTransform rect = (RectTransform)tooltipRoot.transform; rect.anchorMin = rect.anchorMax = new Vector2(.5f, .5f);
-        rect.anchoredPosition = new Vector2(0f, 225f); rect.sizeDelta = new Vector2(285f, 260f);
+        rect.pivot = new Vector2(.5f, 0f); rect.anchoredPosition = new Vector2(0f, -5f);
+        rect.sizeDelta = new Vector2(600f, 460f);
         tooltipRoot.GetComponent<Image>().color = new Color(.06f, .06f, .06f, .97f);
         tooltipRoot.GetComponent<UIHoldingTooltipHoverArea>().Owner = this;
         GameObject textObject = new GameObject("Text", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
@@ -360,18 +620,77 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
         tooltipText.font = reference != null && reference.font != null ? reference.font : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         tooltipText.fontSize = 12; tooltipText.color = Color.white; tooltipText.alignment = TextAnchor.UpperLeft;
         tooltipText.horizontalOverflow = HorizontalWrapMode.Wrap; tooltipText.verticalOverflow = VerticalWrapMode.Overflow;
-        RectTransform textRect = tooltipText.rectTransform; textRect.anchorMin = Vector2.zero; textRect.anchorMax = Vector2.one;
-        textRect.offsetMin = new Vector2(8f, 8f); textRect.offsetMax = new Vector2(-8f, -8f);
+        RectTransform textRect = tooltipText.rectTransform; textRect.anchorMin = new Vector2(0f, 1f); textRect.anchorMax = new Vector2(1f, 1f);
+        textRect.pivot = new Vector2(.5f, 1f); textRect.anchoredPosition = new Vector2(0f, -7f); textRect.sizeDelta = new Vector2(-16f, 24f);
+        tooltipRows = CreateRowsRoot(tooltipRoot.transform);
+        EnsureAllegianceTooltip();
         tooltipRoot.SetActive(false);
+    }
+
+    private RectTransform CreateRowsRoot(Transform parent)
+    {
+        GameObject rows = new GameObject("Rows", typeof(RectTransform)); rows.layer = gameObject.layer; rows.transform.SetParent(parent, false);
+        RectTransform rect = (RectTransform)rows.transform; rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one;
+        rect.offsetMin = new Vector2(8f, 8f); rect.offsetMax = new Vector2(-8f, -34f); return rect;
+    }
+
+    private void EnsureAllegianceTooltip()
+    {
+        if (allegianceTooltipRoot != null) return;
+        allegianceTooltipRoot = new GameObject("HoldingAllegianceTooltip", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        allegianceTooltipRoot.layer = gameObject.layer; allegianceTooltipRoot.transform.SetParent(transform, false);
+        RectTransform rect = (RectTransform)allegianceTooltipRoot.transform; rect.anchorMin = rect.anchorMax = new Vector2(.5f, .5f);
+        rect.anchoredPosition = new Vector2(540f, 225f); rect.sizeDelta = new Vector2(460f, 260f);
+        allegianceTooltipRoot.GetComponent<Image>().color = new Color(.04f, .04f, .04f, .98f);
+        GameObject textObject = new GameObject("Text", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
+        textObject.layer = gameObject.layer; textObject.transform.SetParent(allegianceTooltipRoot.transform, false);
+        allegianceTooltipText = textObject.GetComponent<Text>(); allegianceTooltipText.font = tooltipText.font;
+        allegianceTooltipText.fontSize = 12; allegianceTooltipText.color = Color.white; allegianceTooltipText.alignment = TextAnchor.UpperLeft;
+        allegianceTooltipText.horizontalOverflow = HorizontalWrapMode.Wrap; allegianceTooltipText.verticalOverflow = VerticalWrapMode.Overflow;
+        allegianceTooltipText.raycastTarget = false; RectTransform textRect = allegianceTooltipText.rectTransform;
+        textRect.anchorMin = Vector2.zero; textRect.anchorMax = Vector2.one; textRect.offsetMin = new Vector2(8f, 8f); textRect.offsetMax = new Vector2(-8f, -8f);
+        allegianceTooltipRoot.SetActive(false);
     }
 }
 
+public sealed class HoldingTooltipData
+{
+    public string title;
+    public readonly List<HoldingTooltipEntry> entries = new List<HoldingTooltipEntry>();
+}
+
+public sealed class HoldingTooltipEntry { public string text; public string allegianceDetails; }
+
 public sealed class UIHoldingClassSlotHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+{
+    private UIProvincePanelSummary owner; private HoldingTooltipData message;
+    public void Configure(UIProvincePanelSummary target, HoldingTooltipData contents) { owner = target; message = contents; }
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (owner == null) return;
+        owner.ReleasePinnedProductionTooltip();
+        owner.ShowHoldingTooltip(message);
+    }
+    public void OnPointerExit(PointerEventData eventData) { if (owner != null) owner.RequestHideHoldingTooltip(); }
+}
+
+public sealed class UIProvinceOutputHover : MonoBehaviour, IPointerClickHandler
+{
+    private UIProvincePanelSummary owner;
+
+    public void Configure(UIProvincePanelSummary target) { owner = target; }
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (owner != null) owner.ToggleProductionBreakdownTooltip();
+    }
+}
+
+public sealed class UIHoldingDetailRowHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     private UIProvincePanelSummary owner; private string message;
     public void Configure(UIProvincePanelSummary target, string contents) { owner = target; message = contents; }
-    public void OnPointerEnter(PointerEventData eventData) { if (owner != null) owner.ShowHoldingTooltip(message); }
-    public void OnPointerExit(PointerEventData eventData) { if (owner != null) owner.RequestHideHoldingTooltip(); }
+    public void OnPointerEnter(PointerEventData eventData) { if (owner != null) owner.ShowAllegianceTooltip(message); }
+    public void OnPointerExit(PointerEventData eventData) { if (owner != null) owner.HideAllegianceTooltip(); }
 }
 
 public sealed class UIHoldingTooltipHoverArea : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler

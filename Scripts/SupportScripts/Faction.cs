@@ -22,6 +22,8 @@ public class Faction : ScriptableObject
     public List<UnitSaveData> MercenaryDataList = new List<UnitSaveData>();
     public List<string> Flaglist = new List<string>();
     public FactionTheme factionTheme;
+    [Tooltip("Optional faction override for the governing assembly name.")]
+    public string assemblyName;
 
     [Header("Nation identity contribution")]
     public NationContentLayer content = new NationContentLayer();

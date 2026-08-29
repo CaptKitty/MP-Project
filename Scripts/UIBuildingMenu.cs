@@ -22,6 +22,7 @@ public class UIBuildingMenu : MonoBehaviour
     private UIBuildingMenuSlot selectedSlot;
     private GameObject tooltipRoot;
     private Text tooltipText;
+    private string displayedTooltipContents;
     private GameObject buildGridRoot;
     private Text panelProvinceName;
     private bool buildGridOpen;
@@ -121,7 +122,7 @@ public class UIBuildingMenu : MonoBehaviour
         {
             UIBuildingMenuSlot hovered = slots.Find(slot => slot != null && slot.gameObject.activeInHierarchy && slot.IsHovered);
             if (hovered != null) ShowTooltip(BuildBuildingDescription(hovered.Province, hovered.Building, hovered.SlotIndex));
-            else if (selectedSlot != null) ShowTooltip(BuildUpgradeDescription(selectedSlot.Province, selectedSlot.Building, selectedSlot.SlotIndex));
+            else HideTooltip();
         }
         UIProvincePanelSummary summary = GetComponent<UIProvincePanelSummary>();
         if (summary == null) summary = gameObject.AddComponent<UIProvincePanelSummary>();
@@ -226,8 +227,7 @@ public class UIBuildingMenu : MonoBehaviour
     public void PointerExited(UIBuildingMenuSlot slot)
     {
         if (buildGridOpen) return;
-        if (selectedSlot != null) ShowTooltip(BuildUpgradeDescription(selectedSlot.Province, selectedSlot.Building, selectedSlot.SlotIndex));
-        else HideTooltip();
+        HideTooltip();
     }
 
     public void SlotClicked(UIBuildingMenuSlot slot)
@@ -254,9 +254,7 @@ public class UIBuildingMenu : MonoBehaviour
             foreach (string buildingId in NationContentResolver.ResolveBuildings(nation))
             {
                 if (!NationContentResolver.CanConstructBuildingLevel(nation, buildingId, 1)) continue;
-                AddBuildOption(slot, buildingId, 1, buildingId + "\nLevel 1\n" +
-                    CampaignEconomy.BuildingGoldCost(buildingId, 1) + " gold\n" +
-                    BuildingDefinition.ConstructionTicks(buildingId, 1) + " ticks");
+                AddBuildOption(slot, buildingId, 1);
             }
         }
         else if (building.level < NationContentResolver.UsefulBuildingMaximumLevel(targetProvince.nation, building.BuildingId))
@@ -269,14 +267,7 @@ public class UIBuildingMenu : MonoBehaviour
                 return;
             }
             int nextLevel = building.level + 1;
-            string caption = building.DisplayName + "\nLevel " + nextLevel;
-            caption += "\n" + CampaignEconomy.BuildingGoldCost(buildingId, nextLevel) + " gold";
-            caption += "\n" + BuildingDefinition.ConstructionTicks(buildingId, nextLevel) + " ticks";
-            if (targetProvince.nation != null && NationContentResolver.ResolveUnits(targetProvince.nation)
-                .Exists(entry => entry != null && entry.RequiredBuildingId.Equals(buildingId,
-                    System.StringComparison.OrdinalIgnoreCase) && entry.minimumBuildingLevel == nextLevel))
-                caption += "\nUnlocks unit tier " + nextLevel;
-            AddBuildOption(slot, buildingId, nextLevel, caption);
+            AddBuildOption(slot, buildingId, nextLevel);
         }
         else AddGridMessage(building.DisplayName + " is already at maximum level.");
         AddCancelOption();
@@ -295,16 +286,41 @@ public class UIBuildingMenu : MonoBehaviour
         LayoutBuildGrid();
     }
 
-    private void AddBuildOption(UIBuildingMenuSlot slot, string buildingId, int targetLevel, string caption)
+    private void AddBuildOption(UIBuildingMenuSlot slot, string buildingId, int targetLevel)
     {
         GameObject option = new GameObject(buildingId + " Option", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button), typeof(LayoutElement), typeof(UIBuildingOptionHover));
         option.layer = gameObject.layer;
         option.transform.SetParent(buildGridRoot.transform, false);
         option.GetComponent<Image>().color = new Color(.2f, .34f, .22f, .98f);
         LayoutElement layout = option.GetComponent<LayoutElement>(); layout.preferredWidth = 82f; layout.preferredHeight = 82f;
-        Text text = CreateGridText(option.transform, caption, 11, TextAnchor.MiddleCenter);
-        text.rectTransform.anchorMin = Vector2.zero; text.rectTransform.anchorMax = Vector2.one;
-        text.rectTransform.offsetMin = new Vector2(3f, 3f); text.rectTransform.offsetMax = new Vector2(-3f, -3f);
+        BuildingDefinition definition = BuildingDefinition.Find(buildingId);
+        Sprite icon = definition != null ? definition.icon : null;
+        if (icon != null)
+        {
+            GameObject iconObject = new GameObject("BuildingIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            iconObject.layer = option.layer;
+            iconObject.transform.SetParent(option.transform, false);
+            Image iconImage = iconObject.GetComponent<Image>();
+            iconImage.sprite = icon;
+            iconImage.type = Image.Type.Simple;
+            iconImage.preserveAspect = true;
+            iconImage.raycastTarget = false;
+            RectTransform iconRect = iconImage.rectTransform;
+            iconRect.anchorMin = new Vector2(0f, .3f); iconRect.anchorMax = Vector2.one;
+            iconRect.offsetMin = new Vector2(5f, 3f); iconRect.offsetMax = new Vector2(-5f, -5f);
+        }
+
+        string displayName = definition != null ? definition.DisplayName : buildingId;
+        Text text = CreateGridText(option.transform, displayName + "\nLv " + targetLevel, 10, TextAnchor.MiddleCenter);
+        text.resizeTextForBestFit = true;
+        text.resizeTextMinSize = 7;
+        text.resizeTextMaxSize = 10;
+        text.horizontalOverflow = HorizontalWrapMode.Wrap;
+        text.verticalOverflow = VerticalWrapMode.Truncate;
+        text.rectTransform.anchorMin = Vector2.zero;
+        text.rectTransform.anchorMax = icon != null ? new Vector2(1f, .32f) : Vector2.one;
+        text.rectTransform.offsetMin = new Vector2(3f, 2f);
+        text.rectTransform.offsetMax = new Vector2(-3f, -1f);
         option.GetComponent<Button>().onClick.AddListener(() => BeginConstruction(slot, buildingId, targetLevel));
         option.GetComponent<UIBuildingOptionHover>().Configure(this, slot != null ? slot.Province : null, buildingId, targetLevel);
         LayoutBuildGrid();
@@ -424,14 +440,14 @@ public class UIBuildingMenu : MonoBehaviour
     private void HideBuildGrid()
     {
         if (buildGridRoot != null) buildGridRoot.SetActive(false);
+        HideTooltip();
     }
 
     private string BuildBuildingDescription(Province province, ProvinceBuilding building, int slotIndex)
     {
-        string provinceName = province != null ? province.name + "\n" : string.Empty;
-        if (building == null) return provinceName + "Building slot " + (slotIndex + 1) + "\n\nEmpty";
+        if (building == null) return "Building slot " + (slotIndex + 1) + "\n\nEmpty";
         StringBuilder text = new StringBuilder();
-        text.Append(provinceName).Append(building.DisplayName).Append("\nLevel ").Append(building.level).Append(" / ").Append(building.EffectiveMaximumLevel);
+        text.Append(building.DisplayName);
         if (building.definition != null && !string.IsNullOrWhiteSpace(building.definition.description))
             text.Append("\n\n").Append(building.definition.description);
         AppendEffects(text, province, building);
@@ -441,11 +457,10 @@ public class UIBuildingMenu : MonoBehaviour
     private string BuildUpgradeDescription(Province province, ProvinceBuilding building, int slotIndex)
     {
         if (building == null)
-            return (province != null ? province.name + "\n" : string.Empty) + "Building slot " + (slotIndex + 1) + "\n\nNo building is present, so this slot has no upgrades.";
+            return "Building slot " + (slotIndex + 1) + "\n\nNo building is present, so this slot has no upgrades.";
 
         StringBuilder text = new StringBuilder();
         string buildingId = string.IsNullOrEmpty(building.id) ? "Building" : building.id;
-        if (province != null) text.Append(province.name).Append("\n");
         text.Append(buildingId).Append(" upgrades\n\n");
         int usefulMaximum = province != null
             ? NationContentResolver.UsefulBuildingMaximumLevel(province.nation, buildingId)
@@ -501,109 +516,115 @@ public class UIBuildingMenu : MonoBehaviour
         }
         text.Append("\n\nProvides:");
         bool any = false;
+        int urbanizationTarget = 0;
+        Dictionary<HoldingTag, float> holdingEfficiency = new Dictionary<HoldingTag, float>();
+        Dictionary<HoldingTag, float> holdingPressure = new Dictionary<HoldingTag, float>();
         if (building.definition != null && building.definition.levels != null)
             foreach (BuildingLevelDefinition level in building.definition.levels)
-                if (level != null && level.level <= building.level && level.urbanizationResponse != 0)
+            {
+                if (level == null || level.level > building.level) continue;
+                urbanizationTarget += level.urbanizationTargetModifier;
+                if (level.holdingEconomyModifiers == null) continue;
+                foreach (HoldingTagModifier modifier in level.holdingEconomyModifiers)
                 {
-                    text.Append("\n- Level ").Append(level.level).Append(" urbanization response: ")
-                        .Append(level.urbanizationResponse > 0 ? "+" : string.Empty).Append(level.urbanizationResponse);
-                    any = true;
+                    if (modifier == null || modifier.tag == HoldingTag.None ||
+                        !string.IsNullOrWhiteSpace(modifier.requiredNationFlag) &&
+                        (province == null || !NationContentResolver.HasFlag(province.nation, modifier.requiredNationFlag))) continue;
+                    holdingEfficiency[modifier.tag] = holdingEfficiency.TryGetValue(modifier.tag, out float efficiency)
+                        ? efficiency + modifier.outputEfficiencyPercent : modifier.outputEfficiencyPercent;
+                    holdingPressure[modifier.tag] = holdingPressure.TryGetValue(modifier.tag, out float pressure)
+                        ? pressure + modifier.desiredWeight : modifier.desiredWeight;
                 }
+            }
         int rawIncome = building.definition != null ? building.DefinitionGoldIncomeAt(province != null ? province.urbanization : 0) :
             building.BuildingId.Equals("Farm", System.StringComparison.OrdinalIgnoreCase) ? building.level * CampaignEconomy.FarmIncomePerLevel : 0;
-        if (rawIncome > 0)
+        int gold = CampaignEconomy.ApplyGoldIncomeRate(rawIncome);
+        if (gold != 0)
         {
-            text.Append("\n- Gold income: +").Append(CampaignEconomy.ApplyGoldIncomeRate(rawIncome)).Append(" per income tick");
+            text.Append("\n- Gold: ").Append(Signed(gold));
             any = true;
         }
         int food = building.definition != null ? building.DefinitionFoodOutputAt(province != null ? province.urbanization : 0) : 0;
-        if (food != 0)
+        if (food > 0)
         {
-            text.Append("\n- Food production: ").Append(food > 0 ? "+" : string.Empty).Append(food);
+            text.Append("\n- Food: +").Append(food).Append(" produced");
             any = true;
         }
         int foodConsumption = building.definition != null ? building.DefinitionFoodConsumption : 0;
         if (foodConsumption > 0)
         {
-            text.Append("\n- Food consumption: -").Append(foodConsumption);
-            text.Append("\n- Net food: ").Append(food - foodConsumption >= 0 ? "+" : string.Empty)
-                .Append(food - foodConsumption);
+            text.Append("\n- Food: -").Append(foodConsumption).Append(" consumed");
             any = true;
         }
         int garrison = building.definition != null ? building.DefinitionGarrisonCapacity :
             building.BuildingId.Equals("Fort", System.StringComparison.OrdinalIgnoreCase) ? building.level * 3 : 0;
         if (garrison > 0) { text.Append("\n- Garrison capacity: +").Append(garrison); any = true; }
         if (building.BuildingId.Equals("Fort", System.StringComparison.OrdinalIgnoreCase))
-        { text.Append("\n- Regional loyalty: +").Append((building.level * .1f).ToString("0.#")).Append(" per turn"); any = true; }
+        { text.Append("\n- Regional loyalty: +").Append((building.level * .1f).ToString("0.#")); any = true; }
         if (building.BuildingId.Equals("Temple", System.StringComparison.OrdinalIgnoreCase))
         {
-            text.Append("\n- Regional loyalty: +").Append((building.level * .1f).ToString("0.#")).Append(" per turn");
-            text.Append("\n- Provincial primary culture: +").Append((building.level * .1f).ToString("0.#")).Append("% per turn");
-            text.Append("\n- Upkeep: 1 gold per turn");
+            text.Append("\n- Regional loyalty: +").Append((building.level * .1f).ToString("0.#"));
+            text.Append("\n- Culture conversion: +").Append((building.level * .1f).ToString("0.#"))
+                .Append("% national primary culture");
+            text.Append("\n- Upkeep: -1 gold");
             any = true;
         }
-        if (names.Count > 0) { text.Append("\n- Recruitment:\n  ").Append(string.Join("\n  ", names)); any = true; }
-
-        if (building.definition != null && building.definition.levels != null)
-        foreach (BuildingLevelDefinition level in building.definition.levels)
+        if (urbanizationTarget != 0)
         {
-            if (level == null || level.level > building.level) continue;
-            if (level.flags != null) foreach (string flag in level.flags)
-                if (!string.IsNullOrWhiteSpace(flag)) { text.Append("\n- Effect: ").Append(flag); any = true; }
-            if (level.displayedEffects != null) foreach (string effect in level.displayedEffects)
-                if (!string.IsNullOrWhiteSpace(effect)) { text.Append("\n- ").Append(effect.Trim()); any = true; }
-            if (level.holdingEconomyModifiers != null) foreach (HoldingTagModifier modifier in level.holdingEconomyModifiers)
-            {
-                if (modifier == null || modifier.tag == HoldingTag.None) continue;
-                if (!Mathf.Approximately(modifier.desiredWeight, 0f))
-                    text.Append("\n- ").Append(modifier.tag).Append(" holding desire: ")
-                        .Append(modifier.desiredWeight > 0f ? "+" : string.Empty).Append(modifier.desiredWeight.ToString("0.#"));
-                if (!Mathf.Approximately(modifier.outputEfficiencyPercent, 0f))
-                    text.Append("\n- ").Append(modifier.tag).Append(" holding efficiency: ")
-                        .Append(modifier.outputEfficiencyPercent > 0f ? "+" : string.Empty)
-                        .Append(modifier.outputEfficiencyPercent.ToString("0.#")).Append("%");
-                any = true;
-            }
-            if (level.localModifiers != null && level.localModifiers.maxDevelopment != 0)
-            {
-                text.Append("\n- ").Append(ProvinceLocalModifiers.FormatMaxDevelopment(level.localModifiers.maxDevelopment));
-                any = true;
-            }
+            text.Append("\n- Urbanization target: ").Append(Signed(urbanizationTarget));
+            any = true;
         }
+        foreach (KeyValuePair<HoldingTag, float> entry in holdingEfficiency)
+            if (!Mathf.Approximately(entry.Value, 0f))
+            { text.Append("\n- ").Append(entry.Key).Append(" holding efficiency: ").Append(Signed(entry.Value)).Append("%"); any = true; }
+        foreach (KeyValuePair<HoldingTag, float> entry in holdingPressure)
+            if (!Mathf.Approximately(entry.Value, 0f))
+            { text.Append("\n- ").Append(entry.Key).Append(" holding pressure: ").Append(Signed(entry.Value)); any = true; }
+        if (names.Count > 0)
+        { text.Append("\n- Recruitment unlocks: ").Append(string.Join(", ", names)); any = true; }
         if (!any) text.Append("\n- No configured effects.");
     }
 
+    private static string Signed(int value) => value > 0 ? "+" + value : value.ToString();
+    private static string Signed(float value) => (value > 0f ? "+" : string.Empty) + value.ToString("0.#");
+
     private void EnsureTooltip()
     {
+        Canvas canvas = GetComponentInParent<Canvas>();
+        Transform desiredParent = canvas != null && canvas.rootCanvas != null
+            ? canvas.rootCanvas.transform
+            : host != null ? host.transform : transform.parent;
         if (tooltipRoot != null)
         {
+            if (tooltipRoot.transform.parent != desiredParent)
+                tooltipRoot.transform.SetParent(desiredParent, false);
+            if (tooltipText == null) tooltipText = tooltipRoot.GetComponentInChildren<Text>(true);
+            EnsureTooltipTextStyle();
             PositionTooltip();
             return;
         }
-        Transform parent = host != null ? host.transform : transform.parent;
         tooltipRoot = new GameObject("BuildingTooltip", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
         tooltipRoot.layer = gameObject.layer;
-        tooltipRoot.transform.SetParent(parent, false);
+        tooltipRoot.transform.SetParent(desiredParent, false);
         RectTransform rect = (RectTransform)tooltipRoot.transform;
         rect.sizeDelta = new Vector2(190f, 245f);
-        tooltipRoot.GetComponent<Image>().color = new Color(.08f, .08f, .08f, .96f);
+        Image tooltipBackground = tooltipRoot.GetComponent<Image>();
+        tooltipBackground.color = new Color(.08f, .08f, .08f, .96f);
+        // The tooltip may be clamped back over its source slot near a screen edge.
+        // It is informational, so it must never steal the pointer and generate an
+        // exit/enter loop on the slot beneath it.
+        tooltipBackground.raycastTarget = false;
 
         GameObject textObject = new GameObject("TooltipText", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
         textObject.layer = gameObject.layer;
         textObject.transform.SetParent(tooltipRoot.transform, false);
         tooltipText = textObject.GetComponent<Text>();
-        Text existing = host != null ? host.GetComponentInChildren<Text>(true) : null;
-        tooltipText.font = existing != null ? existing.font : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        tooltipText.fontSize = 12;
-        tooltipText.color = Color.white;
-        tooltipText.alignment = TextAnchor.UpperLeft;
-        tooltipText.horizontalOverflow = HorizontalWrapMode.Wrap;
-        tooltipText.verticalOverflow = VerticalWrapMode.Truncate;
-        tooltipText.raycastTarget = false;
+        EnsureTooltipTextStyle();
         RectTransform textRect = tooltipText.rectTransform;
         textRect.anchorMin = Vector2.zero; textRect.anchorMax = Vector2.one;
         textRect.offsetMin = new Vector2(8f, 8f); textRect.offsetMax = new Vector2(-8f, -8f);
         PositionTooltip();
+        tooltipRoot.SetActive(false);
     }
 
     private void PositionTooltip()
@@ -611,13 +632,36 @@ public class UIBuildingMenu : MonoBehaviour
         if (tooltipRoot == null) return;
         RectTransform tooltipRect = (RectTransform)tooltipRoot.transform;
         RectTransform menuRect = GetComponent<RectTransform>();
-        tooltipRect.anchorMin = tooltipRect.anchorMax = menuRect.anchorMin;
-        float menuTop = menuRect.anchoredPosition.y + menuRect.sizeDelta.y * (1f - menuRect.pivot.y);
-        float tooltipY = menuTop - tooltipRect.sizeDelta.y * (1f - tooltipRect.pivot.y);
-        float menuRight = menuRect.anchoredPosition.x + menuRect.sizeDelta.x * (1f - menuRect.pivot.x);
-        float tooltipX = menuRight + 10f + tooltipRect.sizeDelta.x * tooltipRect.pivot.x;
-        tooltipRect.anchoredPosition = new Vector2(tooltipX, tooltipY);
+        RectTransform parentRect = tooltipRect.parent as RectTransform;
+        Canvas canvas = GetComponentInParent<Canvas>();
+        if (menuRect == null || parentRect == null || canvas == null) return;
+        Canvas rootCanvas = canvas.rootCanvas;
+        Camera eventCamera = rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : rootCanvas.worldCamera;
+        Vector3[] corners = new Vector3[4];
+        menuRect.GetWorldCorners(corners);
+        Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(eventCamera, corners[2]) + new Vector2(10f, 0f);
+        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, screenPoint, eventCamera, out Vector2 local)) return;
+        tooltipRect.anchorMin = tooltipRect.anchorMax = new Vector2(.5f, .5f);
+        tooltipRect.pivot = new Vector2(0f, 1f);
+        tooltipRect.localPosition = new Vector3(local.x, local.y, 0f);
         ClampRectToCanvas(tooltipRect);
+    }
+
+    private void EnsureTooltipTextStyle()
+    {
+        if (tooltipText == null) return;
+        Text existing = host != null ? host.GetComponentInChildren<Text>(true) : null;
+        Font font = existing != null ? existing.font : null;
+        if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        tooltipText.font = font;
+        tooltipText.fontSize = 12;
+        tooltipText.color = new Color(1f, 1f, 1f, 1f);
+        tooltipText.alignment = TextAnchor.UpperLeft;
+        tooltipText.horizontalOverflow = HorizontalWrapMode.Wrap;
+        tooltipText.verticalOverflow = VerticalWrapMode.Overflow;
+        tooltipText.raycastTarget = false;
+        tooltipText.canvasRenderer.SetAlpha(1f);
+        tooltipText.rectTransform.localScale = Vector3.one;
     }
 
     private void ClampRectToCanvas(RectTransform tooltipRect)
@@ -651,18 +695,34 @@ public class UIBuildingMenu : MonoBehaviour
     private void ShowTooltip(string contents)
     {
         EnsureTooltip();
-        tooltipText.text = contents;
-        Canvas.ForceUpdateCanvases();
+        if (tooltipRoot == null || tooltipText == null) return;
         RectTransform tooltipRect = (RectTransform)tooltipRoot.transform;
+        displayedTooltipContents = string.IsNullOrWhiteSpace(contents)
+            ? "No building information is available."
+            : contents;
+        tooltipText.text = displayedTooltipContents;
+        tooltipText.enabled = true;
+        tooltipText.gameObject.SetActive(true);
+        if (!tooltipRoot.activeSelf) tooltipRoot.SetActive(true);
+        Canvas.ForceUpdateCanvases();
         tooltipRect.sizeDelta = new Vector2(190f, Mathf.Clamp(tooltipText.preferredHeight + 20f, 245f, 440f));
         PositionTooltip();
-        tooltipRoot.SetActive(true);
         tooltipRoot.transform.SetAsLastSibling();
+        tooltipText.transform.SetAsLastSibling();
     }
 
     private void HideTooltip()
     {
         if (tooltipRoot != null) tooltipRoot.SetActive(false);
+    }
+
+    private void OnDisable()
+    {
+        // Building tooltips are parented to the root canvas so they can escape the
+        // administration panel's bounds. Explicitly close them with their owner.
+        HideTooltip();
+        if (buildGridRoot != null) buildGridRoot.SetActive(false);
+        buildGridOpen = false;
     }
 }
 

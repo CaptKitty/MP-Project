@@ -5,6 +5,8 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Nation Identity/Building Definition")]
 public class BuildingDefinition : ScriptableObject
 {
+    private const string ResourcePath = "Prefabs/NationData/Buildings";
+    private static BuildingDefinition[] cachedDefinitions;
     [Header("Identity")]
     [Tooltip("Stable save/network identifier. Do not change after the building is in use.")]
     public string id;
@@ -44,7 +46,7 @@ public class BuildingDefinition : ScriptableObject
     public static BuildingDefinition Find(string stableId)
     {
         if (string.IsNullOrWhiteSpace(stableId)) return null;
-        BuildingDefinition[] definitions = Resources.LoadAll<BuildingDefinition>(string.Empty);
+        BuildingDefinition[] definitions = cachedDefinitions ?? (cachedDefinitions = Resources.LoadAll<BuildingDefinition>(ResourcePath));
         return Array.Find(definitions, candidate => candidate != null &&
             string.Equals(candidate.StableId, stableId, StringComparison.OrdinalIgnoreCase));
     }
@@ -71,6 +73,7 @@ public class BuildingDefinition : ScriptableObject
             levels[i].food = Mathf.Max(0, levels[i].food);
             levels[i].foodConsumption = Mathf.Max(0, levels[i].foodConsumption);
             levels[i].urbanizationResponse = Mathf.Clamp(levels[i].urbanizationResponse, -100, 100);
+            levels[i].urbanizationTargetModifier = Mathf.Clamp(levels[i].urbanizationTargetModifier, -100, 100);
         }
     }
 }
@@ -85,6 +88,8 @@ public class BuildingLevelDefinition
     [Header("Effects")]
     [Tooltip("Negative favors rural provinces; positive favors urban provinces; zero ignores urbanization.")]
     [Range(-100, 100)] public int urbanizationResponse;
+    [Tooltip("Signed change to desired provincial urbanization while active. Negative values cause ruralization.")]
+    [Range(-100, 100)] public int urbanizationTargetModifier;
     public int goldIncome;
     [Tooltip("Food produced by this building level. Configure consumption separately.")]
     [Min(0)] public int food;

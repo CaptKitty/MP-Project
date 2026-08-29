@@ -5,6 +5,8 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Nation Identity/Holding Definition")]
 public sealed class HoldingDefinition : ScriptableObject
 {
+    private const string ResourcePath = "Prefabs/NationData/HoldingData";
+    private static HoldingDefinition[] cachedDefinitions;
     [Header("Identity")]
     [Tooltip("Stable save identifier. Do not change after using this holding in a campaign.")]
     public string id;
@@ -26,6 +28,10 @@ public sealed class HoldingDefinition : ScriptableObject
     public List<HoldingTransformationOption> transformations = new List<HoldingTransformationOption>();
     [Tooltip("Food consumed by each holding instance per tick. This remains active while its levy is mobilized.")]
     [Min(0)] public int foodConsumption = 1;
+    [Tooltip("Additional food upkeep beyond the universal one-food holding consumption.")]
+    [Min(0)] public int foodUpkeep;
+    [Tooltip("Additional formations supported by this holding in the provincial garrison.")]
+    [Min(0)] public int garrisonCapacity;
 
     [Header("People")]
     public SocioEconomicClass defaultClass = SocioEconomicClass.Freemen;
@@ -38,7 +44,7 @@ public sealed class HoldingDefinition : ScriptableObject
     [Min(0)] public int levyContributionPermillePerLevel = 1000;
     [HideInInspector] public int levyFormationsPerLevel = 1;
     [Min(0)] public int levyMobilizationTicks;
-    [Min(0)] public int levyRecoveryTicks = 20;
+    [Min(0)] public int levyRecoveryTicks = 120;
     [Min(0)] public int levyDemobilizationTicks;
 
     public string StableId => !string.IsNullOrWhiteSpace(id) ? id.Trim() : name;
@@ -63,7 +69,7 @@ public sealed class HoldingDefinition : ScriptableObject
     public static HoldingDefinition Find(string stableId)
     {
         if (string.IsNullOrWhiteSpace(stableId)) return null;
-        HoldingDefinition found = Array.Find(Resources.LoadAll<HoldingDefinition>(string.Empty), candidate => candidate != null &&
+        HoldingDefinition found = Array.Find(cachedDefinitions ?? (cachedDefinitions = Resources.LoadAll<HoldingDefinition>(ResourcePath)), candidate => candidate != null &&
             string.Equals(candidate.StableId, stableId, StringComparison.OrdinalIgnoreCase));
         if (found != null) { HoldingArchetypeCatalog.ApplyMetadata(found); return found; }
         found = HoldingArchetypeCatalog.Find(stableId);
@@ -89,7 +95,7 @@ public sealed class HoldingDefinition : ScriptableObject
         defaultCitizenFarm.name = "CitizenFarm"; defaultCitizenFarm.id = "CitizenFarm";
         defaultCitizenFarm.displayName = "Citizen Farm"; defaultCitizenFarm.maximumLevel = 1;
         defaultCitizenFarm.defaultClass = SocioEconomicClass.Citizen;
-        defaultCitizenFarm.outputs.Add(new HoldingOutputDefinition { type = HoldingOutputType.Income, baseValue = 2,
+        defaultCitizenFarm.outputs.Add(new HoldingOutputDefinition { type = HoldingOutputType.Income, baseValue = 1,
             suitability = UrbanizationSuitability.Neutral, disabledWhileMobilized = true });
         defaultCitizenFarm.outputs.Add(new HoldingOutputDefinition { type = HoldingOutputType.Food, baseValue = 2,
             suitability = UrbanizationSuitability.Neutral, disabledWhileMobilized = true });
@@ -106,7 +112,7 @@ public sealed class HoldingDefinition : ScriptableObject
         definition.displayName = "Citizen Farm"; definition.maximumLevel = 1;
         definition.defaultClass = SocioEconomicClass.Citizen; definition.canRaiseLevies = true;
         definition.levyUnit = levyUnit; definition.levyContributionPermillePerLevel = 1000;
-        definition.outputs.Add(new HoldingOutputDefinition { type = HoldingOutputType.Income, baseValue = 2,
+        definition.outputs.Add(new HoldingOutputDefinition { type = HoldingOutputType.Income, baseValue = 1,
             suitability = UrbanizationSuitability.Neutral, disabledWhileMobilized = true });
         definition.outputs.Add(new HoldingOutputDefinition { type = HoldingOutputType.Food, baseValue = 2,
             suitability = UrbanizationSuitability.Neutral, disabledWhileMobilized = true });

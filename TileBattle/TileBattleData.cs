@@ -141,6 +141,8 @@ namespace ProjectX.TileBattle
         public TileWeaponControl WeaponControl = TileWeaponControl.Sword;
         public bool Cavalry;
         public bool Ranged;
+        // A one-use ranged capability that does not change the formation's melee tactical role.
+        public bool OpeningThrowable;
         public int RangedRange;
         public int RangedDamage;
         public int RangedAttackIntervalTicks = 1;

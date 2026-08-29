@@ -29,7 +29,7 @@ public class MainMenu : MonoBehaviour
     }
     public void ChangePick(int whichone)
     {
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 7; i++)
         {
             string a = transform.GetChild(1).GetChild(i).GetChild(0).GetComponent<Text>().text;
             a = a.Replace("\n(Current)", "");

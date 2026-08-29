@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: GreatEstate
   m_EditorClassIdentifier: Assembly-CSharp::HoldingDefinition
   id: GreatEstate
-  displayName: Great Estate
-  description: "Great Estate \u2014 tier 3 EliteAgriculture holding."
-  icon: {fileID: 0}
+  displayName: Provincial Court
+  description: A provincial aristocratic court that substantially supports the garrison.
+  icon: {fileID: 4928747421176368004, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
   category: 2
   categoryTier: 3
-  tags: 137
+  tags: 128
   suggestedAllegiance: Pro-Elite
   maximumLevel: 1
   defaultConstructionTicks: 20
@@ -32,27 +32,17 @@ MonoBehaviour:
     localModifiers:
       maxDevelopment: 0
       holdingEconomyModifiers: []
-  outputs:
-  - type: 1
-    baseValue: 7
-    scalesWithUrbanization: 0
-    suitability: 1
-    urbanizationResponse: 0
-    disabledWhileMobilized: 0
-  - type: 0
-    baseValue: 7
-    scalesWithUrbanization: 0
-    suitability: 1
-    urbanizationResponse: 0
-    disabledWhileMobilized: 0
+  outputs: []
   transformations: []
-  foodConsumption: 4
-  defaultClass: 2
+  foodConsumption: 1
+  foodUpkeep: 2
+  garrisonCapacity: 3
+  defaultClass: 5
   canRaiseLevies: 0
   levyUnit: {fileID: 0}
   levyArchetype: 0
   levyContributionPermillePerLevel: 0
   levyFormationsPerLevel: 1
   levyMobilizationTicks: 0
-  levyRecoveryTicks: 20
+  levyRecoveryTicks: 120
   levyDemobilizationTicks: 0

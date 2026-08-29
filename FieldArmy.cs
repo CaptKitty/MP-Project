@@ -187,6 +187,14 @@ public class FieldArmy : ScriptableObject
             if (record != null && record.origin == CampaignUnitOrigin.Levy && !string.IsNullOrEmpty(record.entitlementId)) count++;
         return count;
     }
+    public int CountFormations(CampaignUnitOrigin origin)
+    {
+        ReconcileFormationRecords();
+        int count = 0;
+        foreach (ArmyFormationRecord record in formationRecords)
+            if (record != null && record.origin == origin && record.unit != null) count++;
+        return count;
+    }
     public int DemobilizeAllLevies()
     {
         ReconcileFormationRecords();
@@ -223,7 +231,7 @@ public class FieldArmy : ScriptableObject
             if (order != null) amount += Mathf.Max(0, order.amount);
         return amount;
     }
-    public bool QueueRecruitment(UnitSaveData unit, int amount)
+    public bool QueueRecruitment(UnitSaveData unit, int amount, CampaignUnitOrigin origin = CampaignUnitOrigin.Professional)
     {
         if (unit == null || amount <= 0 || GrabArmySize() + GrabQueuedArmySize() + amount > MaxArmySize) return false;
         if (recruitmentOrders == null) recruitmentOrders = new List<ArmyRecruitmentOrder>();
@@ -231,7 +239,8 @@ public class FieldArmy : ScriptableObject
         {
             unit = unit,
             amount = amount,
-            remainingTicks = unit.EffectiveRecruitmentTicks
+            origin = origin,
+            remainingTicks = RecruitmentTicks(unit, origin)
         });
         return true;
     }
@@ -257,17 +266,29 @@ public class FieldArmy : ScriptableObject
                 return;
             }
 
-            AddTroop(order.unit, 1, true);
+            AddTroop(order.unit, 1, true, order.origin, string.Empty);
+            FieldArmyHolder holder = Owners.Instance != null
+                ? Owners.Instance.armylist.Find(candidate => candidate != null && candidate.fieldArmy == this)
+                : null;
+            if (holder != null) CampaignRecruitmentVisual.Present(order.unit, holder);
             order.amount--;
             if (order.amount <= 0)
                 recruitmentOrders.RemoveAt(0);
             else
-                order.remainingTicks = order.unit.EffectiveRecruitmentTicks;
+                order.remainingTicks = RecruitmentTicks(order.unit, order.origin);
             RecruitmentMenu.RefreshQueueFor(this);
             return;
         }
 
         RecruitmentMenu.RefreshQueueFor(this);
+    }
+
+    private int RecruitmentTicks(UnitSaveData unit, CampaignUnitOrigin origin)
+    {
+        int ticks = unit != null ? unit.EffectiveRecruitmentTicks : 1;
+        if (nation != null && origin == CampaignUnitOrigin.Mercenary)
+            ticks = nation.ApplyLawModifiers(NationalLawEffectType.MercenaryRecruitmentTime, ticks, null, origin);
+        return Mathf.Max(1, ticks);
     }
     public void AddSupply(int suppliesToAdd)
     {
@@ -297,4 +318,5 @@ public class ArmyRecruitmentOrder
     public UnitSaveData unit;
     public int amount = 1;
     public int remainingTicks = 1;
+    public CampaignUnitOrigin origin = CampaignUnitOrigin.Professional;
 }

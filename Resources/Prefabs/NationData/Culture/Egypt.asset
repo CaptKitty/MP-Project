@@ -13,7 +13,10 @@ MonoBehaviour:
   m_Name: Egypt
   m_EditorClassIdentifier: Assembly-CSharp::NationCultureData
   cultureName: Egyptian
-  color: {r: 218, g: 181, b: 54, a: 255}
+  startingUrbanization: 0
+  color:
+    serializedVersion: 2
+    rgba: 4278255574
   content:
     units:
     - unit: {fileID: 11400000, guid: 4cd6b8db7c6296a489a09d097c2cb76a, type: 2}
@@ -29,3 +32,5 @@ MonoBehaviour:
     generalNames:
     - Ptolemy
     flags: []
+    holdingEconomyModifiers: []
+    levies: []

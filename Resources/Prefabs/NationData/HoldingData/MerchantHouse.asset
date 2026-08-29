@@ -15,7 +15,7 @@ MonoBehaviour:
   id: MerchantHouse
   displayName: Merchant House
   description: "Merchant House \u2014 tier 3 Commerce holding."
-  icon: {fileID: 0}
+  icon: {fileID: 2426552940522001899, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
   category: 6
   categoryTier: 3
   tags: 6
@@ -34,13 +34,14 @@ MonoBehaviour:
       holdingEconomyModifiers: []
   outputs:
   - type: 0
-    baseValue: 10
+    baseValue: 7
     scalesWithUrbanization: 0
     suitability: 1
     urbanizationResponse: 100
     disabledWhileMobilized: 0
   transformations: []
-  foodConsumption: 3
+  foodConsumption: 1
+  foodUpkeep: 2
   defaultClass: 6
   canRaiseLevies: 0
   levyUnit: {fileID: 0}
@@ -48,5 +49,5 @@ MonoBehaviour:
   levyContributionPermillePerLevel: 0
   levyFormationsPerLevel: 1
   levyMobilizationTicks: 0
-  levyRecoveryTicks: 20
+  levyRecoveryTicks: 120
   levyDemobilizationTicks: 0

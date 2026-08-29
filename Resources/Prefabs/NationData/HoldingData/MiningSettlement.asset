@@ -15,10 +15,10 @@ MonoBehaviour:
   id: MiningSettlement
   displayName: Mining Settlement
   description: "Mining Settlement \u2014 tier 3 Mining holding."
-  icon: {fileID: 0}
+  icon: {fileID: 1781684785519343535, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
   category: 9
   categoryTier: 3
-  tags: 72
+  tags: 64
   suggestedAllegiance: 
   maximumLevel: 1
   defaultConstructionTicks: 20
@@ -34,13 +34,14 @@ MonoBehaviour:
       holdingEconomyModifiers: []
   outputs:
   - type: 0
-    baseValue: 9
+    baseValue: 6
     scalesWithUrbanization: 0
     suitability: 1
     urbanizationResponse: 0
     disabledWhileMobilized: 0
   transformations: []
-  foodConsumption: 3
+  foodConsumption: 1
+  foodUpkeep: 2
   defaultClass: 2
   canRaiseLevies: 0
   levyUnit: {fileID: 0}
@@ -48,5 +49,5 @@ MonoBehaviour:
   levyContributionPermillePerLevel: 0
   levyFormationsPerLevel: 1
   levyMobilizationTicks: 0
-  levyRecoveryTicks: 20
+  levyRecoveryTicks: 120
   levyDemobilizationTicks: 0

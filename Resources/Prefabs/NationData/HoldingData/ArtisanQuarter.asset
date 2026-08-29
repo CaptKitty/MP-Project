@@ -15,7 +15,7 @@ MonoBehaviour:
   id: ArtisanQuarter
   displayName: Artisan Quarter
   description: "Artisan Quarter \u2014 tier 3 Artisans holding."
-  icon: {fileID: 0}
+  icon: {fileID: 8743396785117785620, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
   category: 5
   categoryTier: 3
   tags: 38
@@ -34,13 +34,14 @@ MonoBehaviour:
       holdingEconomyModifiers: []
   outputs:
   - type: 0
-    baseValue: 6
+    baseValue: 4
     scalesWithUrbanization: 0
     suitability: 1
     urbanizationResponse: 80
     disabledWhileMobilized: 0
   transformations: []
-  foodConsumption: 3
+  foodConsumption: 1
+  foodUpkeep: 2
   defaultClass: 2
   canRaiseLevies: 0
   levyUnit: {fileID: 0}
@@ -48,5 +49,5 @@ MonoBehaviour:
   levyContributionPermillePerLevel: 0
   levyFormationsPerLevel: 1
   levyMobilizationTicks: 0
-  levyRecoveryTicks: 20
+  levyRecoveryTicks: 120
   levyDemobilizationTicks: 0

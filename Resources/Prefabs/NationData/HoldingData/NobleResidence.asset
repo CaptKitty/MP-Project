@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d02d5c403b94ed68e3d3521f324708d, type: 3}
+  m_Name: NobleResidence
+  m_EditorClassIdentifier: Assembly-CSharp::HoldingDefinition
+  id: NobleResidence
+  displayName: Noble Residence
+  description: An urban aristocratic residence that consumes local food without directly producing resources.
+  icon: {fileID: 4928747421176368004, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
+  category: 2
+  categoryTier: 1
+  tags: 132
+  suggestedAllegiance: Pro-Elite
+  maximumLevel: 1
+  defaultConstructionTicks: 12
+  levels:
+  - level: 1
+    goldCost: 50
+    constructionTicks: 12
+    goldIncome: 0
+    urbanizationResponse: 0
+    displayedEffect:
+    localModifiers:
+      maxDevelopment: 0
+      holdingEconomyModifiers: []
+  outputs: []
+  transformations:
+  - targetHoldingId: AristocraticPalace
+    minimumUrbanization: -100
+    maximumUrbanization: 100
+  foodConsumption: 1
+  foodUpkeep: 1
+  garrisonCapacity: 0
+  defaultClass: 5
+  canRaiseLevies: 0
+  levyUnit: {fileID: 0}
+  levyArchetype: 0
+  levyContributionPermillePerLevel: 0
+  levyFormationsPerLevel: 1
+  levyMobilizationTicks: 0
+  levyRecoveryTicks: 120
+  levyDemobilizationTicks: 0

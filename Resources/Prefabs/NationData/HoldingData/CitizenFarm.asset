@@ -15,9 +15,10 @@ MonoBehaviour:
   id: CitizenFarm
   displayName: Citizen Farm
   description: A holding worked by citizen households, producing food and income.
-  icon: {fileID: 0}
+  icon: {fileID: -3308644607800459090, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
   category: 0
   categoryTier: 2
+  tags: 13
   suggestedAllegiance: 
   maximumLevel: 1
   defaultConstructionTicks: 9
@@ -27,15 +28,17 @@ MonoBehaviour:
     baseValue: 1
     scalesWithUrbanization: 0
     suitability: 1
+    urbanizationResponse: 0
     disabledWhileMobilized: 1
   - type: 1
-    baseValue: 3
+    baseValue: 2
     scalesWithUrbanization: 0
     suitability: 1
+    urbanizationResponse: 0
     disabledWhileMobilized: 1
   transformations:
   - targetHoldingId: Freehold
-    minimumUrbanization: 0
+    minimumUrbanization: -100
     maximumUrbanization: 100
   - targetHoldingId: CommercialFarm
     minimumUrbanization: 35
@@ -44,8 +47,9 @@ MonoBehaviour:
   defaultClass: 6
   canRaiseLevies: 1
   levyUnit: {fileID: 11400000, guid: 59069d3402bf14c44936b61dc9a80810, type: 2}
+  levyArchetype: 5
   levyContributionPermillePerLevel: 1000
   levyFormationsPerLevel: 1
   levyMobilizationTicks: 0
-  levyRecoveryTicks: 20
+  levyRecoveryTicks: 120
   levyDemobilizationTicks: 0

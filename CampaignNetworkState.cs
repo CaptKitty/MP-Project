@@ -66,7 +66,7 @@ public struct CampaignProvinceState : INetworkSerializable
             NationIndex = (ushort)nationIndex,
             Supply = province.supply,
             Population = province.population,
-            Urbanization = Mathf.Clamp(province.urbanization, 0, province.MaximumDevelopment),
+            Urbanization = Mathf.Clamp(province.urbanization, -100, province.MaximumDevelopment),
             TerrainProfile = (byte)province.terrainProfile,
             RegionalFoodStorage = foodShare != null ? foodShare.foodStorage : 0,
             RegionalFoodStorageCapacity = foodShare != null ? foodShare.foodStorageCapacity : 1000,
@@ -112,6 +112,7 @@ public struct CampaignRecruitmentOrderState : INetworkSerializable
     public FixedString64Bytes UnitName;
     public int Amount;
     public int RemainingTicks;
+    public byte Origin;
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
@@ -119,6 +120,7 @@ public struct CampaignRecruitmentOrderState : INetworkSerializable
         serializer.SerializeValue(ref UnitName);
         serializer.SerializeValue(ref Amount);
         serializer.SerializeValue(ref RemainingTicks);
+        serializer.SerializeValue(ref Origin);
     }
 }
 
@@ -163,6 +165,52 @@ public struct CampaignNationState : INetworkSerializable
         serializer.SerializeValue(ref Gold);
         serializer.SerializeValue(ref UpkeepDebt);
         serializer.SerializeValue(ref LevyLawPermille);
+    }
+}
+
+public struct CampaignLawState : INetworkSerializable
+{
+    public ushort NationIndex;
+    public FixedString64Bytes Id;
+    public FixedString64Bytes DisplayName;
+    public int AmountPermille;
+    public byte Effect;
+    public byte Operation;
+    public byte Target;
+    public bool AnySocioEconomicClass;
+    public byte SocioEconomicClass;
+    public byte CultureScope;
+    public FixedString64Bytes CultureName;
+    public bool AnyUnitOrigin;
+    public byte UnitOrigin;
+
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+    {
+        serializer.SerializeValue(ref NationIndex); serializer.SerializeValue(ref Id);
+        serializer.SerializeValue(ref DisplayName); serializer.SerializeValue(ref AmountPermille);
+        serializer.SerializeValue(ref Effect); serializer.SerializeValue(ref Operation); serializer.SerializeValue(ref Target);
+        serializer.SerializeValue(ref AnySocioEconomicClass); serializer.SerializeValue(ref SocioEconomicClass);
+        serializer.SerializeValue(ref CultureScope); serializer.SerializeValue(ref CultureName);
+        serializer.SerializeValue(ref AnyUnitOrigin); serializer.SerializeValue(ref UnitOrigin);
+    }
+}
+
+public struct CampaignClassRuleState : INetworkSerializable
+{
+    public ushort NationIndex;
+    public FixedString64Bytes LawId;
+    public FixedString64Bytes DisplayName;
+    public byte Type;
+    public byte AffectedClass;
+    public byte ResultingClass;
+    public FixedString64Bytes CultureName;
+
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+    {
+        serializer.SerializeValue(ref NationIndex); serializer.SerializeValue(ref LawId);
+        serializer.SerializeValue(ref DisplayName); serializer.SerializeValue(ref Type);
+        serializer.SerializeValue(ref AffectedClass); serializer.SerializeValue(ref ResultingClass);
+        serializer.SerializeValue(ref CultureName);
     }
 }
 

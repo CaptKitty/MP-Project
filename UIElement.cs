@@ -9,6 +9,7 @@ public class UIElement : MonoBehaviour
     public static UIElement NationHost;
     public static UIElement ProvinceHost;
     public static UIElement ArmyHost;
+    private static readonly List<UIElement> ProvinceHostCandidates = new List<UIElement>();
     private static int lastArmySelectionFrame = -1;
     private Text currencyText;
     private Text armyNameText;
@@ -43,7 +44,8 @@ public class UIElement : MonoBehaviour
         }
         if (gameObject.name == "ProvinceHost")
         {
-            ProvinceHost = this;
+            if (!ProvinceHostCandidates.Contains(this)) ProvinceHostCandidates.Add(this);
+            ResolveProvinceHost();
         }
         if (gameObject.name == "ArmyHost")
         {
@@ -58,8 +60,8 @@ public class UIElement : MonoBehaviour
     {
         if (gameObject.name == "NationHost") RefreshCurrency();
         if (gameObject.name == "ArmyHost") RefreshArmyPanel(true);
-        if (gameObject.name == "ProvinceHost" || gameObject.name == "ArmyHost")
-            gameObject.SetActive(false);
+        if (gameObject.name == "ProvinceHost") ProvinceVisibilityRoot().SetActive(false);
+        else if (gameObject.name == "ArmyHost") gameObject.SetActive(false);
     }
 
     public static void ProvinceSelected()
@@ -90,9 +92,10 @@ public class UIElement : MonoBehaviour
 
     public static void RefreshSelectionPanels()
     {
+        ResolveProvinceHost();
         bool hasExplicitArmy = FieldArmyHolder.InspectedArmy != null;
         bool hasProvince = Mapshower.Instance != null && Mapshower.Instance.SelectedProvince != null;
-        if (ProvinceHost != null) ProvinceHost.gameObject.SetActive(hasProvince && !hasExplicitArmy);
+        if (ProvinceHost != null) ProvinceHost.ProvinceVisibilityRoot().SetActive(hasProvince && !hasExplicitArmy);
         if (ArmyHost != null)
         {
             ArmyHost.gameObject.SetActive(hasExplicitArmy);
@@ -102,6 +105,8 @@ public class UIElement : MonoBehaviour
 
     private void OnDestroy()
     {
+        ProvinceHostCandidates.Remove(this);
+        if (ProvinceHost == this) { ProvinceHost = null; ResolveProvinceHost(); }
         if (armyCompositionMaterial != null) Destroy(armyCompositionMaterial);
         if (compositionStatDisplay != null) Destroy(compositionStatDisplay.gameObject);
     }
@@ -160,10 +165,19 @@ public class UIElement : MonoBehaviour
 
     private Text FindNamedText(string objectName)
     {
-        Transform[] descendants = GetComponentsInChildren<Transform>(true);
+        Transform searchRoot = this == ProvinceHost ? ProvinceVisibilityRoot().transform : transform;
+        Transform[] descendants = searchRoot.GetComponentsInChildren<Transform>(true);
         for (int i = 0; i < descendants.Length; i++)
             if (descendants[i].name == objectName) return descendants[i].GetComponent<Text>();
         return null;
+    }
+
+    private GameObject ProvinceVisibilityRoot()
+    {
+        if (gameObject.name != "ProvinceHost") return gameObject;
+        Transform parent = transform.parent;
+        return parent != null && parent.name.Equals("AdministrationMenu", System.StringComparison.OrdinalIgnoreCase)
+            ? parent.gameObject : gameObject;
     }
 
     private static FieldArmyHolder SelectedArmy()
@@ -212,13 +226,13 @@ public class UIElement : MonoBehaviour
     {
         recruitUnitsButton = CreateArmyActionButton("Recruit Units", new Vector2(.04f, .12f), new Vector2(.48f, .20f),
             new Color(.18f, .30f, .16f, .95f), OpenArmyRecruitment, out recruitUnitsLabel);
-        recruitAllLeviesButton = CreateArmyActionButton("Recruit All Available Levies", new Vector2(.04f, .03f), new Vector2(.48f, .11f),
+        recruitAllLeviesButton = CreateArmyActionButton("Recruit All Available Levies", new Vector2(.04f, .12f), new Vector2(.48f, .20f),
             new Color(.28f, .20f, .08f, .95f), RaiseAllAvailableLevies, out recruitAllLeviesLabel);
-        demobilizeLeviesButton = CreateArmyActionButton("Demobilize Levies", new Vector2(.04f, .03f), new Vector2(.48f, .11f),
+        demobilizeLeviesButton = CreateArmyActionButton("Demobilize Levies", new Vector2(.04f, .12f), new Vector2(.48f, .20f),
             new Color(.24f, .14f, .10f, .95f), DemobilizeAllLevies, out demobilizeLeviesLabel);
-        ((RectTransform)recruitUnitsButton.transform).anchoredPosition = new Vector2(-50f, 60f);
-        ((RectTransform)recruitAllLeviesButton.transform).anchoredPosition = new Vector2(-50f, 25f);
-        ((RectTransform)demobilizeLeviesButton.transform).anchoredPosition = new Vector2(-50f, -20f);
+        ((RectTransform)recruitUnitsButton.transform).anchoredPosition = new Vector2(-50f, 80f);
+        ((RectTransform)recruitAllLeviesButton.transform).anchoredPosition = new Vector2(-50f, 40f);
+        ((RectTransform)demobilizeLeviesButton.transform).anchoredPosition = new Vector2(-50f, 0f);
     }
 
     private Button CreateArmyActionButton(string objectName, Vector2 anchorMin, Vector2 anchorMax, Color color,
@@ -283,6 +297,22 @@ public class UIElement : MonoBehaviour
             CampaignNetworkPlayer.Local.RequestRaiseAllLevies();
         else province.RaiseAllAvailableRegionLevies(army, true);
         RefreshArmyRecruitmentButtons();
+    }
+
+    private static void ResolveProvinceHost()
+    {
+        UIElement fallback = null;
+        foreach (UIElement candidate in ProvinceHostCandidates)
+        {
+            if (candidate == null) continue;
+            if (fallback == null) fallback = candidate;
+            if (candidate.GetComponent<UIProvinceHost>() != null)
+            {
+                ProvinceHost = candidate;
+                return;
+            }
+        }
+        ProvinceHost = fallback;
     }
 
     private void DemobilizeAllLevies()
@@ -546,8 +576,16 @@ public class UIElement : MonoBehaviour
     {
         if (this == ArmyHost && armyNameText != null)
             SetTemplateText(armyNameText, armyNameTemplate, text);
+        else if (this == ProvinceHost)
+        {
+            Text provinceTitle = FindNamedText("ProvinceName");
+            if (provinceTitle != null) provinceTitle.text = text;
+        }
         else if (transform.childCount > 0)
-            transform.GetChild(0).gameObject.GetComponent<Text>().text = text;
+        {
+            Text title = transform.GetChild(0).GetComponent<Text>();
+            if (title != null) title.text = text;
+        }
     }
     public void UpdateSecond(string text, string supply = "")
     {

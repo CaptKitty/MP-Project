@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bcd7e51e799ed68459ac45f74d6d8f85, type: 3}
   m_Name: Barbarian
   m_EditorClassIdentifier: Assembly-CSharp::CivilizationData
+  assemblyName: Council of Elders
   content:
     units:
     - unit: {fileID: 11400000, guid: 8d26d17d75f9c5748a8f2e463b59e1ec, type: 2}
@@ -27,8 +28,62 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 05fb6ded8375fbb4a81c7af3ff0cfff7, type: 2}
     - {fileID: 11400000, guid: 42f8062780014adc9668816a333e84c1, type: 2}
     - {fileID: 11400000, guid: 9cf66db099034b44a73c26002b26adb9, type: 2}
+    - {fileID: 11400000, guid: a15c73e0279a4a7fa562b2c842edc441, type: 2}
+    - {fileID: 11400000, guid: c7611d9213d74a66b5dc965a75e4f18b, type: 2}
+    - {fileID: 11400000, guid: f3068d8151f54539965173239269e2e8, type: 2}
+    - {fileID: 11400000, guid: b8aacba79c404fd6a4783cb563031fd8, type: 2}
+    - {fileID: 11400000, guid: 2bd5190344af43298421420a8399e4c8, type: 2}
     generalNames: []
     flags:
     - Barbarian
     holdingEconomyModifiers: []
     levies: []
+    laws:
+    - id: tribal_muster
+      displayName: Tribal Muster
+      effects:
+      - type: 0
+        operation: 0
+        amountPermille: 200
+        target: 1
+        anySocioEconomicClass: 1
+        socioEconomicClass: 2
+        cultureScope: 0
+        cultureName: 
+        anyUnitOrigin: 1
+        unitOrigin: 0
+    - id: warrior_rites
+      displayName: Warrior Rites
+      effects:
+      - type: 4
+        operation: 0
+        amountPermille: 250
+        target: 0
+        anySocioEconomicClass: 1
+        socioEconomicClass: 6
+        cultureScope: 0
+        cultureName: 
+        anyUnitOrigin: 1
+        unitOrigin: 0
+    - id: ancestral_nobility
+      displayName: Ancestral Nobility
+      effects: []
+      classRules:
+      - type: 0
+        affectedClass: 5
+        resultingClass: 2
+        cultureName: 
+    - id: kings_share
+      displayName: King's Share
+      effects:
+      - type: 5
+        operation: 0
+        amountPermille: 200
+        target: 0
+        anySocioEconomicClass: 1
+        socioEconomicClass: 6
+        cultureScope: 0
+        cultureName: 
+        anyUnitOrigin: 1
+        unitOrigin: 0
+      classRules: []

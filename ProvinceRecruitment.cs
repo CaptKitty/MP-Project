@@ -42,6 +42,8 @@ public class ProvinceBuilding
 
     public int DefinitionGoldIncomeAt(int urbanization) => SumUrbanizedEffect(urbanization, entry => entry.goldIncome);
     public int DefinitionFoodOutputAt(int urbanization) => SumUrbanizedEffect(urbanization, entry => entry.food);
+    public float DefinitionGoldIncomeUnrounded(float urbanization) => SumUrbanizedEffectUnrounded(urbanization, entry => entry.goldIncome);
+    public float DefinitionFoodOutputUnrounded(float urbanization) => SumUrbanizedEffectUnrounded(urbanization, entry => entry.food);
 
     private int SumUrbanizedEffect(int urbanization, Func<BuildingLevelDefinition, int> selector)
     {
@@ -50,6 +52,16 @@ public class ProvinceBuilding
         foreach (BuildingLevelDefinition entry in definition.levels)
             if (entry != null && entry.level <= level)
                 total += UrbanizationOutputScaling.Apply(selector(entry), entry.urbanizationResponse, urbanization);
+        return total;
+    }
+
+    private float SumUrbanizedEffectUnrounded(float urbanization, Func<BuildingLevelDefinition, int> selector)
+    {
+        if (definition == null || definition.levels == null) return 0f;
+        float total = 0f;
+        foreach (BuildingLevelDefinition entry in definition.levels)
+            if (entry != null && entry.level <= level)
+                total += UrbanizationOutputScaling.ApplyUnrounded(selector(entry), entry.urbanizationResponse, urbanization);
         return total;
     }
 
@@ -103,21 +115,31 @@ public class ProvinceConstructionOrder
 public class ProvinceMercenaryPool
 {
     // Data is retained for saves and future reactivation, but all recruitment paths respect this switch.
-    public const bool Enabled = false;
+    public static readonly bool Enabled = false;
     public UnitSaveData unit;
     public int available;
     public int capacity = 3;
     public float regenerationPerTurn = 0.25f;
     public float regenerationProgress;
 
-    public void Regenerate()
+    public int EffectiveCapacity(Nation nation)
+    {
+        int result = Mathf.Max(0, capacity);
+        return nation != null
+            ? Mathf.Max(0, nation.ApplyLawModifiers(NationalLawEffectType.MercenaryPoolCapacity, result, null,
+                CampaignUnitOrigin.Mercenary))
+            : result;
+    }
+
+    public void Regenerate(Nation nation = null)
     {
         if (!Enabled) return;
-        if (unit == null || available >= capacity) return;
+        int currentCapacity = EffectiveCapacity(nation);
+        if (unit == null || available >= currentCapacity) return;
         regenerationProgress += regenerationPerTurn;
         int gained = Mathf.FloorToInt(regenerationProgress);
         if (gained <= 0) return;
-        available = Mathf.Min(capacity, available + gained);
+        available = Mathf.Min(currentCapacity, available + gained);
         regenerationProgress -= gained;
     }
 }

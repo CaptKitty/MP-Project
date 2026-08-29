@@ -15,7 +15,7 @@ MonoBehaviour:
   id: CommercialFarm
   displayName: Commercial Farm
   description: "Commercial Farm \u2014 tier 2 CommercialAgriculture holding."
-  icon: {fileID: 0}
+  icon: {fileID: 5691900996422428356, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
   category: 3
   categoryTier: 2
   tags: 3
@@ -34,20 +34,20 @@ MonoBehaviour:
       holdingEconomyModifiers: []
   outputs:
   - type: 1
-    baseValue: 3
+    baseValue: 2
     scalesWithUrbanization: 0
     suitability: 1
     urbanizationResponse: 50
     disabledWhileMobilized: 1
   - type: 0
-    baseValue: 4
+    baseValue: 3
     scalesWithUrbanization: 0
     suitability: 1
     urbanizationResponse: 50
     disabledWhileMobilized: 1
   transformations:
   - targetHoldingId: CashCropFarm
-    minimumUrbanization: 0
+    minimumUrbanization: -100
     maximumUrbanization: 100
   foodConsumption: 1
   defaultClass: 6
@@ -57,5 +57,5 @@ MonoBehaviour:
   levyContributionPermillePerLevel: 500
   levyFormationsPerLevel: 1
   levyMobilizationTicks: 0
-  levyRecoveryTicks: 20
+  levyRecoveryTicks: 120
   levyDemobilizationTicks: 0

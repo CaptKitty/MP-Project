@@ -15,10 +15,10 @@ MonoBehaviour:
   id: TenantFarm
   displayName: Tenant Farm
   description: "Tenant Farm \u2014 tier 1 FreeFarmers holding."
-  icon: {fileID: 0}
+  icon: {fileID: -3308644607800459090, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
   category: 0
   categoryTier: 1
-  tags: 9
+  tags: 13
   suggestedAllegiance: 
   maximumLevel: 1
   defaultConstructionTicks: 12
@@ -41,18 +41,18 @@ MonoBehaviour:
     disabledWhileMobilized: 1
   transformations:
   - targetHoldingId: CitizenFarm
-    minimumUrbanization: 0
+    minimumUrbanization: -100
     maximumUrbanization: 100
   - targetHoldingId: MarketGarden
     minimumUrbanization: 25
     maximumUrbanization: 100
   foodConsumption: 1
-  defaultClass: 2
+  defaultClass: 6
   canRaiseLevies: 1
-  levyUnit: {fileID: 11400000, guid: 6908971fc78bb8843ae5d18483671e72, type: 2}
-  levyArchetype: 1
+  levyUnit: {fileID: 11400000, guid: 59069d3402bf14c44936b61dc9a80810, type: 2}
+  levyArchetype: 5
   levyContributionPermillePerLevel: 600
   levyFormationsPerLevel: 1
   levyMobilizationTicks: 0
-  levyRecoveryTicks: 20
+  levyRecoveryTicks: 120
   levyDemobilizationTicks: 0

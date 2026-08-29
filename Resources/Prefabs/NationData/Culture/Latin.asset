@@ -13,17 +13,15 @@ MonoBehaviour:
   m_Name: Latin
   m_EditorClassIdentifier: Assembly-CSharp::NationCultureData
   cultureName: Latin
+  startingUrbanization: 0
   color:
     serializedVersion: 2
-    rgba: 4286611584
+    rgba: 4278190239
   content:
     units:
-    - unit: {fileID: 11400000, guid: 532f59a396dcfa04596c6704595f7feb, type: 2}
+    - unit: {fileID: 11400000, guid: 59069d3402bf14c44936b61dc9a80810, type: 2}
       requiredBuilding: {fileID: 0}
       minimumBuildingLevel: 1
-    - unit: {fileID: 11400000, guid: 6908971fc78bb8843ae5d18483671e72, type: 2}
-      requiredBuilding: {fileID: 0}
-      minimumBuildingLevel: 0
     buildings: []
     generalNames:
     - Barkus Aurelius

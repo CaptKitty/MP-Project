@@ -1173,7 +1173,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Egypt Expedition
+  m_Text: Observe
 --- !u!222 &641148307
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1500,7 +1500,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 695a43e7074c9f349ac72ab03a2cd053, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  message: <Placeholder>
+  message: 'Galicia:
+
+
+    Totally not Barbarians who rely on mass mobilization and
+    benefit from raiding and looting their neighbours.
+
+
+    Spain Edition'
   armory: 0
   events: 0
   skills: 0
@@ -1858,6 +1865,13 @@ MonoBehaviour:
       LastGrossIncome: 0
       LastUnitUpkeep: 0
       UpkeepDebt: 0
+      laws: []
+      politicalGroups: []
+      politicalProposals: []
+      levyRecoveryBoostTicks: 0
+      levyRecoveryBonusPerTick: 0
+      LevyLawPermille: 200
+      holdingEconomyModifiers: []
       AIMinimumCampaignArmySize: 10
     OriginalNation:
       name: 
@@ -1880,6 +1894,13 @@ MonoBehaviour:
       LastGrossIncome: 0
       LastUnitUpkeep: 0
       UpkeepDebt: 0
+      laws: []
+      politicalGroups: []
+      politicalProposals: []
+      levyRecoveryBoostTicks: 0
+      levyRecoveryBonusPerTick: 0
+      LevyLawPermille: 200
+      holdingEconomyModifiers: []
       AIMinimumCampaignArmySize: 10
     state: 
     region: 
@@ -1904,6 +1925,16 @@ MonoBehaviour:
     levyEntitlements: []
     holdings: []
     holdingConstructionOrders: []
+    baseHoldingTagDesires: []
+    holdingEvolution:
+      evaluationIntervalTicks: 1
+      pressureRequired: 100
+      pressureGainPerEvaluation: 25
+      pressureDecayPerEvaluation: 5
+      transformationCooldownTicks: 24
+      minimumImprovementPercent: 8
+      diversityWeightPercent: 20
+      urbanizationChangeIntervalTicks: 8
   savedArmy: {fileID: 0}
   savedFieldArmy: {fileID: 0}
   BattleStatus: None
@@ -2389,12 +2420,8 @@ MonoBehaviour:
   message: 'Roman Republic
 
 
-    The Sons of Mars field inexhaustable armies of armored
-    infantry.
-
-
-    ><b>Roman Resiliency</b>: Recruit at double speed in friendly
-    lands.'
+    The Sons of Mars field inexhaustable Citizen armies
+    of armored infantry.'
   armory: 0
   events: 0
   skills: 0
@@ -4160,7 +4187,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1302021288}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 695a43e7074c9f349ac72ab03a2cd053, type: 3}
   m_Name: 
@@ -5546,8 +5573,8 @@ MonoBehaviour:
     native infantry is supported by a variety of foreign auxilia.
 
 
-    ><b>Foreign
-    Recruits</b>: Can recruit troops while abroad.'
+    Does not
+    like levies, let alone domestic ones.'
   armory: 0
   events: 0
   skills: 0
@@ -6131,15 +6158,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 695a43e7074c9f349ac72ab03a2cd053, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  message: 'Roman Republic
+  message: 'Franks:
 
 
-    The Sons of Mars field inexhaustable armies of armored
-    infantry.
+    Gigachad Barbarians who rely on mass mobilization and benefit
+    from raiding and looting their neighbours.
 
 
-    ><b>Roman Resiliency</b>: Recruit at double speed in friendly
-    lands.'
+    Dutch Edition'
   armory: 0
   events: 0
   skills: 0
@@ -6537,14 +6563,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 695a43e7074c9f349ac72ab03a2cd053, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  message: 'Tribes of Gaul
+  message: 'Hadue:
 
 
-    Chiefs of the forest, the gauls field indomidable
-    armies of tribesmen that excell in dense forests and rough terrain.
+    Barbarians who rely on mass mobilization and benefit from
+    raiding and looting their neighbours.
 
 
-    >:'
+    France Edition'
   armory: 0
   events: 0
   skills: 0

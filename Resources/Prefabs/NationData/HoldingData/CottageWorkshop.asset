@@ -15,7 +15,7 @@ MonoBehaviour:
   id: CottageWorkshop
   displayName: Cottage Workshop
   description: "Cottage Workshop \u2014 tier 1 Artisans holding."
-  icon: {fileID: 0}
+  icon: {fileID: 8743396785117785620, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
   category: 5
   categoryTier: 1
   tags: 38
@@ -41,7 +41,7 @@ MonoBehaviour:
     disabledWhileMobilized: 1
   transformations:
   - targetHoldingId: Workshop
-    minimumUrbanization: 0
+    minimumUrbanization: -100
     maximumUrbanization: 100
   - targetHoldingId: TraderHousehold
     minimumUrbanization: 40
@@ -54,5 +54,5 @@ MonoBehaviour:
   levyContributionPermillePerLevel: 250
   levyFormationsPerLevel: 1
   levyMobilizationTicks: 0
-  levyRecoveryTicks: 20
+  levyRecoveryTicks: 120
   levyDemobilizationTicks: 0

@@ -40,12 +40,60 @@ MonoBehaviour:
   - DoubleLocalRecruitment
   - CrusherOfGarrisons
   factionTheme: {fileID: 11400000, guid: c088128c897fb7d45a3b7bea8586fb9a, type: 2}
+  assemblyName: Senate
   content:
-    units: []
+    units:
+    - unit: {fileID: 11400000, guid: 6908971fc78bb8843ae5d18483671e72, type: 2}
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 1
+    - unit: {fileID: 11400000, guid: 532f59a396dcfa04596c6704595f7feb, type: 2}
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 2
     buildings: []
     generalNames: []
     flags: []
+    holdingEconomyModifiers: []
     levies: []
+    laws:
+    - id: roman_citizen_levy
+      displayName: Citizen Levy
+      effects:
+      - type: 0
+        operation: 0
+        amountPermille: 400
+        target: 1
+        anySocioEconomicClass: 0
+        socioEconomicClass: 6
+        cultureScope: 0
+        cultureName: 
+        anyUnitOrigin: 1
+        unitOrigin: 0
+    - id: roman_civic_order
+      displayName: Roman Civic Order
+      effects: []
+      classRules:
+      - type: 0
+        affectedClass: 6
+        resultingClass: 2
+        cultureName: 
+      - type: 0
+        affectedClass: 5
+        resultingClass: 2
+        cultureName: 
+    - id: roman_muster_rolls
+      displayName: Citizen Muster Rolls
+      effects:
+      - type: 6
+        operation: 1
+        amountPermille: -500
+        target: 0
+        anySocioEconomicClass: 1
+        socioEconomicClass: 6
+        cultureScope: 0
+        cultureName: 
+        anyUnitOrigin: 1
+        unitOrigin: 0
+      classRules: []
   unitReplacements: []
   buildingReplacements: []
   Income: 500

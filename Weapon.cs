@@ -11,6 +11,12 @@ public enum MeleeReachPattern
     Long = 3
 }
 
+public enum RangedWeaponUsage
+{
+    Standard = 0,
+    OpeningThrowable = 1
+}
+
 [CreateAssetMenu(menuName = "Weapon/Basic")]
 public class Weapon : ScriptableObject
 {
@@ -51,6 +57,8 @@ public class Weapon : ScriptableObject
     public GameObject Throwable;
     public int ammo = 0;
     public Modifier modifier;
+    [Tooltip("Opening Throwable keeps the carrier on melee AI, permits one throw during an active charge, then uses the backup melee weapon.")]
+    public RangedWeaponUsage rangedUsage = RangedWeaponUsage.Standard;
 
     [Header("Gear")]
     public Armor armor;
@@ -77,6 +85,7 @@ public class Weapon : ScriptableObject
         potato.Throwable = Throwable;
         potato.ammo = ammo;
         potato.modifier = modifier;
+        potato.rangedUsage = rangedUsage;
         potato.animationtype = animationtype;
         potato.animationClass = animationClass;
         potato.overrideVisualPose = overrideVisualPose;
@@ -97,6 +106,7 @@ public class Weapon : ScriptableObject
         if (Throwable != null)
         {
             newstring += "\n" + ammo + " ammo";
+            if (rangedUsage == RangedWeaponUsage.OpeningThrowable) newstring += " (opening throw during charge)";
         }
         if (modifier != null)
         {

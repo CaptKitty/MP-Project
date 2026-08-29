@@ -15,10 +15,10 @@ MonoBehaviour:
   id: Freehold
   displayName: Freehold
   description: "Freehold \u2014 tier 3 FreeFarmers holding."
-  icon: {fileID: 0}
+  icon: {fileID: -3308644607800459090, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
   category: 0
   categoryTier: 3
-  tags: 9
+  tags: 13
   suggestedAllegiance: 
   maximumLevel: 1
   defaultConstructionTicks: 20
@@ -34,7 +34,7 @@ MonoBehaviour:
       holdingEconomyModifiers: []
   outputs:
   - type: 1
-    baseValue: 5
+    baseValue: 3
     scalesWithUrbanization: 0
     suitability: 1
     urbanizationResponse: 0
@@ -45,17 +45,14 @@ MonoBehaviour:
     suitability: 1
     urbanizationResponse: 0
     disabledWhileMobilized: 1
-  transformations:
-  - targetHoldingId: Estate
-    minimumUrbanization: 45
-    maximumUrbanization: 100
+  transformations: []
   foodConsumption: 1
   defaultClass: 6
   canRaiseLevies: 1
-  levyUnit: {fileID: 11400000, guid: 532f59a396dcfa04596c6704595f7feb, type: 2}
+  levyUnit: {fileID: 11400000, guid: 59069d3402bf14c44936b61dc9a80810, type: 2}
   levyArchetype: 5
   levyContributionPermillePerLevel: 1400
   levyFormationsPerLevel: 1
   levyMobilizationTicks: 0
-  levyRecoveryTicks: 20
+  levyRecoveryTicks: 120
   levyDemobilizationTicks: 0

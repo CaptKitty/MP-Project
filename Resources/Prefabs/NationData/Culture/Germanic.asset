@@ -13,7 +13,11 @@ MonoBehaviour:
   m_Name: Germanic
   m_EditorClassIdentifier: Assembly-CSharp::NationCultureData
   cultureName: Germanic
-  color: {r: 61, g: 112, b: 184, a: 255}
+  color:
+    serializedVersion: 2
+    rgba: 4278190162
+  assemblyName: 
+  startingUrbanization: -100
   content:
     units:
     - unit: {fileID: 11400000, guid: 47df4b1323052964c82b10d37a0c945a, type: 2}
@@ -22,6 +26,12 @@ MonoBehaviour:
     - unit: {fileID: 11400000, guid: ee30590a308de1749bac4bc02c264797, type: 2}
       requiredBuilding: {fileID: 0}
       minimumBuildingLevel: 2
+    - unit: {fileID: 11400000, guid: fa4a84c0cf334da40bb64d728942e382, type: 2}
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 2
+    - unit: {fileID: 11400000, guid: 8d26d17d75f9c5748a8f2e463b59e1ec, type: 2}
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 1
     buildings: []
     generalNames:
     - Friedrich Friedrichsson
@@ -32,3 +42,6 @@ MonoBehaviour:
     - Karl Kalsson
     - Grug Gruggson
     flags: []
+    holdingEconomyModifiers: []
+    levies: []
+    laws: []

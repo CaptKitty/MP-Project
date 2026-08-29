@@ -15,10 +15,10 @@ MonoBehaviour:
   id: GreatPlantation
   displayName: Great Plantation
   description: "Great Plantation \u2014 tier 3 ServileAgriculture holding."
-  icon: {fileID: 0}
+  icon: {fileID: -9010400281192576930, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
   category: 4
   categoryTier: 3
-  tags: 265
+  tags: 257
   suggestedAllegiance: 
   maximumLevel: 1
   defaultConstructionTicks: 20
@@ -34,19 +34,20 @@ MonoBehaviour:
       holdingEconomyModifiers: []
   outputs:
   - type: 1
-    baseValue: 8
+    baseValue: 5
     scalesWithUrbanization: 0
     suitability: 1
     urbanizationResponse: 0
     disabledWhileMobilized: 0
   - type: 0
-    baseValue: 9
+    baseValue: 6
     scalesWithUrbanization: 0
     suitability: 1
     urbanizationResponse: 0
     disabledWhileMobilized: 0
   transformations: []
-  foodConsumption: 4
+  foodConsumption: 1
+  foodUpkeep: 3
   defaultClass: 8
   canRaiseLevies: 0
   levyUnit: {fileID: 0}
@@ -54,5 +55,5 @@ MonoBehaviour:
   levyContributionPermillePerLevel: 0
   levyFormationsPerLevel: 1
   levyMobilizationTicks: 0
-  levyRecoveryTicks: 20
+  levyRecoveryTicks: 120
   levyDemobilizationTicks: 0

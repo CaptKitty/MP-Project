@@ -15,7 +15,7 @@ MonoBehaviour:
   id: MerchantHolding
   displayName: Merchant Holding
   description: "Merchant Holding \u2014 tier 2 Commerce holding."
-  icon: {fileID: 0}
+  icon: {fileID: 2426552940522001899, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
   category: 6
   categoryTier: 2
   tags: 6
@@ -34,16 +34,17 @@ MonoBehaviour:
       holdingEconomyModifiers: []
   outputs:
   - type: 0
-    baseValue: 5
+    baseValue: 3
     scalesWithUrbanization: 0
     suitability: 1
     urbanizationResponse: 100
     disabledWhileMobilized: 0
   transformations:
   - targetHoldingId: MerchantHouse
-    minimumUrbanization: 0
+    minimumUrbanization: -100
     maximumUrbanization: 100
-  foodConsumption: 2
+  foodConsumption: 1
+  foodUpkeep: 1
   defaultClass: 6
   canRaiseLevies: 0
   levyUnit: {fileID: 0}
@@ -51,5 +52,5 @@ MonoBehaviour:
   levyContributionPermillePerLevel: 0
   levyFormationsPerLevel: 1
   levyMobilizationTicks: 0
-  levyRecoveryTicks: 20
+  levyRecoveryTicks: 120
   levyDemobilizationTicks: 0

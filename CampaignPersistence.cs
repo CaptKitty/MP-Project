@@ -89,6 +89,11 @@ public class CampaignSaveData
                 income = nation.faction.Income,
                 upkeepDebt = nation.UpkeepDebt,
                 levyLawPermille = nation.LevyLawPermille,
+                laws = nation.laws != null ? new List<NationalLaw>(nation.laws) : new List<NationalLaw>(),
+                politicalGroups = nation.politicalGroups != null ? new List<PoliticalGroup>(nation.politicalGroups) : new List<PoliticalGroup>(),
+                politicalProposals = nation.politicalProposals != null ? new List<PoliticalProposal>(nation.politicalProposals) : new List<PoliticalProposal>(),
+                levyRecoveryBoostTicks = nation.levyRecoveryBoostTicks,
+                levyRecoveryBonusPerTick = nation.levyRecoveryBonusPerTick,
                 flags = new List<string>(nation.faction.Flaglist)
             });
         }
@@ -100,7 +105,7 @@ public class CampaignSaveData
                 nation = province.nation.name,
                 population = province.population,
                 supply = province.supply,
-                urbanization = Mathf.Clamp(province.urbanization, 0, province.MaximumDevelopment),
+                urbanization = Mathf.Clamp(province.urbanization, -100, province.MaximumDevelopment),
                 unrest = province.unrest,
                 terrainProfile = (int)province.terrainProfile
             };
@@ -146,7 +151,7 @@ public class CampaignSaveData
                 if (holding != null) savedProvince.holdings.Add(new SavedHolding { instanceId = holding.instanceId,
                     id = holding.HoldingId,
                     level = holding.level, slotIndex = holding.slotIndex, cultureName = holding.cultureName,
-                    socioEconomicClass = (int)holding.socioEconomicClass, allegiance = holding.allegiance,
+                    socioEconomicClass = (int)SocioEconomicClassRules.Normalize(holding.socioEconomicClass), allegiance = holding.allegiance,
                     levyEnabled = holding.levyEnabled, adaptationTargetId = holding.adaptationTargetId,
                     adaptationPressure = holding.adaptationPressure, adaptationCooldownTicks = holding.adaptationCooldownTicks });
             if (province.holdingConstructionOrders != null)
@@ -198,7 +203,8 @@ public class CampaignSaveData
                 foreach (ArmyRecruitmentOrder order in army.fieldArmy.recruitmentOrders)
                     if (order != null && order.unit != null) saved.recruitment.Add(new SavedRecruitmentOrder
                     {
-                        unitName = order.unit.name, amount = order.amount, remainingTicks = order.remainingTicks
+                        unitName = order.unit.name, amount = order.amount, remainingTicks = order.remainingTicks,
+                        origin = (int)order.origin
                     });
             save.armies.Add(saved);
         }
@@ -224,6 +230,13 @@ public class CampaignSaveData
             nation.faction.Income = state.income;
             nation.UpkeepDebt = Mathf.Max(0, state.upkeepDebt);
             if (state.levyLawPermille >= 0) nation.LevyLawPermille = Mathf.Clamp(state.levyLawPermille, 0, 1000);
+            nation.laws = state.laws != null ? new List<NationalLaw>(state.laws) : new List<NationalLaw>();
+            nation.politicalGroups = state.politicalGroups != null ? new List<PoliticalGroup>(state.politicalGroups) : new List<PoliticalGroup>();
+            nation.politicalProposals = state.politicalProposals != null ? new List<PoliticalProposal>(state.politicalProposals) : new List<PoliticalProposal>();
+            nation.levyRecoveryBoostTicks = Mathf.Max(0, state.levyRecoveryBoostTicks);
+            nation.levyRecoveryBonusPerTick = Mathf.Max(0, state.levyRecoveryBonusPerTick);
+            nation.ResetLawResolution();
+            nation.EnsureDefaultLaws();
             nation.faction.Flaglist = new List<string>(state.flags ?? new List<string>());
             nation.faction.Set();
         }
@@ -234,7 +247,7 @@ public class CampaignSaveData
             if (province == null || nation == null) continue;
             province.nation = nation;
             province.supply = state.supply;
-            province.urbanization = Mathf.Max(0, state.urbanization);
+            province.urbanization = Mathf.Clamp(state.urbanization, -100, province.MaximumDevelopment);
             province.unrest = state.unrest;
             if (state.cultures != null && state.cultures.Count > 0)
             {
@@ -299,7 +312,8 @@ public class CampaignSaveData
                     definition = definition, id = holding.id,
                     level = Mathf.Max(1, holding.level), slotIndex = holding.slotIndex,
                     cultureName = holding.cultureName,
-                    socioEconomicClass = (SocioEconomicClass)Mathf.Clamp(holding.socioEconomicClass, 0, 8),
+                    socioEconomicClass = SocioEconomicClassRules.Normalize(
+                        (SocioEconomicClass)Mathf.Clamp(holding.socioEconomicClass, 0, 8)),
                     allegiance = holding.allegiance,
                     levyEnabled = holding.levyEnabled, adaptationTargetId = holding.adaptationTargetId,
                     adaptationPressure = Mathf.Max(0, holding.adaptationPressure),
@@ -393,7 +407,8 @@ public class CampaignSaveData
                     UnitSaveData unit = FindSavedUnit(nation, order.unitName);
                     if (unit != null) army.fieldArmy.recruitmentOrders.Add(new ArmyRecruitmentOrder
                     {
-                        unit = unit, amount = order.amount, remainingTicks = order.remainingTicks
+                        unit = unit, amount = order.amount, remainingTicks = order.remainingTicks,
+                        origin = (CampaignUnitOrigin)Mathf.Clamp(order.origin, 0, 3)
                     });
                 }
         }
@@ -421,7 +436,7 @@ public class CampaignSaveData
     }
 }
 
-[Serializable] public class SavedNation { public string name; public int manpower; public int gold = -1; public int armyNumber; public int barracksLevel; public int mercenaryLevel; public int farmLevel; public int income; public int upkeepDebt; public int levyLawPermille = -1; public List<string> flags = new List<string>(); }
+[Serializable] public class SavedNation { public string name; public int manpower; public int gold = -1; public int armyNumber; public int barracksLevel; public int mercenaryLevel; public int farmLevel; public int income; public int upkeepDebt; public int levyLawPermille = -1; public List<NationalLaw> laws = new List<NationalLaw>(); public List<PoliticalGroup> politicalGroups = new List<PoliticalGroup>(); public List<PoliticalProposal> politicalProposals = new List<PoliticalProposal>(); public int levyRecoveryBoostTicks; public int levyRecoveryBonusPerTick; public List<string> flags = new List<string>(); }
 [Serializable] public class SavedProvince { public string name; public string nation; public int population; public int supply; public int urbanization; public int unrest; public int terrainProfile; public List<SavedCulture> cultures = new List<SavedCulture>(); public List<SavedBuilding> buildings = new List<SavedBuilding>(); public List<SavedConstructionOrder> construction = new List<SavedConstructionOrder>(); public List<SavedMercenaryPool> mercenaries = new List<SavedMercenaryPool>(); public List<SavedLevyEntitlement> levies = new List<SavedLevyEntitlement>(); public List<SavedHolding> holdings = new List<SavedHolding>(); public List<SavedHoldingConstructionOrder> holdingConstruction = new List<SavedHoldingConstructionOrder>(); }
 [Serializable] public class SavedCulture { public string name; public int population; public Color32 color; }
 [Serializable] public class SavedRegion { public string name; public float loyalty = 100f; public List<SavedRegionalLoyaltyShare> shares = new List<SavedRegionalLoyaltyShare>(); }
@@ -435,4 +450,4 @@ public class CampaignSaveData
 [Serializable] public class SavedLevyEntitlement { public string id; public string ruleId; public string unitName; public int buildingSlot; public string holdingId; public string holdingInstanceId; public int ordinal; public string beneficiaryNation; public int state; public bool eligible; public int remainingTicks; public string raisedArmyId; }
 [Serializable] public class SavedHolding { public string instanceId; public string id; public int level; public int slotIndex; public string cultureName; public int socioEconomicClass; public string allegiance; public bool levyEnabled = true; public string adaptationTargetId; public int adaptationPressure; public int adaptationCooldownTicks; }
 [Serializable] public class SavedHoldingConstructionOrder { public int slotIndex; public string holdingInstanceId; public string holdingId; public int targetLevel; public int remainingTicks; }
-[Serializable] public class SavedRecruitmentOrder { public string unitName; public int amount; public int remainingTicks; }
+[Serializable] public class SavedRecruitmentOrder { public string unitName; public int amount; public int remainingTicks; public int origin; }

@@ -12,14 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0328358a590af594aabff3322a37048d, type: 3}
   m_Name: Iberian_SpearChucker
   m_EditorClassIdentifier: 
-  spot: {x: 0, y: 0, z: 0}
-  unitname: Iberian_SpearChucker
+  unitname: SpearChucker
   unittype: 3
   cost: 50
   health: 100
-  speed: 1
+  recruitmentTicks: 3
+  upkeep: 1
   actions: 3
-  Initiative: 6
+  reactionTime: 6
   flaglist:
   - Forestry_Immunity
   RangedWeapon: {fileID: 11400000, guid: b20748d8d39bc7144ab514e36638e93d, type: 2}
@@ -27,10 +27,8 @@ MonoBehaviour:
   Armor: {fileID: 11400000, guid: c6fe3a90079e386418f1370598f70a5f, type: 2}
   Shield: {fileID: 11400000, guid: 1bd00b1d3809b2e45a258806a787dcb7, type: 2}
   modifierlist: []
-  color: {r: 0.53333336, g: 0, b: 0, a: 0}
-  color2: {r: 0.2509804, g: 0.2509804, b: 0.2509804, a: 0}
-  color3: {r: 1, g: 0.5529412, b: 0.39607844, a: 0}
-  faction: {fileID: 0}
+  Mercenary: 0
+  nativeSkintone: {r: 1, g: 0.5529412, b: 0.39607844, a: 0}
   upgradeModules:
   - {fileID: 11400000, guid: c353ac25d070870458f5a356ef34efc9, type: 2}
   - {fileID: 11400000, guid: 12cb537f16bdaf644a89878abb69b196, type: 2}
@@ -42,10 +40,4 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 0549e244f59c8b741a235ce5499153c0, type: 3}
   - {fileID: 0}
   - {fileID: 21300000, guid: 9551fde8601a24e4bba887117b0717b1, type: 3}
-  Mercenary: 0
   Big: 0
-  useFormation: 0
-  formationSize: 6
-  memberHealth: 150
-  memberSpacing: 1.85
-  formationLayout: 1

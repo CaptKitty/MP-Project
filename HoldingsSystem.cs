@@ -4,6 +4,7 @@ using UnityEngine;
 
 public enum SocioEconomicClass : byte
 {
+    // Legacy serialized values remain in place so old saves/assets can be migrated safely.
     Subsistence,
     Laborers,
     Freemen,
@@ -13,6 +14,27 @@ public enum SocioEconomicClass : byte
     Citizen,
     Elite,
     Enslaved
+}
+
+public static class SocioEconomicClassRules
+{
+    public static SocioEconomicClass Normalize(SocioEconomicClass value)
+    {
+        switch (value)
+        {
+            case SocioEconomicClass.Subsistence:
+            case SocioEconomicClass.Laborers:
+            case SocioEconomicClass.Burghers:
+            case SocioEconomicClass.Clergy:
+                return SocioEconomicClass.Freemen;
+            case SocioEconomicClass.Elite:
+                return SocioEconomicClass.Aristocracy;
+            default:
+                return value;
+        }
+    }
+
+    public static string DisplayName(SocioEconomicClass value) => Normalize(value).ToString();
 }
 
 public enum HoldingOutputType : byte
@@ -27,34 +49,65 @@ public enum HoldingCategory : byte
     Artisans, Commerce, Pastoralists, Hunters, Mining
 }
 
+public static class HoldingCategoryRules
+{
+    public static string DisplayName(HoldingCategory category)
+    {
+        switch (category)
+        {
+            case HoldingCategory.FreeFarmers: return "Free Farmers";
+            case HoldingCategory.TribalSubsistence: return "Tribal Subsistence";
+            case HoldingCategory.EliteAgriculture: return "Aristocratic Households";
+            case HoldingCategory.CommercialAgriculture: return "Commercial Agriculture";
+            case HoldingCategory.ServileAgriculture: return "Servile Agriculture";
+            default: return category.ToString();
+        }
+    }
+
+    public static string GroupName(ProvinceHolding holding) => holding != null && holding.definition != null
+        ? DisplayName(holding.definition.category) : "Unassigned";
+
+    public static Sprite RepresentativeIcon(IList<ProvinceHolding> holdings)
+    {
+        if (holdings == null) return null;
+        Dictionary<HoldingDefinition, int> counts = new Dictionary<HoldingDefinition, int>();
+        foreach (ProvinceHolding holding in holdings)
+            if (holding != null && holding.definition != null && holding.definition.icon != null)
+                counts[holding.definition] = counts.TryGetValue(holding.definition, out int count) ? count + 1 : 1;
+        HoldingDefinition best = null; int bestCount = -1;
+        foreach (KeyValuePair<HoldingDefinition, int> entry in counts)
+            if (entry.Value > bestCount || entry.Value == bestCount && (best == null ||
+                string.CompareOrdinal(entry.Key.StableId, best.StableId) < 0))
+            { best = entry.Key; bestCount = entry.Value; }
+        return best != null ? best.icon : null;
+    }
+}
+
 [Serializable]
 public sealed class HoldingTransformationOption
 {
     public string targetHoldingId;
-    [Range(0, 100)] public int minimumUrbanization;
-    [Range(0, 100)] public int maximumUrbanization = 100;
+    [Range(-100, 100)] public int minimumUrbanization = -100;
+    [Range(-100, 100)] public int maximumUrbanization = 100;
     public bool IsAvailable(Province province) => province != null &&
         province.urbanization >= minimumUrbanization && province.urbanization <= maximumUrbanization;
 }
 
 public static class UrbanizationOutputScaling
 {
-    // Holding economies were producing too much relative to the rest of the campaign.
-    // Keep authored values readable and apply the shared balance rate after local modifiers.
-    public const float HoldingResourceOutputRate = 2f / 3f;
-
     public static int Apply(int baseValue, int response, int urbanization)
     {
-        response = Mathf.Clamp(response, -100, 100);
-        if (response == 0 || baseValue == 0) return baseValue;
-        float modifierPercent = Mathf.Lerp(-response, response, Mathf.Clamp01(urbanization / 100f));
-        return Mathf.RoundToInt(baseValue * (1f + modifierPercent / 100f));
+        return Mathf.RoundToInt(ApplyUnrounded(baseValue, response, urbanization));
     }
 
-    public static int ApplyHoldingResourceRate(int value)
+    public static float ApplyUnrounded(float baseValue, int response, float urbanization)
     {
-        return Mathf.RoundToInt(value * HoldingResourceOutputRate);
+        response = Mathf.Clamp(response, -100, 100);
+        if (response == 0 || Mathf.Approximately(baseValue, 0f)) return baseValue;
+        float modifierPercent = response * Mathf.Clamp(urbanization, -100f, 100f) / 100f;
+        return baseValue * (1f + modifierPercent / 100f);
     }
+
 }
 
 [Serializable]
@@ -75,8 +128,7 @@ public sealed class HoldingOutputDefinition
     public int EffectiveValue(int urbanization, bool mobilized)
     {
         if (mobilized && disabledWhileMobilized) return 0;
-        int urbanizationAdjusted = UrbanizationOutputScaling.Apply(baseValue, EffectiveUrbanizationResponse, urbanization);
-        return UrbanizationOutputScaling.ApplyHoldingResourceRate(urbanizationAdjusted);
+        return UrbanizationOutputScaling.Apply(baseValue, EffectiveUrbanizationResponse, urbanization);
     }
 }
 
@@ -118,7 +170,7 @@ public sealed class ProvinceHolding
     public int LevyContributionPermille => CanRaiseLevies
         ? Mathf.Max(0, definition.levyContributionPermillePerLevel) * Mathf.Max(1, level) : 0;
     public float EffectiveLevyContribution(Nation nation) => LevyContributionPermille *
-        (nation != null ? Mathf.Max(0, nation.LevyLawPermille) : 0) / 1000000f;
+        (nation != null ? nation.GetHoldingLawAmount(NationalLawEffectType.LevyConscription, this) : 0) / 1000000f;
     public int GoldIncome
     {
         get
@@ -136,8 +188,7 @@ public sealed class ProvinceHolding
         int total = 0;
         foreach (HoldingLevelDefinition entry in definition.levels)
             if (entry != null && entry.level <= level)
-                total += UrbanizationOutputScaling.ApplyHoldingResourceRate(
-                    UrbanizationOutputScaling.Apply(entry.goldIncome, entry.urbanizationResponse, urbanization));
+                total += UrbanizationOutputScaling.Apply(entry.goldIncome, entry.urbanizationResponse, urbanization);
         return total;
     }
     public int GetOutput(HoldingOutputType type, int urbanization, bool mobilized)
@@ -150,12 +201,15 @@ public sealed class ProvinceHolding
             foreach (HoldingOutputDefinition output in definition.outputs)
                 if (output != null && output.type == type) total += output.EffectiveValue(urbanization, mobilized);
         if (type == HoldingOutputType.Food)
-            total = Mathf.Max(0, total) - (definition != null ? Mathf.Max(0, definition.foodConsumption) : 1);
+            total = Mathf.Max(0, total) - FoodConsumption;
         if (type == HoldingOutputType.Income && total == 0) total = GoldIncomeAt(urbanization);
         return total;
     }
 
-    public int FoodConsumption => definition != null ? Mathf.Max(0, definition.foodConsumption) : 1;
+    public int FoodConsumption => definition != null
+        ? Mathf.Max(0, definition.foodConsumption) + Mathf.Max(0, definition.foodUpkeep)
+        : 1;
+    public int FoodUpkeep => definition != null ? Mathf.Max(0, definition.foodUpkeep) : 0;
 }
 
 [Serializable]

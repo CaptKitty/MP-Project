@@ -777,8 +777,10 @@ public class LoadProvinces : MonoBehaviour
             province.baseMaximumDevelopment = Mathf.Max(0, baseDevelopment);
 
         List<string> urbanization = ReadBlock(text, "Urbanization");
-        if (urbanization.Count > 0 && int.TryParse(urbanization[0], out int startingUrbanization))
-            province.urbanization = Mathf.Max(0, startingUrbanization);
+        int startingUrbanization = 0;
+        bool hasExplicitUrbanization = urbanization.Count > 0 && int.TryParse(urbanization[0], out startingUrbanization);
+        if (hasExplicitUrbanization)
+            province.urbanization = Mathf.Clamp(startingUrbanization, -100, province.MaximumDevelopment);
 
         List<string> holdingLines = ReadBlock(text, "Holdings");
         if (holdingLines.Count > 0)
@@ -804,7 +806,7 @@ public class LoadProvinces : MonoBehaviour
                     province.holdings.Add(new ProvinceHolding {
                         instanceId = provinceName + "-holding-" + slot, definition = definition,
                         id = definition.StableId, level = Mathf.Min(level, definition.maximumLevel), slotIndex = slot++,
-                        cultureName = culture, socioEconomicClass = socialClass, allegiance = allegiance,
+                        cultureName = culture, socioEconomicClass = SocioEconomicClassRules.Normalize(socialClass), allegiance = allegiance,
                         levyEnabled = levyEnabled });
             }
         }
@@ -839,6 +841,25 @@ public class LoadProvinces : MonoBehaviour
                     localModifiers = new ProvinceLocalModifiers { maxDevelopment = maxDevelopment } });
             }
         }
+
+        if (!hasExplicitUrbanization)
+            province.urbanization = CultureStartingUrbanization(province);
+        province.urbanization = Mathf.Clamp(province.urbanization, -100, province.MaximumDevelopment);
+    }
+
+    static int CultureStartingUrbanization(Province province)
+    {
+        string cultureName = null;
+        if (province != null && province.holdings != null && province.holdings.Count > 0)
+            cultureName = province.holdings.Where(holding => holding != null && !string.IsNullOrWhiteSpace(holding.cultureName))
+                .GroupBy(holding => holding.cultureName.Trim(), StringComparer.OrdinalIgnoreCase)
+                .OrderByDescending(group => group.Count()).ThenBy(group => group.Key, StringComparer.OrdinalIgnoreCase)
+                .Select(group => group.Key).FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(cultureName) && province != null && province.nation != null && province.nation.culture != null)
+            cultureName = province.nation.culture.DisplayName;
+        NationCultureData definition = Resources.LoadAll<NationCultureData>("Prefabs/NationData/Culture")
+            .FirstOrDefault(candidate => candidate != null && candidate.Matches(cultureName));
+        return definition != null ? Mathf.Clamp(definition.startingUrbanization, -100, 100) : 0;
     }
 
     static List<string> ReadBlock(string text, string blockName)

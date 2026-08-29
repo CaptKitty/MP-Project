@@ -207,6 +207,7 @@ namespace ProjectX.TileBattle
         private void CreateAccessButton()
         {
             accessRoot = Panel("Tile Battles", canvas.transform, new Vector2(.78f, .88f), new Vector2(.98f, .97f), new Color(.45f, .07f, .03f, .95f));
+            accessRoot.GetComponent<RectTransform>().anchoredPosition += Vector2.left * 100f;
             Button button = accessRoot.AddComponent<Button>(); button.onClick.AddListener(OpenRelevantBattle);
             accessText = Label("Label", accessRoot.transform, 12, TextAnchor.MiddleCenter);
             Stretch(accessText.rectTransform); accessText.resizeTextForBestFit = true; accessText.resizeTextMinSize = 8; accessText.resizeTextMaxSize = 12;
@@ -339,6 +340,7 @@ namespace ProjectX.TileBattle
                 LayeredBattleUnitVisual art = image.GetComponent<LayeredBattleUnitVisual>();
                 if (art == null) art = image.gameObject.AddComponent<LayeredBattleUnitVisual>();
                 art.Configure(data, GetFactionMaterial(selected, unit.Side, data)); art.Attacking = false;
+                ApplySnapshotWeapon(art, data, unit);
                 art.SetHorizontalFacing(unit.Facing == TileFacing.West || unit.Facing != TileFacing.East && unit.Side == 1);
                 RectTransform rect = image.rectTransform;
                 float x = (unit.Position.X + .5f) / simulation.Grid.Width;
@@ -371,10 +373,21 @@ namespace ProjectX.TileBattle
                     unitPool[i].gameObject.SetActive(false);
                 }
             }
-            ApplyFinishedBattlePresentation(simulation, snapshot);
             ConsumeVisualEvents(simulation, snapshot.EventCount);
+            // The projectile event is allowed to hold the ranged weapon for its attack frame.
+            // On the next viewer refresh ApplySnapshotWeapon selects melee when ammo is empty.
+            ApplyFinishedBattlePresentation(simulation, snapshot);
             RefreshDebug(simulation);
             if (summaryButton != null) summaryButton.gameObject.SetActive(simulation.Result.Finished);
+        }
+
+        private static void ApplySnapshotWeapon(LayeredBattleUnitVisual art, UnitSaveData data,
+            TileBattleUnitViewState unit)
+        {
+            if (art == null || data == null || unit == null) return;
+            Weapon weapon = unit.Ammunition > 0 && data.RangedWeapon != null
+                ? data.RangedWeapon : data.MeleeWeapon;
+            art.SetPresentedWeapon(weapon);
         }
 
         private void ApplyFinishedBattlePresentation(TileBattleSimulation simulation, TileBattleRoundSnapshot snapshot)

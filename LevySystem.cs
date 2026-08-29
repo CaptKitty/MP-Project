@@ -16,7 +16,7 @@ public class LevyGrantRule
     public UnitSaveData unit;
     [Min(1)] public int formationsPerBuilding = 1;
     [Min(0)] public int mobilizationTicks;
-    [Min(0)] public int recoveryTicks = 20;
+    [Min(0)] public int recoveryTicks = 120;
     [Min(0)] public int demobilizationTicks;
     public List<string> requiredNationFlags = new List<string>();
     public List<string> excludedNationFlags = new List<string>();

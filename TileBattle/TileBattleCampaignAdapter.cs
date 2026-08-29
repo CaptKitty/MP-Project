@@ -11,8 +11,9 @@ namespace ProjectX.TileBattle
             if (source == null) throw new ArgumentNullException(nameof(source));
             Weapon melee = source.MeleeWeapon;
             Weapon ranged = source.RangedWeapon;
+            bool openingThrowable = ranged != null && ranged.rangedUsage == RangedWeaponUsage.OpeningThrowable;
             bool cavalry = source.unittype == UnitTypes.LightCavalry || source.unittype == UnitTypes.HeavyCavalry;
-            bool rangedUnit = source.unittype == UnitTypes.Ranged || ranged != null && ranged.Throwable != null;
+            bool rangedUnit = !openingThrowable && (source.unittype == UnitTypes.Ranged || ranged != null && ranged.Throwable != null);
             TileWeaponControl control = InferWeaponControl(melee);
             int mass = source.unittype == UnitTypes.HeavyInfantry ? 150 : source.unittype == UnitTypes.HeavyCavalry ? 180 :
                 source.unittype == UnitTypes.LightCavalry ? 100 : source.unittype == UnitTypes.LightInfantry ? 85 : 75;
@@ -39,10 +40,11 @@ namespace ProjectX.TileBattle
                 WeaponControl = control,
                 Cavalry = cavalry,
                 Ranged = rangedUnit,
+                OpeningThrowable = openingThrowable,
                 RangedRange = ranged != null ? Mathf.Max(1, Mathf.RoundToInt((float)ranged.combatdistance)) : 0,
                 RangedDamage = ranged != null ? Mathf.Max(1, ranged.attack) : 0,
                 RangedAttackIntervalTicks = AttackIntervalTicks(ranged),
-                Ammunition = ranged != null ? Mathf.Max(0, ranged.ammo) : 0,
+                Ammunition = ranged != null ? openingThrowable ? Mathf.Min(1, Mathf.Max(0, ranged.ammo)) : Mathf.Max(0, ranged.ammo) : 0,
                 FormationType = FormationType(source),
                 ForestImmune = HasFlag(source, "Forest Immune") || HasFlag(source, "ForestImmune") ||
                     HasFlag(source, "Forestry_Immunity") || HasFlag(source, "Forester"),

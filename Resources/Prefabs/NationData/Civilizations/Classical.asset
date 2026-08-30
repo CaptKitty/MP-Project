@@ -35,5 +35,8 @@ MonoBehaviour:
     generalNames: []
     flags:
     - Civilized
+    AllegianceNames: []
+    AllegianceType: 
     holdingEconomyModifiers: []
     levies: []
+    laws: []

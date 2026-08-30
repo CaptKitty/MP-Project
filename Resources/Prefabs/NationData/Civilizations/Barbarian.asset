@@ -36,6 +36,11 @@ MonoBehaviour:
     generalNames: []
     flags:
     - Barbarian
+    AllegianceNames:
+    - Barbie
+    - Barbaroi
+    - Barbarian
+    AllegianceType: Tribes
     holdingEconomyModifiers: []
     levies: []
     laws:
@@ -52,6 +57,13 @@ MonoBehaviour:
         cultureName: 
         anyUnitOrigin: 1
         unitOrigin: 0
+      classRules: []
+      amountPermille: 0
+      effect: 0
+      anySocioEconomicClass: 1
+      socioEconomicClass: 6
+      anyCulture: 1
+      cultureName: 
     - id: warrior_rites
       displayName: Warrior Rites
       effects:
@@ -65,6 +77,13 @@ MonoBehaviour:
         cultureName: 
         anyUnitOrigin: 1
         unitOrigin: 0
+      classRules: []
+      amountPermille: 0
+      effect: 0
+      anySocioEconomicClass: 1
+      socioEconomicClass: 6
+      anyCulture: 1
+      cultureName: 
     - id: ancestral_nobility
       displayName: Ancestral Nobility
       effects: []
@@ -73,6 +92,12 @@ MonoBehaviour:
         affectedClass: 5
         resultingClass: 2
         cultureName: 
+      amountPermille: 0
+      effect: 0
+      anySocioEconomicClass: 1
+      socioEconomicClass: 6
+      anyCulture: 1
+      cultureName: 
     - id: kings_share
       displayName: King's Share
       effects:
@@ -87,3 +112,9 @@ MonoBehaviour:
         anyUnitOrigin: 1
         unitOrigin: 0
       classRules: []
+      amountPermille: 0
+      effect: 0
+      anySocioEconomicClass: 1
+      socioEconomicClass: 6
+      anyCulture: 1
+      cultureName: 

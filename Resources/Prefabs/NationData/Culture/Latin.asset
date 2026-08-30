@@ -13,10 +13,11 @@ MonoBehaviour:
   m_Name: Latin
   m_EditorClassIdentifier: Assembly-CSharp::NationCultureData
   cultureName: Latin
-  startingUrbanization: 0
   color:
     serializedVersion: 2
     rgba: 4278190239
+  assemblyName: 
+  startingUrbanization: 0
   content:
     units:
     - unit: {fileID: 11400000, guid: 59069d3402bf14c44936b61dc9a80810, type: 2}
@@ -36,6 +37,11 @@ MonoBehaviour:
     - Marius Brutus
     flags:
     - CitizenMilitia
+    AllegianceNames:
+    - Scipii
+    - Julii
+    - Brutii
+    AllegianceType: Family
     holdingEconomyModifiers: []
     levies:
     - id: 
@@ -50,3 +56,4 @@ MonoBehaviour:
       requiredNationFlags:
       - CitizenMilitia
       excludedNationFlags: []
+    laws: []

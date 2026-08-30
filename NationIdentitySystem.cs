@@ -22,6 +22,10 @@ public class NationContentLayer
     public List<BuildingDefinition> buildings = new List<BuildingDefinition>();
     public List<string> generalNames = new List<string>();
     public List<string> flags = new List<string>();
+    [Header("Allegiance data")]
+    public List<string> AllegianceNames = new List<string>();
+    [Tooltip("Singular political allegiance kind, for example Family, Tribe, or Party. Empty inherits from a broader identity layer.")]
+    public string AllegianceType;
     [Header("Holding economy")]
     public List<HoldingTagModifier> holdingEconomyModifiers = new List<HoldingTagModifier>();
     [Header("Recoverable levies")]
@@ -66,6 +70,34 @@ public static class NationContentResolver
         if (nation.civilization != null && !string.IsNullOrWhiteSpace(nation.civilization.assemblyName))
             return nation.civilization.assemblyName.Trim();
         return "Council of Aristocrats";
+    }
+
+    public static string ResolveAllegianceType(Nation nation)
+    {
+        string result = "Party";
+        if (nation == null) return result;
+        ApplyAllegianceType(ref result, nation.civilization != null ? nation.civilization.content : null);
+        ApplyAllegianceType(ref result, nation.culture != null ? nation.culture.content : null);
+        ApplyAllegianceType(ref result, nation.religion != null ? nation.religion.content : null);
+        ApplyAllegianceType(ref result, nation.faction != null ? nation.faction.content : null);
+        return result;
+    }
+
+    public static List<string> ResolveAllegianceNames(Nation nation)
+    {
+        List<string> result = new List<string>();
+        if (nation == null) return result;
+        AddStrings(result, nation.civilization != null ? nation.civilization.content.AllegianceNames : null);
+        AddStrings(result, nation.culture != null ? nation.culture.content.AllegianceNames : null);
+        AddStrings(result, nation.religion != null ? nation.religion.content.AllegianceNames : null);
+        AddStrings(result, nation.faction != null ? nation.faction.content.AllegianceNames : null);
+        return result;
+    }
+
+    private static void ApplyAllegianceType(ref string target, NationContentLayer layer)
+    {
+        if (layer != null && !string.IsNullOrWhiteSpace(layer.AllegianceType))
+            target = layer.AllegianceType.Trim();
     }
 
     public static List<NationalLaw> ResolveLaws(Nation nation)

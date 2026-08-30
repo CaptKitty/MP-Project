@@ -1641,6 +1641,7 @@ public class Nation
     [Header("National politics")]
     public List<PoliticalGroup> politicalGroups = new List<PoliticalGroup>();
     public List<PoliticalProposal> politicalProposals = new List<PoliticalProposal>();
+    public string latestPassedEdict;
     [HideInInspector] public int levyRecoveryBoostTicks;
     [HideInInspector] public int levyRecoveryBonusPerTick;
     [HideInInspector] public int LevyLawPermille = 200;

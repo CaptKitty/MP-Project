@@ -151,7 +151,7 @@ namespace ProjectX.TileBattle
         public void Initialize(TileBattleCampaignManager owner)
         {
             manager = owner; canvas = CreateCanvas(); baseUnitMaterial = FindUnitMaterial();
-            CreateAccessButton(); CreateViewer();
+            BindSceneAccessButton(); CreateViewer();
         }
 
         private void Update()
@@ -204,13 +204,31 @@ namespace ProjectX.TileBattle
             if (closest != null) OpenViewer(closest);
         }
 
-        private void CreateAccessButton()
+        private void BindSceneAccessButton()
         {
-            accessRoot = Panel("Tile Battles", canvas.transform, new Vector2(.78f, .88f), new Vector2(.98f, .97f), new Color(.45f, .07f, .03f, .95f));
-            accessRoot.GetComponent<RectTransform>().anchoredPosition += Vector2.left * 100f;
-            Button button = accessRoot.AddComponent<Button>(); button.onClick.AddListener(OpenRelevantBattle);
-            accessText = Label("Label", accessRoot.transform, 12, TextAnchor.MiddleCenter);
-            Stretch(accessText.rectTransform); accessText.resizeTextForBestFit = true; accessText.resizeTextMinSize = 8; accessText.resizeTextMaxSize = 12;
+            foreach (GameObject candidate in Resources.FindObjectsOfTypeAll<GameObject>())
+                if (candidate != null && candidate.scene.IsValid() && candidate.name == "Tile Battles")
+                { accessRoot = candidate; break; }
+            if (accessRoot == null)
+            {
+                Debug.LogError("MapScene is missing the scene-authored 'Tile Battles' button.");
+                return;
+            }
+            Button button = accessRoot.GetComponent<Button>();
+            if (button == null)
+            {
+                Debug.LogError("The scene-authored 'Tile Battles' object requires a Button component.");
+                return;
+            }
+            button.onClick.RemoveListener(OpenRelevantBattle);
+            button.onClick.AddListener(OpenRelevantBattle);
+            accessText = accessRoot.GetComponentInChildren<Text>(true);
+            if (accessText != null)
+            {
+                accessText.resizeTextForBestFit = true;
+                accessText.resizeTextMinSize = 8;
+                accessText.resizeTextMaxSize = 12;
+            }
             accessRoot.SetActive(false);
         }
 
@@ -282,7 +300,7 @@ namespace ProjectX.TileBattle
         {
             bool active = manager != null && manager.ActiveBattles.Count > 0;
             if (accessRoot != null) accessRoot.SetActive(active);
-            if (active) accessText.text = "TILE BATTLES: " + manager.ActiveBattles.Count + "\nClick to watch";
+            if (active && accessText != null) accessText.text = "TILE BATTLES: " + manager.ActiveBattles.Count + "\nClick to watch";
         }
 
         private void EnsureGrid(int width, int height)

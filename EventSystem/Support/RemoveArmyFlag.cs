@@ -20,6 +20,11 @@ public class RemoveArmyFlag : BaseEffect
         }
         
     }
+    public override void Execute(EventContext context)
+    {
+        FieldArmyHolder target = context != null ? context.ResolveArmy() : null;
+        if (target != null) target.flaglist.Remove(flagToAdd);
+    }
     public override void GrabRandomNation(string ownernation = "")
     {
         if(ownernation == "")

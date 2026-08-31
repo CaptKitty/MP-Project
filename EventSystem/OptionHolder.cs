@@ -8,6 +8,7 @@ public class OptionHolder : MonoBehaviour
     public Option thisoption = new Option();
     public string eventName;
     public int optionIndex;
+    public EventContext context;
     
     public void OnClickThis()
     {
@@ -19,7 +20,8 @@ public class OptionHolder : MonoBehaviour
 
         if(CampaignNetworkPlayer.Local != null && CampaignNetworkPlayer.Local.IsSpawned && !string.IsNullOrEmpty(eventName))
         {
-            CampaignNetworkPlayer.Local.RequestEventOption(eventName, optionIndex);
+            CampaignNetworkPlayer.Local.RequestEventOption(eventName, optionIndex,
+                context != null ? context.nationName : string.Empty);
         }
         else if(thisoption != null && thisoption.EffectList != null)
         {
@@ -28,7 +30,7 @@ public class OptionHolder : MonoBehaviour
                 //Debug.Log(thisoption);
                 if(item != null)
                 {
-                    item.Execute();
+                    item.Execute(context);
                 }
             }
         }

@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1265209c423766a429c3b11813f1e6c7, type: 3}
+  m_Name: National_01_Merchant_Delegation
+  scope: 1
+  Title: The Merchant Delegation
+  Message: Merchants petition the government for privileged access to markets and protection for their caravans.
+  triggers: []
+  HasTriggered: 0
+  initialOption: {Message: '', Tooltip: '', trigger: {fileID: 0}, EffectList: []}
+  OptionList:
+  - Message: Grant their charter
+    Tooltip: Encourage trade at the expense of the treasury.
+    trigger: {fileID: 11400001}
+    EffectList: [{fileID: 11400002}, {fileID: 11400003}]
+  - Message: Tax their newfound wealth
+    Tooltip: Take an immediate payment, but alienate the merchants.
+    trigger: {fileID: 0}
+    EffectList: [{fileID: 11400004}, {fileID: 11400005}]
+--- !u!114 &11400001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f211c800d300af8438b096ecf3604f1d, type: 3}
+  m_Name: Merchant Charter Cost
+  gold: 100
+  atLeast: 1
+--- !u!114 &11400002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17250b9f1015bf247a19b9c668d5cb55, type: 3}
+  m_Name: Fund Merchant Charter
+  tooltip: '<nation> spends 100 gold.'
+  amount: -100
+--- !u!114 &11400003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f39b9b0d027dcc24a9e45670f5dcd4d6, type: 3}
+  m_Name: Favoured Merchants
+  tooltip: '<nation> gains the Favoured Merchants flag.'
+  flag: FavouredMerchants
+  add: 1
+--- !u!114 &11400004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17250b9f1015bf247a19b9c668d5cb55, type: 3}
+  m_Name: Merchant Tax
+  tooltip: '<nation> gains 200 gold.'
+  amount: 200
+--- !u!114 &11400005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f39b9b0d027dcc24a9e45670f5dcd4d6, type: 3}
+  m_Name: Merchant Discontent
+  tooltip: '<nation> gains the Merchant Discontent flag.'
+  flag: MerchantDiscontent
+  add: 1

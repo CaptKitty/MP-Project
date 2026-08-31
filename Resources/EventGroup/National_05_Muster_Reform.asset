@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1265209c423766a429c3b11813f1e6c7, type: 3}
+  m_Name: National_05_Muster_Reform
+  m_EditorClassIdentifier: 
+  scope: 1
+  Title: Reform of the Muster Rolls
+  Message: Officials argue that military obligations must be regularized. The proposal
+    would expand levy contribution across the nation.
+  triggers: []
+  HasTriggered: 0
+  initialOption:
+    Message: 
+    Tooltip: 
+    trigger: {fileID: 0}
+    EffectList: []
+  OptionList:
+  - Message: Submit the reform to the assembly
+    Tooltip: Begin a political debate over expanded levy obligations.
+    trigger: {fileID: 0}
+    EffectList:
+    - {fileID: 11400001}
+  - Message: Preserve the traditional muster
+    Tooltip: Reject central reform and placate local interests.
+    trigger: {fileID: 0}
+    EffectList:
+    - {fileID: 11400002}
+--- !u!114 &11400001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a1d100eed0817c4aaed07b241f6c16f, type: 3}
+  m_Name: Propose Muster Reform
+  m_EditorClassIdentifier: 
+  tooltip: <nation> debates the Expanded Muster Rolls law.
+  province: 
+  nation: 
+  law:
+    id: event_expanded_muster_rolls
+    displayName: Expanded Muster Rolls
+    effects:
+    - type: 0
+      operation: 0
+      amountPermille: 100
+      target: 1
+      anySocioEconomicClass: 1
+      socioEconomicClass: 0
+      cultureScope: 0
+      cultureName: 
+      anyUnitOrigin: 1
+      unitOrigin: 0
+    classRules: []
+    amountPermille: 0
+    effect: 0
+    anySocioEconomicClass: 1
+    socioEconomicClass: 0
+    anyCulture: 1
+    cultureName: 
+  propose: 1
+  debateTicks: 8
+--- !u!114 &11400002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f39b9b0d027dcc24a9e45670f5dcd4d6, type: 3}
+  m_Name: Traditional Muster Preserved
+  m_EditorClassIdentifier: 
+  tooltip: <nation> gains the Traditional Muster flag.
+  province: 
+  nation: 
+  flag: TraditionalMuster
+  add: 1

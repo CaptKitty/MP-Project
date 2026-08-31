@@ -6,6 +6,8 @@ using System;
 using System.Diagnostics;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using Unity.Netcode;
 
 public class Mapshower : MonoBehaviour
 {
@@ -45,6 +47,21 @@ public class Mapshower : MonoBehaviour
     public bool potato = true;
     public GameObject banana;
     public static Mapshower Instance;
+
+    [Header("Campaign speed UI")]
+    [SerializeField] private Transform speedSettings;
+    [SerializeField] private Color activeSpeedButtonColor = new Color(1f, 0.72f, 0.28f, 1f);
+    private readonly List<Button> campaignSpeedButtons = new List<Button>();
+    private readonly List<ColorBlock> campaignSpeedButtonColors = new List<ColorBlock>();
+    private static readonly float[] CampaignSpeedOptions = { 0f, .25f, 1f, 2f, 5f };
+    private static readonly string[] CampaignSpeedButtonNames =
+        { "0xSpeed", "0.25xSpeed", "1xSpeed", "2xSpeed", "5xSpeed" };
+    private float displayedCampaignSpeed = float.NaN;
+    [Header("Campaign pause UI")]
+    [SerializeField] private GameObject pauseCanvas;
+    [SerializeField] private GameObject pauseSign;
+    [SerializeField] private Text pauseBlameText;
+    private string pauseRequestedBy = string.Empty;
 
     private Vector3 StartDragPosition;
     private Vector3 dragPressPosition;
@@ -119,6 +136,10 @@ public class Mapshower : MonoBehaviour
     void Start()
     {
         if (Owners.Instance != null) Owners.Instance.CampaignSimulationSpeed = CampaignTimeScale;
+        BindCampaignSpeedButtons();
+        BindPauseUI();
+        ApplyPausePresentation(false, string.Empty);
+        RefreshCampaignSpeedButtons(CampaignTimeScale);
         var material = GetComponent<Renderer>().material;
         var mainTex = material.GetTexture("_MainTex") as Texture2D;
         var mainArr = mainTex.GetPixels32();
@@ -177,10 +198,16 @@ public class Mapshower : MonoBehaviour
             RePaint();
             //Application.Quit();
         }
-        if (Input.GetKeyDown(KeyCode.Alpha6) || Input.GetKeyDown(KeyCode.Keypad6)) SetCampaignSpeed(0f);
-        if (Input.GetKeyDown(KeyCode.Alpha7) || Input.GetKeyDown(KeyCode.Keypad7)) SetCampaignSpeed(.25f);
-        if (Input.GetKeyDown(KeyCode.Alpha8) || Input.GetKeyDown(KeyCode.Keypad8)) SetCampaignSpeed(1f);
-        if (Input.GetKeyDown(KeyCode.Alpha9) || Input.GetKeyDown(KeyCode.Keypad9)) SetCampaignSpeed(10f);
+        if (Input.GetKeyDown(KeyCode.Alpha5) || Input.GetKeyDown(KeyCode.Keypad5)) SetCampaignSpeed(0f);
+        if (Input.GetKeyDown(KeyCode.Alpha6) || Input.GetKeyDown(KeyCode.Keypad6)) SetCampaignSpeed(.25f);
+        if (Input.GetKeyDown(KeyCode.Alpha7) || Input.GetKeyDown(KeyCode.Keypad7)) SetCampaignSpeed(1f);
+        if (Input.GetKeyDown(KeyCode.Alpha8) || Input.GetKeyDown(KeyCode.Keypad8)) SetCampaignSpeed(2f);
+        if (Input.GetKeyDown(KeyCode.Alpha9) || Input.GetKeyDown(KeyCode.Keypad9)) SetCampaignSpeed(5f);
+        if (Owners.Instance != null)
+        {
+            float actualSpeed = Owners.Instance.CampaignPaused ? 0f : Owners.Instance.CampaignSimulationSpeed;
+            if (!Mathf.Approximately(actualSpeed, displayedCampaignSpeed)) RefreshCampaignSpeedButtons(actualSpeed);
+        }
         if (Input.GetKey("1"))
         {
             RePaint();
@@ -299,11 +326,124 @@ public class Mapshower : MonoBehaviour
         return true;
     }
 
-    private static void SetCampaignSpeed(float speed)
+    public void SetCampaignSpeed(float speed)
+    {
+        float selected = ClosestCampaignSpeed(speed);
+        if (CampaignNetworkPlayer.Local != null && CampaignNetworkPlayer.Local.IsSpawned &&
+            NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+        {
+            CampaignNetworkPlayer.Local.RequestCampaignSpeed(selected);
+            return;
+        }
+        string localNation = Owners.Instance != null && Owners.Instance.CallPlayer() != null
+            ? Owners.Instance.CallPlayer().name : string.Empty;
+        ApplyNetworkCampaignSpeed(selected, localNation);
+    }
+
+    public void ApplyNetworkCampaignSpeed(float speed, string requestingNation)
     {
         if (Owners.Instance == null) return;
-        Owners.Instance.CampaignSimulationSpeed = Mathf.Max(0f, speed);
-        Owners.Instance.CampaignPaused = speed <= 0f;
+        float selected = ClosestCampaignSpeed(speed);
+        Owners.Instance.CampaignSimulationSpeed = selected;
+        Owners.Instance.CampaignPaused = selected <= 0f;
+        CampaignTimeScale = selected;
+        if (selected <= 0f && !string.IsNullOrWhiteSpace(requestingNation))
+            pauseRequestedBy = requestingNation;
+        RefreshCampaignSpeedButtons(selected);
+        ApplyPausePresentation(selected <= 0f, pauseRequestedBy);
+    }
+
+    public void SetCampaignSpeed0() => SetCampaignSpeed(0f);
+    public void SetCampaignSpeed025() => SetCampaignSpeed(.25f);
+    public void SetCampaignSpeed1() => SetCampaignSpeed(1f);
+    public void SetCampaignSpeed2() => SetCampaignSpeed(2f);
+    public void SetCampaignSpeed5() => SetCampaignSpeed(5f);
+
+    private void BindCampaignSpeedButtons()
+    {
+        if (speedSettings == null)
+        {
+            GameObject host = GameObject.Find("SpeedSettings");
+            if (host != null) speedSettings = host.transform;
+        }
+        campaignSpeedButtons.Clear();
+        campaignSpeedButtonColors.Clear();
+        for (int i = 0; i < CampaignSpeedOptions.Length; i++)
+        {
+            Transform child = speedSettings != null ? speedSettings.Find(CampaignSpeedButtonNames[i]) : null;
+            Button button = child != null ? child.GetComponent<Button>() : null;
+            campaignSpeedButtons.Add(button);
+            campaignSpeedButtonColors.Add(button != null ? button.colors : ColorBlock.defaultColorBlock);
+            if (button == null) continue;
+            float speed = CampaignSpeedOptions[i];
+            button.onClick.AddListener(() => SetCampaignSpeed(speed));
+        }
+    }
+
+    private void RefreshCampaignSpeedButtons(float speed)
+    {
+        float selected = ClosestCampaignSpeed(speed);
+        displayedCampaignSpeed = selected;
+        for (int i = 0; i < campaignSpeedButtons.Count; i++)
+        {
+            Button button = campaignSpeedButtons[i];
+            if (button == null || button.targetGraphic == null) continue;
+            bool active = Mathf.Approximately(CampaignSpeedOptions[i], selected);
+            ColorBlock colors = campaignSpeedButtonColors[i];
+            if (active)
+            {
+                colors.normalColor = activeSpeedButtonColor;
+                colors.highlightedColor = activeSpeedButtonColor * 1.08f;
+                colors.selectedColor = activeSpeedButtonColor;
+            }
+            button.colors = colors;
+            button.targetGraphic.color = active ? activeSpeedButtonColor : colors.normalColor;
+        }
+    }
+
+    private static float ClosestCampaignSpeed(float requested)
+    {
+        float result = CampaignSpeedOptions[0];
+        float distance = Mathf.Abs(requested - result);
+        for (int i = 1; i < CampaignSpeedOptions.Length; i++)
+        {
+            float candidateDistance = Mathf.Abs(requested - CampaignSpeedOptions[i]);
+            if (candidateDistance >= distance) continue;
+            distance = candidateDistance;
+            result = CampaignSpeedOptions[i];
+        }
+        return result;
+    }
+
+    private void BindPauseUI()
+    {
+        if (pauseCanvas == null) pauseCanvas = GameObject.Find("PauseCanvas");
+        if (pauseSign == null && pauseCanvas != null)
+        {
+            Transform sign = pauseCanvas.transform.Find("PauseSign");
+            if (sign != null) pauseSign = sign.gameObject;
+        }
+        if (pauseBlameText == null && pauseSign != null)
+        {
+            Text[] labels = pauseSign.GetComponentsInChildren<Text>(true);
+            foreach (Text label in labels)
+                if (label != null && label.gameObject != pauseSign &&
+                    (label.text.Contains("<nation>") || label.text.StartsWith("Blame")))
+                { pauseBlameText = label; break; }
+        }
+    }
+
+    private void ApplyPausePresentation(bool paused, string nation)
+    {
+        if (pauseCanvas == null) BindPauseUI();
+        if (pauseBlameText != null)
+            pauseBlameText.text = "Blame " + (string.IsNullOrWhiteSpace(nation) ? "Unknown" : nation);
+        if (pauseSign != null) pauseSign.SetActive(paused);
+        if (pauseCanvas != null)
+        {
+            if (paused) pauseCanvas.transform.localScale = Vector3.one;
+            pauseCanvas.SetActive(paused);
+        }
     }
     public void Paint()
     {

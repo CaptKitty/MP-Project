@@ -28,6 +28,10 @@ public class Owners : MonoBehaviour
     [Range(1, 16)] public int HoldingEvolutionProvinceBudget = 3;
     private int holdingEvolutionCursor;
     private bool hadActiveCampaignQueues;
+    private readonly Dictionary<string, List<ProvinceLevyEntitlement>> levyMobilizationQueues =
+        new Dictionary<string, List<ProvinceLevyEntitlement>>();
+    private const int LevyMobilizationBatchSize = 3;
+    private const int LevyMobilizationBatchTicks = 3;
     public int xxx = 25;
 
     // Start is called before the first frame update
@@ -290,6 +294,7 @@ public class Owners : MonoBehaviour
         turncounter++;
         foreach (FieldArmyHolder army in armylist)
             if (army != null && army.fieldArmy != null && army.IsTargetNull()) army.fieldArmy.ProcessRecruitmentTick();
+        ProcessLevyMobilizationQueues();
         double recruitmentMs = CampaignPerformanceTrace.MillisecondsSince(totalStamp);
         long phaseStamp = CampaignPerformanceTrace.Stamp();
         foreach (CampaignRegion region in regionlist)
@@ -316,7 +321,10 @@ public class Owners : MonoBehaviour
         phaseStamp = CampaignPerformanceTrace.Stamp();
         bool hasActiveQueues = HasActiveCampaignQueues();
         if (CampaignNetworkPlayer.Local != null && (hasActiveQueues || hadActiveCampaignQueues))
+        {
             CampaignNetworkPlayer.Local.BroadcastQueueStateNow();
+            CampaignNetworkPlayer.Local.BroadcastLevyQueueStateNow();
+        }
         hadActiveCampaignQueues = hasActiveQueues;
         double networkQueuesMs = CampaignPerformanceTrace.MillisecondsSince(phaseStamp);
         double totalMs = CampaignPerformanceTrace.MillisecondsSince(totalStamp);
@@ -337,9 +345,86 @@ public class Owners : MonoBehaviour
             if (army != null && army.fieldArmy != null && army.fieldArmy.recruitmentOrders != null &&
                 army.fieldArmy.recruitmentOrders.Count > 0) return true;
         foreach (Province province in provincelist)
+            if (province != null && province.levyEntitlements != null &&
+                province.levyEntitlements.Exists(entitlement => entitlement != null &&
+                    entitlement.state == LevyEntitlementState.Mobilizing)) return true;
+        foreach (Province province in provincelist)
             if (province != null && (province.constructionOrders != null && province.constructionOrders.Count > 0 ||
                 province.holdingConstructionOrders != null && province.holdingConstructionOrders.Count > 0)) return true;
         return false;
+    }
+
+    private void ProcessLevyMobilizationQueues()
+    {
+        foreach (List<ProvinceLevyEntitlement> queue in levyMobilizationQueues.Values) queue.Clear();
+        foreach (Province province in provincelist)
+        {
+            if (province == null || province.levyEntitlements == null) continue;
+            foreach (ProvinceLevyEntitlement entitlement in province.levyEntitlements)
+            {
+                if (entitlement == null || entitlement.state != LevyEntitlementState.Mobilizing ||
+                    string.IsNullOrEmpty(entitlement.raisedArmyId)) continue;
+                if (!levyMobilizationQueues.TryGetValue(entitlement.raisedArmyId, out List<ProvinceLevyEntitlement> queue))
+                {
+                    queue = new List<ProvinceLevyEntitlement>();
+                    levyMobilizationQueues.Add(entitlement.raisedArmyId, queue);
+                }
+                queue.Add(entitlement);
+            }
+        }
+
+        foreach (KeyValuePair<string, List<ProvinceLevyEntitlement>> entry in levyMobilizationQueues)
+        {
+            List<ProvinceLevyEntitlement> queue = entry.Value;
+            if (queue.Count == 0) continue;
+            FieldArmyHolder target = armylist.Find(candidate => candidate != null && candidate.NetworkArmyId == entry.Key &&
+                candidate.fieldArmy != null);
+            if (target == null)
+            {
+                foreach (ProvinceLevyEntitlement entitlement in queue)
+                { entitlement.state = LevyEntitlementState.Available; entitlement.remainingTicks = 0; entitlement.raisedArmyId = null; }
+                continue;
+            }
+            if (!target.IsTargetNull())
+            {
+                RecruitmentMenu.RefreshQueueFor(target.fieldArmy);
+                continue;
+            }
+
+            int active = 0;
+            foreach (ProvinceLevyEntitlement entitlement in queue) if (entitlement.remainingTicks > 0) active++;
+            if (active > LevyMobilizationBatchSize)
+            {
+                int keptActive = 0;
+                foreach (ProvinceLevyEntitlement entitlement in queue)
+                    if (entitlement.remainingTicks > 0 && ++keptActive > LevyMobilizationBatchSize)
+                        entitlement.remainingTicks = 0;
+                active = LevyMobilizationBatchSize;
+            }
+            if (active == 0)
+            {
+                int start = Mathf.Min(LevyMobilizationBatchSize, queue.Count);
+                for (int i = 0; i < start; i++) queue[i].remainingTicks = LevyMobilizationBatchTicks;
+            }
+
+            for (int i = 0; i < queue.Count; i++)
+            {
+                ProvinceLevyEntitlement entitlement = queue[i];
+                if (entitlement.remainingTicks <= 0) continue;
+                entitlement.remainingTicks--;
+                if (entitlement.remainingTicks > 0) continue;
+                if (!entitlement.eligible || target.fieldArmy.GrabArmySize() >= target.fieldArmy.MaxArmySize)
+                {
+                    entitlement.state = LevyEntitlementState.Available;
+                    entitlement.raisedArmyId = null;
+                    continue;
+                }
+                target.fieldArmy.AddTroop(entitlement.unit, 1, true, CampaignUnitOrigin.Levy, entitlement.id);
+                CampaignRecruitmentVisual.Present(entitlement.unit, target);
+                entitlement.state = LevyEntitlementState.Raised;
+            }
+            RecruitmentMenu.RefreshQueueFor(target.fieldArmy);
+        }
     }
 
     private void ProcessHoldingEvolutionBudget()
@@ -856,6 +941,9 @@ public class Province
         }
         foreach (ProvinceLevyEntitlement entitlement in levyEntitlements)
         {
+            // Mobilization is an army-level FIFO queue processed in batches by Owners.
+            // Province ticks continue to own only levy recovery/demobilization.
+            if (entitlement != null && entitlement.state == LevyEntitlementState.Mobilizing) continue;
             if (entitlement == null || entitlement.remainingTicks <= 0) continue;
             if (entitlement.state == LevyEntitlementState.Mobilizing && !entitlement.eligible)
             { entitlement.state = LevyEntitlementState.Available; entitlement.remainingTicks = 0; entitlement.raisedArmyId = null; continue; }
@@ -863,19 +951,6 @@ public class Province
             if (entitlement.remainingTicks != 0) continue;
             if (entitlement.state == LevyEntitlementState.Recovering)
             { entitlement.state = LevyEntitlementState.Available; entitlement.raisedArmyId = null; HoldingRecoveryCache.Clear(); }
-            else if (entitlement.state == LevyEntitlementState.Mobilizing)
-            {
-                FieldArmyHolder target = Owners.Instance != null ? Owners.Instance.armylist.Find(army => army != null &&
-                    army.NetworkArmyId == entitlement.raisedArmyId && army.fieldArmy != null && army.fieldArmy.nation == nation) : null;
-                if (target == null || target.fieldArmy.GrabArmySize() >= target.fieldArmy.MaxArmySize)
-                { entitlement.state = LevyEntitlementState.Available; entitlement.raisedArmyId = null; }
-                else
-                {
-                    target.fieldArmy.AddTroop(entitlement.unit, 1, true, CampaignUnitOrigin.Levy, entitlement.id);
-                    CampaignRecruitmentVisual.Present(entitlement.unit, target);
-                    entitlement.state = LevyEntitlementState.Raised;
-                }
-            }
         }
     }
 
@@ -912,18 +987,9 @@ public class Province
             army.fieldArmy == null || !army.IsTargetNull() || !entitlement.eligible ||
             entitlement.state != LevyEntitlementState.Available || army.fieldArmy.nation != nation ||
             army.fieldArmy.GrabArmySize() + army.fieldArmy.GrabQueuedArmySize() >= army.fieldArmy.MaxArmySize) return false;
-        LevyGrantRule rule = LevySystem.FindRule(nation, entitlement.ruleId);
         entitlement.raisedArmyId = army.NetworkArmyId;
-        HoldingDefinition holding = HoldingDefinition.Find(entitlement.holdingId);
-        entitlement.remainingTicks = holding != null ? Mathf.Max(0, holding.levyMobilizationTicks) :
-            rule != null ? Mathf.Max(0, rule.mobilizationTicks) : 0;
-        if (entitlement.remainingTicks > 0) entitlement.state = LevyEntitlementState.Mobilizing;
-        else
-        {
-            entitlement.state = LevyEntitlementState.Raised;
-            army.fieldArmy.AddTroop(entitlement.unit, 1, true, CampaignUnitOrigin.Levy, entitlement.id);
-            CampaignRecruitmentVisual.Present(entitlement.unit, army);
-        }
+        entitlement.remainingTicks = 0; // Waiting for an open slot in the next three-unit batch.
+        entitlement.state = LevyEntitlementState.Mobilizing;
         return true;
     }
 

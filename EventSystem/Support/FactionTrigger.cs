@@ -16,4 +16,10 @@ public class FactionTrigger : BaseTrigger
         }
         return false;
     }
+
+    public override bool CanTrigger(EventContext context)
+    {
+        Nation target = context != null ? context.ResolveNation() : null;
+        return target != null && target.faction != null && faction != null && target.faction.name == faction.name;
+    }
 }

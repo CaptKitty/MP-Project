@@ -666,16 +666,56 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         source.RaiseLevy(entitlementId.ToString(), army);
     }
 
-    public void RequestEventOption(string eventName, int optionIndex)
+    public void RequestEventOption(string eventName, int optionIndex, string targetNation = null)
     {
         if (IsOwner && HasAssignment)
         {
-            RequestEventOptionRpc(eventName, optionIndex);
+            RequestEventOptionRpc(eventName, optionIndex, targetNation ?? AssignedNation);
         }
     }
 
+    public void RequestCampaignSpeed(float speed)
+    {
+        if (IsOwner && IsSpawned && HasAssignment)
+            RequestCampaignSpeedRpc(speed);
+    }
+
     [Rpc(SendTo.Server)]
-    private void RequestEventOptionRpc(FixedString64Bytes eventName, int optionIndex, RpcParams rpcParams = default)
+    private void RequestCampaignSpeedRpc(float requestedSpeed, RpcParams rpcParams = default)
+    {
+        CampaignNetworkPlayer sender = FindPlayer(rpcParams.Receive.SenderClientId);
+        if (sender == null || !sender.HasAssignment || Mapshower.Instance == null) return;
+        float speed = NormalizeCampaignSpeed(requestedSpeed);
+        string nation = sender.AssignedNation;
+        Mapshower.Instance.ApplyNetworkCampaignSpeed(speed, nation);
+        ApplyCampaignSpeedRpc(speed, new FixedString64Bytes(nation));
+    }
+
+    [Rpc(SendTo.NotServer)]
+    private void ApplyCampaignSpeedRpc(float speed, FixedString64Bytes requestingNation)
+    {
+        if (Mapshower.Instance != null)
+            Mapshower.Instance.ApplyNetworkCampaignSpeed(NormalizeCampaignSpeed(speed), requestingNation.ToString());
+    }
+
+    private static float NormalizeCampaignSpeed(float requested)
+    {
+        float[] options = { 0f, .25f, 1f, 2f, 5f };
+        float result = options[0];
+        float distance = Mathf.Abs(requested - result);
+        for (int i = 1; i < options.Length; i++)
+        {
+            float candidateDistance = Mathf.Abs(requested - options[i]);
+            if (candidateDistance >= distance) continue;
+            distance = candidateDistance;
+            result = options[i];
+        }
+        return result;
+    }
+
+    [Rpc(SendTo.Server)]
+    private void RequestEventOptionRpc(FixedString64Bytes eventName, int optionIndex,
+        FixedString64Bytes targetNation, RpcParams rpcParams = default)
     {
         CampaignNetworkPlayer sender = FindPlayer(rpcParams.Receive.SenderClientId);
         BaseEvents source = Resources.Load<BaseEvents>("EventGroup/" + eventName.ToString());
@@ -684,8 +724,14 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             return;
         }
 
+        // A player may only resolve events belonging to their assigned nation.
+        string resolvedNation = targetNation.IsEmpty ? sender.AssignedNation : targetNation.ToString();
+        if (!string.Equals(resolvedNation, sender.AssignedNation, System.StringComparison.OrdinalIgnoreCase)) return;
+        EventContext context = EventContext.ForNation(resolvedNation);
+        if (context.ResolveNation() == null || !source.Trigger(context)) return;
+
         Option option = source.OptionList[optionIndex];
-        if (option.trigger != null && !option.trigger.CanTrigger())
+        if (option.trigger != null && !option.trigger.CanTrigger(context))
         {
             return;
         }
@@ -693,9 +739,8 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         {
             if (effectSource == null) continue;
             BaseEffect effect = Instantiate(effectSource);
-            effect.nation = sender.AssignedNation;
-            effect.GrabRandomTarget();
-            effect.Execute();
+            effect.GrabRandomTarget(context);
+            effect.Execute(context);
         }
     }
 
@@ -1353,6 +1398,29 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         if (IsServer && IsOwner && Owners.Instance != null) BroadcastQueueState();
     }
 
+    public void BroadcastLevyQueueStateNow()
+    {
+        if (!IsServer || !IsOwner || Owners.Instance == null) return;
+        List<CampaignLevyState> levies = levyStateBuffer;
+        levies.Clear();
+        for (int provinceIndex = 0; provinceIndex < Owners.Instance.provincelist.Count; provinceIndex++)
+        {
+            Province province = Owners.Instance.provincelist[provinceIndex];
+            if (province == null || province.levyEntitlements == null) continue;
+            foreach (ProvinceLevyEntitlement levy in province.levyEntitlements)
+                if (levy != null) levies.Add(new CampaignLevyState { ProvinceIndex = (ushort)provinceIndex,
+                    EntitlementId = levy.id ?? string.Empty, RuleId = levy.ruleId ?? string.Empty,
+                    UnitName = levy.unitName ?? string.Empty, BuildingSlot = levy.buildingSlot, Ordinal = levy.ordinal,
+                    HoldingId = levy.holdingId ?? string.Empty, HoldingInstanceId = levy.holdingInstanceId ?? string.Empty,
+                    State = (byte)levy.state, Eligible = levy.eligible, RemainingTicks = levy.remainingTicks,
+                    RaisedArmyId = levy.raisedArmyId ?? string.Empty });
+        }
+        int signature = LevyStateSignature(levies);
+        if (signature == lastLevyStateSignature) return;
+        lastLevyStateSignature = signature;
+        BroadcastLevyChanges(levies);
+    }
+
     [Rpc(SendTo.NotServer)]
     private void ReceiveQueueStateRpc(CampaignRecruitmentOrderState[] recruitment,
         CampaignConstructionOrderState[] construction, CampaignHoldingConstructionOrderState[] holdingConstruction)
@@ -1740,6 +1808,9 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             levy.state = (LevyEntitlementState)Mathf.Clamp(state.State, 0, 3); levy.eligible = state.Eligible;
             levy.remainingTicks = state.RemainingTicks; levy.raisedArmyId = state.RaisedArmyId.ToString();
         }
+        FieldArmyHolder visible = FieldArmyHolder.InspectedArmy != null
+            ? FieldArmyHolder.InspectedArmy : FieldArmyHolder.SelectedPlayerArmy;
+        if (visible != null && visible.fieldArmy != null) RecruitmentMenu.RefreshQueueFor(visible.fieldArmy);
     }
 
     private static bool BuildingStateMatches(Province province, List<CampaignBuildingState> expected)

@@ -229,6 +229,21 @@ public class FieldArmy : ScriptableObject
         if (recruitmentOrders == null) recruitmentOrders = new List<ArmyRecruitmentOrder>();
         foreach (ArmyRecruitmentOrder order in recruitmentOrders)
             if (order != null) amount += Mathf.Max(0, order.amount);
+        return amount + GrabQueuedLevySize();
+    }
+    public int GrabQueuedLevySize()
+    {
+        if (Owners.Instance == null) return 0;
+        FieldArmyHolder holder = Owners.Instance.armylist.Find(candidate => candidate != null && candidate.fieldArmy == this);
+        if (holder == null || string.IsNullOrEmpty(holder.NetworkArmyId)) return 0;
+        int amount = 0;
+        foreach (Province province in Owners.Instance.provincelist)
+        {
+            if (province == null || province.levyEntitlements == null) continue;
+            foreach (ProvinceLevyEntitlement entitlement in province.levyEntitlements)
+                if (entitlement != null && entitlement.state == LevyEntitlementState.Mobilizing &&
+                    entitlement.raisedArmyId == holder.NetworkArmyId) amount++;
+        }
         return amount;
     }
     public bool QueueRecruitment(UnitSaveData unit, int amount, CampaignUnitOrigin origin = CampaignUnitOrigin.Professional)

@@ -11,4 +11,9 @@ public class BaseTrigger : ScriptableObject
     {
         return true;
     }
+
+    public virtual bool CanTrigger(EventContext context)
+    {
+        return CanTrigger();
+    }
 }

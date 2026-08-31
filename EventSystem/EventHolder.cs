@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class EventHolder : MonoBehaviour
 {
     public BaseEvents thisevent;
+    public EventContext context;
 
     public void Awake()
     {
@@ -19,19 +20,21 @@ public class EventHolder : MonoBehaviour
     }
     public void LoadEvent(string nation = null)
     {
+        if (context == null) context = EventContext.ForNation(nation);
+        Nation targetNation = context.ResolveNation();
         //Debug.Log(nation);
         //Debug.Log(Owners.Instance.CallPlayer().name);
         //AI-Time
-        if (nation != null && nation != Owners.Instance.CallPlayer().name)
+        if (targetNation != null && !targetNation.IsPlayer && !CampaignNetworkPlayer.IsNationPlayerControlled(targetNation.name))
         {
-            foreach (var item in thisevent.OptionList[0].EffectList)
+            Option aiOption = thisevent.OptionList.Find(option => option != null &&
+                (option.trigger == null || option.trigger.CanTrigger(context)));
+            if (aiOption == null) { Destroy(gameObject); return; }
+            foreach (var item in aiOption.EffectList)
             {
-                item.nation = nation;//name;
-                item.Execute();
+                if (item != null) item.Execute(context);
             }
-            Instaclick();
-            Debug.Log("Executed AI Function");
-            Debug.Log(thisevent.name);
+            Destroy(gameObject);
             return;
         }
 
@@ -47,6 +50,7 @@ public class EventHolder : MonoBehaviour
             NewButton.GetComponent<OptionHolder>().thisoption = Option;
             NewButton.GetComponent<OptionHolder>().eventName = thisevent.name.Replace("(Clone)", "");
             NewButton.GetComponent<OptionHolder>().optionIndex = optionIndex;
+            NewButton.GetComponent<OptionHolder>().context = context;
             NewButton.transform.localPosition = new Vector2(0, -215 + 50 * i);//new Vector2(200 * i, -300);
             NewButton.transform.GetChild(0).GetComponent<Text>().text = Option.Message;
             NewButton.GetComponent<Tooltip>().message = Option.Tooltip;
@@ -58,7 +62,7 @@ public class EventHolder : MonoBehaviour
 
             if(Option.trigger != null)
             {
-                if(!Option.trigger.CanTrigger())
+                if(!Option.trigger.CanTrigger(context))
                 {
                     NewButton.GetComponent<Button>().enabled = !enabled;
 
@@ -81,9 +85,11 @@ public class EventHolder : MonoBehaviour
     }
     public void Instaclick()
     {
-        GameObject NewButton = Instantiate(Resources.Load<GameObject>("Prefabs/Event/EventWindowButton"));
+        GameObject NewButton = Instantiate(Resources.Load<GameObject>("EventSupports/EventWindowButton"));
+        if (NewButton == null) return;
         NewButton.transform.SetParent(this.transform);
         NewButton.GetComponent<OptionHolder>().thisoption = thisevent.initialOption;
+        NewButton.GetComponent<OptionHolder>().context = context;
         NewButton.GetComponent<OptionHolder>().OnClickThis();
     }
 }

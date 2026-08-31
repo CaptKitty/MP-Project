@@ -13,6 +13,11 @@ public class AddUnitEffect : BaseEffect
     {
         FieldArmyHolder.PlayerFieldArmy.AddTroop(name:unitname, amount:amount);
     }
+    public override void Execute(EventContext context)
+    {
+        FieldArmyHolder target = context != null ? context.ResolveArmy() : null;
+        if (target != null) target.AddTroop(name: unitname, amount: amount);
+    }
     public override void GrabRandomNation(string ownernation = "")
     {
         if(ownernation == "")

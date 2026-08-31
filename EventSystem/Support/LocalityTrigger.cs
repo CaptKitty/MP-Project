@@ -20,4 +20,13 @@ public class LocalityTrigger : BaseTrigger
         }
         return false;
     }
+
+    public override bool CanTrigger(EventContext context)
+    {
+        Province target = context != null ? context.province : null;
+        if (target == null && context != null && context.ResolveArmy() != null)
+            target = context.ResolveArmy().GrabFieldArmyProvince();
+        return target != null && target.nation != null && target.nation.faction != null && localFaction != null &&
+            target.nation.faction.name == localFaction.name;
+    }
 }

@@ -15,4 +15,11 @@ public class SeaTrigger : BaseTrigger
         }
         return !IsThisOnTheSea;
     }
+
+    public override bool CanTrigger(EventContext context)
+    {
+        FieldArmyHolder target = context != null ? context.ResolveArmy() : null;
+        if (target == null) return false;
+        return (target.GrabFieldArmyProvince() == null) == IsThisOnTheSea;
+    }
 }

@@ -11,6 +11,12 @@ public class BaseEffect : ScriptableObject
     public string province = ""; 
     public string nation = ""; 
     public virtual void Execute(){}
+    public virtual void Execute(EventContext context)
+    {
+        Nation target = context != null ? context.ResolveNation() : null;
+        if (target != null) nation = target.name;
+        Execute();
+    }
     public virtual void GrabRandomNation(string ownernation = "")
     {
         if(ownernation == "")
@@ -19,6 +25,12 @@ public class BaseEffect : ScriptableObject
         }
     }
     public virtual void GrabRandomTarget(){}
+    public virtual void GrabRandomTarget(EventContext context)
+    {
+        Nation target = context != null ? context.ResolveNation() : null;
+        if (target != null) nation = target.name;
+        GrabRandomTarget();
+    }
     public virtual string GrabTooltip()
     {
         string newstring = tooltip;

@@ -20,4 +20,12 @@ public class ArmySizeTrigger : BaseTrigger
         }
         return false;
     }
+
+    public override bool CanTrigger(EventContext context)
+    {
+        FieldArmyHolder target = context != null ? context.ResolveArmy() : null;
+        if (target == null || target.fieldArmy == null) return false;
+        int size = target.fieldArmy.GrabArmySize();
+        return more ? size >= armysize : size < armysize;
+    }
 }

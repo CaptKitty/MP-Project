@@ -12,6 +12,11 @@ public class AddSupplyEffect : BaseEffect
     {
         FieldArmyHolder.PlayerFieldArmy.fieldArmy.AddSupply(supplyToAdd);
     }
+    public override void Execute(EventContext context)
+    {
+        FieldArmyHolder target = context != null ? context.ResolveArmy() : null;
+        if (target != null && target.fieldArmy != null) target.fieldArmy.AddSupply(supplyToAdd);
+    }
     public override void GrabRandomNation(string ownernation = "")
     {
         if(ownernation == "")

@@ -7,6 +7,9 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Event")]
 public class BaseEvents : ScriptableObject
 {
+    public enum EventScope { LegacyArmy, Nation }
+    [Tooltip("National events are eligible for the faction-level event scheduler; legacy events remain army incidents.")]
+    public EventScope scope = EventScope.LegacyArmy;
     public string Title;
     [TextArea(15, 20)]
     public string Message = "";
@@ -16,9 +19,13 @@ public class BaseEvents : ScriptableObject
     public List<Option> OptionList = new List<Option>();
     public bool Trigger()
     {
+        return Trigger(null);
+    }
+    public bool Trigger(EventContext context)
+    {
         foreach (var item in triggers)
         {
-            if (!item.CanTrigger())
+            if (item != null && !item.CanTrigger(context))
             {
                 return false;
             }

@@ -171,10 +171,26 @@ public class RecruitmentMenu : MonoBehaviour
         }
         if (army.fieldArmy.recruitmentOrders != null && army.fieldArmy.recruitmentOrders.Count > 0)
         {
-            AddHeader("Recruitment queue");
+            AddHeader("Professional recruitment queue");
             foreach (ArmyRecruitmentOrder order in army.fieldArmy.recruitmentOrders)
                 if (order != null && order.unit != null)
                     AddMessage(order.amount + "X " + order.unit.name + " - " + order.remainingTicks + " ticks remaining");
+        }
+        List<ProvinceLevyEntitlement> levyQueue = new List<ProvinceLevyEntitlement>();
+        foreach (Province province in Owners.Instance.provincelist)
+            if (province != null && province.levyEntitlements != null)
+                levyQueue.AddRange(province.levyEntitlements.FindAll(entitlement => entitlement != null &&
+                    entitlement.state == LevyEntitlementState.Mobilizing && entitlement.raisedArmyId == army.NetworkArmyId));
+        if (levyQueue.Count > 0)
+        {
+            AddHeader("Levy mobilization queue");
+            int active = levyQueue.FindAll(entitlement => entitlement.remainingTicks > 0).Count;
+            AddMessage(Mathf.Min(3, active > 0 ? active : levyQueue.Count) + " mobilizing - " +
+                levyQueue.Count + " total queued - batches complete every 3 ticks");
+            foreach (ProvinceLevyEntitlement entitlement in levyQueue)
+                AddMessage((!string.IsNullOrEmpty(entitlement.unitName) ? entitlement.unitName :
+                    entitlement.unit != null ? entitlement.unit.name : "Unknown levy") + (entitlement.remainingTicks > 0
+                    ? " - " + entitlement.remainingTicks + " ticks remaining" : " - waiting"));
         }
         army.fieldArmy.ReconcileFormationRecords();
         List<ArmyFormationRecord> raisedLevies = army.fieldArmy.formationRecords.FindAll(record => record != null &&

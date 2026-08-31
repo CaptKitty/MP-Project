@@ -16,4 +16,10 @@ public class FlagTrigger : BaseTrigger
         }
         return false;
     }
+
+    public override bool CanTrigger(EventContext context)
+    {
+        FieldArmyHolder target = context != null ? context.ResolveArmy() : null;
+        return target != null ? target.HasFlag(flagToTrigger) : CanTrigger();
+    }
 }

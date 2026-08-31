@@ -20,4 +20,11 @@ public class SupplyTrigger : BaseTrigger
         }
         return false;
     }
+
+    public override bool CanTrigger(EventContext context)
+    {
+        FieldArmyHolder target = context != null ? context.ResolveArmy() : null;
+        if (target == null || target.fieldArmy == null) return false;
+        return more ? target.fieldArmy.ArmySupply >= supply : target.fieldArmy.ArmySupply < supply;
+    }
 }

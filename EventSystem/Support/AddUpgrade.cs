@@ -53,6 +53,15 @@ public class AddUpgrade : BaseEffect
         }
         unitSaveData.upgradeModules.Remove(mod);
     }
+    public override void Execute(EventContext context)
+    {
+        Nation target = context != null ? context.ResolveNation() : null;
+        if (target == null || target.faction == null) { Execute(); return; }
+        Faction previous = faction;
+        faction = target.faction;
+        Execute();
+        faction = previous;
+    }
     public override void GrabRandomNation(string ownernation = "")
     {
         if(ownernation == "")

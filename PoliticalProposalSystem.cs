@@ -5,6 +5,7 @@ using UnityEngine;
 public enum PoliticalProposalType : byte { Law, Edict }
 public enum NationalEdictType : byte { LevyRecovery, ReassignHoldingAllegiance, SeizeHoldingWealth }
 public enum AllegianceEdictScope : byte { SpecificHolding, Citizens, Aristocracy, PoliticalGroup }
+public enum EdictAftermathType : byte { None, ConvertHoldingClass, TimedEffect }
 
 [Serializable]
 public sealed class PoliticalGroup
@@ -29,6 +30,24 @@ public sealed class PoliticalVote
 [Serializable]
 public sealed class NationalEdict
 {
+    [Header("Extension identity")]
+    public string extensionId;
+    public string displayName;
+    public string requiredLawId;
+    public bool allowMultipleInstances;
+    [Header("Temporary core")]
+    public List<NationalLawEffect> coreEffects = new List<NationalLawEffect>();
+    [Header("Optional aftermath")]
+    public EdictAftermathType aftermathType;
+    public SocioEconomicClass aftermathFromClass = SocioEconomicClass.Freemen;
+    public SocioEconomicClass aftermathToClass = SocioEconomicClass.Citizen;
+    [Range(0, 1000)] public int aftermathConversionPermille;
+    public string aftermathDisplayName;
+    [Min(0)] public int aftermathDurationTicks;
+    public List<NationalLawEffect> aftermathEffects = new List<NationalLawEffect>();
+    [HideInInspector] public bool isAftermath;
+
+    [Header("Legacy one-shot edict")]
     public NationalEdictType type;
     public string provinceName;
     public string holdingInstanceId;
@@ -39,6 +58,116 @@ public sealed class NationalEdict
     [Min(0)] public int immediateRecoveryTicks;
     [Min(0)] public int recoveryBonusPerTick = 1;
     [Min(0)] public int treasuryGain;
+
+    public string StableId => !string.IsNullOrWhiteSpace(extensionId) ? extensionId : displayName;
+    public string DisplayName => !string.IsNullOrWhiteSpace(displayName) ? displayName :
+        !string.IsNullOrWhiteSpace(extensionId) ? extensionId : type.ToString();
+
+    public NationalEdict Clone()
+    {
+        NationalEdict copy = (NationalEdict)MemberwiseClone();
+        copy.coreEffects = CloneEffects(coreEffects);
+        copy.aftermathEffects = CloneEffects(aftermathEffects);
+        return copy;
+    }
+
+    public string DescribeCore()
+    {
+        List<string> lines = new List<string>();
+        if (coreEffects != null) foreach (NationalLawEffect effect in coreEffects)
+            if (effect != null) lines.Add(effect.Describe());
+        return lines.Count > 0 ? string.Join("; ", lines) : PoliticalProposalSystem.DescribeLegacyEdict(this);
+    }
+
+    public string DescribeAftermath()
+    {
+        if (aftermathType == EdictAftermathType.ConvertHoldingClass)
+            return (aftermathConversionPermille / 10f).ToString("0.#") + "% of affected " +
+                SocioEconomicClassRules.DisplayName(aftermathFromClass) + " holdings become " +
+                SocioEconomicClassRules.DisplayName(aftermathToClass) + " holdings.";
+        if (aftermathType == EdictAftermathType.TimedEffect)
+        {
+            List<string> lines = new List<string>();
+            if (aftermathEffects != null) foreach (NationalLawEffect effect in aftermathEffects)
+                if (effect != null) lines.Add(effect.Describe());
+            return (!string.IsNullOrWhiteSpace(aftermathDisplayName) ? aftermathDisplayName + ": " : string.Empty) +
+                string.Join("; ", lines) + " for " + aftermathDurationTicks + " ticks.";
+        }
+        return "None";
+    }
+
+    private static List<NationalLawEffect> CloneEffects(List<NationalLawEffect> source)
+    {
+        List<NationalLawEffect> result = new List<NationalLawEffect>();
+        if (source == null) return result;
+        foreach (NationalLawEffect effect in source) if (effect != null) result.Add(new NationalLawEffect
+        {
+            type = effect.type, operation = effect.operation, amountPermille = effect.amountPermille,
+            target = effect.target, anySocioEconomicClass = effect.anySocioEconomicClass,
+            socioEconomicClass = effect.socioEconomicClass, cultureScope = effect.cultureScope,
+            cultureName = effect.cultureName, anyUnitOrigin = effect.anyUnitOrigin, unitOrigin = effect.unitOrigin,
+            anyAllegiance = effect.anyAllegiance, allegianceId = effect.allegianceId
+        });
+        return result;
+    }
+
+    public static NationalEdict CreateLevyExtension(string id, string name, int amountPermille,
+        SocioEconomicClass targetClass, int duration)
+    {
+        NationalEdict result = new NationalEdict { extensionId = id, displayName = name,
+            requiredLawId = "roman_citizen_levy", durationTicks = duration };
+        result.coreEffects.Add(new NationalLawEffect { type = NationalLawEffectType.LevyConscription,
+            operation = NationalLawOperation.AddFlat, amountPermille = amountPermille,
+            target = NationalLawTarget.Holdings, anySocioEconomicClass = false,
+            socioEconomicClass = targetClass });
+        return result;
+    }
+
+    public static NationalEdict CreateEmergencyFreemenMuster()
+    {
+        NationalEdict result = CreateLevyExtension("emergency_freemen_muster", "Emergency Muster of Freemen",
+            250, SocioEconomicClass.Freemen, 24);
+        result.aftermathType = EdictAftermathType.ConvertHoldingClass;
+        result.aftermathFromClass = SocioEconomicClass.Freemen;
+        result.aftermathToClass = SocioEconomicClass.Citizen;
+        result.aftermathConversionPermille = 250;
+        return result;
+    }
+
+    public static NationalEdict CreateExtraordinaryWarTax()
+    {
+        NationalEdict result = new NationalEdict { extensionId = "extraordinary_war_tax",
+            displayName = "Extraordinary War Tax", requiredLawId = "roman_citizen_levy", durationTicks = 24,
+            aftermathType = EdictAftermathType.TimedEffect, aftermathDisplayName = "Elite Tax Privilege",
+            aftermathDurationTicks = 120 };
+        result.coreEffects.Add(new NationalLawEffect { type = NationalLawEffectType.HoldingTaxation,
+            operation = NationalLawOperation.AddPercent, amountPermille = 500, target = NationalLawTarget.Holdings,
+            anySocioEconomicClass = false, socioEconomicClass = SocioEconomicClass.Aristocracy });
+        result.aftermathEffects.Add(new NationalLawEffect { type = NationalLawEffectType.HoldingTaxation,
+            operation = NationalLawOperation.AddPercent, amountPermille = -200, target = NationalLawTarget.Holdings,
+            anySocioEconomicClass = false, socioEconomicClass = SocioEconomicClass.Aristocracy });
+        return result;
+    }
+
+    public static NationalEdict CreateAllegianceLevyExtension()
+    {
+        NationalEdict result = new NationalEdict { extensionId = "raise_tribal_levy",
+            displayName = "Raise Tribal Levy", requiredLawId = "tribal_muster", durationTicks = 24,
+            allowMultipleInstances = true };
+        result.coreEffects.Add(new NationalLawEffect { type = NationalLawEffectType.LevyConscription,
+            operation = NationalLawOperation.AddFlat, amountPermille = 200, target = NationalLawTarget.Holdings,
+            anySocioEconomicClass = true, anyAllegiance = false });
+        return result;
+    }
+}
+
+[Serializable]
+public sealed class ActiveNationalEdict
+{
+    public string instanceId;
+    public string title;
+    public NationalEdict edict;
+    public int remainingTicks;
 }
 
 [Serializable]
@@ -176,6 +305,18 @@ public static class PoliticalProposalSystem
     public static string DescribeEdict(NationalEdict edict)
     {
         if (edict == null) return "No edict details available.";
+        if (edict.coreEffects != null && edict.coreEffects.Count > 0)
+        {
+            string target = EdictTargetDescription(edict);
+            return "Target: " + target + "\nCore effect: " + edict.DescribeCore() +
+                "\nDuration: " + edict.durationTicks + " ticks\nAftermath: " + edict.DescribeAftermath();
+        }
+        return DescribeLegacyEdict(edict);
+    }
+
+    public static string DescribeLegacyEdict(NationalEdict edict)
+    {
+        if (edict == null) return "No edict details available.";
         if (edict.type == NationalEdictType.LevyRecovery)
             return "Spend " + edict.treasuryCost + " gold to immediately recover " +
                 edict.immediateRecoveryTicks + " levy-recovery ticks and gain +" +
@@ -187,9 +328,37 @@ public static class PoliticalProposalSystem
         return "Seize " + edict.treasuryGain + " gold from a holding and reduce that holding by one level.";
     }
 
+    private static string EdictTargetDescription(NationalEdict edict)
+    {
+        if (edict.coreEffects == null || edict.coreEffects.Count == 0) return "State";
+        NationalLawEffect effect = edict.coreEffects[0];
+        if (!effect.anyAllegiance) return string.IsNullOrWhiteSpace(effect.allegianceId)
+            ? "Selected Allegiance's aligned holdings" : effect.allegianceId + "-aligned holdings";
+        if (!effect.anySocioEconomicClass) return SocioEconomicClassRules.DisplayName(effect.socioEconomicClass) + " holdings";
+        return "State";
+    }
+
     public static bool ProposeDefaultPlayerEdict(Nation nation)
     {
         if (nation == null || CurrentEdict(nation) != null) return false;
+        nation.EnsureDefaultLaws();
+        foreach (NationalLaw law in nation.laws)
+            if (law != null && law.availableExtensions != null)
+                foreach (NationalEdict extension in law.availableExtensions)
+                    if (extension != null)
+                    {
+                        NationalEdict candidate = extension.Clone();
+                        if (candidate.coreEffects != null && candidate.coreEffects.Exists(effect => effect != null &&
+                            !effect.anyAllegiance && string.IsNullOrWhiteSpace(effect.allegianceId)))
+                        {
+                            AllegianceSystem.EnsureNationAllegiances(nation);
+                            Allegiance target = nation.allegiances != null ? nation.allegiances.Find(item => item != null) : null;
+                            if (target != null) foreach (NationalLawEffect effect in candidate.coreEffects)
+                                if (effect != null && !effect.anyAllegiance) effect.allegianceId = target.id;
+                        }
+                        if (CanActivateExtension(nation, candidate))
+                            return ProposeEdict(nation, candidate.DisplayName, candidate, "player", 8);
+                    }
         return ProposeEdict(nation, "Emergency Levy Recovery", new NationalEdict
         {
             type = NationalEdictType.LevyRecovery,
@@ -210,10 +379,58 @@ public static class PoliticalProposalSystem
 
     public static bool ProposeEdict(Nation nation, string title, NationalEdict edict, string proposer = "player", int debateTicks = 8)
     {
-        if (nation == null || edict == null) return false;
+        if (nation == null || edict == null || !CanActivateExtension(nation, edict)) return false;
         return Add(nation, new PoliticalProposal { id = Guid.NewGuid().ToString("N"), title = title,
             proposerGroupId = proposer, type = PoliticalProposalType.Edict, edict = edict,
             remainingDebateTicks = Mathf.Max(1, debateTicks) });
+    }
+
+    public static bool ProposeExtension(Nation nation, string lawId, string extensionId,
+        string targetAllegianceId = null, string proposer = "player", int debateTicks = 8)
+    {
+        if (nation == null) return false;
+        nation.EnsureDefaultLaws();
+        NationalLaw law = nation.laws.Find(candidate => candidate != null &&
+            string.Equals(candidate.id, lawId, StringComparison.OrdinalIgnoreCase));
+        NationalEdict template = law != null && law.availableExtensions != null
+            ? law.availableExtensions.Find(candidate => candidate != null &&
+                string.Equals(candidate.StableId, extensionId, StringComparison.OrdinalIgnoreCase)) : null;
+        if (template == null) return false;
+        NationalEdict edict = template.Clone();
+        if (!string.IsNullOrWhiteSpace(targetAllegianceId) && edict.coreEffects != null)
+            foreach (NationalLawEffect effect in edict.coreEffects)
+                if (effect != null && !effect.anyAllegiance) effect.allegianceId = targetAllegianceId;
+        return ProposeEdict(nation, edict.DisplayName, edict, proposer, debateTicks);
+    }
+
+    public static bool CanActivateExtension(Nation nation, NationalEdict edict)
+    {
+        if (nation == null || edict == null) return false;
+        if (string.IsNullOrWhiteSpace(edict.requiredLawId)) return true;
+        nation.EnsureDefaultLaws();
+        NationalLaw law = nation.laws.Find(candidate => candidate != null &&
+            string.Equals(candidate.id, edict.requiredLawId, StringComparison.OrdinalIgnoreCase));
+        if (law == null || law.availableExtensions == null || !law.availableExtensions.Exists(candidate =>
+            candidate != null && string.Equals(candidate.StableId, edict.StableId, StringComparison.OrdinalIgnoreCase))) return false;
+        if (edict.coreEffects != null && edict.coreEffects.Exists(effect => effect != null &&
+            !effect.anyAllegiance && string.IsNullOrWhiteSpace(effect.allegianceId))) return false;
+        if (nation.activeEdicts == null) return true;
+        string targetAllegiance = TargetAllegianceId(edict);
+        foreach (ActiveNationalEdict active in nation.activeEdicts)
+        {
+            if (active == null || active.edict == null || active.edict.isAftermath ||
+                !string.Equals(active.edict.StableId, edict.StableId, StringComparison.OrdinalIgnoreCase)) continue;
+            if (!edict.allowMultipleInstances || string.Equals(TargetAllegianceId(active.edict), targetAllegiance,
+                StringComparison.OrdinalIgnoreCase)) return false;
+        }
+        return true;
+    }
+
+    private static string TargetAllegianceId(NationalEdict edict)
+    {
+        if (edict == null || edict.coreEffects == null) return string.Empty;
+        NationalLawEffect target = edict.coreEffects.Find(effect => effect != null && !effect.anyAllegiance);
+        return target != null ? target.allegianceId ?? string.Empty : string.Empty;
     }
 
     private static bool Add(Nation nation, PoliticalProposal proposal)
@@ -231,6 +448,7 @@ public static class PoliticalProposalSystem
         EnsureGroups(nation);
         if (nation.politicalProposals == null) nation.politicalProposals = new List<PoliticalProposal>();
         ProcessRecoveryBoost(nation);
+        ProcessActiveEdicts(nation);
         for (int i = nation.politicalProposals.Count - 1; i >= 0; i--)
         {
             PoliticalProposal proposal = nation.politicalProposals[i];
@@ -300,7 +518,84 @@ public static class PoliticalProposalSystem
             nation.laws.Add(proposal.law.Clone()); nation.ResetLawResolution(); return;
         }
         nation.latestPassedEdict = proposal.title + ": " + DescribeEdict(proposal.edict);
-        ExecuteEdict(nation, proposal.edict);
+        if (proposal.edict != null && proposal.edict.coreEffects != null && proposal.edict.coreEffects.Count > 0)
+            ActivateEdict(nation, proposal.title, proposal.edict);
+        else ExecuteEdict(nation, proposal.edict);
+    }
+
+    private static void ActivateEdict(Nation nation, string title, NationalEdict edict)
+    {
+        if (nation.activeEdicts == null) nation.activeEdicts = new List<ActiveNationalEdict>();
+        nation.activeEdicts.Add(new ActiveNationalEdict { instanceId = Guid.NewGuid().ToString("N"),
+            title = title, edict = edict.Clone(), remainingTicks = Mathf.Max(1, edict.durationTicks) });
+        ReconcileLevies(nation);
+    }
+
+    private static void ProcessActiveEdicts(Nation nation)
+    {
+        if (nation.activeEdicts == null) nation.activeEdicts = new List<ActiveNationalEdict>();
+        for (int i = nation.activeEdicts.Count - 1; i >= 0; i--)
+        {
+            ActiveNationalEdict active = nation.activeEdicts[i];
+            if (active == null || active.edict == null) { nation.activeEdicts.RemoveAt(i); continue; }
+            if (--active.remainingTicks > 0) continue;
+            nation.activeEdicts.RemoveAt(i);
+            if (!active.edict.isAftermath) ExecuteAftermath(nation, active.edict);
+            ReconcileLevies(nation);
+        }
+    }
+
+    private static void ExecuteAftermath(Nation nation, NationalEdict expired)
+    {
+        if (expired.aftermathType == EdictAftermathType.ConvertHoldingClass)
+        {
+            List<ProvinceHolding> candidates = new List<ProvinceHolding>();
+            foreach (Province province in OwnedProvinces(nation)) if (province.holdings != null)
+                foreach (ProvinceHolding holding in province.holdings)
+                    if (holding != null && SocioEconomicClassRules.Normalize(holding.socioEconomicClass) ==
+                        SocioEconomicClassRules.Normalize(expired.aftermathFromClass) && MatchesTarget(expired, holding))
+                        candidates.Add(holding);
+            candidates.Sort((a, b) => string.CompareOrdinal(a.instanceId, b.instanceId));
+            int convertCount = Mathf.Clamp(Mathf.RoundToInt(candidates.Count * expired.aftermathConversionPermille / 1000f),
+                0, candidates.Count);
+            for (int i = 0; i < convertCount; i++) candidates[i].socioEconomicClass =
+                SocioEconomicClassRules.Normalize(expired.aftermathToClass);
+            foreach (Province province in OwnedProvinces(nation)) province.RebuildPopulationFromHoldings();
+        }
+        else if (expired.aftermathType == EdictAftermathType.TimedEffect &&
+            expired.aftermathEffects != null && expired.aftermathEffects.Count > 0)
+        {
+            NationalEdict aftermath = new NationalEdict { extensionId = expired.StableId + "_aftermath",
+                displayName = string.IsNullOrWhiteSpace(expired.aftermathDisplayName) ? "Aftermath" : expired.aftermathDisplayName,
+                durationTicks = Mathf.Max(1, expired.aftermathDurationTicks), isAftermath = true };
+            foreach (NationalLawEffect effect in expired.aftermathEffects)
+                if (effect != null) aftermath.coreEffects.Add(CloneEffect(effect));
+            ActivateEdict(nation, aftermath.DisplayName, aftermath);
+        }
+    }
+
+    private static bool MatchesTarget(NationalEdict edict, ProvinceHolding holding)
+    {
+        if (edict.coreEffects == null || edict.coreEffects.Count == 0) return true;
+        NationalLawEffect target = edict.coreEffects[0];
+        if (!target.anyAllegiance && !string.Equals(holding.allegiance, target.allegianceId,
+            StringComparison.OrdinalIgnoreCase)) return false;
+        return target.anySocioEconomicClass || SocioEconomicClassRules.Normalize(holding.socioEconomicClass) ==
+            SocioEconomicClassRules.Normalize(target.socioEconomicClass);
+    }
+
+    private static NationalLawEffect CloneEffect(NationalLawEffect effect) => new NationalLawEffect
+    {
+        type = effect.type, operation = effect.operation, amountPermille = effect.amountPermille,
+        target = effect.target, anySocioEconomicClass = effect.anySocioEconomicClass,
+        socioEconomicClass = effect.socioEconomicClass, cultureScope = effect.cultureScope,
+        cultureName = effect.cultureName, anyUnitOrigin = effect.anyUnitOrigin, unitOrigin = effect.unitOrigin,
+        anyAllegiance = effect.anyAllegiance, allegianceId = effect.allegianceId
+    };
+
+    private static void ReconcileLevies(Nation nation)
+    {
+        foreach (Province province in OwnedProvinces(nation)) province.ReconcileLevyEntitlements();
     }
 
     private static void ExecuteEdict(Nation nation, NationalEdict edict)

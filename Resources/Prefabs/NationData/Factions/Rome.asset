@@ -62,11 +62,11 @@ MonoBehaviour:
     levies: []
     laws:
     - id: roman_citizen_levy
-      displayName: Citizen Levy
+      displayName: Republican Levy
       effects:
       - type: 0
         operation: 0
-        amountPermille: 400
+        amountPermille: 200
         target: 1
         anySocioEconomicClass: 0
         socioEconomicClass: 6

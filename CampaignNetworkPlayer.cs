@@ -47,6 +47,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
     private int[] lastProvinceSignatures;
     private int lastQueueStateSignature = int.MinValue;
     private int lastLawStateSignature = int.MinValue;
+    private int lastActiveEdictStateSignature = int.MinValue;
     private int lastAllegianceStateSignature = int.MinValue;
     private readonly Dictionary<int, BattleStartTransfer> incomingBattleTransfers = new Dictionary<int, BattleStartTransfer>();
     private readonly Dictionary<int, BattleStartTransfer> incomingTileBattleTransfers = new Dictionary<int, BattleStartTransfer>();
@@ -62,6 +63,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
     private readonly List<CampaignUnitState> unitStateBuffer = new List<CampaignUnitState>();
     private readonly List<CampaignLawState> lawStateBuffer = new List<CampaignLawState>();
     private readonly List<CampaignClassRuleState> classRuleStateBuffer = new List<CampaignClassRuleState>();
+    private readonly List<CampaignActiveEdictState> activeEdictStateBuffer = new List<CampaignActiveEdictState>();
     private readonly List<CampaignFactionFlagState> factionFlagStateBuffer = new List<CampaignFactionFlagState>();
     private readonly List<CampaignBuildingState> buildingStateBuffer = new List<CampaignBuildingState>();
     private readonly List<CampaignMercenaryState> mercenaryStateBuffer = new List<CampaignMercenaryState>();
@@ -182,6 +184,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             lastProvinceSignatures = null;
             lastQueueStateSignature = int.MinValue;
             lastLawStateSignature = int.MinValue;
+            lastActiveEdictStateSignature = int.MinValue;
             lastAllegianceStateSignature = int.MinValue;
         }
     }
@@ -1199,7 +1202,8 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                         AnySocioEconomicClass = effect.anySocioEconomicClass,
                         SocioEconomicClass = (byte)SocioEconomicClassRules.Normalize(effect.socioEconomicClass), CultureScope = (byte)effect.cultureScope,
                         CultureName = effect.cultureName ?? string.Empty, AnyUnitOrigin = effect.anyUnitOrigin,
-                        UnitOrigin = (byte)effect.unitOrigin });
+                        UnitOrigin = (byte)effect.unitOrigin, AnyAllegiance = effect.anyAllegiance,
+                        AllegianceId = effect.allegianceId ?? string.Empty });
                 if (law.classRules != null) foreach (NationalClassRule rule in law.classRules)
                     if (rule != null) classRules.Add(new CampaignClassRuleState { NationIndex = (ushort)i,
                         LawId = law.id ?? string.Empty, DisplayName = law.displayName ?? string.Empty,
@@ -1226,6 +1230,33 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         {
             lastAllegianceStateSignature = allegianceSignature;
             ReceiveAllegianceStateRpc(allegiances.ToArray());
+        }
+        List<CampaignActiveEdictState> activeEdicts = activeEdictStateBuffer;
+        activeEdicts.Clear();
+        for (int i = 0; i < Owners.Instance.nationlist.Count; i++)
+        {
+            Nation nation = Owners.Instance.nationlist[i];
+            if (nation == null || nation.activeEdicts == null) continue;
+            foreach (ActiveNationalEdict active in nation.activeEdicts)
+            {
+                if (active == null || active.edict == null) continue;
+                string target = string.Empty;
+                if (active.edict.coreEffects != null)
+                {
+                    NationalLawEffect targeted = active.edict.coreEffects.Find(effect => effect != null && !effect.anyAllegiance);
+                    if (targeted != null) target = targeted.allegianceId ?? string.Empty;
+                }
+                activeEdicts.Add(new CampaignActiveEdictState { NationIndex = (ushort)i,
+                    ExtensionId = active.edict.StableId ?? string.Empty, Title = active.title ?? string.Empty,
+                    TargetAllegianceId = target, RemainingTicks = active.remainingTicks,
+                    IsAftermath = active.edict.isAftermath });
+            }
+        }
+        int activeEdictSignature = ActiveEdictStateSignature(activeEdicts);
+        if (activeEdictSignature != lastActiveEdictStateSignature)
+        {
+            lastActiveEdictStateSignature = activeEdictSignature;
+            ReceiveActiveEdictStateRpc(activeEdicts.ToArray());
         }
         BroadcastQueueState();
 
@@ -1580,7 +1611,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             NationalLaw law = nation.laws.Find(candidate => candidate != null && candidate.id == lawId);
             if (law == null) { law = new NationalLaw { id = lawId, displayName = state.DisplayName.ToString() }; nation.laws.Add(law); }
             law.effects.Add(new NationalLawEffect { amountPermille = Mathf.Clamp(state.AmountPermille, -5000, 5000),
-                type = (NationalLawEffectType)Mathf.Clamp(state.Effect, 0, 4),
+                type = (NationalLawEffectType)Mathf.Clamp(state.Effect, 0, 7),
                 operation = (NationalLawOperation)Mathf.Clamp(state.Operation, 0, 3),
                 target = (NationalLawTarget)Mathf.Clamp(state.Target, 0, 3),
                 anySocioEconomicClass = state.AnySocioEconomicClass,
@@ -1588,7 +1619,8 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                     (SocioEconomicClass)Mathf.Clamp(state.SocioEconomicClass, 0, 8)),
                 cultureScope = (NationalLawCultureScope)Mathf.Clamp(state.CultureScope, 0, 3),
                 cultureName = state.CultureName.ToString(), anyUnitOrigin = state.AnyUnitOrigin,
-                unitOrigin = (CampaignUnitOrigin)Mathf.Clamp(state.UnitOrigin, 0, 3) });
+                unitOrigin = (CampaignUnitOrigin)Mathf.Clamp(state.UnitOrigin, 0, 3),
+                anyAllegiance = state.AnyAllegiance, allegianceId = state.AllegianceId.ToString() });
         }
         foreach (CampaignClassRuleState state in classRules)
         {
@@ -1703,6 +1735,46 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 if (unit != null) army.fieldArmy.AddTroop(unit, unitState.Amount, true,
                     (CampaignUnitOrigin)Mathf.Clamp(unitState.Origin, 0, 3), unitState.EntitlementId.ToString());
             }
+        }
+    }
+
+    [Rpc(SendTo.NotServer)]
+    private void ReceiveActiveEdictStateRpc(CampaignActiveEdictState[] states)
+    {
+        if (Owners.Instance == null) return;
+        foreach (Nation nation in Owners.Instance.nationlist)
+            if (nation != null) nation.activeEdicts = new List<ActiveNationalEdict>();
+        foreach (CampaignActiveEdictState state in states)
+        {
+            if (state.NationIndex >= Owners.Instance.nationlist.Count) continue;
+            Nation nation = Owners.Instance.nationlist[state.NationIndex];
+            nation.EnsureDefaultLaws();
+            string id = state.ExtensionId.ToString();
+            string sourceId = state.IsAftermath && id.EndsWith("_aftermath", StringComparison.OrdinalIgnoreCase)
+                ? id.Substring(0, id.Length - "_aftermath".Length) : id;
+            NationalEdict template = null;
+            foreach (NationalLaw law in nation.laws)
+            {
+                if (law == null || law.availableExtensions == null) continue;
+                template = law.availableExtensions.Find(extension => extension != null &&
+                    string.Equals(extension.StableId, sourceId, StringComparison.OrdinalIgnoreCase));
+                if (template != null) break;
+            }
+            if (template == null) continue;
+            NationalEdict edict = template.Clone();
+            if (state.IsAftermath)
+            {
+                edict.extensionId = id; edict.displayName = state.Title.ToString(); edict.isAftermath = true;
+                edict.coreEffects = edict.aftermathEffects;
+                edict.aftermathEffects = new List<NationalLawEffect>();
+                edict.aftermathType = EdictAftermathType.None;
+            }
+            string target = state.TargetAllegianceId.ToString();
+            if (!string.IsNullOrWhiteSpace(target) && edict.coreEffects != null)
+                foreach (NationalLawEffect effect in edict.coreEffects)
+                    if (effect != null && !effect.anyAllegiance) effect.allegianceId = target;
+            nation.activeEdicts.Add(new ActiveNationalEdict { instanceId = id,
+                title = state.Title.ToString(), edict = edict, remainingTicks = Mathf.Max(1, state.RemainingTicks) });
         }
     }
 
@@ -1951,12 +2023,31 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 hash = hash * 31 + state.Operation; hash = hash * 31 + state.Target;
                 hash = hash * 31 + state.SocioEconomicClass; hash = hash * 31 + state.CultureScope;
                 hash = hash * 31 + state.CultureName.GetHashCode(); hash = hash * 31 + state.UnitOrigin;
+                hash = hash * 31 + (state.AnyAllegiance ? 1 : 0); hash = hash * 31 + state.AllegianceId.GetHashCode();
             }
             foreach (CampaignClassRuleState state in rules)
             {
                 hash = hash * 31 + state.NationIndex; hash = hash * 31 + state.LawId.GetHashCode();
                 hash = hash * 31 + state.Type; hash = hash * 31 + state.AffectedClass;
                 hash = hash * 31 + state.ResultingClass; hash = hash * 31 + state.CultureName.GetHashCode();
+            }
+            return hash;
+        }
+    }
+
+    private static int ActiveEdictStateSignature(List<CampaignActiveEdictState> states)
+    {
+        unchecked
+        {
+            int hash = 17;
+            foreach (CampaignActiveEdictState state in states)
+            {
+                hash = hash * 31 + state.NationIndex;
+                hash = hash * 31 + state.ExtensionId.GetHashCode();
+                hash = hash * 31 + state.Title.GetHashCode();
+                hash = hash * 31 + state.TargetAllegianceId.GetHashCode();
+                hash = hash * 31 + state.RemainingTicks;
+                hash = hash * 31 + (state.IsAftermath ? 1 : 0);
             }
             return hash;
         }

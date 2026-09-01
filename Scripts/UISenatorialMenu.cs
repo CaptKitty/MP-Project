@@ -16,6 +16,17 @@ public sealed class UISenatorialMenu : MonoBehaviour
     private GameObject edictVoteNo;
     private GameObject edictPropose;
     private int lastRenderedTurn = int.MinValue;
+    private bool choosingExtension;
+    private int selectedExtensionIndex;
+    private readonly List<ExtensionChoice> extensionChoices = new List<ExtensionChoice>();
+
+    private sealed class ExtensionChoice
+    {
+        public string lawId;
+        public NationalEdict edict;
+        public string targetAllegianceId;
+        public string targetAllegianceName;
+    }
 
     public void Configure(GameObject openControl)
     {
@@ -66,7 +77,11 @@ public sealed class UISenatorialMenu : MonoBehaviour
         else RebuildAll();
     }
 
-    public void Close() => gameObject.SetActive(false);
+    public void Close()
+    {
+        choosingExtension = false;
+        gameObject.SetActive(false);
+    }
 
     private void RebuildAll()
     {
@@ -109,7 +124,9 @@ public sealed class UISenatorialMenu : MonoBehaviour
             row.anchoredPosition = lawTemplate.anchoredPosition + Vector2.down * spacing * i;
             row.gameObject.SetActive(true);
             Text label = row.GetComponentInChildren<Text>(true);
-            if (label != null) label.text = activeLaw ? activeLaws[i].DescribeWithName() :
+            if (label != null) label.text = activeLaw ? activeLaws[i].displayName +
+                "\nNORMAL\n" + activeLaws[i].Describe() + "\n\nAVAILABLE EXTENSIONS\n" +
+                activeLaws[i].DescribeExtensions() :
                 proposalIndex >= 0 && proposalIndex < proposals.Count
                     ? "PROPOSAL: " + proposals[proposalIndex].title + " — vote in " +
                         proposals[proposalIndex].remainingDebateTicks + " turns"
@@ -173,12 +190,35 @@ public sealed class UISenatorialMenu : MonoBehaviour
     {
         Nation nation = LocalNation();
         PoliticalProposal proposal = PoliticalProposalSystem.CurrentEdict(nation);
+        if (choosingExtension && proposal == null)
+        {
+            RebuildExtensionChoices(nation);
+            if (edictDetails != null) edictDetails.text = ExtensionChoiceDescription();
+            bool hasChoices = extensionChoices.Count > 0;
+            if (edictVoteYes != null) edictVoteYes.SetActive(hasChoices);
+            if (edictVoteNo != null) edictVoteNo.SetActive(hasChoices);
+            if (edictPropose != null) edictPropose.SetActive(true);
+            SetButtonLabel(edictVoteYes, "Previous");
+            SetButtonLabel(edictVoteNo, "Next");
+            SetButtonLabel(edictPropose, hasChoices ? "Propose Selected" : "Back");
+            return;
+        }
+        if (proposal != null) choosingExtension = false;
         if (edictDetails != null)
         {
             if (proposal != null)
                 edictDetails.text = proposal.title + "\n\n" + PoliticalProposalSystem.DescribeEdict(proposal.edict) +
                     "\n\nDebate remaining: " + proposal.remainingDebateTicks + " turns" +
                     (proposal.playerVoteCast ? "\nYour vote: " + (proposal.playerSupports ? "Support" : "Oppose") : string.Empty);
+            else if (nation != null && nation.activeEdicts != null && nation.activeEdicts.Count > 0)
+            {
+                List<string> activeDescriptions = new List<string>();
+                foreach (ActiveNationalEdict active in nation.activeEdicts)
+                    if (active != null && active.edict != null) activeDescriptions.Add(active.title +
+                        "\n" + PoliticalProposalSystem.DescribeEdict(active.edict) +
+                        "\nRemaining: " + active.remainingTicks + " ticks");
+                edictDetails.text = "ACTIVE EDICTS\n\n" + string.Join("\n\n", activeDescriptions);
+            }
             else if (nation != null && !string.IsNullOrWhiteSpace(nation.latestPassedEdict))
                 edictDetails.text = "Latest passed edict\n\n" + nation.latestPassedEdict;
             else edictDetails.text = "No edict under consideration";
@@ -187,10 +227,21 @@ public sealed class UISenatorialMenu : MonoBehaviour
         if (edictVoteYes != null) edictVoteYes.SetActive(canVote);
         if (edictVoteNo != null) edictVoteNo.SetActive(canVote);
         if (edictPropose != null) edictPropose.SetActive(proposal == null);
+        SetButtonLabel(edictVoteYes, "Yes");
+        SetButtonLabel(edictVoteNo, "No");
+        SetButtonLabel(edictPropose, "Propose Edict");
     }
 
-    private void VoteYes() => Vote(true);
-    private void VoteNo() => Vote(false);
+    private void VoteYes()
+    {
+        if (choosingExtension) { CycleExtension(-1); return; }
+        Vote(true);
+    }
+    private void VoteNo()
+    {
+        if (choosingExtension) { CycleExtension(1); return; }
+        Vote(false);
+    }
     private void Vote(bool supports)
     {
         Nation nation = LocalNation();
@@ -201,8 +252,88 @@ public sealed class UISenatorialMenu : MonoBehaviour
 
     private void ProposeEdict()
     {
-        PoliticalProposalSystem.ProposeDefaultPlayerEdict(LocalNation());
+        Nation nation = LocalNation();
+        if (!choosingExtension)
+        {
+            choosingExtension = true;
+            selectedExtensionIndex = 0;
+            RefreshEdicts();
+            return;
+        }
+        RebuildExtensionChoices(nation);
+        if (extensionChoices.Count == 0) { choosingExtension = false; RefreshEdicts(); return; }
+        selectedExtensionIndex = Mathf.Clamp(selectedExtensionIndex, 0, extensionChoices.Count - 1);
+        ExtensionChoice choice = extensionChoices[selectedExtensionIndex];
+        if (PoliticalProposalSystem.ProposeExtension(nation, choice.lawId, choice.edict.StableId,
+            choice.targetAllegianceId)) choosingExtension = false;
         RebuildAll();
+    }
+
+    private void RebuildExtensionChoices(Nation nation)
+    {
+        string selectedKey = extensionChoices.Count > 0 && selectedExtensionIndex >= 0 &&
+            selectedExtensionIndex < extensionChoices.Count ? ChoiceKey(extensionChoices[selectedExtensionIndex]) : string.Empty;
+        extensionChoices.Clear();
+        if (nation == null) return;
+        nation.EnsureDefaultLaws();
+        AllegianceSystem.EnsureNationAllegiances(nation);
+        foreach (NationalLaw law in nation.laws)
+        {
+            if (law == null || law.availableExtensions == null) continue;
+            foreach (NationalEdict template in law.availableExtensions)
+            {
+                if (template == null) continue;
+                bool requiresAllegiance = template.coreEffects != null && template.coreEffects.Exists(effect =>
+                    effect != null && !effect.anyAllegiance);
+                if (requiresAllegiance)
+                {
+                    foreach (Allegiance allegiance in nation.allegiances)
+                    {
+                        if (allegiance == null) continue;
+                        NationalEdict targeted = template.Clone();
+                        foreach (NationalLawEffect effect in targeted.coreEffects)
+                            if (effect != null && !effect.anyAllegiance) effect.allegianceId = allegiance.id;
+                        if (PoliticalProposalSystem.CanActivateExtension(nation, targeted)) extensionChoices.Add(new ExtensionChoice
+                            { lawId = law.id, edict = targeted, targetAllegianceId = allegiance.id,
+                                targetAllegianceName = allegiance.displayName });
+                    }
+                }
+                else if (PoliticalProposalSystem.CanActivateExtension(nation, template)) extensionChoices.Add(new ExtensionChoice
+                    { lawId = law.id, edict = template });
+            }
+        }
+        int restored = extensionChoices.FindIndex(choice => ChoiceKey(choice) == selectedKey);
+        selectedExtensionIndex = restored >= 0 ? restored : Mathf.Clamp(selectedExtensionIndex, 0,
+            Mathf.Max(0, extensionChoices.Count - 1));
+    }
+
+    private string ExtensionChoiceDescription()
+    {
+        if (extensionChoices.Count == 0)
+            return "PROPOSE EXTENSION\n\nNo extensions are currently available.\n\nAn extension may require an active law or may already be active.";
+        ExtensionChoice choice = extensionChoices[Mathf.Clamp(selectedExtensionIndex, 0, extensionChoices.Count - 1)];
+        string position = "Extension " + (selectedExtensionIndex + 1) + " / " + extensionChoices.Count;
+        string target = !string.IsNullOrWhiteSpace(choice.targetAllegianceName)
+            ? "\nSelected Allegiance: " + choice.targetAllegianceName : string.Empty;
+        return "PROPOSE EXTENSION\n" + position + "\n\n" + choice.edict.DisplayName + target + "\n\n" +
+            PoliticalProposalSystem.DescribeEdict(choice.edict) + "\n\nRequired law: " + choice.lawId;
+    }
+
+    private void CycleExtension(int direction)
+    {
+        if (extensionChoices.Count == 0) return;
+        selectedExtensionIndex = (selectedExtensionIndex + direction + extensionChoices.Count) % extensionChoices.Count;
+        RefreshEdicts();
+    }
+
+    private static string ChoiceKey(ExtensionChoice choice) => choice != null && choice.edict != null
+        ? choice.lawId + "|" + choice.edict.StableId + "|" + choice.targetAllegianceId : string.Empty;
+
+    private static void SetButtonLabel(GameObject buttonObject, string value)
+    {
+        if (buttonObject == null) return;
+        Text label = buttonObject.GetComponentInChildren<Text>(true);
+        if (label != null) label.text = value;
     }
 
     private static int HoldingPower(Nation nation, PoliticalGroup group)

@@ -10,7 +10,8 @@ public enum NationalLawEffectType : byte
     MercenaryPoolCapacity,
     HoldingVictoryUpgradeChance,
     ConquestGold,
-    LevyRecoveryTime
+    LevyRecoveryTime,
+    HoldingTaxation
 }
 
 public enum NationalLawOperation : byte { AddFlat, AddPercent, Multiply, Override }
@@ -68,11 +69,16 @@ public sealed class NationalLawEffect
     public string cultureName;
     public bool anyUnitOrigin = true;
     public CampaignUnitOrigin unitOrigin = CampaignUnitOrigin.Professional;
+    [Tooltip("When false, only holdings aligned with this Allegiance are affected.")]
+    public bool anyAllegiance = true;
+    public string allegianceId;
 
     public bool AppliesTo(Nation nation, ProvinceHolding holding, CampaignUnitOrigin origin)
     {
         if (!anyUnitOrigin && origin != unitOrigin) return false;
         if (holding == null) return target != NationalLawTarget.Holdings;
+        if (!anyAllegiance && !string.Equals(holding.allegiance, allegianceId,
+            StringComparison.OrdinalIgnoreCase)) return false;
         if (!anySocioEconomicClass && SocioEconomicClassRules.Normalize(holding.socioEconomicClass) !=
             SocioEconomicClassRules.Normalize(socioEconomicClass)) return false;
         string primaryCulture = nation != null && nation.culture != null ? nation.culture.DisplayName : string.Empty;
@@ -99,6 +105,7 @@ public sealed class NationalLawEffect
             type == NationalLawEffectType.MercenaryPoolCapacity ? "mercenary pool capacity" :
             type == NationalLawEffectType.ConquestGold ? "conquest loot" :
             type == NationalLawEffectType.LevyRecoveryTime ? "levy recovery time" :
+            type == NationalLawEffectType.HoldingTaxation ? "holding taxation" :
             "holding upgrade chance after victories";
         string scope = target.ToString().ToLowerInvariant();
         if (target == NationalLawTarget.Holdings)
@@ -108,6 +115,8 @@ public sealed class NationalLawEffect
                 cultureScope == NationalLawCultureScope.PrimaryCulture ? "primary culture" :
                 cultureScope == NationalLawCultureScope.NonPrimaryCulture ? "non-primary cultures" : cultureName;
             scope = classText + " holdings of " + cultureText;
+            if (!anyAllegiance) scope += " aligned with " +
+                (string.IsNullOrWhiteSpace(allegianceId) ? "the selected Allegiance" : allegianceId);
         }
         if (type == NationalLawEffectType.LevyConscription && operation == NationalLawOperation.AddFlat)
             return amount + " of " + effectName + " applies to " + scope;
@@ -123,6 +132,8 @@ public sealed class NationalLaw
     public string displayName;
     public List<NationalLawEffect> effects = new List<NationalLawEffect>();
     public List<NationalClassRule> classRules = new List<NationalClassRule>();
+    [Tooltip("Temporary political authorizations made available by this law.")]
+    public List<NationalEdict> availableExtensions = new List<NationalEdict>();
 
     // Legacy single-effect fields retained so saves created before multi-effect laws migrate automatically.
     [HideInInspector] public int amountPermille;
@@ -152,11 +163,14 @@ public sealed class NationalLaw
                 amountPermille = source.amountPermille, target = source.target,
                 anySocioEconomicClass = source.anySocioEconomicClass, socioEconomicClass = source.socioEconomicClass,
                 cultureScope = source.cultureScope, cultureName = source.cultureName,
-                anyUnitOrigin = source.anyUnitOrigin, unitOrigin = source.unitOrigin });
+                anyUnitOrigin = source.anyUnitOrigin, unitOrigin = source.unitOrigin,
+                anyAllegiance = source.anyAllegiance, allegianceId = source.allegianceId });
         if (classRules != null) foreach (NationalClassRule source in classRules)
             if (source != null) copy.classRules.Add(new NationalClassRule { type = source.type,
                 affectedClass = source.affectedClass, resultingClass = source.resultingClass,
                 cultureName = source.cultureName });
+        if (availableExtensions != null) foreach (NationalEdict extension in availableExtensions)
+            if (extension != null) copy.availableExtensions.Add(extension.Clone());
         return copy;
     }
 
@@ -167,6 +181,15 @@ public sealed class NationalLaw
         foreach (NationalLawEffect entry in effects) if (entry != null) lines.Add(entry.Describe());
         if (classRules != null) foreach (NationalClassRule rule in classRules) if (rule != null) lines.Add(rule.Describe());
         return lines.Count > 0 ? string.Join("; ", lines) : "No effects";
+    }
+
+    public string DescribeExtensions()
+    {
+        if (availableExtensions == null || availableExtensions.Count == 0) return "None";
+        List<string> descriptions = new List<string>();
+        foreach (NationalEdict extension in availableExtensions)
+            if (extension != null) descriptions.Add(extension.DisplayName + ": " + extension.DescribeCore());
+        return descriptions.Count > 0 ? string.Join("\n", descriptions) : "None";
     }
 
     public string DescribeWithName() => (!string.IsNullOrWhiteSpace(displayName) ? displayName :
@@ -221,6 +244,24 @@ public static class NationalLawDefaults
         NationalLaw law = new NationalLaw { id = "roman_muster_rolls", displayName = "Citizen Muster Rolls" };
         law.effects.Add(new NationalLawEffect { type = NationalLawEffectType.LevyRecoveryTime,
             operation = NationalLawOperation.AddPercent, amountPermille = -500, target = NationalLawTarget.Nation });
+        return law;
+    }
+
+    public static NationalLaw RepublicanLevy()
+    {
+        NationalLaw law = Levy("roman_citizen_levy", "Republican Levy", 200, false,
+            SocioEconomicClass.Citizen);
+        law.availableExtensions.Add(NationalEdict.CreateLevyExtension("raise_citizen_levy",
+            "Raise Citizen Levy", 200, SocioEconomicClass.Citizen, 24));
+        law.availableExtensions.Add(NationalEdict.CreateEmergencyFreemenMuster());
+        law.availableExtensions.Add(NationalEdict.CreateExtraordinaryWarTax());
+        return law;
+    }
+
+    public static NationalLaw TribalMuster()
+    {
+        NationalLaw law = Levy("tribal_muster", "Tribal Muster", 200, true, SocioEconomicClass.Freemen);
+        law.availableExtensions.Add(NationalEdict.CreateAllegianceLevyExtension());
         return law;
     }
 }

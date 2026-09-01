@@ -183,6 +183,8 @@ public struct CampaignLawState : INetworkSerializable
     public FixedString64Bytes CultureName;
     public bool AnyUnitOrigin;
     public byte UnitOrigin;
+    public bool AnyAllegiance;
+    public FixedString64Bytes AllegianceId;
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
@@ -192,6 +194,7 @@ public struct CampaignLawState : INetworkSerializable
         serializer.SerializeValue(ref AnySocioEconomicClass); serializer.SerializeValue(ref SocioEconomicClass);
         serializer.SerializeValue(ref CultureScope); serializer.SerializeValue(ref CultureName);
         serializer.SerializeValue(ref AnyUnitOrigin); serializer.SerializeValue(ref UnitOrigin);
+        serializer.SerializeValue(ref AnyAllegiance); serializer.SerializeValue(ref AllegianceId);
     }
 }
 
@@ -211,6 +214,23 @@ public struct CampaignClassRuleState : INetworkSerializable
         serializer.SerializeValue(ref DisplayName); serializer.SerializeValue(ref Type);
         serializer.SerializeValue(ref AffectedClass); serializer.SerializeValue(ref ResultingClass);
         serializer.SerializeValue(ref CultureName);
+    }
+}
+
+public struct CampaignActiveEdictState : INetworkSerializable
+{
+    public ushort NationIndex;
+    public FixedString64Bytes ExtensionId;
+    public FixedString128Bytes Title;
+    public FixedString64Bytes TargetAllegianceId;
+    public int RemainingTicks;
+    public bool IsAftermath;
+
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+    {
+        serializer.SerializeValue(ref NationIndex); serializer.SerializeValue(ref ExtensionId);
+        serializer.SerializeValue(ref Title); serializer.SerializeValue(ref TargetAllegianceId);
+        serializer.SerializeValue(ref RemainingTicks); serializer.SerializeValue(ref IsAftermath);
     }
 }
 

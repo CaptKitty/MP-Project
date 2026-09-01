@@ -146,6 +146,37 @@ public static class PoliticalEvaluationSystem
         if (edict == null) return;
         c.statusQuo = -1;
         c.affectedRegionId = RegionForProvince(edict.provinceName);
+        if (edict.coreEffects != null && edict.coreEffects.Count > 0)
+        {
+            foreach (NationalLawEffect effect in edict.coreEffects)
+            {
+                if (effect == null) continue;
+                int direction = effect.amountPermille == 0 ? 0 : effect.amountPermille > 0 ? 1 : -1;
+                if (effect.type == NationalLawEffectType.LevyConscription) c.militaryStrength += direction * 3;
+                if (effect.type == NationalLawEffectType.HoldingTaxation) c.commerce += direction;
+                if (!effect.anyAllegiance)
+                {
+                    c.federationBenefit += direction * 2;
+                    if (allegiance != null && (Same(effect.allegianceId, allegiance.id) ||
+                        Same(effect.allegianceId, allegiance.displayName))) c.tribalAutonomy -= direction * 2;
+                }
+                ApplyScope(effect, direction, c);
+            }
+            if (edict.aftermathType == EdictAftermathType.ConvertHoldingClass)
+            {
+                AddClass(c, edict.aftermathFromClass, -2);
+                AddClass(c, edict.aftermathToClass, 2);
+            }
+            else if (edict.aftermathType == EdictAftermathType.TimedEffect && edict.aftermathEffects != null)
+                foreach (NationalLawEffect effect in edict.aftermathEffects)
+                    if (effect != null)
+                    {
+                        int direction = effect.amountPermille == 0 ? 0 : effect.amountPermille > 0 ? 1 : -1;
+                        if (effect.type == NationalLawEffectType.HoldingTaxation) c.commerce += direction;
+                        ApplyScope(effect, direction, c);
+                    }
+            return;
+        }
         if (edict.type == NationalEdictType.LevyRecovery)
         {
             c.militaryStrength = 3;

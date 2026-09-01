@@ -1216,7 +1216,15 @@ public class Province
         if (buildings != null) foreach (ProvinceBuilding building in buildings)
             if (building != null && building.definition != null)
                 income += building.DefinitionGoldIncomeUnrounded(urbanization);
-        income += GetHoldingOutputUnrounded(HoldingOutputType.Income);
+        if (holdings != null) foreach (ProvinceHolding holding in holdings)
+            if (holding != null)
+            {
+                float holdingIncome = GetHoldingOutputUnrounded(holding, HoldingOutputType.Income,
+                    IsHoldingMobilized(holding.instanceId));
+                int taxationPermille = nation != null ? nation.ApplyLawModifiers(
+                    NationalLawEffectType.HoldingTaxation, 1000, holding) : 1000;
+                income += holdingIncome * Mathf.Max(0, taxationPermille) / 1000f;
+            }
         if (farm != null && farm.definition == null)
             income += Mathf.Max(0, farm.level) * CampaignEconomy.FarmIncomePerLevel;
         CampaignRegion campaignRegion = Owners.Instance != null ? Owners.Instance.CallRegionByString(region) : null;
@@ -1709,6 +1717,7 @@ public class Nation
     [Header("National allegiances")]
     public List<Allegiance> allegiances = new List<Allegiance>();
     public List<PoliticalProposal> politicalProposals = new List<PoliticalProposal>();
+    public List<ActiveNationalEdict> activeEdicts = new List<ActiveNationalEdict>();
     public string latestPassedEdict;
     [HideInInspector] public int levyRecoveryBoostTicks;
     [HideInInspector] public int levyRecoveryBonusPerTick;
@@ -1758,8 +1767,7 @@ public class Nation
             bool barbarian = civilization != null && string.Equals(civilization.name, "Barbarian",
                 System.StringComparison.OrdinalIgnoreCase);
             if (rome)
-                laws.Add(NationalLawDefaults.Levy("roman_citizen_levy", "Citizen Levy", 400, false,
-                    SocioEconomicClass.Citizen));
+                laws.Add(NationalLawDefaults.RepublicanLevy());
             else if (carthage)
             {
                 laws.Add(NationalLawDefaults.Levy("punic_citizen_obligation", "Citizen Obligation", 100, false,
@@ -1770,15 +1778,28 @@ public class Nation
             }
             else if (barbarian)
             {
-                laws.Add(NationalLawDefaults.Levy("tribal_muster", "Tribal Muster", 200, true,
-                    SocioEconomicClass.Freemen));
+                laws.Add(NationalLawDefaults.TribalMuster());
                 laws.Add(NationalLawDefaults.WarriorRites());
             }
             else
                 laws.Add(NationalLawDefaults.Levy("levy_conscription", "Levy Conscription",
                     Mathf.Clamp(LevyLawPermille, 0, 1000), true, SocioEconomicClass.Freemen));
         }
+        EnsureLawExtensions("roman_citizen_levy");
+        EnsureLawExtensions("tribal_muster");
         if (compiledLawEffects == null || compiledClassRules == null) RebuildLawCache();
+    }
+
+    private void EnsureLawExtensions(string lawId)
+    {
+        NationalLaw law = laws.Find(candidate => candidate != null && string.Equals(candidate.id, lawId,
+            System.StringComparison.OrdinalIgnoreCase));
+        if (law == null || law.availableExtensions != null && law.availableExtensions.Count > 0) return;
+        NationalLaw template = string.Equals(lawId, "roman_citizen_levy", System.StringComparison.OrdinalIgnoreCase)
+            ? NationalLawDefaults.RepublicanLevy() : NationalLawDefaults.TribalMuster();
+        law.availableExtensions = new List<NationalEdict>();
+        if (template.availableExtensions != null) foreach (NationalEdict extension in template.availableExtensions)
+            if (extension != null) law.availableExtensions.Add(extension.Clone());
     }
 
     public void ResetLawResolution()
@@ -1797,12 +1818,48 @@ public class Nation
         CampaignUnitOrigin origin = CampaignUnitOrigin.Professional)
     {
         EnsureDefaultLaws();
-        if (!compiledLawEffects.TryGetValue(effect, out List<NationalLawEffect> entries)) return baseValue;
         int value = baseValue;
-        value = ApplyLawOperation(entries, NationalLawOperation.AddFlat, value, holding, origin);
-        value = ApplyLawOperation(entries, NationalLawOperation.AddPercent, value, holding, origin);
-        value = ApplyLawOperation(entries, NationalLawOperation.Multiply, value, holding, origin);
-        value = ApplyLawOperation(entries, NationalLawOperation.Override, value, holding, origin);
+        if (compiledLawEffects.TryGetValue(effect, out List<NationalLawEffect> entries))
+        {
+            value = ApplyLawOperation(entries, NationalLawOperation.AddFlat, value, holding, origin);
+            value = ApplyLawOperation(entries, NationalLawOperation.AddPercent, value, holding, origin);
+            value = ApplyLawOperation(entries, NationalLawOperation.Multiply, value, holding, origin);
+            value = ApplyLawOperation(entries, NationalLawOperation.Override, value, holding, origin);
+        }
+        value = ApplyActiveEdictModifiers(effect, value, holding, origin);
+        return value;
+    }
+
+    private int ApplyActiveEdictModifiers(NationalLawEffectType effect, int value, ProvinceHolding holding,
+        CampaignUnitOrigin origin)
+    {
+        if (activeEdicts == null || activeEdicts.Count == 0) return value;
+        value = ApplyActiveEdictOperation(effect, NationalLawOperation.AddFlat, value, holding, origin);
+        value = ApplyActiveEdictOperation(effect, NationalLawOperation.AddPercent, value, holding, origin);
+        value = ApplyActiveEdictOperation(effect, NationalLawOperation.Multiply, value, holding, origin);
+        return ApplyActiveEdictOperation(effect, NationalLawOperation.Override, value, holding, origin);
+    }
+
+    private int ApplyActiveEdictOperation(NationalLawEffectType effectType, NationalLawOperation operation,
+        int value, ProvinceHolding holding, CampaignUnitOrigin origin)
+    {
+        int additive = 0;
+        foreach (ActiveNationalEdict active in activeEdicts)
+        {
+            if (active == null || active.edict == null || active.remainingTicks <= 0 || active.edict.coreEffects == null) continue;
+            foreach (NationalLawEffect effect in active.edict.coreEffects)
+            {
+                if (effect == null || effect.type != effectType || effect.operation != operation ||
+                    !effect.AppliesTo(this, holding, origin)) continue;
+                if (operation == NationalLawOperation.AddFlat || operation == NationalLawOperation.AddPercent)
+                    additive += effect.amountPermille;
+                else if (operation == NationalLawOperation.Multiply)
+                    value = Mathf.RoundToInt(value * effect.amountPermille / 1000f);
+                else value = effect.amountPermille;
+            }
+        }
+        if (operation == NationalLawOperation.AddFlat) value += additive;
+        else if (operation == NationalLawOperation.AddPercent) value = Mathf.RoundToInt(value * (1f + additive / 1000f));
         return value;
     }
 

@@ -91,6 +91,7 @@ public class CampaignSaveData
                 levyLawPermille = nation.LevyLawPermille,
                 laws = nation.laws != null ? new List<NationalLaw>(nation.laws) : new List<NationalLaw>(),
                 politicalGroups = nation.politicalGroups != null ? new List<PoliticalGroup>(nation.politicalGroups) : new List<PoliticalGroup>(),
+                allegiances = nation.allegiances != null ? nation.allegiances.ConvertAll(item => item != null ? item.Clone() : null) : new List<Allegiance>(),
                 politicalProposals = nation.politicalProposals != null ? new List<PoliticalProposal>(nation.politicalProposals) : new List<PoliticalProposal>(),
                 latestPassedEdict = nation.latestPassedEdict,
                 levyRecoveryBoostTicks = nation.levyRecoveryBoostTicks,
@@ -233,6 +234,9 @@ public class CampaignSaveData
             if (state.levyLawPermille >= 0) nation.LevyLawPermille = Mathf.Clamp(state.levyLawPermille, 0, 1000);
             nation.laws = state.laws != null ? new List<NationalLaw>(state.laws) : new List<NationalLaw>();
             nation.politicalGroups = state.politicalGroups != null ? new List<PoliticalGroup>(state.politicalGroups) : new List<PoliticalGroup>();
+            nation.allegiances = state.allegiances != null
+                ? state.allegiances.ConvertAll(item => item != null ? item.Clone() : null) : new List<Allegiance>();
+            AllegianceSystem.EnsureNationAllegiances(nation);
             nation.politicalProposals = state.politicalProposals != null ? new List<PoliticalProposal>(state.politicalProposals) : new List<PoliticalProposal>();
             nation.latestPassedEdict = state.latestPassedEdict;
             nation.levyRecoveryBoostTicks = Mathf.Max(0, state.levyRecoveryBoostTicks);
@@ -438,7 +442,7 @@ public class CampaignSaveData
     }
 }
 
-[Serializable] public class SavedNation { public string name; public int manpower; public int gold = -1; public int armyNumber; public int barracksLevel; public int mercenaryLevel; public int farmLevel; public int income; public int upkeepDebt; public int levyLawPermille = -1; public List<NationalLaw> laws = new List<NationalLaw>(); public List<PoliticalGroup> politicalGroups = new List<PoliticalGroup>(); public List<PoliticalProposal> politicalProposals = new List<PoliticalProposal>(); public string latestPassedEdict; public int levyRecoveryBoostTicks; public int levyRecoveryBonusPerTick; public List<string> flags = new List<string>(); }
+[Serializable] public class SavedNation { public string name; public int manpower; public int gold = -1; public int armyNumber; public int barracksLevel; public int mercenaryLevel; public int farmLevel; public int income; public int upkeepDebt; public int levyLawPermille = -1; public List<NationalLaw> laws = new List<NationalLaw>(); public List<PoliticalGroup> politicalGroups = new List<PoliticalGroup>(); public List<Allegiance> allegiances = new List<Allegiance>(); public List<PoliticalProposal> politicalProposals = new List<PoliticalProposal>(); public string latestPassedEdict; public int levyRecoveryBoostTicks; public int levyRecoveryBonusPerTick; public List<string> flags = new List<string>(); }
 [Serializable] public class SavedProvince { public string name; public string nation; public int population; public int supply; public int urbanization; public int unrest; public int terrainProfile; public List<SavedCulture> cultures = new List<SavedCulture>(); public List<SavedBuilding> buildings = new List<SavedBuilding>(); public List<SavedConstructionOrder> construction = new List<SavedConstructionOrder>(); public List<SavedMercenaryPool> mercenaries = new List<SavedMercenaryPool>(); public List<SavedLevyEntitlement> levies = new List<SavedLevyEntitlement>(); public List<SavedHolding> holdings = new List<SavedHolding>(); public List<SavedHoldingConstructionOrder> holdingConstruction = new List<SavedHoldingConstructionOrder>(); }
 [Serializable] public class SavedCulture { public string name; public int population; public Color32 color; }
 [Serializable] public class SavedRegion { public string name; public float loyalty = 100f; public List<SavedRegionalLoyaltyShare> shares = new List<SavedRegionalLoyaltyShare>(); }

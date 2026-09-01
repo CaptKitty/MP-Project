@@ -14,6 +14,8 @@ public sealed class PoliticalGroup
     [Min(1)] public int votes = 1;
     public bool representsUnalignedHoldings;
     public SocioEconomicClass representedClass;
+    [Tooltip("ID of the real Family/Tribe represented by this voting adapter. Empty for synthetic unaligned blocs.")]
+    public string allegianceId;
 }
 
 [Serializable]
@@ -60,6 +62,26 @@ public static class PoliticalProposalSystem
     {
         if (nation.politicalGroups == null) nation.politicalGroups = new List<PoliticalGroup>();
         nation.politicalGroups.RemoveAll(group => group == null);
+        AllegianceSystem.EnsureNationAllegiances(nation);
+        if (nation.allegiances != null && nation.allegiances.Count > 0)
+        {
+            List<PoliticalGroup> resolved = new List<PoliticalGroup>();
+            foreach (Allegiance allegiance in nation.allegiances)
+            {
+                if (allegiance == null) continue;
+                PoliticalGroup existing = nation.politicalGroups.Find(group => group != null &&
+                    (string.Equals(group.id, allegiance.id, StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(group.displayName, allegiance.displayName, StringComparison.OrdinalIgnoreCase)));
+                if (existing == null) existing = new PoliticalGroup { votes = 1 };
+                existing.id = allegiance.id; existing.allegianceId = allegiance.id;
+                existing.displayName = allegiance.displayName; existing.representsUnalignedHoldings = false;
+                resolved.Add(existing);
+            }
+            AddUnalignedGroups(resolved, nation.politicalGroups);
+            nation.politicalGroups = resolved;
+            AssignUnownedEnslavedHoldings(nation);
+            return;
+        }
         List<string> configuredNames = NationContentResolver.ResolveAllegianceNames(nation);
         if (configuredNames.Count > 0)
         {
@@ -225,12 +247,41 @@ public static class PoliticalProposalSystem
     {
         proposal.votes.Clear();
         foreach (PoliticalGroup group in nation.politicalGroups)
-            proposal.votes.Add(new PoliticalVote { groupId = group.id, votes = Mathf.Max(1, group.votes),
+            proposal.votes.Add(new PoliticalVote { groupId = group.id, votes = DerivedVotingPower(nation, group),
                 supports = EvaluateSupportStub(nation, group, proposal) });
     }
 
-    // Deliberate extension point: every group approves until ideology, interests and relationships are implemented.
-    private static bool EvaluateSupportStub(Nation nation, PoliticalGroup group, PoliticalProposal proposal) => true;
+    private static int DerivedVotingPower(Nation nation, PoliticalGroup group)
+    {
+        if (nation == null || group == null || Owners.Instance == null) return 1;
+        int power = 0;
+        foreach (Province province in Owners.Instance.provincelist)
+        {
+            if (province == null || province.nation != nation || province.holdings == null) continue;
+            foreach (ProvinceHolding holding in province.holdings)
+            {
+                if (holding == null) continue;
+                if (group.representsUnalignedHoldings)
+                {
+                    bool unaligned = string.IsNullOrWhiteSpace(holding.allegiance) ||
+                        string.Equals(holding.allegiance, "Unaligned", StringComparison.OrdinalIgnoreCase);
+                    if (unaligned && SocioEconomicClassRules.Normalize(holding.socioEconomicClass) ==
+                        SocioEconomicClassRules.Normalize(group.representedClass)) power++;
+                }
+                else if (string.Equals(holding.allegiance, group.id, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(holding.allegiance, group.displayName, StringComparison.OrdinalIgnoreCase)) power++;
+            }
+        }
+        return Mathf.Max(1, power);
+    }
+
+    private static bool EvaluateSupportStub(Nation nation, PoliticalGroup group, PoliticalProposal proposal)
+    {
+        if (group == null || group.representsUnalignedHoldings) return true;
+        Allegiance allegiance = AllegianceSystem.Find(nation, !string.IsNullOrWhiteSpace(group.allegianceId)
+            ? group.allegianceId : group.id);
+        return allegiance == null || PoliticalEvaluationSystem.EvaluateProposal(nation, allegiance, proposal).supports;
+    }
 
     private static bool Passed(PoliticalProposal proposal)
     {

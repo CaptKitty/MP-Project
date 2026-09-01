@@ -47,6 +47,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
     private int[] lastProvinceSignatures;
     private int lastQueueStateSignature = int.MinValue;
     private int lastLawStateSignature = int.MinValue;
+    private int lastAllegianceStateSignature = int.MinValue;
     private readonly Dictionary<int, BattleStartTransfer> incomingBattleTransfers = new Dictionary<int, BattleStartTransfer>();
     private readonly Dictionary<int, BattleStartTransfer> incomingTileBattleTransfers = new Dictionary<int, BattleStartTransfer>();
     private bool presenceAnnounced;
@@ -66,6 +67,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
     private readonly List<CampaignMercenaryState> mercenaryStateBuffer = new List<CampaignMercenaryState>();
     private readonly List<CampaignLevyState> levyStateBuffer = new List<CampaignLevyState>();
     private readonly List<CampaignHoldingState> holdingStateBuffer = new List<CampaignHoldingState>();
+    private readonly List<CampaignAllegianceState> allegianceStateBuffer = new List<CampaignAllegianceState>();
     private readonly List<CampaignRecruitmentOrderState> recruitmentStateBuffer = new List<CampaignRecruitmentOrderState>();
     private readonly List<CampaignConstructionOrderState> constructionStateBuffer = new List<CampaignConstructionOrderState>();
     private readonly List<CampaignHoldingConstructionOrderState> holdingConstructionStateBuffer = new List<CampaignHoldingConstructionOrderState>();
@@ -180,6 +182,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             lastProvinceSignatures = null;
             lastQueueStateSignature = int.MinValue;
             lastLawStateSignature = int.MinValue;
+            lastAllegianceStateSignature = int.MinValue;
         }
     }
 
@@ -357,6 +360,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         if (Time.unscaledTime - lastCampaignResyncTime < 5f) return;
         lastCampaignResyncTime = Time.unscaledTime;
         lastDetailedStateSignature = int.MinValue; lastHoldingStateSignature = int.MinValue;
+        lastAllegianceStateSignature = int.MinValue;
         lastLevyStateSignature = int.MinValue; lastProvinceSignatures = null;
         lastHoldingRecordSignatures.Clear(); lastLevyRecordSignatures.Clear();
         BroadcastProvinceState(); BroadcastDetailedState();
@@ -1162,12 +1166,15 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         CampaignNationState[] nations = new CampaignNationState[Owners.Instance.nationlist.Count];
         List<CampaignLawState> laws = lawStateBuffer;
         List<CampaignClassRuleState> classRules = classRuleStateBuffer;
+        List<CampaignAllegianceState> allegiances = allegianceStateBuffer;
         laws.Clear();
         classRules.Clear();
+        allegiances.Clear();
         for (int i = 0; i < Owners.Instance.nationlist.Count; i++)
         {
             Nation nation = Owners.Instance.nationlist[i];
             nation.EnsureDefaultLaws();
+            AllegianceSystem.EnsureNationAllegiances(nation);
             nations[i] = new CampaignNationState
             {
                 NationIndex = (ushort)i,
@@ -1201,12 +1208,25 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                         ResultingClass = (byte)SocioEconomicClassRules.Normalize(rule.resultingClass),
                         CultureName = rule.cultureName ?? string.Empty });
             }
+            foreach (Allegiance allegiance in nation.allegiances)
+                if (allegiance != null) allegiances.Add(new CampaignAllegianceState { NationIndex = (ushort)i,
+                    Id = allegiance.id ?? string.Empty, DisplayName = allegiance.displayName ?? string.Empty,
+                    Type = (byte)allegiance.type, PrimaryIdentityId = allegiance.primaryIdentityId ?? string.Empty,
+                    DynamicIdentityId = allegiance.dynamicIdentityId ?? string.Empty,
+                    CurrentInterestRegionIds = JoinAllegianceRegions(allegiance.currentInterestRegionIds),
+                    FutureInterestRegionIds = JoinAllegianceRegions(allegiance.futureInterestRegionIds) });
         }
         int lawSignature = LawStateSignature(laws, classRules);
         bool lawsChanged = lawSignature != lastLawStateSignature;
         if (lawsChanged) lastLawStateSignature = lawSignature;
         ReceiveNationStateRpc(nations, lawsChanged ? laws.ToArray() : System.Array.Empty<CampaignLawState>(),
             lawsChanged ? classRules.ToArray() : System.Array.Empty<CampaignClassRuleState>(), lawsChanged);
+        int allegianceSignature = AllegianceStateSignature(allegiances);
+        if (allegianceSignature != lastAllegianceStateSignature)
+        {
+            lastAllegianceStateSignature = allegianceSignature;
+            ReceiveAllegianceStateRpc(allegiances.ToArray());
+        }
         BroadcastQueueState();
 
         List<CampaignFactionFlagState> flags = factionFlagStateBuffer;
@@ -1862,6 +1882,61 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 regenerationProgress = state.RegenerationProgress
             });
         }
+    }
+
+    private static FixedString512Bytes JoinAllegianceRegions(List<string> regions)
+    {
+        string joined = regions != null ? string.Join("|", regions) : string.Empty;
+        if (joined.Length > 500) joined = joined.Substring(0, 500);
+        return new FixedString512Bytes(joined);
+    }
+
+    private static List<string> SplitAllegianceRegions(FixedString512Bytes regions)
+    {
+        List<string> result = new List<string>();
+        foreach (string value in regions.ToString().Split('|'))
+            if (!string.IsNullOrWhiteSpace(value) && !result.Contains(value.Trim())) result.Add(value.Trim());
+        return result;
+    }
+
+    private static int AllegianceStateSignature(List<CampaignAllegianceState> states)
+    {
+        unchecked
+        {
+            int hash = 17;
+            foreach (CampaignAllegianceState state in states)
+            {
+                hash = hash * 31 + state.NationIndex; hash = hash * 31 + state.Id.GetHashCode();
+                hash = hash * 31 + state.DisplayName.GetHashCode(); hash = hash * 31 + state.Type;
+                hash = hash * 31 + state.PrimaryIdentityId.GetHashCode();
+                hash = hash * 31 + state.DynamicIdentityId.GetHashCode();
+                hash = hash * 31 + state.CurrentInterestRegionIds.GetHashCode();
+                hash = hash * 31 + state.FutureInterestRegionIds.GetHashCode();
+            }
+            return hash;
+        }
+    }
+
+    [Rpc(SendTo.NotServer)]
+    private void ReceiveAllegianceStateRpc(CampaignAllegianceState[] states)
+    {
+        if (Owners.Instance == null) return;
+        foreach (Nation nation in Owners.Instance.nationlist) if (nation != null)
+        {
+            if (nation.allegiances == null) nation.allegiances = new List<Allegiance>();
+            else nation.allegiances.Clear();
+        }
+        foreach (CampaignAllegianceState state in states)
+        {
+            if (state.NationIndex >= Owners.Instance.nationlist.Count) continue;
+            Nation nation = Owners.Instance.nationlist[state.NationIndex];
+            nation.allegiances.Add(new Allegiance { id = state.Id.ToString(), displayName = state.DisplayName.ToString(),
+                type = (AllegianceType)Mathf.Clamp(state.Type, 0, 1),
+                primaryIdentityId = state.PrimaryIdentityId.ToString(), dynamicIdentityId = state.DynamicIdentityId.ToString(),
+                currentInterestRegionIds = SplitAllegianceRegions(state.CurrentInterestRegionIds),
+                futureInterestRegionIds = SplitAllegianceRegions(state.FutureInterestRegionIds) });
+        }
+        foreach (Nation nation in Owners.Instance.nationlist) if (nation != null) PoliticalProposalSystem.EnsureGroups(nation);
     }
 
     private static int LawStateSignature(List<CampaignLawState> laws, List<CampaignClassRuleState> rules)

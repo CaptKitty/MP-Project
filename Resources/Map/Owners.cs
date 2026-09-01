@@ -1706,6 +1706,8 @@ public class Nation
     public List<NationalLaw> laws = new List<NationalLaw>();
     [Header("National politics")]
     public List<PoliticalGroup> politicalGroups = new List<PoliticalGroup>();
+    [Header("National allegiances")]
+    public List<Allegiance> allegiances = new List<Allegiance>();
     public List<PoliticalProposal> politicalProposals = new List<PoliticalProposal>();
     public string latestPassedEdict;
     [HideInInspector] public int levyRecoveryBoostTicks;

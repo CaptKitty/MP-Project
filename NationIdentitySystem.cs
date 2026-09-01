@@ -26,6 +26,8 @@ public class NationContentLayer
     public List<string> AllegianceNames = new List<string>();
     [Tooltip("Singular political allegiance kind, for example Family, Tribe, or Party. Empty inherits from a broader identity layer.")]
     public string AllegianceType;
+    [Tooltip("Typed allegiance definitions. Legacy names above are migrated when no definition is supplied.")]
+    public List<AllegianceDefinition> allegiances = new List<AllegianceDefinition>();
     [Header("Holding economy")]
     public List<HoldingTagModifier> holdingEconomyModifiers = new List<HoldingTagModifier>();
     [Header("Recoverable levies")]
@@ -92,6 +94,29 @@ public static class NationContentResolver
         AddStrings(result, nation.religion != null ? nation.religion.content.AllegianceNames : null);
         AddStrings(result, nation.faction != null ? nation.faction.content.AllegianceNames : null);
         return result;
+    }
+
+    public static List<AllegianceDefinition> ResolveAllegiances(Nation nation)
+    {
+        List<AllegianceDefinition> result = new List<AllegianceDefinition>();
+        if (nation == null) return result;
+        AddAllegiances(result, nation.civilization != null ? nation.civilization.content : null);
+        AddAllegiances(result, nation.culture != null ? nation.culture.content : null);
+        AddAllegiances(result, nation.religion != null ? nation.religion.content : null);
+        AddAllegiances(result, nation.faction != null ? nation.faction.content : null);
+        return result;
+    }
+
+    private static void AddAllegiances(List<AllegianceDefinition> target, NationContentLayer layer)
+    {
+        if (layer == null || layer.allegiances == null) return;
+        foreach (AllegianceDefinition definition in layer.allegiances)
+        {
+            if (definition == null) continue;
+            int existing = target.FindIndex(item => item != null &&
+                string.Equals(item.StableId, definition.StableId, StringComparison.OrdinalIgnoreCase));
+            if (existing >= 0) target[existing] = definition; else target.Add(definition);
+        }
     }
 
     private static void ApplyAllegianceType(ref string target, NationContentLayer layer)

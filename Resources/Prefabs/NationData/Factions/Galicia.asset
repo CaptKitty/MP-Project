@@ -47,6 +47,10 @@ MonoBehaviour:
     buildings: []
     generalNames: []
     flags: []
+    AllegianceNames: []
+    AllegianceType: Tribe
+    allegiances:
+    - {fileID: 11400000, guid: d1100000000000000000000000000010, type: 2}
     holdingEconomyModifiers: []
     levies: []
     laws: []

@@ -1,0 +1,14 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2000000000000000000000000000002, type: 3}
+  m_Name: Aedui
+  id: aedui
+  displayName: Aedui
+  type: 1
+  primaryIdentity: {fileID: 11400000, guid: c1040000000000000000000000000004, type: 2}
+  startingDynamicIdentity: {fileID: 11400000, guid: c1110000000000000000000000000011, type: 2}
+  startingCurrentInterestRegionIds: []
+  startingFutureInterestRegionIds: []

@@ -272,6 +272,25 @@ public struct CampaignHoldingState : INetworkSerializable
     }
 }
 
+public struct CampaignAllegianceState : INetworkSerializable
+{
+    public ushort NationIndex;
+    public FixedString64Bytes Id;
+    public FixedString64Bytes DisplayName;
+    public byte Type;
+    public FixedString64Bytes PrimaryIdentityId;
+    public FixedString64Bytes DynamicIdentityId;
+    public FixedString512Bytes CurrentInterestRegionIds;
+    public FixedString512Bytes FutureInterestRegionIds;
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+    {
+        serializer.SerializeValue(ref NationIndex); serializer.SerializeValue(ref Id);
+        serializer.SerializeValue(ref DisplayName); serializer.SerializeValue(ref Type);
+        serializer.SerializeValue(ref PrimaryIdentityId); serializer.SerializeValue(ref DynamicIdentityId);
+        serializer.SerializeValue(ref CurrentInterestRegionIds); serializer.SerializeValue(ref FutureInterestRegionIds);
+    }
+}
+
 public struct CampaignHoldingConstructionOrderState : INetworkSerializable
 {
     public ushort ProvinceIndex;

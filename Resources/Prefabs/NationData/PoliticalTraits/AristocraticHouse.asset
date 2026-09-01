@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1000000000000000000000000000001, type: 3}
+  m_Name: AristocraticHouse
+  id: elite_patron
+  displayName: Elite Patron
+  description: Protects elite holdings, inherited privilege, wealth, and aristocratic political power.
+  availability: 1
+  suitableRoles: 1
+  preferences:
+    citizenHoldings: 0
+    eliteHoldings: 5
+    freemenHoldings: 0
+    preferredCulture: 0
+    commerce: 1
+    militaryStrength: 0
+    territorialExpansion: 0
+    regionalInterests: 0
+    foreignInfluence: 0
+    defense: 0
+    statusQuo: 1
+    federationBenefit: 0
+    tribalAutonomy: 0
+    ownPoliticalPower: 1

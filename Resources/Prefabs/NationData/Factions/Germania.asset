@@ -42,4 +42,16 @@ MonoBehaviour:
   - Decentralized
   - Braindead
   factionTheme: {fileID: 11400000, guid: bc69b654c6f349c40b5b5b11dff99548, type: 2}
+  content:
+    units: []
+    buildings: []
+    generalNames: []
+    flags: []
+    AllegianceNames: []
+    AllegianceType: Tribe
+    allegiances:
+    - {fileID: 11400000, guid: d1080000000000000000000000000008, type: 2}
+    holdingEconomyModifiers: []
+    levies: []
+    laws: []
   Income: 600

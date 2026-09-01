@@ -52,6 +52,12 @@ MonoBehaviour:
     buildings: []
     generalNames: []
     flags: []
+    AllegianceNames: []
+    AllegianceType: Family
+    allegiances:
+    - {fileID: 11400000, guid: d1010000000000000000000000000001, type: 2}
+    - {fileID: 11400000, guid: d1020000000000000000000000000002, type: 2}
+    - {fileID: 11400000, guid: d1030000000000000000000000000003, type: 2}
     holdingEconomyModifiers: []
     levies: []
     laws:

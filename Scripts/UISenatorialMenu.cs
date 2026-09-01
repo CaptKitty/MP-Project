@@ -127,7 +127,7 @@ public sealed class UISenatorialMenu : MonoBehaviour
         if (nation == null || allegianceTemplate == null) return;
         PoliticalProposalSystem.EnsureGroups(nation);
         string allegianceType = NationContentResolver.ResolveAllegianceType(nation);
-        if (allegianceHeader != null) allegianceHeader.text = allegianceType;
+        if (allegianceHeader != null) allegianceHeader.text = "Allegiances";
         int groupCount = Mathf.Max(1, nation.politicalGroups.Count);
         float scale = Mathf.Clamp(5f / groupCount, .65f, 1f);
         float spacing = Mathf.Max(10f, (allegianceTemplate.rect.width + 10f) * scale);
@@ -141,15 +141,32 @@ public sealed class UISenatorialMenu : MonoBehaviour
             row.anchoredPosition = new Vector2(firstX + spacing * i, allegianceTemplate.anchoredPosition.y);
             row.localScale = Vector3.one * scale;
             Text header = ComponentInDescendant<Text>(row, "AllegianceDataHeader");
+            Allegiance allegiance = !group.representsUnalignedHoldings ? AllegianceSystem.Find(nation,
+                !string.IsNullOrEmpty(group.allegianceId) ? group.allegianceId : group.id) : null;
             if (header != null) header.text = group.representsUnalignedHoldings
-                ? group.displayName + ":" : allegianceType + " " + group.displayName + ":";
+                ? group.displayName + ":" : (allegiance != null ? allegiance.type.ToString() : allegianceType) + " " + group.displayName + ":";
             Text data = ComponentInDescendant<Text>(row, "AllegianceData");
-            if (data != null) data.text = "Focus: Undetermined\n\nPower: " + HoldingPower(nation, group) + " holdings";
+            if (data != null) data.text = AllegianceDetails(nation, group, allegiance);
             Image icon = ComponentInDescendant<Image>(row, "AllegianceIcon");
             if (icon != null) { icon.sprite = null; icon.enabled = false; }
             row.gameObject.SetActive(true);
             generatedAllegiances.Add(row.gameObject);
         }
+    }
+
+    private static string AllegianceDetails(Nation nation, PoliticalGroup group, Allegiance allegiance)
+    {
+        int power = HoldingPower(nation, group);
+        if (allegiance == null) return "Focus: Unaligned " + SocioEconomicClassRules.DisplayName(group.representedClass) +
+            "\n\nPower: " + power + " holdings";
+        string primary = allegiance.PrimaryIdentity != null ? allegiance.PrimaryIdentity.DisplayName : "Undetermined";
+        string dynamicIdentity = allegiance.DynamicIdentity != null ? allegiance.DynamicIdentity.DisplayName : "Undetermined";
+        string current = allegiance.currentInterestRegionIds != null && allegiance.currentInterestRegionIds.Count > 0
+            ? string.Join(", ", allegiance.currentInterestRegionIds) : "None";
+        string future = allegiance.futureInterestRegionIds != null && allegiance.futureInterestRegionIds.Count > 0
+            ? string.Join(", ", allegiance.futureInterestRegionIds) : "None";
+        return "Primary: " + primary + "\nDynamic: " + dynamicIdentity + "\nCurrent interests: " + current +
+            "\nFuture interests: " + future + "\n\nPower: " + power + " holdings";
     }
 
     private void RefreshEdicts()

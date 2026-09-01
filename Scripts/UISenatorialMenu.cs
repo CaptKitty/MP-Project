@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public sealed class UISenatorialMenu : MonoBehaviour
 {
     private GameObject opener;
+    private GameObject overlayRoot;
     private RectTransform lawTemplate;
     private readonly List<GameObject> generatedRows = new List<GameObject>();
     private RectTransform allegianceTemplate;
@@ -31,6 +32,9 @@ public sealed class UISenatorialMenu : MonoBehaviour
     public void Configure(GameObject openControl)
     {
         opener = openControl;
+        Canvas parentCanvas = GetComponentInParent<Canvas>(true);
+        overlayRoot = parentCanvas != null && parentCanvas.gameObject != gameObject
+            ? parentCanvas.gameObject : gameObject;
         lawTemplate = FindDescendant(transform, "LawsHolderObject") as RectTransform;
         if (lawTemplate == null) lawTemplate = FindDescendant(transform, "LawHolder") as RectTransform;
         if (lawTemplate != null) lawTemplate.gameObject.SetActive(false);
@@ -73,6 +77,11 @@ public sealed class UISenatorialMenu : MonoBehaviour
 
     public void Open()
     {
+        if (overlayRoot != null)
+        {
+            overlayRoot.transform.localScale = Vector3.one;
+            overlayRoot.SetActive(true);
+        }
         if (!gameObject.activeSelf) gameObject.SetActive(true);
         else RebuildAll();
     }
@@ -81,6 +90,7 @@ public sealed class UISenatorialMenu : MonoBehaviour
     {
         choosingExtension = false;
         gameObject.SetActive(false);
+        if (overlayRoot != null && overlayRoot != gameObject) overlayRoot.SetActive(false);
     }
 
     private void RebuildAll()
@@ -112,21 +122,31 @@ public sealed class UISenatorialMenu : MonoBehaviour
         List<PoliticalProposal> proposals = nation != null && nation.politicalProposals != null
             ? nation.politicalProposals.FindAll(proposal => proposal != null) : new List<PoliticalProposal>();
 
-        int rowCount = Mathf.Max(1, activeLaws.Count + proposals.Count);
+        List<ActiveNationalEdict> activeEdicts = nation != null && nation.activeEdicts != null
+            ? nation.activeEdicts.FindAll(active => active != null && active.edict != null)
+            : new List<ActiveNationalEdict>();
+
+        int rowCount = Mathf.Max(1, activeLaws.Count + activeEdicts.Count + proposals.Count);
         float spacing = Mathf.Max(10f, lawTemplate.rect.height + 10f);
         for (int i = 0; i < rowCount; i++)
         {
             RectTransform row = Instantiate(lawTemplate, lawTemplate.parent);
             bool activeLaw = i < activeLaws.Count;
-            int proposalIndex = i - activeLaws.Count;
+            int activeEdictIndex = i - activeLaws.Count;
+            bool activeEdict = activeEdictIndex >= 0 && activeEdictIndex < activeEdicts.Count;
+            int proposalIndex = activeEdictIndex - activeEdicts.Count;
             row.name = activeLaw ? "Law_" + activeLaws[i].id : proposalIndex >= 0 && proposalIndex < proposals.Count
-                ? "Proposal_" + proposals[proposalIndex].id : "Law_None";
+                ? "Proposal_" + proposals[proposalIndex].id : activeEdict
+                    ? "ActiveEdict_" + activeEdicts[activeEdictIndex].instanceId : "Law_None";
             row.anchoredPosition = lawTemplate.anchoredPosition + Vector2.down * spacing * i;
             row.gameObject.SetActive(true);
             Text label = row.GetComponentInChildren<Text>(true);
             if (label != null) label.text = activeLaw ? activeLaws[i].displayName +
                 "\nNORMAL\n" + activeLaws[i].Describe() + "\n\nAVAILABLE EXTENSIONS\n" +
                 activeLaws[i].DescribeExtensions() :
+                activeEdict ? "ACTIVE EDICT: " + activeEdicts[activeEdictIndex].title +
+                    "\n" + PoliticalProposalSystem.DescribeEdict(activeEdicts[activeEdictIndex].edict) +
+                    "\nRemaining: " + activeEdicts[activeEdictIndex].remainingTicks + " ticks" :
                 proposalIndex >= 0 && proposalIndex < proposals.Count
                     ? "PROPOSAL: " + proposals[proposalIndex].title + " — vote in " +
                         proposals[proposalIndex].remainingDebateTicks + " turns"
@@ -210,15 +230,6 @@ public sealed class UISenatorialMenu : MonoBehaviour
                 edictDetails.text = proposal.title + "\n\n" + PoliticalProposalSystem.DescribeEdict(proposal.edict) +
                     "\n\nDebate remaining: " + proposal.remainingDebateTicks + " turns" +
                     (proposal.playerVoteCast ? "\nYour vote: " + (proposal.playerSupports ? "Support" : "Oppose") : string.Empty);
-            else if (nation != null && nation.activeEdicts != null && nation.activeEdicts.Count > 0)
-            {
-                List<string> activeDescriptions = new List<string>();
-                foreach (ActiveNationalEdict active in nation.activeEdicts)
-                    if (active != null && active.edict != null) activeDescriptions.Add(active.title +
-                        "\n" + PoliticalProposalSystem.DescribeEdict(active.edict) +
-                        "\nRemaining: " + active.remainingTicks + " ticks");
-                edictDetails.text = "ACTIVE EDICTS\n\n" + string.Join("\n\n", activeDescriptions);
-            }
             else if (nation != null && !string.IsNullOrWhiteSpace(nation.latestPassedEdict))
                 edictDetails.text = "Latest passed edict\n\n" + nation.latestPassedEdict;
             else edictDetails.text = "No edict under consideration";

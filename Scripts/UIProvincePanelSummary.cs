@@ -186,7 +186,10 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
 
     private HoldingTooltipData BuildTypeTooltip(string category, List<ProvinceHolding> holdings)
     {
-        HoldingTooltipData result = new HoldingTooltipData { title = category + " (" + holdings.Count + ")" };
+        HoldingTooltipData result = new HoldingTooltipData
+        {
+            title = category + " (" + holdings.Count + ") " + BuildClassMarker(holdings)
+        };
         Dictionary<string, List<ProvinceHolding>> identical = new Dictionary<string, List<ProvinceHolding>>();
         foreach (ProvinceHolding holding in holdings)
         {
@@ -204,6 +207,23 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
             result.entries.Add(new HoldingTooltipEntry { text = text.ToString(), allegianceDetails = BuildAllegianceDetails(group) });
         }
         return result;
+    }
+
+    private static string BuildClassMarker(List<ProvinceHolding> holdings)
+    {
+        HashSet<string> classes = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
+        foreach (ProvinceHolding holding in holdings)
+        {
+            if (holding == null) continue;
+            SocioEconomicClass socialClass = SocioEconomicClassRules.Normalize(holding.socioEconomicClass);
+            string label = socialClass == SocioEconomicClass.Citizen
+                ? "Citizens"
+                : SocioEconomicClassRules.DisplayName(socialClass);
+            classes.Add(label.ToLowerInvariant());
+        }
+        List<string> sorted = new List<string>(classes);
+        sorted.Sort(System.StringComparer.OrdinalIgnoreCase);
+        return sorted.Count > 0 ? string.Join(" / ", sorted) : "unassigned class";
     }
 
     private static string BuildAllegianceDetails(List<ProvinceHolding> holdings)

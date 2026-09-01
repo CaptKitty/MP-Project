@@ -187,6 +187,13 @@ public sealed class PoliticalProposal
 
 public static class PoliticalProposalSystem
 {
+    public const int EdictDurationMultiplier = 5;
+
+    private static int EffectiveEdictDuration(int durationTicks)
+    {
+        return (int)Math.Min(int.MaxValue,
+            Math.Max(1L, (long)Mathf.Max(1, durationTicks) * EdictDurationMultiplier));
+    }
     public static void EnsureGroups(Nation nation)
     {
         if (nation.politicalGroups == null) nation.politicalGroups = new List<PoliticalGroup>();
@@ -309,7 +316,7 @@ public static class PoliticalProposalSystem
         {
             string target = EdictTargetDescription(edict);
             return "Target: " + target + "\nCore effect: " + edict.DescribeCore() +
-                "\nDuration: " + edict.durationTicks + " ticks\nAftermath: " + edict.DescribeAftermath();
+                "\nDuration: " + EffectiveEdictDuration(edict.durationTicks) + " ticks\nAftermath: " + edict.DescribeAftermath();
         }
         return DescribeLegacyEdict(edict);
     }
@@ -320,7 +327,8 @@ public static class PoliticalProposalSystem
         if (edict.type == NationalEdictType.LevyRecovery)
             return "Spend " + edict.treasuryCost + " gold to immediately recover " +
                 edict.immediateRecoveryTicks + " levy-recovery ticks and gain +" +
-                Mathf.Max(1, edict.recoveryBonusPerTick) + " recovery per tick for " + edict.durationTicks + " ticks.";
+                Mathf.Max(1, edict.recoveryBonusPerTick) + " recovery per tick for " +
+                EffectiveEdictDuration(edict.durationTicks) + " ticks.";
         if (edict.type == NationalEdictType.ReassignHoldingAllegiance)
             return "Reassign " + (edict.allegianceScope == AllegianceEdictScope.SpecificHolding
                 ? "the selected holding" : edict.allegianceScope.ToString()) + " to " +
@@ -526,8 +534,10 @@ public static class PoliticalProposalSystem
     private static void ActivateEdict(Nation nation, string title, NationalEdict edict)
     {
         if (nation.activeEdicts == null) nation.activeEdicts = new List<ActiveNationalEdict>();
+        NationalEdict activeEdict = edict.Clone();
+        activeEdict.durationTicks = EffectiveEdictDuration(edict.durationTicks);
         nation.activeEdicts.Add(new ActiveNationalEdict { instanceId = Guid.NewGuid().ToString("N"),
-            title = title, edict = edict.Clone(), remainingTicks = Mathf.Max(1, edict.durationTicks) });
+            title = title, edict = activeEdict, remainingTicks = activeEdict.durationTicks });
         ReconcileLevies(nation);
     }
 
@@ -605,7 +615,8 @@ public static class PoliticalProposalSystem
         {
             if (nation.Gold < edict.treasuryCost) return;
             nation.Gold -= edict.treasuryCost;
-            nation.levyRecoveryBoostTicks = Mathf.Max(nation.levyRecoveryBoostTicks, edict.durationTicks);
+            nation.levyRecoveryBoostTicks = Mathf.Max(nation.levyRecoveryBoostTicks,
+                EffectiveEdictDuration(edict.durationTicks));
             nation.levyRecoveryBonusPerTick = Mathf.Max(nation.levyRecoveryBonusPerTick, edict.recoveryBonusPerTick);
             ReduceRecovery(nation, edict.immediateRecoveryTicks);
         }

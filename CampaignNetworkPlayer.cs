@@ -1750,14 +1750,14 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             Nation nation = Owners.Instance.nationlist[state.NationIndex];
             nation.EnsureDefaultLaws();
             string id = state.ExtensionId.ToString();
-            string sourceId = state.IsAftermath && id.EndsWith("_aftermath", StringComparison.OrdinalIgnoreCase)
+            string sourceId = state.IsAftermath && id.EndsWith("_aftermath", System.StringComparison.OrdinalIgnoreCase)
                 ? id.Substring(0, id.Length - "_aftermath".Length) : id;
             NationalEdict template = null;
             foreach (NationalLaw law in nation.laws)
             {
                 if (law == null || law.availableExtensions == null) continue;
                 template = law.availableExtensions.Find(extension => extension != null &&
-                    string.Equals(extension.StableId, sourceId, StringComparison.OrdinalIgnoreCase));
+                    string.Equals(extension.StableId, sourceId, System.StringComparison.OrdinalIgnoreCase));
                 if (template != null) break;
             }
             if (template == null) continue;

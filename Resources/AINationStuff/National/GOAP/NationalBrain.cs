@@ -61,13 +61,6 @@ public class NationalBrain : GAgent {
             {
                 a.value -= 10;
             }
-            if(nation.Contains("Rome"))
-            {
-                if(prov.OriginalNation.name.Contains("Carthage"))
-                {
-                    a.value -= 20;
-                }
-            }
             priorityList.Add(a);
         }
     }
@@ -93,13 +86,6 @@ public class NationalBrain : GAgent {
                 }
             }
             
-            if(nation.Contains("Rome"))
-            {
-                if(prov.OriginalNation.name.Contains("Carthage"))
-                {
-                    a.value -= 20;
-                }
-            }
             priorityList.Add(a);
         }
     }

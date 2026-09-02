@@ -652,7 +652,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         Province current = army != null ? army.GrabNearestProvince() : null;
         if (current == null || current.nation != army.fieldArmy.nation) return;
         if (!army.IsTargetNull()) return;
-        current.RaiseAllAvailableRegionLevies(army, true);
+        current.RaiseAllAvailableLocalAndAdjacentRegionLevies(army, true);
     }
 
     [Rpc(SendTo.Server)]
@@ -765,6 +765,12 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             RequestProvinceBuildingRpc(provinceName ?? string.Empty, slotIndex, buildingId ?? string.Empty, targetLevel);
     }
 
+    public void RequestDestroyProvinceBuilding(string provinceName, int slotIndex)
+    {
+        if (IsOwner && HasAssignment)
+            RequestDestroyProvinceBuildingRpc(provinceName ?? string.Empty, slotIndex);
+    }
+
     public void RequestProvinceHolding(string provinceName, int slotIndex, string holdingId, int targetLevel)
     {
         if (IsOwner && HasAssignment)
@@ -792,6 +798,18 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         army.ConfigureNetworkIdentity(CreateArmyId(nation.name), rpcParams.Receive.SenderClientId, true, nation);
         FieldArmyHolder.SelectedPlayerArmy = army;
         FieldArmyHolder.InspectedArmy = army;
+    }
+
+    [Rpc(SendTo.Server)]
+    private void RequestDestroyProvinceBuildingRpc(FixedString64Bytes provinceName, int slotIndex,
+        RpcParams rpcParams = default)
+    {
+        CampaignNetworkPlayer sender = FindPlayer(rpcParams.Receive.SenderClientId);
+        Province province = sender == null || Owners.Instance == null ? null
+            : Owners.Instance.provincelist.Find(item => item.name == provinceName.ToString());
+        if (province == null || province.nation == null || sender == null ||
+            province.nation.name != sender.AssignedNation || slotIndex < 0 || slotIndex >= 4) return;
+        province.DestroyBuildingInSlot(slotIndex);
     }
 
     [Rpc(SendTo.Server)]
@@ -1203,7 +1221,8 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                         SocioEconomicClass = (byte)SocioEconomicClassRules.Normalize(effect.socioEconomicClass), CultureScope = (byte)effect.cultureScope,
                         CultureName = effect.cultureName ?? string.Empty, AnyUnitOrigin = effect.anyUnitOrigin,
                         UnitOrigin = (byte)effect.unitOrigin, AnyAllegiance = effect.anyAllegiance,
-                        AllegianceId = effect.allegianceId ?? string.Empty });
+                        AllegianceId = effect.allegianceId ?? string.Empty,
+                        UseAllegianceFocusedRegions = effect.useAllegianceFocusedRegions });
                 if (law.classRules != null) foreach (NationalClassRule rule in law.classRules)
                     if (rule != null) classRules.Add(new CampaignClassRuleState { NationIndex = (ushort)i,
                         LawId = law.id ?? string.Empty, DisplayName = law.displayName ?? string.Empty,
@@ -1620,7 +1639,8 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 cultureScope = (NationalLawCultureScope)Mathf.Clamp(state.CultureScope, 0, 3),
                 cultureName = state.CultureName.ToString(), anyUnitOrigin = state.AnyUnitOrigin,
                 unitOrigin = (CampaignUnitOrigin)Mathf.Clamp(state.UnitOrigin, 0, 3),
-                anyAllegiance = state.AnyAllegiance, allegianceId = state.AllegianceId.ToString() });
+                anyAllegiance = state.AnyAllegiance, allegianceId = state.AllegianceId.ToString(),
+                useAllegianceFocusedRegions = state.UseAllegianceFocusedRegions });
         }
         foreach (CampaignClassRuleState state in classRules)
         {
@@ -2024,6 +2044,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 hash = hash * 31 + state.SocioEconomicClass; hash = hash * 31 + state.CultureScope;
                 hash = hash * 31 + state.CultureName.GetHashCode(); hash = hash * 31 + state.UnitOrigin;
                 hash = hash * 31 + (state.AnyAllegiance ? 1 : 0); hash = hash * 31 + state.AllegianceId.GetHashCode();
+                hash = hash * 31 + (state.UseAllegianceFocusedRegions ? 1 : 0);
             }
             foreach (CampaignClassRuleState state in rules)
             {

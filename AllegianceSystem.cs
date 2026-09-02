@@ -83,6 +83,15 @@ public static class AllegianceSystem
         return result;
     }
 
+    public static Sprite Icon(Nation nation, Allegiance allegiance)
+    {
+        if (nation == null || allegiance == null) return null;
+        List<AllegianceDefinition> definitions = NationContentResolver.ResolveAllegiances(nation);
+        AllegianceDefinition definition = definitions.Find(candidate => candidate != null &&
+            (Same(candidate.StableId, allegiance.id) || Same(candidate.DisplayName, allegiance.displayName)));
+        return definition != null ? definition.icon : null;
+    }
+
     public static List<CampaignRegion> ResolveRegions(IEnumerable<string> ids)
     {
         List<CampaignRegion> result = new List<CampaignRegion>();
@@ -93,6 +102,48 @@ public static class AllegianceSystem
             if (region != null && !result.Contains(region)) result.Add(region);
         }
         return result;
+    }
+
+    public static void EnsureStartingRegionalFocuses(Nation nation)
+    {
+        if (nation == null || Owners.Instance == null) return;
+        EnsureNationAllegiances(nation);
+        if (nation.allegiances == null || nation.allegiances.Count == 0) return;
+        List<string> ownedRegions = new List<string>();
+        foreach (Province province in Owners.Instance.provincelist)
+            if (province != null && province.nation == nation && !string.IsNullOrWhiteSpace(province.region) &&
+                !ownedRegions.Exists(region => Same(region, province.region))) ownedRegions.Add(province.region);
+        ownedRegions.Sort(StringComparer.Ordinal);
+        if (ownedRegions.Count == 0) return;
+
+        foreach (Allegiance allegiance in nation.allegiances)
+        {
+            if (allegiance == null) continue;
+            if (allegiance.currentInterestRegionIds == null)
+                allegiance.currentInterestRegionIds = new List<string>();
+            if (allegiance.currentInterestRegionIds.Count > 0) continue;
+            Dictionary<string, int> alignedByRegion = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (Province province in Owners.Instance.provincelist)
+            {
+                if (province == null || province.nation != nation || province.holdings == null ||
+                    string.IsNullOrWhiteSpace(province.region)) continue;
+                foreach (ProvinceHolding holding in province.holdings)
+                    if (holding != null && (Same(holding.allegiance, allegiance.id) ||
+                        Same(holding.allegiance, allegiance.displayName)))
+                        alignedByRegion[province.region] = alignedByRegion.TryGetValue(province.region, out int count)
+                            ? count + 1 : 1;
+            }
+            string focus = null;
+            int strongest = -1;
+            foreach (string region in ownedRegions)
+            {
+                int count = alignedByRegion.TryGetValue(region, out int value) ? value : 0;
+                if (count > strongest) { strongest = count; focus = region; }
+            }
+            if (strongest <= 0)
+                focus = ownedRegions[StableHash(nation.name + "|" + allegiance.id) % ownedRegions.Count];
+            if (!string.IsNullOrWhiteSpace(focus)) allegiance.currentInterestRegionIds.Add(focus);
+        }
     }
 
     public static string StableId(string value)
@@ -107,5 +158,14 @@ public static class AllegianceSystem
 
     public static AllegianceType LegacyType(string value) => value != null &&
         value.IndexOf("trib", StringComparison.OrdinalIgnoreCase) >= 0 ? AllegianceType.Tribe : AllegianceType.Family;
+    private static int StableHash(string value)
+    {
+        unchecked
+        {
+            int hash = 17;
+            if (value != null) foreach (char character in value) hash = hash * 31 + character;
+            return hash & int.MaxValue;
+        }
+    }
     private static bool Same(string left, string right) => string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
 }

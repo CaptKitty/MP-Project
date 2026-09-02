@@ -32,7 +32,8 @@ MonoBehaviour:
     - unit: {fileID: 11400000, guid: 8d26d17d75f9c5748a8f2e463b59e1ec, type: 2}
       requiredBuilding: {fileID: 0}
       minimumBuildingLevel: 1
-    buildings: []
+    buildings:
+    - {fileID: 11400000, guid: 2bd5190344af43298421420a8399e4c8, type: 2}
     generalNames:
     - Friedrich Friedrichsson
     - Jay

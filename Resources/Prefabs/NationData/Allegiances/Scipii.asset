@@ -3,11 +3,19 @@
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b2000000000000000000000000000002, type: 3}
   m_Name: Scipii
+  m_EditorClassIdentifier: 
   id: scipii
   displayName: Scipii
   type: 0
+  icon: {fileID: -321134898532607316, guid: 5a7e7fd5d1c7c00438df93806e459370, type: 3}
   primaryIdentity: {fileID: 11400000, guid: c1020000000000000000000000000002, type: 2}
   startingDynamicIdentity: {fileID: 0}
   startingCurrentInterestRegionIds: []

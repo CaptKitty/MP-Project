@@ -90,7 +90,11 @@ public class Owners : MonoBehaviour
             province.OriginalNation = province.nation;
             province.InitializeRecruitment();
         }
-        foreach (Province province in provincelist) province.InitializeHoldings();
+        foreach (Province province in provincelist)
+        {
+            province.InitializeHoldings();
+            province.InitializeUrbanizationAtTarget();
+        }
         Mapshower.Instance.Paint();
 
         if (RecruitmentMenu.Instance == null)
@@ -500,6 +504,7 @@ public class Province
     {
         public int frame;
         public readonly Dictionary<string, int> ticks = new Dictionary<string, int>(System.StringComparer.Ordinal);
+        public readonly HashSet<string> mobilized = new HashSet<string>(System.StringComparer.Ordinal);
     }
     private static readonly Dictionary<string, HoldingRecoveryCacheEntry> HoldingRecoveryCache =
         new Dictionary<string, HoldingRecoveryCacheEntry>(System.StringComparer.Ordinal);
@@ -564,6 +569,7 @@ public class Province
         if (levyEntitlements == null) levyEntitlements = new List<ProvinceLevyEntitlement>();
         if (holdings == null) holdings = new List<ProvinceHolding>();
         if (holdingConstructionOrders == null) holdingConstructionOrders = new List<HoldingConstructionOrder>();
+        EnsureStartingCultureBuildings();
         for (int i = 0; i < buildings.Count; i++)
         {
             if (buildings[i] == null) continue;
@@ -646,7 +652,8 @@ public class Province
                 ? HoldingDefinition.DefaultCitizenFarm(migrationRule.unit) : HoldingDefinition.DefaultCitizenFarm();
             bool barbarian = nation != null && nation.civilization != null &&
                 string.Equals(nation.civilization.name, "Barbarian", System.StringComparison.OrdinalIgnoreCase);
-            for (int i = 0; i < 10; i++)
+            int initialHoldingCount = InitialHoldingCount(barbarian);
+            for (int i = 0; i < initialHoldingCount; i++)
             {
                 HoldingDefinition definition = FallbackHoldingDefinition(i, barbarian, citizenFarm);
                 if (definition == null) definition = citizenFarm;
@@ -669,6 +676,23 @@ public class Province
         }
         RebuildPopulationFromHoldings();
         ReconcileLevyEntitlements();
+    }
+
+    private int InitialHoldingCount(bool barbarian)
+    {
+        string culture = PrimaryCulture != null ? PrimaryCulture.name :
+            nation != null && nation.culture != null ? nation.culture.DisplayName : string.Empty;
+        if (culture.Equals("Germanic", System.StringComparison.OrdinalIgnoreCase)) return 5;
+        if (culture.Equals("Celtiberian", System.StringComparison.OrdinalIgnoreCase)) return 10;
+        if (culture.Equals("Latin", System.StringComparison.OrdinalIgnoreCase) ||
+            culture.Equals("Punic", System.StringComparison.OrdinalIgnoreCase)) return 15;
+        return barbarian ? 5 : 10;
+    }
+
+    public void InitializeUrbanizationAtTarget()
+    {
+        urbanization = HoldingEvolutionSystem.DesiredUrbanization(this);
+        ClampDevelopment();
     }
 
     private HoldingDefinition FallbackHoldingDefinition(int slot, bool barbarian, HoldingDefinition citizenFarm)
@@ -838,7 +862,7 @@ public class Province
                 long before = pool.accumulated / completeFormation;
                 if (!pool.pendingContributors.Contains(holding.instanceId)) pool.pendingContributors.Add(holding.instanceId);
                 pool.accumulated += (long)holding.LevyContributionPermille *
-                    nation.GetHoldingLawAmount(NationalLawEffectType.LevyConscription, holding);
+                    nation.GetHoldingLawAmount(NationalLawEffectType.LevyConscription, holding, sourceProvince.region);
                 pool.remainderProvince = sourceProvince;
                 pool.remainderHolding = holding;
                 int formations = (int)(pool.accumulated / completeFormation - before);
@@ -954,6 +978,37 @@ public class Province
         }
     }
 
+    private void EnsureStartingCultureBuildings()
+    {
+        string culture = PrimaryCulture != null ? PrimaryCulture.name :
+            nation != null && nation.culture != null ? nation.culture.DisplayName : string.Empty;
+        if (string.IsNullOrWhiteSpace(culture)) return;
+        if (culture.Equals("Germanic", System.StringComparison.OrdinalIgnoreCase))
+            EnsureStartingBuilding("SacredGrove");
+        else if (culture.Equals("Latin", System.StringComparison.OrdinalIgnoreCase))
+            EnsureStartingBuilding("Sewer");
+        else if (culture.Equals("Punic", System.StringComparison.OrdinalIgnoreCase))
+        {
+            EnsureStartingBuilding("Sewer");
+            EnsureStartingBuilding("Roads");
+        }
+    }
+
+    private void EnsureStartingBuilding(string buildingId)
+    {
+        if (buildings.Exists(building => building != null &&
+            building.BuildingId.Equals(buildingId, System.StringComparison.OrdinalIgnoreCase))) return;
+        int slot = -1;
+        for (int candidate = 0; candidate < 4; candidate++)
+            if (GetBuildingInSlot(candidate) == null && (constructionOrders == null ||
+                !constructionOrders.Exists(order => order != null && order.slotIndex == candidate)))
+            { slot = candidate; break; }
+        BuildingDefinition definition = BuildingDefinition.Find(buildingId);
+        if (slot < 0 || definition == null) return;
+        buildings.Add(new ProvinceBuilding { definition = definition, id = definition.StableId,
+            level = 1, maxLevel = definition.maximumLevel, slotIndex = slot });
+    }
+
     private static int StableLevyReconcilePhase(string value, int interval)
     {
         unchecked
@@ -1013,6 +1068,40 @@ public class Province
             Province source = regionProvinces.Find(candidate => candidate.levyEntitlements != null &&
                 candidate.levyEntitlements.Contains(entitlement));
             if (source != null && source.RaiseLevy(entitlement.id, army)) raised++;
+        }
+        if (allowAllInSecondClick)
+            levyAllInArmedArmyId = !allIn && skippedForFood ? armyKey : null;
+        return raised;
+    }
+
+    public int RaiseAllAvailableLocalAndAdjacentRegionLevies(FieldArmyHolder army,
+        bool allowAllInSecondClick = false)
+    {
+        if (army == null || army.fieldArmy == null || army.fieldArmy.nation == null ||
+            nation != army.fieldArmy.nation) return 0;
+        Nation owner = army.fieldArmy.nation;
+        int capacity = army.fieldArmy.MaxArmySize - army.fieldArmy.GrabArmySize() -
+            army.fieldArmy.GrabQueuedArmySize();
+        if (capacity <= 0) return 0;
+        List<Province> accessibleProvinces = GetLocalAndAdjacentRegionProvinces(owner);
+        List<ProvinceLevyEntitlement> available = GetAvailableLocalAndAdjacentRegionLevies(owner);
+        string armyKey = !string.IsNullOrEmpty(army.NetworkArmyId)
+            ? army.NetworkArmyId : army.GetInstanceID().ToString();
+        bool allIn = allowAllInSecondClick && levyAllInArmedArmyId == armyKey;
+        bool skippedForFood = false;
+        if (allIn) levyAllInArmedArmyId = null;
+        int raised = 0;
+        foreach (ProvinceLevyEntitlement entitlement in available)
+        {
+            if (raised >= capacity) break;
+            Province source = accessibleProvinces.Find(candidate => candidate.levyEntitlements != null &&
+                candidate.levyEntitlements.Contains(entitlement));
+            if (source == null) continue;
+            List<Province> sourceRegionProvinces = accessibleProvinces.FindAll(candidate =>
+                candidate != null && candidate.SharesRegionWith(source));
+            if (!allIn && !source.CanMobilizeWithoutFoodDeficit(entitlement, owner, sourceRegionProvinces))
+            { skippedForFood = true; continue; }
+            if (source.RaiseLevy(entitlement.id, army)) raised++;
         }
         if (allowAllInSecondClick)
             levyAllInArmedArmyId = !allIn && skippedForFood ? armyKey : null;
@@ -1329,15 +1418,10 @@ public class Province
 
     public float GetFoodOutputUnrounded() => GetFoodProductionUnrounded() - GetFoodConsumption();
 
-    public int GetFoodProduction()
-    {
-        int total = 0;
-        if (holdings != null) foreach (ProvinceHolding holding in holdings)
-            if (holding != null) total += GetHoldingOutput(holding, HoldingOutputType.Food) + holding.FoodConsumption;
-        if (buildings != null) foreach (ProvinceBuilding building in buildings)
-            if (building != null && building.definition != null) total += building.DefinitionFoodOutputAt(urbanization);
-        return total;
-    }
+    public int GetFoodProduction() => Mathf.RoundToInt(GetFoodProductionUnrounded());
+
+    public float RuralizationFoodBonusUnrounded() => urbanization < 0
+        ? Mathf.Lerp(0f, 10f, Mathf.Clamp01(-urbanization / 100f)) : 0f;
 
     public float GetFoodProductionUnrounded()
     {
@@ -1349,7 +1433,7 @@ public class Province
         if (buildings != null) foreach (ProvinceBuilding building in buildings)
             if (building != null && building.definition != null)
                 total += building.DefinitionFoodOutputUnrounded(urbanization);
-        return total;
+        return total + RuralizationFoodBonusUnrounded();
     }
 
     public int GetFoodConsumption()
@@ -1365,21 +1449,19 @@ public class Province
     public bool IsHoldingMobilized(string holdingInstanceId)
     {
         if (string.IsNullOrWhiteSpace(holdingInstanceId)) return false;
-        foreach (Province province in GetOccupiedRegionProvinces(nation))
-        {
-            if (province == null || province.levyEntitlements == null) continue;
-            if (province.levyEntitlements.Exists(entitlement => entitlement != null &&
-                (entitlement.state == LevyEntitlementState.Mobilizing || entitlement.state == LevyEntitlementState.Raised ||
-                    entitlement.state == LevyEntitlementState.Recovering) &&
-                (entitlement.holdingInstanceId == holdingInstanceId || entitlement.contributorHoldingInstanceIds != null &&
-                    entitlement.contributorHoldingInstanceIds.Contains(holdingInstanceId)))) return true;
-        }
-        return false;
+        HoldingRecoveryCacheEntry cache = GetRegionalLevyStateCache();
+        return cache.mobilized.Contains(holdingInstanceId);
     }
 
     public int GetHoldingLevyRecoveryTicks(string holdingInstanceId)
     {
         if (string.IsNullOrWhiteSpace(holdingInstanceId)) return 0;
+        HoldingRecoveryCacheEntry cache = GetRegionalLevyStateCache();
+        return cache.ticks.TryGetValue(holdingInstanceId, out int remaining) ? remaining : 0;
+    }
+
+    private HoldingRecoveryCacheEntry GetRegionalLevyStateCache()
+    {
         string cacheKey = (region ?? string.Empty) + "|" + (nation != null ? nation.name : string.Empty);
         if (!HoldingRecoveryCache.TryGetValue(cacheKey, out HoldingRecoveryCacheEntry cache))
         { cache = new HoldingRecoveryCacheEntry(); HoldingRecoveryCache.Add(cacheKey, cache); }
@@ -1387,12 +1469,20 @@ public class Province
         {
             cache.frame = Time.frameCount;
             cache.ticks.Clear();
+            cache.mobilized.Clear();
             foreach (Province province in GetOccupiedRegionProvinces(nation))
             {
                 if (province == null || province.levyEntitlements == null) continue;
                 foreach (ProvinceLevyEntitlement entitlement in province.levyEntitlements)
                 {
-                    if (entitlement == null || entitlement.state != LevyEntitlementState.Recovering) continue;
+                    if (entitlement == null || entitlement.state != LevyEntitlementState.Mobilizing &&
+                        entitlement.state != LevyEntitlementState.Raised &&
+                        entitlement.state != LevyEntitlementState.Recovering) continue;
+                    AddMobilizedHolding(cache.mobilized, entitlement.holdingInstanceId);
+                    if (entitlement.contributorHoldingInstanceIds != null)
+                        foreach (string contributor in entitlement.contributorHoldingInstanceIds)
+                            AddMobilizedHolding(cache.mobilized, contributor);
+                    if (entitlement.state != LevyEntitlementState.Recovering) continue;
                     AddRecoveryTicks(cache.ticks, entitlement.holdingInstanceId, entitlement.remainingTicks);
                     if (entitlement.contributorHoldingInstanceIds != null)
                         foreach (string contributor in entitlement.contributorHoldingInstanceIds)
@@ -1400,7 +1490,12 @@ public class Province
                 }
             }
         }
-        return cache.ticks.TryGetValue(holdingInstanceId, out int remaining) ? remaining : 0;
+        return cache;
+    }
+
+    private static void AddMobilizedHolding(HashSet<string> values, string holdingId)
+    {
+        if (!string.IsNullOrEmpty(holdingId)) values.Add(holdingId);
     }
 
     private static void AddRecoveryTicks(Dictionary<string, int> values, string holdingId, int ticks)
@@ -1425,10 +1520,54 @@ public class Province
         return result;
     }
 
-    public int GetTempleUpkeep()
+    public List<ProvinceLevyEntitlement> GetAvailableLocalAndAdjacentRegionLevies(Nation owner)
     {
-        return buildings != null && buildings.Exists(building => building != null &&
-            building.BuildingId.Equals("Temple", System.StringComparison.OrdinalIgnoreCase)) ? 1 : 0;
+        List<ProvinceLevyEntitlement> result = new List<ProvinceLevyEntitlement>();
+        foreach (Province province in GetLocalAndAdjacentRegionProvinces(owner))
+        {
+            CampaignRegion sourceRegion = Owners.Instance != null
+                ? Owners.Instance.CallRegionByString(province.region) : null;
+            if (sourceRegion != null && !sourceRegion.AllowsLevyCallups(owner)) continue;
+            province.ReconcileLevyEntitlements();
+            result.AddRange(province.levyEntitlements.FindAll(item => item != null && item.eligible &&
+                item.state == LevyEntitlementState.Available && item.unit != null));
+        }
+        result.Sort((a, b) => string.CompareOrdinal(a.id, b.id));
+        return result;
+    }
+
+    private List<Province> GetLocalAndAdjacentRegionProvinces(Nation owner)
+    {
+        List<Province> result = new List<Province>();
+        if (owner == null || Owners.Instance == null || string.IsNullOrWhiteSpace(region)) return result;
+        HashSet<string> accessibleRegions = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase) { region };
+        CampaignRegion localRegion = Owners.Instance.CallRegionByString(region);
+        List<Province> localProvinces = localRegion != null && localRegion.provincelist != null
+            ? localRegion.provincelist : new List<Province> { this };
+        foreach (Province local in localProvinces)
+        {
+            if (local == null || local.AdjacentProvinces == null) continue;
+            foreach (string adjacentName in local.AdjacentProvinces)
+            {
+                if (string.IsNullOrWhiteSpace(adjacentName) || Owners.Instance.provincedict == null ||
+                    !Owners.Instance.provincedict.TryGetValue(adjacentName, out Province adjacent) || adjacent == null ||
+                    string.IsNullOrWhiteSpace(adjacent.region)) continue;
+                accessibleRegions.Add(adjacent.region);
+            }
+        }
+        foreach (Province candidate in Owners.Instance.provincelist)
+            if (candidate != null && candidate.nation == owner && accessibleRegions.Contains(candidate.region))
+                result.Add(candidate);
+        result.Sort((left, right) => string.CompareOrdinal(left.name, right.name));
+        return result;
+    }
+
+    public int GetBuildingUpkeep()
+    {
+        int total = 0;
+        if (buildings != null) foreach (ProvinceBuilding building in buildings)
+            if (building != null) total += building.DefinitionGoldUpkeep;
+        return total;
     }
 
     public void ApplyTempleCultureInfluence(int campaignTurn)
@@ -1457,6 +1596,17 @@ public class Province
     public ProvinceBuilding GetBuildingInSlot(int slotIndex)
     {
         return buildings.Find(building => building != null && building.slotIndex == slotIndex);
+    }
+
+    public bool DestroyBuildingInSlot(int slotIndex)
+    {
+        if (slotIndex < 0 || buildings == null) return false;
+        ProvinceBuilding building = GetBuildingInSlot(slotIndex);
+        if (building == null) return false;
+        buildings.Remove(building);
+        ClampDevelopment();
+        RefreshGarrisonForFort();
+        return true;
     }
 
     public ProvinceHolding GetHoldingInSlot(int slotIndex) => holdings != null
@@ -1520,6 +1670,14 @@ public class Province
         if (nation == null || !NationContentResolver.CanConstructBuildingLevel(nation, buildingId, targetLevel)) return false;
         ProvinceBuilding existing = GetBuildingInSlot(slotIndex);
         if (existing != null && !existing.BuildingId.Equals(buildingId, System.StringComparison.OrdinalIgnoreCase)) return false;
+        BuildingDefinition definition = BuildingDefinition.Find(buildingId);
+        if (definition != null && definition.provinceUnique)
+        {
+            if (buildings.Exists(building => building != null && building.slotIndex != slotIndex &&
+                building.BuildingId.Equals(buildingId, System.StringComparison.OrdinalIgnoreCase))) return false;
+            if (constructionOrders.Exists(order => order != null && order.slotIndex != slotIndex &&
+                order.buildingId.Equals(buildingId, System.StringComparison.OrdinalIgnoreCase))) return false;
+        }
         ProvinceConstructionOrder order = new ProvinceConstructionOrder
         {
             slotIndex = slotIndex, buildingId = buildingId,
@@ -1628,7 +1786,7 @@ public class Province
 
     public int GetGarrisonCapacity()
     {
-        const int baseGarrisonSize = 6;
+        const int baseGarrisonSize = 3;
         const int troopsPerFortLevel = 3;
         ProvinceBuilding fort = GetBuilding("Fort");
         int capacity = baseGarrisonSize;
@@ -1670,6 +1828,27 @@ public class Province
             if (unit != null) garrison.AddTroop(unit, 1, true);
         }
     }
+
+    public void EnsureMinimumGarrison(int minimum = 1)
+    {
+        if (garrison == null) CreateGarrison();
+        if (garrison == null || nation == null || nation.faction == null) return;
+        garrison.nation = nation;
+        garrison.MaxArmySize = GetGarrisonCapacity();
+        int desired = Mathf.Clamp(minimum, 0, Mathf.Max(0, garrison.MaxArmySize));
+        int missing = Mathf.Max(0, desired - garrison.GrabArmySize());
+        if (missing == 0) return;
+
+        List<UnitSaveData> roster = NationContentResolver.ResolveUnits(nation)
+            .ConvertAll(entry => entry != null ? entry.unit : null);
+        roster.RemoveAll(unit => unit == null);
+        if (roster.Count == 0) return;
+
+        int unitTypes = Mathf.Min(2, roster.Count);
+        for (int i = 0; i < missing; i++)
+            garrison.AddTroop(roster[i % unitTypes], 1, true);
+    }
+
     public FieldArmyHolder SallyOut(FieldArmyHolder sally)
     {
         return Mapshower.Instance.SpawnArmy(this);
@@ -1707,6 +1886,7 @@ public class Nation
     public int NextAIInfrastructureTurn;
     public int AIInfrastructureIntervalTurns = 12;
     public int NextAIEconomyTurn;
+    public int NextAICoordinationTurn;
     public int LastGrossIncome;
     public int LastUnitUpkeep;
     public int UpkeepDebt;
@@ -1716,6 +1896,7 @@ public class Nation
     public List<PoliticalGroup> politicalGroups = new List<PoliticalGroup>();
     [Header("National allegiances")]
     public List<Allegiance> allegiances = new List<Allegiance>();
+    [HideInInspector] public bool startingAllegiancesAssigned;
     public List<PoliticalProposal> politicalProposals = new List<PoliticalProposal>();
     public List<ActiveNationalEdict> activeEdicts = new List<ActiveNationalEdict>();
     public string latestPassedEdict;
@@ -1809,39 +1990,41 @@ public class Nation
         compiledClassRules = null;
     }
 
-    public int GetHoldingLawAmount(NationalLawEffectType effect, ProvinceHolding holding)
+    public int GetHoldingLawAmount(NationalLawEffectType effect, ProvinceHolding holding,
+        string sourceRegionId = null)
     {
-        return Mathf.Clamp(ApplyLawModifiers(effect, 0, holding), 0, 1000);
+        return Mathf.Clamp(ApplyLawModifiers(effect, 0, holding, CampaignUnitOrigin.Professional,
+            sourceRegionId), 0, 1000);
     }
 
     public int ApplyLawModifiers(NationalLawEffectType effect, int baseValue, ProvinceHolding holding = null,
-        CampaignUnitOrigin origin = CampaignUnitOrigin.Professional)
+        CampaignUnitOrigin origin = CampaignUnitOrigin.Professional, string sourceRegionId = null)
     {
         EnsureDefaultLaws();
         int value = baseValue;
         if (compiledLawEffects.TryGetValue(effect, out List<NationalLawEffect> entries))
         {
-            value = ApplyLawOperation(entries, NationalLawOperation.AddFlat, value, holding, origin);
-            value = ApplyLawOperation(entries, NationalLawOperation.AddPercent, value, holding, origin);
-            value = ApplyLawOperation(entries, NationalLawOperation.Multiply, value, holding, origin);
-            value = ApplyLawOperation(entries, NationalLawOperation.Override, value, holding, origin);
+            value = ApplyLawOperation(entries, NationalLawOperation.AddFlat, value, holding, origin, sourceRegionId);
+            value = ApplyLawOperation(entries, NationalLawOperation.AddPercent, value, holding, origin, sourceRegionId);
+            value = ApplyLawOperation(entries, NationalLawOperation.Multiply, value, holding, origin, sourceRegionId);
+            value = ApplyLawOperation(entries, NationalLawOperation.Override, value, holding, origin, sourceRegionId);
         }
-        value = ApplyActiveEdictModifiers(effect, value, holding, origin);
+        value = ApplyActiveEdictModifiers(effect, value, holding, origin, sourceRegionId);
         return value;
     }
 
     private int ApplyActiveEdictModifiers(NationalLawEffectType effect, int value, ProvinceHolding holding,
-        CampaignUnitOrigin origin)
+        CampaignUnitOrigin origin, string sourceRegionId)
     {
         if (activeEdicts == null || activeEdicts.Count == 0) return value;
-        value = ApplyActiveEdictOperation(effect, NationalLawOperation.AddFlat, value, holding, origin);
-        value = ApplyActiveEdictOperation(effect, NationalLawOperation.AddPercent, value, holding, origin);
-        value = ApplyActiveEdictOperation(effect, NationalLawOperation.Multiply, value, holding, origin);
-        return ApplyActiveEdictOperation(effect, NationalLawOperation.Override, value, holding, origin);
+        value = ApplyActiveEdictOperation(effect, NationalLawOperation.AddFlat, value, holding, origin, sourceRegionId);
+        value = ApplyActiveEdictOperation(effect, NationalLawOperation.AddPercent, value, holding, origin, sourceRegionId);
+        value = ApplyActiveEdictOperation(effect, NationalLawOperation.Multiply, value, holding, origin, sourceRegionId);
+        return ApplyActiveEdictOperation(effect, NationalLawOperation.Override, value, holding, origin, sourceRegionId);
     }
 
     private int ApplyActiveEdictOperation(NationalLawEffectType effectType, NationalLawOperation operation,
-        int value, ProvinceHolding holding, CampaignUnitOrigin origin)
+        int value, ProvinceHolding holding, CampaignUnitOrigin origin, string sourceRegionId)
     {
         int additive = 0;
         foreach (ActiveNationalEdict active in activeEdicts)
@@ -1850,7 +2033,7 @@ public class Nation
             foreach (NationalLawEffect effect in active.edict.coreEffects)
             {
                 if (effect == null || effect.type != effectType || effect.operation != operation ||
-                    !effect.AppliesTo(this, holding, origin)) continue;
+                    !effect.AppliesTo(this, holding, origin, sourceRegionId)) continue;
                 if (operation == NationalLawOperation.AddFlat || operation == NationalLawOperation.AddPercent)
                     additive += effect.amountPermille;
                 else if (operation == NationalLawOperation.Multiply)
@@ -1864,12 +2047,13 @@ public class Nation
     }
 
     private int ApplyLawOperation(List<NationalLawEffect> entries, NationalLawOperation operation, int value,
-        ProvinceHolding holding, CampaignUnitOrigin origin)
+        ProvinceHolding holding, CampaignUnitOrigin origin, string sourceRegionId)
     {
         int additiveAmount = 0;
         foreach (NationalLawEffect entry in entries)
         {
-            if (entry == null || entry.operation != operation || !entry.AppliesTo(this, holding, origin)) continue;
+            if (entry == null || entry.operation != operation ||
+                !entry.AppliesTo(this, holding, origin, sourceRegionId)) continue;
             if (operation == NationalLawOperation.AddFlat || operation == NationalLawOperation.AddPercent)
                 additiveAmount += entry.amountPermille;
             else if (operation == NationalLawOperation.Multiply)
@@ -1920,7 +2104,20 @@ public class Nation
         int maximum = Mathf.Max(1, army.fieldArmy.MaxArmySize);
         int size = army.fieldArmy.GrabArmySize();
         if (includeQueuedRecruitment) size += army.fieldArmy.GrabQueuedArmySize();
-        return size >= GetAIDesiredArmySize(army);
+        if (size >= GetAIDesiredArmySize(army)) return true;
+        // An army that cannot currently recruit is allowed to campaign understrength.
+        // Without this escape hatch, RecruitTroops permanently outranks conquest.
+        return size > 0 && Owners.Instance != null &&
+            Owners.Instance.turncounter < army.AIAcceptedUnderstrengthUntilTurn;
+    }
+
+    public void AcceptFailedAIRecruitment(FieldArmyHolder army)
+    {
+        if (army == null) return;
+        int now = Owners.Instance != null ? Owners.Instance.turncounter : 0;
+        int retryDelay = Mathf.Max(8, army.AIReinforcementIntervalTurns * 2);
+        army.AIAcceptedUnderstrengthUntilTurn = Mathf.Max(army.AIAcceptedUnderstrengthUntilTurn,
+            Mathf.Max(now + retryDelay, army.NextAIReinforcementTurn));
     }
 
     public int GetAIDesiredArmySize(FieldArmyHolder army)
@@ -1985,7 +2182,7 @@ public class Nation
             regionalIncome[regionKey] = regionalIncome.TryGetValue(regionKey, out float income)
                 ? income + province.GetGoldIncomeUnrounded()
                 : province.GetGoldIncomeUnrounded();
-            provincialUpkeep += province.GetTempleUpkeep();
+            provincialUpkeep += province.GetBuildingUpkeep();
         }
         int holdingManpower = 0;
         foreach (float value in regionalManpower.Values) holdingManpower += Mathf.RoundToInt(value);
@@ -2010,10 +2207,137 @@ public class Nation
         // Braindead reserves a nation as expansion space: it accumulates normal
         // campaign resources but takes no autonomous strategic actions.
         if (NationContentResolver.HasFlag(this, "Braindead")) return;
+        CoordinateCampaignArmies();
         DevelopEconomicInfrastructure();
         DevelopMilitaryInfrastructure();
         ReinforceMostUnderstrengthArmy();
         OrderIdleFullArmiesToFrontier();
+    }
+
+    private void CoordinateCampaignArmies()
+    {
+        int now = Owners.Instance != null ? Owners.Instance.turncounter : 0;
+        if (now < NextAICoordinationTurn) return;
+        NextAICoordinationTurn = now + 4;
+        armies.RemoveAll(army => army == null || army.fieldArmy == null);
+
+        for (int i = armies.Count - 1; i >= 0; i--)
+            if (CanCoordinateArmy(armies[i]) && armies[i].fieldArmy.GrabArmySize() <= 0)
+                DisbandAIArmy(armies[i]);
+
+        // First consolidate armies that have actually reached the same province.
+        for (int left = 0; left < armies.Count; left++)
+        {
+            FieldArmyHolder first = armies[left];
+            if (!CanCoordinateArmy(first)) continue;
+            Province firstProvince = first.GrabNearestProvince();
+            for (int right = left + 1; right < armies.Count; right++)
+            {
+                FieldArmyHolder second = armies[right];
+                if (!CanCoordinateArmy(second) || second.GrabNearestProvince() != firstProvince ||
+                    (second.transform.position - first.transform.position).sqrMagnitude > 64f) continue;
+                int firstSize = first.fieldArmy.GrabArmySize();
+                int secondSize = second.fieldArmy.GrabArmySize();
+                FieldArmyHolder receiver = firstSize >= secondSize ? first : second;
+                FieldArmyHolder donor = receiver == first ? second : first;
+                if (firstSize + secondSize > receiver.fieldArmy.MaxArmySize) continue;
+                MergeAIArmies(receiver, donor);
+                if (donor == first) { left--; break; }
+                right--;
+            }
+        }
+
+        List<FieldArmyHolder> snapshot = new List<FieldArmyHolder>(armies);
+        foreach (FieldArmyHolder army in snapshot)
+        {
+            if (!CanCoordinateArmy(army) || !army.IsTargetNull() || army.fieldArmy.GrabArmySize() <= 0) continue;
+            int strength = army.fieldArmy.GrabArmySize();
+
+            // Take an affordable nearby fight instead of ignoring a vulnerable enemy army.
+            FieldArmyHolder enemy = FindNearestCampaignArmy(army, false, 90f);
+            if (enemy != null && strength * 4 >= enemy.fieldArmy.GrabArmySize() * 3)
+            {
+                IssueAIMove(army, enemy.GrabNearestProvince());
+                continue;
+            }
+
+            // Understrength forces rally with a compatible friendly army; other idle
+            // forces reinforce a friendly operation by pursuing the same objective.
+            FieldArmyHolder friendly = FindNearestCampaignArmy(army, true, 240f);
+            if (friendly == null) continue;
+            int combined = strength + friendly.fieldArmy.GrabArmySize();
+            bool canMerge = combined <= friendly.fieldArmy.MaxArmySize;
+            Province supportTarget = canMerge ? friendly.GrabNearestProvince() : friendly.TargetProvince;
+            if (supportTarget != null && (canMerge || !friendly.IsTargetNull())) IssueAIMove(army, supportTarget);
+        }
+    }
+
+    private static bool CanCoordinateArmy(FieldArmyHolder army)
+    {
+        return army != null && !army.IsHumanControlled && army.fieldArmy != null &&
+            (army.flaglist == null || !army.flaglist.Contains("Battle")) &&
+            (army.fieldArmy.recruitmentOrders == null || army.fieldArmy.recruitmentOrders.Count == 0);
+    }
+
+    private FieldArmyHolder FindNearestCampaignArmy(FieldArmyHolder origin, bool friendly, float maximumDistance)
+    {
+        if (origin == null || Owners.Instance == null) return null;
+        FieldArmyHolder best = null;
+        float bestDistance = maximumDistance * maximumDistance;
+        foreach (FieldArmyHolder candidate in Owners.Instance.armylist)
+        {
+            if (candidate == origin || candidate == null || candidate.fieldArmy == null ||
+                candidate.fieldArmy.nation == null || candidate.fieldArmy.GrabArmySize() <= 0) continue;
+            bool sameNation = candidate.fieldArmy.nation == this;
+            if (sameNation != friendly) continue;
+            float distance = (candidate.transform.position - origin.transform.position).sqrMagnitude;
+            if (distance < bestDistance)
+            {
+                best = candidate;
+                bestDistance = distance;
+            }
+        }
+        return best;
+    }
+
+    private static void IssueAIMove(FieldArmyHolder army, Province target)
+    {
+        if (army == null || target == null) return;
+        army.SetTarget(target);
+        if (army.generalbrain != null) army.generalbrain.NewGoal("MoveArmy");
+    }
+
+    private void MergeAIArmies(FieldArmyHolder receiver, FieldArmyHolder donor)
+    {
+        if (receiver == null || donor == null || receiver.fieldArmy == null || donor.fieldArmy == null) return;
+        donor.fieldArmy.ReconcileFormationRecords();
+        List<ArmyFormationRecord> records = new List<ArmyFormationRecord>(donor.fieldArmy.formationRecords);
+        foreach (ArmyFormationRecord record in records)
+            if (record != null && record.unit != null)
+                receiver.fieldArmy.AddTroop(record.unit, 1, true, record.origin, record.entitlementId);
+
+        string donorId = donor.NetworkArmyId;
+        string receiverId = receiver.NetworkArmyId;
+        if (Owners.Instance != null && !string.IsNullOrEmpty(donorId))
+            foreach (Province province in Owners.Instance.provincelist)
+                if (province != null && province.levyEntitlements != null)
+                    foreach (ProvinceLevyEntitlement entitlement in province.levyEntitlements)
+                        if (entitlement != null && entitlement.raisedArmyId == donorId)
+                            entitlement.raisedArmyId = receiverId;
+
+        // Clear after transfer so OnDestroy does not treat merged levies as casualties.
+        donor.fieldArmy.formationRecords.Clear();
+        donor.fieldArmy.USDReserves.Clear();
+        donor.generalbrain?.CancelCurrentGoal();
+        DisbandAIArmy(donor);
+    }
+
+    private void DisbandAIArmy(FieldArmyHolder army)
+    {
+        if (army == null) return;
+        armies.Remove(army);
+        if (Owners.Instance != null) Owners.Instance.armylist.Remove(army);
+        UnityEngine.Object.Destroy(army.gameObject);
     }
 
     private void DevelopEconomicInfrastructure()

@@ -23,7 +23,8 @@ MonoBehaviour:
     - unit: {fileID: 11400000, guid: 59069d3402bf14c44936b61dc9a80810, type: 2}
       requiredBuilding: {fileID: 0}
       minimumBuildingLevel: 1
-    buildings: []
+    buildings:
+    - {fileID: 11400000, guid: b8aacba79c404fd6a4783cb563031fd8, type: 2}
     generalNames:
     - Barkus Aurelius
     - Gayus Julius

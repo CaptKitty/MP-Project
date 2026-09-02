@@ -267,7 +267,8 @@ public class UIElement : MonoBehaviour
         bool friendlyLocal = army != null && army.IsFriendlyToLocalPlayer() && province != null &&
             army.fieldArmy != null && province.nation == army.fieldArmy.nation;
         bool stationary = friendlyLocal && army.IsTargetNull();
-        int availableLevies = friendlyLocal ? province.GetAvailableRegionLevies(army.fieldArmy.nation).Count : 0;
+        int availableLevies = friendlyLocal
+            ? province.GetAvailableLocalAndAdjacentRegionLevies(army.fieldArmy.nation).Count : 0;
         int capacity = friendlyLocal ? army.fieldArmy.MaxArmySize - army.fieldArmy.GrabArmySize() - army.fieldArmy.GrabQueuedArmySize() : 0;
         int raisedLevies = friendlyLocal ? army.fieldArmy.CountRaisedLevies() : 0;
         recruitUnitsButton.interactable = stationary;
@@ -295,7 +296,7 @@ public class UIElement : MonoBehaviour
         if (army == null || !army.IsFriendlyToLocalPlayer() || province == null) return;
         if (CampaignNetworkPlayer.Local != null && CampaignNetworkPlayer.Local.IsSpawned)
             CampaignNetworkPlayer.Local.RequestRaiseAllLevies();
-        else province.RaiseAllAvailableRegionLevies(army, true);
+        else province.RaiseAllAvailableLocalAndAdjacentRegionLevies(army, true);
         RefreshArmyRecruitmentButtons();
     }
 

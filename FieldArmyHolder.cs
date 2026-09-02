@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
+using UnityEngine.EventSystems;
 
 public class FieldArmyHolder : MonoBehaviour
 {
@@ -38,6 +39,7 @@ public class FieldArmyHolder : MonoBehaviour
     [Header("AI Reinforcement")]
     [Min(1)] public int AIReinforcementIntervalTurns = 8;
     [HideInInspector] public int NextAIReinforcementTurn;
+    [HideInInspector] public int AIAcceptedUnderstrengthUntilTurn;
     [HideInInspector] public int AIDesiredArmySize;
     [HideInInspector] public int CannotEngageUntilTurn;
     [HideInInspector] public int MovementPenaltyUntilTurn;
@@ -181,10 +183,15 @@ public class FieldArmyHolder : MonoBehaviour
     }
     public void OnMouseOver()
     {
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
         fieldArmy.UpdateUI();
     }
     public void OnMouseDown()
     {
+        // Unity's physics OnMouseDown is independent of the UI GraphicRaycaster.
+        // Explicitly respect raycastable UI so clicks on ArmyHost cannot select
+        // an army marker (or any other map object) behind the panel.
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
         if (Mapshower.Instance != null) Mapshower.Instance.ConsumeCurrentMapClick();
         SelectFromMapClick();
     }
@@ -455,6 +462,10 @@ public class FieldArmyHolder : MonoBehaviour
             previousOwner.nationalbrainy.ReSetPriorities();
         Mapshower.Instance.RePaint();
         province.CreateGarrison();
+        // Every occupation must leave the new owner with at least one defender.
+        // Keeping this guarantee in the shared conquest path also covers direct
+        // occupation of an already-empty province and both battle systems.
+        province.EnsureMinimumGarrison(1);
     }
 
     private void LateUpdate()

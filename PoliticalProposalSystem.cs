@@ -106,7 +106,8 @@ public sealed class NationalEdict
             target = effect.target, anySocioEconomicClass = effect.anySocioEconomicClass,
             socioEconomicClass = effect.socioEconomicClass, cultureScope = effect.cultureScope,
             cultureName = effect.cultureName, anyUnitOrigin = effect.anyUnitOrigin, unitOrigin = effect.unitOrigin,
-            anyAllegiance = effect.anyAllegiance, allegianceId = effect.allegianceId
+            anyAllegiance = effect.anyAllegiance, allegianceId = effect.allegianceId,
+            useAllegianceFocusedRegions = effect.useAllegianceFocusedRegions
         });
         return result;
     }
@@ -156,7 +157,7 @@ public sealed class NationalEdict
             allowMultipleInstances = true };
         result.coreEffects.Add(new NationalLawEffect { type = NationalLawEffectType.LevyConscription,
             operation = NationalLawOperation.AddFlat, amountPermille = 200, target = NationalLawTarget.Holdings,
-            anySocioEconomicClass = true, anyAllegiance = false });
+            anySocioEconomicClass = true, anyAllegiance = false, useAllegianceFocusedRegions = true });
         return result;
     }
 }
@@ -213,9 +214,8 @@ public static class PoliticalProposalSystem
                 existing.displayName = allegiance.displayName; existing.representsUnalignedHoldings = false;
                 resolved.Add(existing);
             }
-            AddUnalignedGroups(resolved, nation.politicalGroups);
             nation.politicalGroups = resolved;
-            AssignUnownedEnslavedHoldings(nation);
+            AssignStartingHoldingAllegiances(nation);
             return;
         }
         List<string> configuredNames = NationContentResolver.ResolveAllegianceNames(nation);
@@ -230,13 +230,13 @@ public static class PoliticalProposalSystem
                      string.Equals(group.displayName, configuredName, StringComparison.OrdinalIgnoreCase)));
                 resolved.Add(existing ?? new PoliticalGroup { id = id, displayName = configuredName, votes = 1 });
             }
-            AddUnalignedGroups(resolved, nation.politicalGroups);
             nation.politicalGroups = resolved;
-            AssignUnownedEnslavedHoldings(nation);
+            AssignStartingHoldingAllegiances(nation);
             return;
         }
         if (nation.politicalGroups.Count > 0)
         {
+            nation.politicalGroups.RemoveAll(group => group != null && group.representsUnalignedHoldings);
             if (!nation.politicalGroups.Exists(group => group != null && !group.representsUnalignedHoldings))
             {
                 string fallbackType = NationContentResolver.ResolveAllegianceType(nation);
@@ -244,57 +244,119 @@ public static class PoliticalProposalSystem
                     { id = fallbackType.ToLowerInvariant() + "_" + i,
                         displayName = fallbackType + " " + i, votes = 1 });
             }
-            AddUnalignedGroups(nation.politicalGroups, nation.politicalGroups);
-            AssignUnownedEnslavedHoldings(nation);
+            AssignStartingHoldingAllegiances(nation);
             return;
         }
         string assembly = NationContentResolver.ResolveAssemblyName(nation);
         string noun = assembly == "Senate" ? "Family" : assembly == "Adirim" ? "Faction" : "Tribe";
         for (int i = 1; i <= 3; i++) nation.politicalGroups.Add(new PoliticalGroup
             { id = noun.ToLowerInvariant() + "_" + i, displayName = noun + " " + i, votes = 1 });
-        AddUnalignedGroups(nation.politicalGroups, nation.politicalGroups);
-        AssignUnownedEnslavedHoldings(nation);
+        AssignStartingHoldingAllegiances(nation);
     }
 
-    private static void AddUnalignedGroups(List<PoliticalGroup> target, List<PoliticalGroup> existing)
-    {
-        AddUnalignedGroup(target, existing, "unaligned_citizens", "Unaligned Citizens", SocioEconomicClass.Citizen);
-        AddUnalignedGroup(target, existing, "unaligned_elites", "Unaligned Elites", SocioEconomicClass.Aristocracy);
-        AddUnalignedGroup(target, existing, "unaligned_freemen", "Unaligned Freemen", SocioEconomicClass.Freemen);
-    }
-
-    private static void AddUnalignedGroup(List<PoliticalGroup> target, List<PoliticalGroup> existing,
-        string id, string displayName, SocioEconomicClass representedClass)
-    {
-        if (target.Exists(group => group != null && group.id == id)) return;
-        PoliticalGroup group = existing != null ? existing.Find(candidate => candidate != null && candidate.id == id) : null;
-        if (group == null) group = new PoliticalGroup { id = id, displayName = displayName, votes = 1 };
-        group.displayName = displayName;
-        group.representsUnalignedHoldings = true;
-        group.representedClass = representedClass;
-        target.Add(group);
-    }
-
-    private static void AssignUnownedEnslavedHoldings(Nation nation)
+    private static void AssignStartingHoldingAllegiances(Nation nation)
     {
         if (nation == null || Owners.Instance == null) return;
+        if (nation.startingAllegiancesAssigned)
+        {
+            AllegianceSystem.EnsureStartingRegionalFocuses(nation);
+            return;
+        }
         List<PoliticalGroup> owners = nation.politicalGroups.FindAll(group =>
             group != null && !group.representsUnalignedHoldings);
         if (owners.Count == 0) return;
+        List<HoldingLocation> unaligned = new List<HoldingLocation>();
+        int total = 0;
+        int aligned = 0;
         foreach (Province province in Owners.Instance.provincelist)
         {
             if (province == null || province.nation != nation || province.holdings == null) continue;
             foreach (ProvinceHolding holding in province.holdings)
             {
-                if (holding == null || SocioEconomicClassRules.Normalize(holding.socioEconomicClass) !=
-                    SocioEconomicClass.Enslaved) continue;
-                if (!string.IsNullOrWhiteSpace(holding.allegiance) &&
-                    !string.Equals(holding.allegiance, "Unaligned", StringComparison.OrdinalIgnoreCase)) continue;
-                string identity = province.name + "|" + holding.instanceId + "|" + holding.HoldingId;
-                holding.allegiance = owners[StableHash(identity) % owners.Count].id;
+                if (holding == null) continue;
+                total++;
+                if (IsUnaligned(holding.allegiance)) unaligned.Add(new HoldingLocation { province = province, holding = holding });
+                else aligned++;
             }
         }
+        if (total == 0) return;
+        if (unaligned.Count == 0)
+        {
+            nation.startingAllegiancesAssigned = true;
+            AllegianceSystem.EnsureStartingRegionalFocuses(nation);
+            return;
+        }
+
+        // Enslaved holdings must have an owner. Other classes begin mostly aligned,
+        // while a minority remain genuinely outside the organized political blocs.
+        foreach (HoldingLocation location in unaligned)
+            if (SocioEconomicClassRules.Normalize(location.holding.socioEconomicClass) == SocioEconomicClass.Enslaved)
+            {
+                AssignBestAllegiance(nation, owners, location);
+                aligned++;
+            }
+
+        int targetAligned = Mathf.CeilToInt(total * .75f);
+        unaligned.RemoveAll(location => !IsUnaligned(location.holding.allegiance));
+        unaligned.Sort((left, right) => StableHash(HoldingIdentity(left)).CompareTo(StableHash(HoldingIdentity(right))));
+        for (int i = 0; i < unaligned.Count && aligned < targetAligned; i++, aligned++)
+            AssignBestAllegiance(nation, owners, unaligned[i]);
+        nation.startingAllegiancesAssigned = true;
+        AllegianceSystem.EnsureStartingRegionalFocuses(nation);
     }
+
+    private sealed class HoldingLocation { public Province province; public ProvinceHolding holding; }
+
+    private static void AssignBestAllegiance(Nation nation, List<PoliticalGroup> groups, HoldingLocation location)
+    {
+        PoliticalGroup best = null;
+        int bestScore = int.MinValue;
+        foreach (PoliticalGroup group in groups)
+        {
+            Allegiance allegiance = AllegianceSystem.Find(nation,
+                !string.IsNullOrWhiteSpace(group.allegianceId) ? group.allegianceId : group.id);
+            int score = AllegianceRelevance(allegiance, location);
+            score += StableHash(HoldingIdentity(location) + "|" + group.id) % 31;
+            if (best == null || score > bestScore)
+            {
+                best = group;
+                bestScore = score;
+            }
+        }
+        if (best != null) location.holding.allegiance = !string.IsNullOrWhiteSpace(best.allegianceId)
+            ? best.allegianceId : best.id;
+    }
+
+    private static int AllegianceRelevance(Allegiance allegiance, HoldingLocation location)
+    {
+        if (allegiance == null || location == null || location.holding == null) return 0;
+        int score = ClassPreference(allegiance.PrimaryIdentity, location.holding.socioEconomicClass) +
+            ClassPreference(allegiance.DynamicIdentity, location.holding.socioEconomicClass);
+        string region = location.province != null ? location.province.region : string.Empty;
+        if (ContainsId(allegiance.currentInterestRegionIds, region)) score += 200;
+        if (ContainsId(allegiance.futureInterestRegionIds, region)) score += 75;
+        return score;
+    }
+
+    private static int ClassPreference(PoliticalTrait trait, SocioEconomicClass socialClass)
+    {
+        if (trait == null || trait.preferences == null) return 0;
+        switch (SocioEconomicClassRules.Normalize(socialClass))
+        {
+            case SocioEconomicClass.Citizen: return trait.preferences.citizenHoldings;
+            case SocioEconomicClass.Aristocracy: return trait.preferences.eliteHoldings;
+            case SocioEconomicClass.Freemen: return trait.preferences.freemenHoldings;
+            default: return 0;
+        }
+    }
+
+    private static bool ContainsId(List<string> values, string sought) => values != null &&
+        values.Exists(value => string.Equals(value, sought, StringComparison.OrdinalIgnoreCase));
+    private static bool IsUnaligned(string value) => string.IsNullOrWhiteSpace(value) ||
+        string.Equals(value, "Unaligned", StringComparison.OrdinalIgnoreCase);
+    private static string HoldingIdentity(HoldingLocation location) =>
+        (location.province != null ? location.province.name : string.Empty) + "|" +
+        (location.holding != null ? location.holding.instanceId + "|" + location.holding.HoldingId : string.Empty);
 
     public static PoliticalProposal CurrentEdict(Nation nation) => nation != null && nation.politicalProposals != null
         ? nation.politicalProposals.Find(proposal => proposal != null && proposal.type == PoliticalProposalType.Edict)
@@ -340,8 +402,13 @@ public static class PoliticalProposalSystem
     {
         if (edict.coreEffects == null || edict.coreEffects.Count == 0) return "State";
         NationalLawEffect effect = edict.coreEffects[0];
-        if (!effect.anyAllegiance) return string.IsNullOrWhiteSpace(effect.allegianceId)
-            ? "Selected Allegiance's aligned holdings" : effect.allegianceId + "-aligned holdings";
+        if (!effect.anyAllegiance)
+        {
+            string allegiance = string.IsNullOrWhiteSpace(effect.allegianceId)
+                ? "Selected Allegiance" : effect.allegianceId;
+            return effect.useAllegianceFocusedRegions
+                ? allegiance + "'s focused regions" : allegiance + "-aligned holdings";
+        }
         if (!effect.anySocioEconomicClass) return SocioEconomicClassRules.DisplayName(effect.socioEconomicClass) + " holdings";
         return "State";
     }
@@ -473,13 +540,17 @@ public static class PoliticalProposalSystem
     {
         proposal.votes.Clear();
         foreach (PoliticalGroup group in nation.politicalGroups)
+        {
+            if (group == null || group.representsUnalignedHoldings) continue;
             proposal.votes.Add(new PoliticalVote { groupId = group.id, votes = DerivedVotingPower(nation, group),
                 supports = EvaluateSupportStub(nation, group, proposal) });
+        }
     }
 
-    private static int DerivedVotingPower(Nation nation, PoliticalGroup group)
+    public static int DerivedVotingPower(Nation nation, PoliticalGroup group)
     {
         if (nation == null || group == null || Owners.Instance == null) return 1;
+        if (group.representsUnalignedHoldings) return 0;
         int power = 0;
         foreach (Province province in Owners.Instance.provincelist)
         {
@@ -487,14 +558,7 @@ public static class PoliticalProposalSystem
             foreach (ProvinceHolding holding in province.holdings)
             {
                 if (holding == null) continue;
-                if (group.representsUnalignedHoldings)
-                {
-                    bool unaligned = string.IsNullOrWhiteSpace(holding.allegiance) ||
-                        string.Equals(holding.allegiance, "Unaligned", StringComparison.OrdinalIgnoreCase);
-                    if (unaligned && SocioEconomicClassRules.Normalize(holding.socioEconomicClass) ==
-                        SocioEconomicClassRules.Normalize(group.representedClass)) power++;
-                }
-                else if (string.Equals(holding.allegiance, group.id, StringComparison.OrdinalIgnoreCase) ||
+                if (string.Equals(holding.allegiance, group.id, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(holding.allegiance, group.displayName, StringComparison.OrdinalIgnoreCase)) power++;
             }
         }
@@ -503,10 +567,22 @@ public static class PoliticalProposalSystem
 
     private static bool EvaluateSupportStub(Nation nation, PoliticalGroup group, PoliticalProposal proposal)
     {
-        if (group == null || group.representsUnalignedHoldings) return true;
+        if (group == null || group.representsUnalignedHoldings) return false;
         Allegiance allegiance = AllegianceSystem.Find(nation, !string.IsNullOrWhiteSpace(group.allegianceId)
             ? group.allegianceId : group.id);
         return allegiance == null || PoliticalEvaluationSystem.EvaluateProposal(nation, allegiance, proposal).supports;
+    }
+
+    public static PoliticalEvaluationResult ForecastSupport(Nation nation, PoliticalGroup group,
+        PoliticalProposal proposal)
+    {
+        if (group == null) return new PoliticalEvaluationResult { supports = true, summary = "No political group data." };
+        if (group.representsUnalignedHoldings) return new PoliticalEvaluationResult { score = 0,
+            supports = false, summary = "Unaligned holdings are not represented as a voting bloc." };
+        Allegiance allegiance = AllegianceSystem.Find(nation, !string.IsNullOrWhiteSpace(group.allegianceId)
+            ? group.allegianceId : group.id);
+        return allegiance != null ? PoliticalEvaluationSystem.EvaluateProposal(nation, allegiance, proposal) :
+            new PoliticalEvaluationResult { supports = true, summary = "No Allegiance identity data; defaults to support." };
     }
 
     private static bool Passed(PoliticalProposal proposal)
@@ -600,7 +676,8 @@ public static class PoliticalProposalSystem
         target = effect.target, anySocioEconomicClass = effect.anySocioEconomicClass,
         socioEconomicClass = effect.socioEconomicClass, cultureScope = effect.cultureScope,
         cultureName = effect.cultureName, anyUnitOrigin = effect.anyUnitOrigin, unitOrigin = effect.unitOrigin,
-        anyAllegiance = effect.anyAllegiance, allegianceId = effect.allegianceId
+        anyAllegiance = effect.anyAllegiance, allegianceId = effect.allegianceId,
+        useAllegianceFocusedRegions = effect.useAllegianceFocusedRegions
     };
 
     private static void ReconcileLevies(Nation nation)

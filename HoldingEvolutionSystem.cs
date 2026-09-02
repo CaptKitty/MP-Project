@@ -64,6 +64,7 @@ public static class HoldingEvolutionSystem
         new Dictionary<string, UnitSaveData>(StringComparer.Ordinal);
     private static NationCultureData[] cachedCultures;
     private static List<HoldingDefinition> cachedHoldingDefinitions;
+    private static HoldingDemandSettings cachedDemandSettings;
     private static readonly HoldingTag[] IndividualTags =
     {
         HoldingTag.Agricultural, HoldingTag.Commercial, HoldingTag.Urban, HoldingTag.Rural,
@@ -72,6 +73,21 @@ public static class HoldingEvolutionSystem
     };
 
     public static HoldingTag[] Tags => IndividualTags;
+
+    private static HoldingDemandSettings DemandSettings
+    {
+        get
+        {
+            if (cachedDemandSettings == null)
+                cachedDemandSettings = Resources.Load<HoldingDemandSettings>("HoldingDemandSettings");
+            return cachedDemandSettings;
+        }
+    }
+
+    private static float NeutralDemand(HoldingTag tag)
+    {
+        return DemandSettings != null ? DemandSettings.Evaluate(tag, 0f) : 0f;
+    }
 
     public static HoldingTag EffectiveTags(HoldingDefinition definition)
     {
@@ -191,27 +207,11 @@ public static class HoldingEvolutionSystem
 
     public static Dictionary<HoldingTag, float> DesiredWeights(Province province)
     {
-        // At zero development neither explicitly urban nor explicitly rural holdings should
-        // dominate the economy. Both retain a modest 25% neutral demand, then rise toward
-        // 100% on their own side of the axis and fall toward zero on the opposite extreme.
         float development = province != null ? Mathf.Clamp(province.urbanization, -100f, 100f) : 0f;
-        float urban = development >= 0f
-            ? Mathf.Lerp(25f, 100f, development / 100f)
-            : Mathf.Lerp(25f, 0f, -development / 100f);
-        float rural = development <= 0f
-            ? Mathf.Lerp(25f, 100f, -development / 100f)
-            : Mathf.Lerp(25f, 0f, development / 100f);
-        float ruralization = province != null ? Mathf.Clamp01(-province.urbanization / 100f) : 0f;
-        Dictionary<HoldingTag, float> result = new Dictionary<HoldingTag, float>
-        {
-            { HoldingTag.Agricultural, 40f }, { HoldingTag.Commercial, 15f },
-            { HoldingTag.Urban, urban }, { HoldingTag.Rural, rural },
-            { HoldingTag.Pastoral, 10f + ruralization * 30f },
-            { HoldingTag.Artisan, 10f }, { HoldingTag.Mining, 5f },
-            { HoldingTag.Elite, 10f }, { HoldingTag.Servile, 5f },
-            { HoldingTag.Subsistence, 10f + ruralization * 30f },
-            { HoldingTag.Military, 5f }
-        };
+        Dictionary<HoldingTag, float> result = new Dictionary<HoldingTag, float>();
+        HoldingDemandSettings settings = DemandSettings;
+        foreach (HoldingTag tag in IndividualTags)
+            result[tag] = settings != null ? settings.Evaluate(tag, development) : 0f;
         if (province == null) return result;
         // Small stable local preferences stop otherwise identical provinces from converging on one monoculture.
         foreach (HoldingTag tag in IndividualTags)
@@ -330,24 +330,12 @@ public static class HoldingEvolutionSystem
 
     public static int DesiredUrbanization(Province province)
     {
-        if (province == null || province.holdings == null || province.holdings.Count == 0) return 0;
-        int urban = 0, rural = 0, commercial = 0, artisan = 0, subsistence = 0;
-        foreach (ProvinceHolding holding in province.holdings) if (holding != null && holding.definition != null)
-        {
-            HoldingTag tags = EffectiveTags(holding.definition);
-            if ((tags & HoldingTag.Urban) != 0) urban++;
-            if ((tags & HoldingTag.Rural) != 0) rural++;
-            if ((tags & HoldingTag.Commercial) != 0) commercial++;
-            if ((tags & HoldingTag.Artisan) != 0) artisan++;
-            if ((tags & HoldingTag.Subsistence) != 0) subsistence++;
-        }
-        float count = Mathf.Max(1, province.holdings.Count);
-        float target = 25f + urban / count * 35f + commercial / count * 25f + artisan / count * 15f
-            - rural / count * 20f - subsistence / count * 15f;
-        Dictionary<HoldingTag, float> desired = DesiredWeights(province);
-        // Commercial-development policy (most visibly marketplaces) breaks the low-urbanization
-        // lock that otherwise prevents farms from reaching their commercial transformation path.
-        target += Mathf.Max(0f, desired[HoldingTag.Commercial] - 15f) * .4f;
+        if (province == null) return 0;
+        // Population density drives development. Holding tags affect what holdings transform
+        // into, but no longer feed back into development and thereby reinforce themselves.
+        int populatedHoldings = province.holdings != null
+            ? province.holdings.FindAll(holding => holding != null && holding.definition != null).Count : 0;
+        float target = -50f + populatedHoldings * 2f;
         if (province.buildings != null) foreach (ProvinceBuilding building in province.buildings)
             if (building != null && building.definition != null && building.definition.levels != null)
                 foreach (BuildingLevelDefinition level in building.definition.levels)
@@ -367,7 +355,8 @@ public static class HoldingEvolutionSystem
         province.lastUrbanizationEvolutionTick += elapsedSteps * interval;
         int target = DesiredUrbanization(province);
         Dictionary<HoldingTag, float> desired = DesiredWeights(province);
-        int growthStep = 1 + Mathf.FloorToInt(Mathf.Max(0f, desired[HoldingTag.Commercial] - 15f) / 25f);
+        int growthStep = 1 + Mathf.FloorToInt(
+            Mathf.Max(0f, desired[HoldingTag.Commercial] - NeutralDemand(HoldingTag.Commercial)) / 25f);
         if (province.urbanization < target)
             province.urbanization = Mathf.Min(target, province.urbanization + growthStep * elapsedSteps);
         else if (province.urbanization > target)

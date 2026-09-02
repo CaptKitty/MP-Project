@@ -185,6 +185,7 @@ public struct CampaignLawState : INetworkSerializable
     public byte UnitOrigin;
     public bool AnyAllegiance;
     public FixedString64Bytes AllegianceId;
+    public bool UseAllegianceFocusedRegions;
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
@@ -195,6 +196,7 @@ public struct CampaignLawState : INetworkSerializable
         serializer.SerializeValue(ref CultureScope); serializer.SerializeValue(ref CultureName);
         serializer.SerializeValue(ref AnyUnitOrigin); serializer.SerializeValue(ref UnitOrigin);
         serializer.SerializeValue(ref AnyAllegiance); serializer.SerializeValue(ref AllegianceId);
+        serializer.SerializeValue(ref UseAllegianceFocusedRegions);
     }
 }
 

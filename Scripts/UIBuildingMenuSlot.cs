@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class UIBuildingMenuSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public ProvinceBuilding Building { get; private set; }
+    public ProvinceBuilding TooltipBuilding { get; private set; }
     public Province Province { get; private set; }
     public int SlotIndex { get; private set; }
     public bool IsHovered { get; private set; }
@@ -31,6 +32,8 @@ public class UIBuildingMenuSlot : MonoBehaviour, IPointerEnterHandler, IPointerE
         menu = owner;
         Province = province;
         Building = building;
+        if (Building != null && Building.definition == null)
+            Building.definition = BuildingDefinition.Find(Building.id);
         SlotIndex = slotIndex;
         if (background == null) background = GetComponent<Image>();
         EnsureLabel();
@@ -40,13 +43,17 @@ public class UIBuildingMenuSlot : MonoBehaviour, IPointerEnterHandler, IPointerE
             : null;
         BuildingDefinition displayedDefinition = building != null ? building.definition :
             construction != null ? BuildingDefinition.Find(construction.buildingId) : null;
+        TooltipBuilding = building;
+        if (TooltipBuilding == null && construction != null)
+            TooltipBuilding = new ProvinceBuilding { definition = displayedDefinition, id = construction.buildingId,
+                level = Mathf.Max(1, construction.targetLevel), slotIndex = slotIndex };
         Sprite displayedIcon = displayedDefinition != null ? displayedDefinition.icon : null;
         SetIcon(displayedIcon);
         string prefix = showProvinceName && province != null ? province.name + "\n" : string.Empty;
         if (construction != null)
         {
-            label.text = displayedIcon != null ? string.Empty :
-                prefix + "Constructing " + construction.buildingId + "\n" + construction.remainingTicks + " ticks";
+            string constructionName = displayedDefinition != null ? displayedDefinition.DisplayName : construction.buildingId;
+            label.text = prefix + constructionName + "\n" + construction.remainingTicks + " ticks";
             if (background != null) background.color = new Color(.45f, .32f, .12f, .95f);
             if (button != null) button.interactable = false;
             return;
@@ -60,7 +67,7 @@ public class UIBuildingMenuSlot : MonoBehaviour, IPointerEnterHandler, IPointerE
         }
         else
         {
-            label.text = displayedIcon != null ? string.Empty : prefix + building.DisplayName + "\nLv " + building.level;
+            label.text = prefix + building.DisplayName + "\nLv " + building.level;
             if (background != null) background.color = new Color(.22f, .38f, .24f, .95f);
         }
         if (background != null) background.raycastTarget = true;
@@ -116,6 +123,25 @@ public class UIBuildingMenuSlot : MonoBehaviour, IPointerEnterHandler, IPointerE
         buildingIcon.sprite = icon;
         buildingIcon.color = Color.white;
         buildingIcon.enabled = icon != null;
+        RectTransform iconRect = buildingIcon.rectTransform;
+        RectTransform labelRect = label != null ? label.rectTransform : null;
+        if (icon != null)
+        {
+            iconRect.anchorMin = new Vector2(0f, .30f); iconRect.anchorMax = Vector2.one;
+            iconRect.offsetMin = new Vector2(5f, 2f); iconRect.offsetMax = new Vector2(-5f, -5f);
+            if (labelRect != null)
+            {
+                labelRect.anchorMin = Vector2.zero; labelRect.anchorMax = new Vector2(1f, .30f);
+                labelRect.offsetMin = new Vector2(2f, 1f); labelRect.offsetMax = new Vector2(-2f, -1f);
+                label.resizeTextForBestFit = true; label.resizeTextMinSize = 7; label.resizeTextMaxSize = 11;
+            }
+        }
+        else if (labelRect != null)
+        {
+            labelRect.anchorMin = Vector2.zero; labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = new Vector2(3f, 3f); labelRect.offsetMax = new Vector2(-3f, -3f);
+            label.resizeTextForBestFit = false; label.fontSize = 12;
+        }
     }
 
     public void OnPointerEnter(PointerEventData eventData) { IsHovered = true; if (menu != null) menu.PointerEntered(this); }

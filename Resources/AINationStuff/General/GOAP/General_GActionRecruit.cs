@@ -29,7 +29,13 @@ public class General_GActionRecruit : General_GAction
             if(countsmade >= countsneeded)
             {
                 running = false;
-                generalBrainy.GrabNation().ReinforceArmy(generalBrainy.army);
+                Nation nation = generalBrainy.GrabNation();
+                bool recruited = nation.ReinforceArmy(generalBrainy.army);
+                // Moving toward a valid reinforcement province is progress, not failure.
+                // Otherwise accept the current force temporarily and let national AI
+                // choose conquest or another goal instead of retrying forever.
+                if (!recruited && generalBrainy.army != null && generalBrainy.army.IsTargetNull())
+                    nation.AcceptFailedAIRecruitment(generalBrainy.army);
                 //Debug.LogError("Hired a Dude");
                 return true;
             }

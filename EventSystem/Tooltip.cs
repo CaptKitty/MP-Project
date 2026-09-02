@@ -14,6 +14,7 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     public bool skills = false;
     public bool resize = false;
     public Vector2 resizesize;
+    [Min(0)] public int fontSize;
     public Vector3 positions;
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -31,7 +32,9 @@ public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         //ToolTipManager._instance.SetAndShowToolTip(message, positions);
 
-        ToolTipManager._instance.SetAndShowToolTip(message, new Vector3(this.transform.position.x+positions.x,this.transform.position.y+positions.y,0), true);
+        ToolTipManager._instance.SetAndShowToolTip(message,
+            new Vector3(this.transform.position.x+positions.x,this.transform.position.y+positions.y,0), true,
+            resize ? resizesize : Vector2.zero, fontSize);
         // Debug.Log("Ping from " + this.transform.parent.gameObject.name);
         // Debug.Log(message);
         // if(skills)

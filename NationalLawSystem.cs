@@ -72,13 +72,29 @@ public sealed class NationalLawEffect
     [Tooltip("When false, only holdings aligned with this Allegiance are affected.")]
     public bool anyAllegiance = true;
     public string allegianceId;
+    [Tooltip("When enabled, the selected Allegiance's current-interest regions are targeted instead of its individual holdings.")]
+    public bool useAllegianceFocusedRegions;
 
-    public bool AppliesTo(Nation nation, ProvinceHolding holding, CampaignUnitOrigin origin)
+    public bool AppliesTo(Nation nation, ProvinceHolding holding, CampaignUnitOrigin origin,
+        string sourceRegionId = null)
     {
         if (!anyUnitOrigin && origin != unitOrigin) return false;
         if (holding == null) return target != NationalLawTarget.Holdings;
-        if (!anyAllegiance && !string.Equals(holding.allegiance, allegianceId,
-            StringComparison.OrdinalIgnoreCase)) return false;
+        if (!anyAllegiance)
+        {
+            if (useAllegianceFocusedRegions)
+            {
+                Allegiance allegiance = nation != null && nation.allegiances != null
+                    ? nation.allegiances.Find(item => item != null &&
+                        (string.Equals(item.id, allegianceId, StringComparison.OrdinalIgnoreCase) ||
+                         string.Equals(item.displayName, allegianceId, StringComparison.OrdinalIgnoreCase))) : null;
+                if (allegiance == null || allegiance.currentInterestRegionIds == null ||
+                    !allegiance.currentInterestRegionIds.Exists(region =>
+                        string.Equals(region, sourceRegionId, StringComparison.OrdinalIgnoreCase))) return false;
+            }
+            else if (!string.Equals(holding.allegiance, allegianceId,
+                StringComparison.OrdinalIgnoreCase)) return false;
+        }
         if (!anySocioEconomicClass && SocioEconomicClassRules.Normalize(holding.socioEconomicClass) !=
             SocioEconomicClassRules.Normalize(socioEconomicClass)) return false;
         string primaryCulture = nation != null && nation.culture != null ? nation.culture.DisplayName : string.Empty;
@@ -115,8 +131,11 @@ public sealed class NationalLawEffect
                 cultureScope == NationalLawCultureScope.PrimaryCulture ? "primary culture" :
                 cultureScope == NationalLawCultureScope.NonPrimaryCulture ? "non-primary cultures" : cultureName;
             scope = classText + " holdings of " + cultureText;
-            if (!anyAllegiance) scope += " aligned with " +
-                (string.IsNullOrWhiteSpace(allegianceId) ? "the selected Allegiance" : allegianceId);
+            if (!anyAllegiance) scope += useAllegianceFocusedRegions
+                ? " in the focused regions of " +
+                    (string.IsNullOrWhiteSpace(allegianceId) ? "the selected Allegiance" : allegianceId)
+                : " aligned with " +
+                    (string.IsNullOrWhiteSpace(allegianceId) ? "the selected Allegiance" : allegianceId);
         }
         if (type == NationalLawEffectType.LevyConscription && operation == NationalLawOperation.AddFlat)
             return amount + " of " + effectName + " applies to " + scope;
@@ -164,7 +183,8 @@ public sealed class NationalLaw
                 anySocioEconomicClass = source.anySocioEconomicClass, socioEconomicClass = source.socioEconomicClass,
                 cultureScope = source.cultureScope, cultureName = source.cultureName,
                 anyUnitOrigin = source.anyUnitOrigin, unitOrigin = source.unitOrigin,
-                anyAllegiance = source.anyAllegiance, allegianceId = source.allegianceId });
+                anyAllegiance = source.anyAllegiance, allegianceId = source.allegianceId,
+                useAllegianceFocusedRegions = source.useAllegianceFocusedRegions });
         if (classRules != null) foreach (NationalClassRule source in classRules)
             if (source != null) copy.classRules.Add(new NationalClassRule { type = source.type,
                 affectedClass = source.affectedClass, resultingClass = source.resultingClass,

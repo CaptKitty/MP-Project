@@ -9,6 +9,8 @@ public sealed class UISenatorialMenu : MonoBehaviour
     private GameObject overlayRoot;
     private RectTransform lawTemplate;
     private readonly List<GameObject> generatedRows = new List<GameObject>();
+    private RectTransform lawProposalTemplate;
+    private readonly List<GameObject> generatedLawProposals = new List<GameObject>();
     private RectTransform allegianceTemplate;
     private Text allegianceHeader;
     private readonly List<GameObject> generatedAllegiances = new List<GameObject>();
@@ -38,6 +40,8 @@ public sealed class UISenatorialMenu : MonoBehaviour
         lawTemplate = FindDescendant(transform, "LawsHolderObject") as RectTransform;
         if (lawTemplate == null) lawTemplate = FindDescendant(transform, "LawHolder") as RectTransform;
         if (lawTemplate != null) lawTemplate.gameObject.SetActive(false);
+        lawProposalTemplate = FindDescendant(transform, "LawPropositionObject") as RectTransform;
+        if (lawProposalTemplate != null) lawProposalTemplate.gameObject.SetActive(false);
         allegianceTemplate = FindDescendant(transform, "AllegianceHolderObject") as RectTransform;
         if (allegianceTemplate != null) allegianceTemplate.gameObject.SetActive(false);
         allegianceHeader = ComponentInDescendant<Text>(transform, "AllegianceHeaderName");
@@ -97,6 +101,7 @@ public sealed class UISenatorialMenu : MonoBehaviour
     {
         lastRenderedTurn = Owners.Instance != null ? Owners.Instance.turncounter : 0;
         RebuildLawRows();
+        RebuildLawProposalRows();
         RebuildAllegiances();
         RefreshEdicts();
     }
@@ -119,8 +124,8 @@ public sealed class UISenatorialMenu : MonoBehaviour
                  law.classRules != null && law.classRules.Exists(rule => rule != null)))
             : new List<NationalLaw>();
 
-        List<PoliticalProposal> proposals = nation != null && nation.politicalProposals != null
-            ? nation.politicalProposals.FindAll(proposal => proposal != null) : new List<PoliticalProposal>();
+        // Proposals use the dedicated scene-authored LawPropositionObject below.
+        List<PoliticalProposal> proposals = new List<PoliticalProposal>();
 
         List<ActiveNationalEdict> activeEdicts = nation != null && nation.activeEdicts != null
             ? nation.activeEdicts.FindAll(active => active != null && active.edict != null)
@@ -155,6 +160,80 @@ public sealed class UISenatorialMenu : MonoBehaviour
         }
     }
 
+    private void RebuildLawProposalRows()
+    {
+        foreach (GameObject row in generatedLawProposals)
+            if (row != null) { row.SetActive(false); Destroy(row); }
+        generatedLawProposals.Clear();
+        if (lawProposalTemplate == null) return;
+        Nation nation = LocalNation();
+        List<PoliticalProposal> proposals = nation != null && nation.politicalProposals != null
+            ? nation.politicalProposals.FindAll(proposal => proposal != null)
+            : new List<PoliticalProposal>();
+        int precedingRows = 0;
+        if (nation != null && nation.laws != null) precedingRows += nation.laws.FindAll(law => law != null &&
+            law.effects != null && (law.effects.Exists(effect => effect != null && effect.amountPermille != 0) ||
+            law.classRules != null && law.classRules.Exists(rule => rule != null))).Count;
+        if (nation != null && nation.activeEdicts != null) precedingRows += nation.activeEdicts.FindAll(active =>
+            active != null && active.edict != null).Count;
+        float spacing = lawTemplate != null ? Mathf.Max(10f, lawTemplate.rect.height + 10f) :
+            Mathf.Max(10f, lawProposalTemplate.rect.height + 10f);
+        Vector2 listOrigin = lawTemplate != null ? lawTemplate.anchoredPosition : lawProposalTemplate.anchoredPosition;
+        for (int i = 0; i < proposals.Count; i++)
+        {
+            PoliticalProposal proposal = proposals[i];
+            RectTransform row = Instantiate(lawProposalTemplate, lawProposalTemplate.parent);
+            row.name = "LawProposal_" + proposal.id;
+            row.anchoredPosition = new Vector2(lawProposalTemplate.anchoredPosition.x,
+                listOrigin.y - spacing * (precedingRows + i));
+            Text title = ComponentInDescendant<Text>(row, "PropositionLawTextPlaceHolder");
+            if (title != null) title.text = (proposal.type == PoliticalProposalType.Law ? "LAW: " : "EDICT: ") +
+                proposal.title + " — vote in " + proposal.remainingDebateTicks + " turns\n" +
+                (proposal.type == PoliticalProposalType.Law && proposal.law != null ? proposal.law.Describe() :
+                    proposal.edict != null ? PoliticalProposalSystem.DescribeEdict(proposal.edict) : string.Empty);
+            ConfigureLawForecast(nation, proposal, row);
+            row.gameObject.SetActive(true);
+            generatedLawProposals.Add(row.gameObject);
+        }
+    }
+
+    private static void ConfigureLawForecast(Nation nation, PoliticalProposal proposal, RectTransform row)
+    {
+        if (nation == null || proposal == null || row == null) return;
+        PoliticalProposalSystem.EnsureGroups(nation);
+        int supportVotes = 0, opposeVotes = 0;
+        System.Text.StringBuilder support = new System.Text.StringBuilder("PLANNED SUPPORT\n");
+        System.Text.StringBuilder oppose = new System.Text.StringBuilder("PLANNED OPPOSITION\n");
+        foreach (PoliticalGroup group in nation.politicalGroups)
+        {
+            if (group == null) continue;
+            int votes = PoliticalProposalSystem.DerivedVotingPower(nation, group);
+            PoliticalEvaluationResult forecast = PoliticalProposalSystem.ForecastSupport(nation, group, proposal);
+            System.Text.StringBuilder target = forecast.supports ? support : oppose;
+            if (forecast.supports) supportVotes += votes; else opposeVotes += votes;
+            target.Append("\n").Append(group.displayName).Append(": ").Append(votes)
+                .Append(votes == 1 ? " vote" : " votes").Append(" (score ")
+                .Append(forecast.score >= 0 ? "+" : string.Empty).Append(forecast.score).Append(")\n  ")
+                .Append(forecast.summary);
+        }
+        SetForecastDisplay(FindDescendant(row, "Support"), supportVotes, "Support", support.ToString());
+        SetForecastDisplay(FindDescendant(row, "Oppose"), opposeVotes, "Oppose", oppose.ToString());
+    }
+
+    private static void SetForecastDisplay(Transform target, int votes, string label, string breakdown)
+    {
+        if (target == null) return;
+        Text text = target.GetComponentInChildren<Text>(true);
+        if (text != null) text.text = votes + " " + label;
+        Tooltip tooltip = target.GetComponent<Tooltip>();
+        if (tooltip == null) tooltip = target.gameObject.AddComponent<Tooltip>();
+        tooltip.message = breakdown;
+        tooltip.positions = new Vector3(220f, 0f, 0f);
+        tooltip.resize = true;
+        tooltip.resizesize = new Vector2(800f, 620f);
+        tooltip.fontSize = 20;
+    }
+
     private void RebuildAllegiances()
     {
         foreach (GameObject row in generatedAllegiances)
@@ -185,7 +264,19 @@ public sealed class UISenatorialMenu : MonoBehaviour
             Text data = ComponentInDescendant<Text>(row, "AllegianceData");
             if (data != null) data.text = AllegianceDetails(nation, group, allegiance);
             Image icon = ComponentInDescendant<Image>(row, "AllegianceIcon");
-            if (icon != null) { icon.sprite = null; icon.enabled = false; }
+            if (icon != null)
+            {
+                icon.sprite = AllegianceSystem.Icon(nation, allegiance);
+                icon.preserveAspect = true;
+                icon.enabled = icon.sprite != null;
+            }
+            Tooltip tooltip = row.GetComponent<Tooltip>();
+            if (tooltip == null) tooltip = row.gameObject.AddComponent<Tooltip>();
+            tooltip.message = AllegianceTooltipDetails(nation, group, allegiance);
+            tooltip.positions = new Vector3(260f, 0f, 0f);
+            tooltip.resize = true;
+            tooltip.resizesize = new Vector2(850f, 700f);
+            tooltip.fontSize = 20;
             row.gameObject.SetActive(true);
             generatedAllegiances.Add(row.gameObject);
         }
@@ -204,6 +295,46 @@ public sealed class UISenatorialMenu : MonoBehaviour
             ? string.Join(", ", allegiance.futureInterestRegionIds) : "None";
         return "Primary: " + primary + "\nDynamic: " + dynamicIdentity + "\nCurrent interests: " + current +
             "\nFuture interests: " + future + "\n\nPower: " + power + " holdings";
+    }
+
+    private static string AllegianceTooltipDetails(Nation nation, PoliticalGroup group, Allegiance allegiance)
+    {
+        int power = HoldingPower(nation, group);
+        if (allegiance == null) return group.displayName + "\n\nType: Unaligned " +
+            SocioEconomicClassRules.DisplayName(group.representedClass) + " bloc\nVoting power: " + power +
+            "\n\nRepresents holdings of this class that are not aligned with a Family or Tribe.";
+        PoliticalTrait primary = allegiance.PrimaryIdentity;
+        PoliticalTrait dynamicIdentity = allegiance.DynamicIdentity;
+        List<ProvinceHolding> holdings = AllegianceSystem.Holdings(nation, allegiance);
+        Dictionary<string, int> classes = new Dictionary<string, int>();
+        Dictionary<string, int> cultures = new Dictionary<string, int>();
+        foreach (ProvinceHolding holding in holdings)
+        {
+            if (holding == null) continue;
+            string className = SocioEconomicClassRules.DisplayName(holding.socioEconomicClass);
+            classes[className] = classes.TryGetValue(className, out int classCount) ? classCount + 1 : 1;
+            string cultureName = string.IsNullOrWhiteSpace(holding.cultureName) ? "Unknown culture" : holding.cultureName;
+            cultures[cultureName] = cultures.TryGetValue(cultureName, out int cultureCount) ? cultureCount + 1 : 1;
+        }
+        return allegiance.displayName + "\nType: " + allegiance.type + "\nVoting power: " + power +
+            "\n\nPRIMARY IDENTITY\n" + (primary != null ? primary.DisplayName + "\n" + primary.description : "Undetermined") +
+            "\n\nDYNAMIC IDENTITY\n" + (dynamicIdentity != null ? dynamicIdentity.DisplayName + "\n" + dynamicIdentity.description : "Undetermined") +
+            "\n\nCURRENT INTERESTS\n" + JoinOrNone(allegiance.currentInterestRegionIds) +
+            "\n\nFUTURE INTERESTS\n" + JoinOrNone(allegiance.futureInterestRegionIds) +
+            "\n\nHOLDINGS: " + holdings.Count + "\nClasses: " + JoinCounts(classes) +
+            "\nCultures: " + JoinCounts(cultures);
+    }
+
+    private static string JoinOrNone(List<string> values) => values != null && values.Count > 0
+        ? string.Join(", ", values) : "None";
+
+    private static string JoinCounts(Dictionary<string, int> values)
+    {
+        if (values == null || values.Count == 0) return "None";
+        List<string> parts = new List<string>();
+        foreach (KeyValuePair<string, int> entry in values) parts.Add(entry.Key + " " + entry.Value);
+        parts.Sort(System.StringComparer.OrdinalIgnoreCase);
+        return string.Join(", ", parts);
     }
 
     private void RefreshEdicts()

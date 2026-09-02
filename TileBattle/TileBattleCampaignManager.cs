@@ -418,7 +418,6 @@ namespace ProjectX.TileBattle
                 {
                     if (battle.Garrison != null) battle.Garrison.USDReserves.Clear();
                     battle.ArmyA.ConquerProvince(battle.DefendedProvince);
-                    if (battle.DefendedProvince.garrison != null) battle.DefendedProvince.garrison.USDReserves.Clear();
                 }
             }
         }

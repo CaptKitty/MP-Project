@@ -195,7 +195,7 @@ public sealed class UIRegionSummary : MonoBehaviour
         foreach (Province province in provinces)
         {
             rawGold += province.GetGoldIncomeUnrounded();
-            upkeep += province.GetTempleUpkeep();
+            upkeep += province.GetBuildingUpkeep();
             rawFood += province.GetFoodOutputUnrounded();
             rawFoodProduction += province.GetFoodProductionUnrounded();
             foodConsumption += province.GetFoodConsumption();

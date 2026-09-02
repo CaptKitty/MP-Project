@@ -1,9 +1,9 @@
 fileFormatVersion: 2
-guid: 3e23536b608027148b8cf4b8da26ba26
+guid: e7a2b10dcf1d58d4e993b19296902ee0
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
-  serializedVersion: 12
+  serializedVersion: 13
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
@@ -20,11 +20,12 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
+    flipGreenChannel: 0
   isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
-  ignoreMasterTextureLimit: 0
+  ignoreMipmapLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -63,9 +64,10 @@ TextureImporter:
   textureFormatSet: 0
   ignorePngGamma: 0
   applyGammaDecoding: 0
+  swizzle: 50462976
   cookieLightType: 0
   platformSettings:
-  - serializedVersion: 3
+  - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -75,9 +77,10 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
+  - serializedVersion: 4
     buildTarget: Standalone
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -87,9 +90,10 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
+  - serializedVersion: 4
     buildTarget: WebGL
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -99,13 +103,14 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: heavy infantry - elite_0
+      name: heavy infantry_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,18 +120,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 3714103264b0da44588852e1f31cdeb0
-      internalID: -2028827193
+      spriteID: dc7532e5c51483d43827101720458723
+      internalID: -1960725368
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: heavy infantry - elite_1
+      name: heavy infantry_1
       rect:
         serializedVersion: 2
         x: 16
@@ -136,18 +142,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 4b6a01acc1a1b014289f677bec997a5e
-      internalID: -35274148
+      spriteID: 30d35d9d741657a4087664f9b38f46df
+      internalID: -1712037029
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: heavy infantry - elite_2
+      name: heavy infantry_2
       rect:
         serializedVersion: 2
         x: 32
@@ -157,18 +164,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 6224acfafc0353d47a325995bb7d148e
-      internalID: -281477703
+      spriteID: e9bb800a672552242baa90acc9281d76
+      internalID: -1436614010
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: heavy infantry - elite_3
+      name: heavy infantry_3
       rect:
         serializedVersion: 2
         x: 48
@@ -178,18 +186,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 00a896d79a500654485addd0f8625870
-      internalID: 1925214802
+      spriteID: b6b02dc933460364a8390c35c8a637a7
+      internalID: -153971230
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: heavy infantry - elite_4
+      name: heavy infantry_4
       rect:
         serializedVersion: 2
         x: 0
@@ -199,18 +208,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 9bbca5ab40bf1324fad6c4bdb0c38abf
-      internalID: 1245916497
+      spriteID: 027d6ec8a7bf55349a73b19ee46dcf13
+      internalID: 86754737
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: heavy infantry - elite_5
+      name: heavy infantry_5
       rect:
         serializedVersion: 2
         x: 16
@@ -220,18 +230,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: f1db0c027c97b6c4fa5a31e888fd257d
-      internalID: 1640317287
+      spriteID: 6cc10f1dbb74fd445ba0df2f87ab28b0
+      internalID: 1923670604
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: heavy infantry - elite_6
+      name: heavy infantry_6
       rect:
         serializedVersion: 2
         x: 32
@@ -241,38 +252,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 23beac3dfb2c6b84a8e0de79aa684fc2
-      internalID: 818796885
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: heavy infantry - elite_7
-      rect:
-        serializedVersion: 2
-        x: 48
-        y: 32
-        width: 16
-        height: 16
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 87a2e0554063ef1448e5d4975dc61096
-      internalID: -196447715
+      spriteID: 2200a001568d969489fe16fc485c3e0e
+      internalID: -38788149
       vertices: []
       indices: 
       edges: []
       weights: []
     outline: []
+    customData: 
     physicsShape: []
     bones: []
     spriteID: 5e97eb03825dee720800000000000000
@@ -282,18 +274,18 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
     nameFileIdTable:
-      heavy infantry - elite_0: -2028827193
-      heavy infantry - elite_1: -35274148
-      heavy infantry - elite_2: -281477703
-      heavy infantry - elite_3: 1925214802
-      heavy infantry - elite_4: 1245916497
-      heavy infantry - elite_5: 1640317287
-      heavy infantry - elite_6: 818796885
-      heavy infantry - elite_7: -196447715
-  spritePackingTag: 
+      heavy infantry_0: -1960725368
+      heavy infantry_1: -1712037029
+      heavy infantry_2: -1436614010
+      heavy infantry_3: -153971230
+      heavy infantry_4: 86754737
+      heavy infantry_5: 1923670604
+      heavy infantry_6: -38788149
+  mipmapLimitGroupName: 
   pSDRemoveMatte: 0
-  pSDShowRemoveMatteOption: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 

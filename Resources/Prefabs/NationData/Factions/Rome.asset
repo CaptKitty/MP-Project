@@ -66,7 +66,7 @@ MonoBehaviour:
       effects:
       - type: 0
         operation: 0
-        amountPermille: 200
+        amountPermille: 400
         target: 1
         anySocioEconomicClass: 0
         socioEconomicClass: 6
@@ -74,6 +74,17 @@ MonoBehaviour:
         cultureName: 
         anyUnitOrigin: 1
         unitOrigin: 0
+        anyAllegiance: 1
+        allegianceId: 
+        useAllegianceFocusedRegions: 0
+      classRules: []
+      availableExtensions: []
+      amountPermille: 0
+      effect: 0
+      anySocioEconomicClass: 1
+      socioEconomicClass: 6
+      anyCulture: 1
+      cultureName: 
     - id: roman_civic_order
       displayName: Roman Civic Order
       effects: []
@@ -86,6 +97,13 @@ MonoBehaviour:
         affectedClass: 5
         resultingClass: 2
         cultureName: 
+      availableExtensions: []
+      amountPermille: 0
+      effect: 0
+      anySocioEconomicClass: 1
+      socioEconomicClass: 6
+      anyCulture: 1
+      cultureName: 
     - id: roman_muster_rolls
       displayName: Citizen Muster Rolls
       effects:
@@ -99,7 +117,17 @@ MonoBehaviour:
         cultureName: 
         anyUnitOrigin: 1
         unitOrigin: 0
+        anyAllegiance: 1
+        allegianceId: 
+        useAllegianceFocusedRegions: 0
       classRules: []
+      availableExtensions: []
+      amountPermille: 0
+      effect: 0
+      anySocioEconomicClass: 1
+      socioEconomicClass: 6
+      anyCulture: 1
+      cultureName: 
   unitReplacements: []
   buildingReplacements: []
   Income: 500

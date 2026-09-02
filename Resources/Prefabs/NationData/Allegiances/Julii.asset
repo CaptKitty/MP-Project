@@ -3,11 +3,19 @@
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b2000000000000000000000000000002, type: 3}
   m_Name: Julii
+  m_EditorClassIdentifier: 
   id: julii
   displayName: Julii
   type: 0
+  icon: {fileID: 7469433379126845090, guid: 96af940b4e7eb834fba9d9853f70d133, type: 3}
   primaryIdentity: {fileID: 11400000, guid: c1010000000000000000000000000001, type: 2}
   startingDynamicIdentity: {fileID: 11400000, guid: c1050000000000000000000000000005, type: 2}
   startingCurrentInterestRegionIds: []

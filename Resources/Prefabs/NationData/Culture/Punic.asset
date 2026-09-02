@@ -31,6 +31,8 @@ MonoBehaviour:
       minimumBuildingLevel: 2
     buildings:
     - {fileID: 11400000, guid: e526ddeb476252148a90237a2763ca24, type: 2}
+    - {fileID: 11400000, guid: b8aacba79c404fd6a4783cb563031fd8, type: 2}
+    - {fileID: 11400000, guid: 44ff81b29126426e82b6c7d493d54afe, type: 2}
     generalNames:
     - Hanno
     - Hannibal

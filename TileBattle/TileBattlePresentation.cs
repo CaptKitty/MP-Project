@@ -627,6 +627,34 @@ namespace ProjectX.TileBattle
                     text.Append("  + ").Append(recoveredNames[i]).Append(" x").AppendLine(recovered[recoveredNames[i]].ToString());
             }
             else text.AppendLine("Recovered after victory: none");
+
+            Dictionary<string, int> lost = new Dictionary<string, int>(System.StringComparer.Ordinal);
+            for (int i = 0; i < simulation.Units.Count; i++)
+            {
+                TileBattleUnit unit = simulation.Units[i];
+                if (unit.Side != side) continue;
+                int remaining = simulation.Result.RemainingStrength.TryGetValue(unit.Id, out int saved)
+                    ? saved : Mathf.Max(0, unit.Strength);
+                if (remaining > 0) continue;
+                int recoveredAmount = simulation.Result.RecoveredFormations.TryGetValue(unit.Id, out int restored)
+                    ? Mathf.Max(0, restored) : 0;
+                int lostAmount = Mathf.Max(0, 1 - recoveredAmount);
+                if (lostAmount == 0) continue;
+                string name = unit.Definition != null && !string.IsNullOrEmpty(unit.Definition.DisplayName)
+                    ? unit.Definition.DisplayName : "Unknown formation";
+                lost[name] = lost.TryGetValue(name, out int existing) ? existing + lostAmount : lostAmount;
+            }
+            if (lost.Count > 0)
+            {
+                int lostTotal = 0;
+                foreach (int amount in lost.Values) lostTotal += amount;
+                text.Append("Lost units: ").Append(lostTotal).AppendLine(" formation(s)");
+                List<string> lostNames = new List<string>(lost.Keys);
+                lostNames.Sort(System.StringComparer.Ordinal);
+                for (int i = 0; i < lostNames.Count; i++)
+                    text.Append("  - ").Append(lostNames[i]).Append(" x").AppendLine(lost[lostNames[i]].ToString());
+            }
+            else text.AppendLine("Lost units: none");
             text.AppendLine();
         }
 

@@ -121,7 +121,7 @@ public class UIBuildingMenu : MonoBehaviour
         if (preserveInteraction && !buildGridOpen)
         {
             UIBuildingMenuSlot hovered = slots.Find(slot => slot != null && slot.gameObject.activeInHierarchy && slot.IsHovered);
-            if (hovered != null) ShowTooltip(BuildBuildingDescription(hovered.Province, hovered.Building, hovered.SlotIndex));
+            if (hovered != null) ShowTooltip(BuildBuildingDescription(hovered.Province, hovered.TooltipBuilding, hovered.SlotIndex));
             else HideTooltip();
         }
         UIProvincePanelSummary summary = GetComponent<UIProvincePanelSummary>();
@@ -221,7 +221,7 @@ public class UIBuildingMenu : MonoBehaviour
     public void PointerEntered(UIBuildingMenuSlot slot)
     {
         if (slot == null || buildGridOpen) return;
-        ShowTooltip(BuildBuildingDescription(slot.Province, slot.Building, slot.SlotIndex));
+        ShowTooltip(BuildBuildingDescription(slot.Province, slot.TooltipBuilding, slot.SlotIndex));
     }
 
     public void PointerExited(UIBuildingMenuSlot slot)
@@ -254,6 +254,12 @@ public class UIBuildingMenu : MonoBehaviour
             foreach (string buildingId in NationContentResolver.ResolveBuildings(nation))
             {
                 if (!NationContentResolver.CanConstructBuildingLevel(nation, buildingId, 1)) continue;
+                BuildingDefinition definition = BuildingDefinition.Find(buildingId);
+                if (definition != null && definition.provinceUnique &&
+                    (targetProvince.buildings.Exists(item => item != null &&
+                        item.BuildingId.Equals(buildingId, System.StringComparison.OrdinalIgnoreCase)) ||
+                     targetProvince.constructionOrders.Exists(order => order != null &&
+                        order.buildingId.Equals(buildingId, System.StringComparison.OrdinalIgnoreCase)))) continue;
                 AddBuildOption(slot, buildingId, 1);
             }
         }
@@ -263,6 +269,7 @@ public class UIBuildingMenu : MonoBehaviour
             if (!NationContentResolver.HasBuilding(targetProvince.nation, buildingId))
             {
                 AddGridMessage(building.DisplayName + " is not available to this nation.");
+                AddDestroyOption(slot);
                 AddCancelOption();
                 return;
             }
@@ -270,7 +277,36 @@ public class UIBuildingMenu : MonoBehaviour
             AddBuildOption(slot, buildingId, nextLevel);
         }
         else AddGridMessage(building.DisplayName + " is already at maximum level.");
+        if (building != null) AddDestroyOption(slot);
         AddCancelOption();
+    }
+
+    private void AddDestroyOption(UIBuildingMenuSlot slot)
+    {
+        GameObject option = new GameObject("Destroy", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button), typeof(LayoutElement));
+        option.layer = gameObject.layer; option.transform.SetParent(buildGridRoot.transform, false);
+        option.GetComponent<Image>().color = new Color(.48f, .12f, .1f, .98f);
+        LayoutElement layout = option.GetComponent<LayoutElement>(); layout.preferredWidth = 82f; layout.preferredHeight = 82f;
+        Text text = CreateGridText(option.transform, "Destroy", 11, TextAnchor.MiddleCenter);
+        text.rectTransform.anchorMin = Vector2.zero; text.rectTransform.anchorMax = Vector2.one;
+        text.rectTransform.offsetMin = text.rectTransform.offsetMax = Vector2.zero;
+        option.GetComponent<Button>().onClick.AddListener(() => DestroyBuilding(slot));
+        LayoutBuildGrid();
+    }
+
+    private void DestroyBuilding(UIBuildingMenuSlot slot)
+    {
+        Province targetProvince = slot != null ? slot.Province : null;
+        if (targetProvince == null || slot.Building == null) return;
+        if (Unity.Netcode.NetworkManager.Singleton != null && Unity.Netcode.NetworkManager.Singleton.IsListening)
+        {
+            if (CampaignNetworkPlayer.Local != null)
+                CampaignNetworkPlayer.Local.RequestDestroyProvinceBuilding(targetProvince.name, slot.SlotIndex);
+        }
+        else targetProvince.DestroyBuildingInSlot(slot.SlotIndex);
+        buildGridOpen = false;
+        HideBuildGrid();
+        LoadProvince(LoadedProvince, host);
     }
 
     private void AddCancelOption()
@@ -446,6 +482,7 @@ public class UIBuildingMenu : MonoBehaviour
     private string BuildBuildingDescription(Province province, ProvinceBuilding building, int slotIndex)
     {
         if (building == null) return "Building slot " + (slotIndex + 1) + "\n\nEmpty";
+        if (building.definition == null) building.definition = BuildingDefinition.Find(building.id);
         StringBuilder text = new StringBuilder();
         text.Append(building.DisplayName);
         if (building.definition != null && !string.IsNullOrWhiteSpace(building.definition.description))
@@ -556,6 +593,12 @@ public class UIBuildingMenu : MonoBehaviour
             text.Append("\n- Food: -").Append(foodConsumption).Append(" consumed");
             any = true;
         }
+        int goldUpkeep = building.definition != null ? building.DefinitionGoldUpkeep : 0;
+        if (goldUpkeep > 0)
+        {
+            text.Append("\n- Upkeep: -").Append(goldUpkeep).Append(" gold");
+            any = true;
+        }
         int garrison = building.definition != null ? building.DefinitionGarrisonCapacity :
             building.BuildingId.Equals("Fort", System.StringComparison.OrdinalIgnoreCase) ? building.level * 3 : 0;
         if (garrison > 0) { text.Append("\n- Garrison capacity: +").Append(garrison); any = true; }
@@ -566,7 +609,6 @@ public class UIBuildingMenu : MonoBehaviour
             text.Append("\n- Regional loyalty: +").Append((building.level * .1f).ToString("0.#"));
             text.Append("\n- Culture conversion: +").Append((building.level * .1f).ToString("0.#"))
                 .Append("% national primary culture");
-            text.Append("\n- Upkeep: -1 gold");
             any = true;
         }
         if (urbanizationTarget != 0)

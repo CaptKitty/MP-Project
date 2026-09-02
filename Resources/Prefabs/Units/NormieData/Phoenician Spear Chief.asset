@@ -15,7 +15,7 @@ MonoBehaviour:
   unitname: Hoplite Captain
   unittype: 2
   cost: 150
-  health: 600
+  health: 300
   recruitmentTicks: 3
   upkeep: 1
   actions: 2

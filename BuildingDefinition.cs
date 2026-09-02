@@ -16,6 +16,8 @@ public class BuildingDefinition : ScriptableObject
 
     [Header("Progression")]
     [Min(1)] public int maximumLevel = 5;
+    [Tooltip("Only one building with this definition may exist or be under construction in a province.")]
+    public bool provinceUnique;
     [Tooltip("Used when a level does not provide its own positive construction time.")]
     [Min(1)] public int defaultConstructionTicks = 10;
     public List<BuildingLevelDefinition> levels = new List<BuildingLevelDefinition>();
@@ -69,6 +71,7 @@ public class BuildingDefinition : ScriptableObject
             if (levels[i] == null) continue;
             levels[i].level = Mathf.Clamp(levels[i].level, 1, maximumLevel);
             levels[i].goldCost = Mathf.Max(0, levels[i].goldCost);
+            levels[i].goldUpkeep = Mathf.Max(0, levels[i].goldUpkeep);
             levels[i].constructionTicks = Mathf.Max(0, levels[i].constructionTicks);
             levels[i].food = Mathf.Max(0, levels[i].food);
             levels[i].foodConsumption = Mathf.Max(0, levels[i].foodConsumption);
@@ -91,6 +94,8 @@ public class BuildingLevelDefinition
     [Tooltip("Signed change to desired provincial urbanization while active. Negative values cause ruralization.")]
     [Range(-100, 100)] public int urbanizationTargetModifier;
     public int goldIncome;
+    [Tooltip("Gold paid per economy tick while this building level is active.")]
+    [Min(0)] public int goldUpkeep;
     [Tooltip("Food produced by this building level. Configure consumption separately.")]
     [Min(0)] public int food;
     [Tooltip("Food consumed as a separate cost by this building level.")]

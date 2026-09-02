@@ -1,9 +1,9 @@
 fileFormatVersion: 2
-guid: 08fa76b58228c8a4596087766261e608
+guid: 491c09db0f4aa4d4285e7b9d42915109
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
-  serializedVersion: 12
+  serializedVersion: 13
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
@@ -20,11 +20,12 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
+    flipGreenChannel: 0
   isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
-  ignoreMasterTextureLimit: 0
+  ignoreMipmapLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -63,9 +64,10 @@ TextureImporter:
   textureFormatSet: 0
   ignorePngGamma: 0
   applyGammaDecoding: 0
+  swizzle: 50462976
   cookieLightType: 0
   platformSettings:
-  - serializedVersion: 3
+  - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -75,9 +77,10 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
+  - serializedVersion: 4
     buildTarget: Standalone
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -87,9 +90,10 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
+  - serializedVersion: 4
     buildTarget: WebGL
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -99,13 +103,14 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: cavalry - light_0
+      name: cavalry - heavy_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,18 +120,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 9a64959df4a0cef4588970dbafbab494
-      internalID: 663860049
+      spriteID: 8db2124b56b2da945a48e33ca611ca76
+      internalID: 849884998
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: cavalry - light_1
+      name: cavalry - heavy_1
       rect:
         serializedVersion: 2
         x: 16
@@ -136,18 +142,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 5fc9fda842d014d4ab1a8c66b1e5e6e7
-      internalID: 357813108
+      spriteID: 9b090e5b9fe08e64fa8bcc89d07e0780
+      internalID: -1455218070
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: cavalry - light_2
+      name: cavalry - heavy_2
       rect:
         serializedVersion: 2
         x: 32
@@ -157,18 +164,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 3fc6b72a6be16654f86a44876c568b47
-      internalID: -698498628
+      spriteID: a4dafff02ac67df498bf99c53b002932
+      internalID: -646916506
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: cavalry - light_3
+      name: cavalry - heavy_3
       rect:
         serializedVersion: 2
         x: 48
@@ -178,18 +186,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d8f4dad54dbaec54eac6091cc4b46df6
-      internalID: 468167
+      spriteID: 769a6533f85ee954a9c2d15a21a4f4fc
+      internalID: 486205236
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: cavalry - light_4
+      name: cavalry - heavy_4
       rect:
         serializedVersion: 2
         x: 0
@@ -199,18 +208,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7504699cbe1f45142b4ba3737b103931
-      internalID: 527140541
+      spriteID: 4b6494dd4d034184eabbf5c40247e8b3
+      internalID: -91721946
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: cavalry - light_5
+      name: cavalry - heavy_5
       rect:
         serializedVersion: 2
         x: 16
@@ -220,17 +230,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: cbb66c311499a1942bcd60f111142b7e
-      internalID: 553655310
+      spriteID: 0b0cff8658c692c4bbdf19ea3ef69750
+      internalID: -1294947679
       vertices: []
       indices: 
       edges: []
       weights: []
     outline: []
+    customData: 
     physicsShape: []
     bones: []
     spriteID: 5e97eb03825dee720800000000000000
@@ -240,16 +252,17 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
     nameFileIdTable:
-      cavalry - light_0: 663860049
-      cavalry - light_1: 357813108
-      cavalry - light_2: -698498628
-      cavalry - light_3: 468167
-      cavalry - light_4: 527140541
-      cavalry - light_5: 553655310
-  spritePackingTag: 
+      cavalry - heavy_0: 849884998
+      cavalry - heavy_1: -1455218070
+      cavalry - heavy_2: -646916506
+      cavalry - heavy_3: 486205236
+      cavalry - heavy_4: -91721946
+      cavalry - heavy_5: -1294947679
+  mipmapLimitGroupName: 
   pSDRemoveMatte: 0
-  pSDShowRemoveMatteOption: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 

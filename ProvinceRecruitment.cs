@@ -27,6 +27,7 @@ public class ProvinceBuilding
         definition != null ? definition.GetLevel(targetLevel) : null;
 
     public int DefinitionGoldIncome => SumDefinitionEffect(entry => entry.goldIncome);
+    public int DefinitionGoldUpkeep => SumDefinitionEffect(entry => Mathf.Max(0, entry.goldUpkeep));
     public int DefinitionFoodOutput => SumDefinitionEffect(entry => entry.food);
     public int DefinitionFoodConsumption => SumDefinitionEffect(entry => Mathf.Max(0, entry.foodConsumption));
     public int DefinitionGarrisonCapacity => SumDefinitionEffect(entry => entry.garrisonCapacity);

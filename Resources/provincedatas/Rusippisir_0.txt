@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Rusippisir_0
+}
+Color ={
+133
+124
+255
+}
+Location ={
+314
+238
+}
+Region ={
+Massylii
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Numidia
+}
+}

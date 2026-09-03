@@ -75,6 +75,7 @@ public class BuildingDefinition : ScriptableObject
             levels[i].constructionTicks = Mathf.Max(0, levels[i].constructionTicks);
             levels[i].food = Mathf.Max(0, levels[i].food);
             levels[i].foodConsumption = Mathf.Max(0, levels[i].foodConsumption);
+            levels[i].manpowerRecovery = Mathf.Max(0f, levels[i].manpowerRecovery);
             levels[i].urbanizationResponse = Mathf.Clamp(levels[i].urbanizationResponse, -100, 100);
             levels[i].urbanizationTargetModifier = Mathf.Clamp(levels[i].urbanizationTargetModifier, -100, 100);
         }
@@ -101,6 +102,8 @@ public class BuildingLevelDefinition
     [Tooltip("Food consumed as a separate cost by this building level.")]
     [Min(0)] public int foodConsumption;
     public int garrisonCapacity;
+    [Tooltip("Regional manpower recovered per economy tick while this building level is active.")]
+    [Min(0f)] public float manpowerRecovery;
     public List<UnitSaveData> unitUnlocks = new List<UnitSaveData>();
     public List<string> flags = new List<string>();
     [Tooltip("Additional player-facing effects supplied by this level. These are accumulated in building tooltips.")]

@@ -27,13 +27,14 @@ MonoBehaviour:
     urbanizationResponse: 0
     urbanizationTargetModifier: 15
     goldIncome: 0
+    goldUpkeep: 0
     food: 0
     foodConsumption: 0
     garrisonCapacity: 0
     unitUnlocks: []
     flags: []
     displayedEffects:
-    - +10 desired provincial urbanization.
+    - +15 desired provincial urbanization.
     holdingEconomyModifiers: []
     localModifiers:
       maxDevelopment: 0

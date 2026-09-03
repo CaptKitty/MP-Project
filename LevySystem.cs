@@ -59,6 +59,8 @@ public class ArmyFormationRecord
     public UnitSaveData unit;
     public CampaignUnitOrigin origin;
     public string entitlementId;
+    [Tooltip("Nation whose manpower/roster produced this formation. Used for tributary mercenary appearance.")]
+    public string sourceNationName;
 }
 
 public static class LevySystem

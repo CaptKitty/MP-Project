@@ -71,6 +71,7 @@ public class Owners : MonoBehaviour
                 nation.faction = SessionManager.Instance.HostFaction;
             }
         }
+        DiplomacySystem.EnsureDefaultPeace();
 
         provincedict = new Dictionary<string, Province>();
         provincedictcolor = new Dictionary<Color32, Province>();
@@ -238,10 +239,10 @@ public class Owners : MonoBehaviour
         {
             if (nation == null) continue;
             nation.armies.RemoveAll(existingArmy => existingArmy == null);
-            if (NationContentResolver.HasFlag(nation, "Braindead"))
+            bool braindead = NationContentResolver.HasFlag(nation, "Braindead");
+            if (braindead)
             {
-                // Braindead nations are passive expansion space and begin without
-                // either generated or scene-placed campaign armies.
+                // Braindead nations begin without either generated or scene-placed armies.
                 foreach (FieldArmyHolder passiveArmy in new List<FieldArmyHolder>(nation.armies))
                     if (passiveArmy != null) Destroy(passiveArmy.gameObject);
                 nation.armies.Clear();
@@ -455,6 +456,11 @@ public class Province
     public Color32 identity;
     public Nation nation;
     public Nation OriginalNation;
+    [Tooltip("Foreign nation currently controlling this province militarily. Legal ownership remains in nation.")]
+    public Nation OccupyingNation;
+    public bool IsOccupied => OccupyingNation != null && OccupyingNation != nation;
+    public Nation ControllerNation => IsOccupied ? OccupyingNation : nation;
+    public Color32 OwnershipMapColor => DiplomacySystem.MapColor(ControllerNation);
     public string state;
     public string region;
     [System.NonSerialized] public bool regionConfiguredFromData;
@@ -522,9 +528,13 @@ public class Province
     public void ApplyConquestDevastation(Nation previousOwner, Nation conqueror, int campaignTick)
     {
         if (buildings == null) buildings = new List<ProvinceBuilding>();
-        else buildings.Clear();
+        else buildings.RemoveAll(building => building != null &&
+            (building.DefinitionGoldUpkeep > 0 || building.DefinitionFoodConsumption > 0 ||
+                ConquestBuildingDestroyed(building, previousOwner, conqueror, campaignTick)));
         if (constructionOrders == null) constructionOrders = new List<ProvinceConstructionOrder>();
         else constructionOrders.Clear();
+
+        urbanization = Mathf.Clamp(urbanization - 25, -100, MaximumDevelopment);
 
         if (holdings == null || holdings.Count == 0) return;
         List<ProvinceHolding> downgradeable = holdings.FindAll(holding => holding != null && holding.definition != null &&
@@ -545,6 +555,55 @@ public class Province
             holding.adaptationCooldownTicks = Mathf.Max(holding.adaptationCooldownTicks, 8);
         }
         ClampDevelopment(); ReconcileLevyEntitlements();
+    }
+
+    public void ApplyOccupationDevastation(Nation defender, Nation occupier, int campaignTick)
+    {
+        if (buildings == null) buildings = new List<ProvinceBuilding>();
+        else buildings.RemoveAll(building => building != null &&
+            ConquestBuildingDestroyed(building, defender, occupier, campaignTick));
+        if (constructionOrders == null) constructionOrders = new List<ProvinceConstructionOrder>();
+        else constructionOrders.Clear();
+        urbanization = Mathf.Clamp(urbanization - 25, -100, MaximumDevelopment);
+
+        if (holdings != null && holdings.Count > 0)
+        {
+            List<ProvinceHolding> downgradeable = holdings.FindAll(holding => holding != null &&
+                holding.definition != null && holding.definition.categoryTier > 1 &&
+                HoldingEvolutionSystem.FindCategoryTier(holding.definition.category,
+                    holding.definition.categoryTier - 1) != null);
+            downgradeable.Sort((left, right) => ConquestHoldingHash(left, defender, occupier, campaignTick)
+                .CompareTo(ConquestHoldingHash(right, defender, occupier, campaignTick)));
+            int count = Mathf.Min(downgradeable.Count, holdings.Count / 2);
+            for (int i = 0; i < count; i++)
+            {
+                HoldingDefinition lower = HoldingEvolutionSystem.FindCategoryTier(
+                    downgradeable[i].definition.category, downgradeable[i].definition.categoryTier - 1);
+                if (lower == null) continue;
+                downgradeable[i].definition = lower;
+                downgradeable[i].id = lower.StableId;
+                downgradeable[i].level = 1;
+                downgradeable[i].adaptationTargetId = string.Empty;
+                downgradeable[i].adaptationPressure = 0;
+            }
+        }
+        ClampDevelopment();
+        ReconcileLevyEntitlements();
+    }
+
+    private bool ConquestBuildingDestroyed(ProvinceBuilding building, Nation previousOwner, Nation conqueror,
+        int campaignTick)
+    {
+        if (building == null) return false;
+        unchecked
+        {
+            int hash = 17;
+            string value = name + "|" + building.BuildingId + "|" + building.slotIndex + "|" +
+                (previousOwner != null ? previousOwner.name : string.Empty) + "|" +
+                (conqueror != null ? conqueror.name : string.Empty) + "|" + campaignTick;
+            for (int i = 0; i < value.Length; i++) hash = hash * 31 + value[i];
+            return (hash & int.MaxValue) % 4 == 0;
+        }
     }
 
     private int ConquestHoldingHash(ProvinceHolding holding, Nation previousOwner, Nation conqueror, int campaignTick)
@@ -955,6 +1014,7 @@ public class Province
 
     public void ProcessLevyTick()
     {
+        if (IsOccupied) return;
         int currentTick = Owners.Instance != null ? Owners.Instance.turncounter : 0;
         if (nextLevyReconcileTick < 0)
             nextLevyReconcileTick = currentTick + StableLevyReconcilePhase(name, 8);
@@ -1042,6 +1102,9 @@ public class Province
             army.fieldArmy == null || !army.IsTargetNull() || !entitlement.eligible ||
             entitlement.state != LevyEntitlementState.Available || army.fieldArmy.nation != nation ||
             army.fieldArmy.GrabArmySize() + army.fieldArmy.GrabQueuedArmySize() >= army.fieldArmy.MaxArmySize) return false;
+        // Every newly mobilized unit consumes one point from the region it comes from.
+        // The army object itself is free; this charge applies to levies and professionals alike.
+        if (nation == null || !nation.TrySpendManpower(this, 1f)) return false;
         entitlement.raisedArmyId = army.NetworkArmyId;
         entitlement.remainingTicks = 0; // Waiting for an open slot in the next three-unit batch.
         entitlement.state = LevyEntitlementState.Mobilizing;
@@ -1201,7 +1264,7 @@ public class Province
 
     public bool AllowsRecruitment(Nation recruitingNation)
     {
-        if (recruitingNation == null || nation != recruitingNation) return false;
+        if (IsOccupied || recruitingNation == null || nation != recruitingNation) return false;
         CampaignRegion campaignRegion = Owners.Instance != null ? Owners.Instance.CallRegionByString(region) : null;
         return campaignRegion == null || campaignRegion.AllowsRecruitment(recruitingNation);
     }
@@ -1232,9 +1295,9 @@ public class Province
         if (campaignRegion != null && campaignRegion.provincelist != null)
         {
             foreach (Province province in campaignRegion.provincelist)
-                if (province != null && province.nation == owner) result.Add(province);
+                if (province != null && !province.IsOccupied && province.nation == owner) result.Add(province);
         }
-        else if (nation == owner) result.Add(this);
+        else if (!IsOccupied && nation == owner) result.Add(this);
         return result;
     }
 
@@ -1408,6 +1471,7 @@ public class Province
 
     public void ProcessHoldingEvolutionTick(int campaignTick)
     {
+        if (IsOccupied) return;
         HoldingEvolutionSystem.ProcessTick(this, campaignTick);
     }
 
@@ -1536,7 +1600,7 @@ public class Province
         return result;
     }
 
-    private List<Province> GetLocalAndAdjacentRegionProvinces(Nation owner)
+    public List<Province> GetLocalAndAdjacentRegionProvinces(Nation owner)
     {
         List<Province> result = new List<Province>();
         if (owner == null || Owners.Instance == null || string.IsNullOrWhiteSpace(region)) return result;
@@ -1560,6 +1624,12 @@ public class Province
                 result.Add(candidate);
         result.Sort((left, right) => string.CompareOrdinal(left.name, right.name));
         return result;
+    }
+
+    public bool CanAccessRecruitmentSource(Province source, Nation sourceOwner)
+    {
+        return source != null && sourceOwner != null &&
+            GetLocalAndAdjacentRegionProvinces(sourceOwner).Contains(source);
     }
 
     public int GetBuildingUpkeep()
@@ -1600,6 +1670,7 @@ public class Province
 
     public bool DestroyBuildingInSlot(int slotIndex)
     {
+        if (IsOccupied) return false;
         if (slotIndex < 0 || buildings == null) return false;
         ProvinceBuilding building = GetBuildingInSlot(slotIndex);
         if (building == null) return false;
@@ -1622,6 +1693,7 @@ public class Province
 
     public bool BeginHoldingConstruction(int slotIndex, string holdingId, int targetLevel, int constructionTicks)
     {
+        if (IsOccupied) return false;
         if (slotIndex < 0 || string.IsNullOrWhiteSpace(holdingId)) return false;
         if (holdings == null) holdings = new List<ProvinceHolding>();
         if (holdingConstructionOrders == null) holdingConstructionOrders = new List<HoldingConstructionOrder>();
@@ -1641,6 +1713,7 @@ public class Province
 
     public void ProcessHoldingConstructionTick()
     {
+        if (IsOccupied) return;
         if (holdingConstructionOrders == null) return;
         for (int i = holdingConstructionOrders.Count - 1; i >= 0; i--)
         {
@@ -1666,6 +1739,7 @@ public class Province
     public bool BeginBuildingConstruction(int slotIndex, string buildingId, int targetLevel, int constructionTicks,
         bool initiatedByAI = false)
     {
+        if (IsOccupied) return false;
         if (slotIndex < 0 || string.IsNullOrEmpty(buildingId) || constructionOrders.Exists(order => order.slotIndex == slotIndex)) return false;
         if (nation == null || !NationContentResolver.CanConstructBuildingLevel(nation, buildingId, targetLevel)) return false;
         ProvinceBuilding existing = GetBuildingInSlot(slotIndex);
@@ -1691,6 +1765,7 @@ public class Province
 
     public void ProcessConstructionTick()
     {
+        if (IsOccupied) return;
         if (constructionOrders == null) return;
         for (int i = constructionOrders.Count - 1; i >= 0; i--)
         {
@@ -1778,6 +1853,7 @@ public class Province
 
     public void CreateGarrison()
     {
+        if (IsOccupied) { garrison = null; return; }
         garrison = ScriptableObject.CreateInstance<FieldArmy>();
         garrison.nation = nation;
         garrison.MaxArmySize = GetGarrisonCapacity();
@@ -1831,6 +1907,7 @@ public class Province
 
     public void EnsureMinimumGarrison(int minimum = 1)
     {
+        if (IsOccupied) { garrison = null; return; }
         if (garrison == null) CreateGarrison();
         if (garrison == null || nation == null || nation.faction == null) return;
         garrison.nation = nation;
@@ -1880,9 +1957,24 @@ public class Nation
     public NationCultureData culture;
     public ReligionData religion;
     public NationalBrain nationalbrainy;
-    public int Manpower = 0;
+    [Header("Diplomacy")]
+    [Tooltip("Nation name of this nation's tributary master. Empty means this nation is not a tributary ally.")]
+    public string TributaryMasterName;
+    [Tooltip("Nation names with which this nation currently has a peace treaty.")]
+    public List<string> PeaceTreatyNationNames = new List<string>();
+    [Tooltip("Nation names against which this nation has an active declared war.")]
+    public List<string> WarNationNames = new List<string>();
+    [HideInInspector] public int LastWarDeclarationTurn = -1000;
+    [HideInInspector] public int NextAIDiplomacyTurn;
+    [HideInInspector] public string PendingPeaceOfferFrom;
+    [HideInInspector] public BasicPeaceTerms PendingPeaceTerms;
+    [Tooltip("Cached nation-wide total of all regional manpower pools.")]
+    public float Manpower = 0f;
     public int Gold = CampaignEconomy.StartingGold;
     public int ArmyNumber = 0;
+    public bool IsPacifist =>
+        NationContentResolver.HasFlag(this, "Pacificst") || NationContentResolver.HasFlag(this, "Pacifist");
+    public bool SuppressesAIMilitaryRecruitment => IsPacifist;
     public int NextAIInfrastructureTurn;
     public int AIInfrastructureIntervalTurns = 12;
     public int NextAIEconomyTurn;
@@ -1965,6 +2057,13 @@ public class Nation
             else
                 laws.Add(NationalLawDefaults.Levy("levy_conscription", "Levy Conscription",
                     Mathf.Clamp(LevyLawPermille, 0, 1000), true, SocioEconomicClass.Freemen));
+        }
+        if (string.Equals(name, "Carthage", System.StringComparison.OrdinalIgnoreCase) &&
+            !laws.Exists(law => law != null && string.Equals(law.id, "carthaginian_subject_mustering",
+                System.StringComparison.OrdinalIgnoreCase)))
+        {
+            laws.Add(NationalLawDefaults.CarthaginianManpowerRecovery());
+            compiledLawEffects = null;
         }
         EnsureLawExtensions("roman_citizen_levy");
         EnsureLawExtensions("tribal_muster");
@@ -2124,6 +2223,7 @@ public class Nation
     {
         if (army == null || army.fieldArmy == null) return Mathf.Max(1, AIMinimumCampaignArmySize);
         int maximum = Mathf.Max(1, army.fieldArmy.MaxArmySize);
+        if (IsPacifist) return Mathf.Min(6, maximum);
         if (army.AIDesiredArmySize <= 0)
         {
             int minimum = Mathf.Clamp(AIMinimumCampaignArmySize - 2, 6, maximum);
@@ -2155,7 +2255,7 @@ public class Nation
         foreach (FieldArmyHolder other in Owners.Instance.armylist)
         {
             if (other == null || other.fieldArmy == null || other.fieldArmy.nation == null ||
-                other.fieldArmy.nation == this || other.flaglist.Contains("Battle")) continue;
+                !DiplomacySystem.AreHostile(other.fieldArmy.nation, this) || other.flaglist.Contains("Battle")) continue;
             if (other.GrabDistanceToProvince(province) <= radius)
                 strongest = Mathf.Max(strongest, other.fieldArmy.GrabArmySize());
         }
@@ -2165,7 +2265,6 @@ public class Nation
     public void TakeTurn()
     {
         PoliticalProposalSystem.ProcessTurn(this, Owners.Instance != null ? Owners.Instance.turncounter : 0);
-        Dictionary<string, float> regionalManpower = new Dictionary<string, float>();
         Dictionary<string, float> regionalIncome = new Dictionary<string, float>();
         int provincialUpkeep = 0;
 
@@ -2174,21 +2273,20 @@ public class Nation
         // into one frame per nation. Accumulate all provincial values in one pass.
         foreach (Province province in Owners.Instance.provincelist)
         {
-            if (province == null || province.nation != this) continue;
+            if (province == null || province.IsOccupied || province.nation != this) continue;
             string regionKey = !string.IsNullOrWhiteSpace(province.region) ? province.region : "Province:" + province.name;
-            regionalManpower[regionKey] = regionalManpower.TryGetValue(regionKey, out float manpower)
-                ? manpower + province.GetHoldingOutputUnrounded(HoldingOutputType.Manpower)
-                : province.GetHoldingOutputUnrounded(HoldingOutputType.Manpower);
             regionalIncome[regionKey] = regionalIncome.TryGetValue(regionKey, out float income)
                 ? income + province.GetGoldIncomeUnrounded()
                 : province.GetGoldIncomeUnrounded();
             provincialUpkeep += province.GetBuildingUpkeep();
         }
-        int holdingManpower = 0;
-        foreach (float value in regionalManpower.Values) holdingManpower += Mathf.RoundToInt(value);
         int grossIncome = 0;
         foreach (float value in regionalIncome.Values) grossIncome += Mathf.RoundToInt(value);
-        Manpower += Mathf.Max(1, holdingManpower);
+        Nation tributaryMaster = DiplomacySystem.FindMaster(this);
+        int tribute = tributaryMaster != null ? Mathf.Max(0, Mathf.FloorToInt(grossIncome * 0.25f)) : 0;
+        if (tribute > 0) tributaryMaster.Gold += tribute;
+        grossIncome -= tribute;
+        RefreshManpowerTotal();
         LastGrossIncome = grossIncome;
         LastUnitUpkeep = provincialUpkeep;
         foreach (FieldArmyHolder army in armies)
@@ -2207,11 +2305,192 @@ public class Nation
         // Braindead reserves a nation as expansion space: it accumulates normal
         // campaign resources but takes no autonomous strategic actions.
         if (NationContentResolver.HasFlag(this, "Braindead")) return;
-        CoordinateCampaignArmies();
+        ProcessAIDiplomacy();
+        if (IsPacifist) CoordinatePacifistDefense();
+        else CoordinateCampaignArmies();
         DevelopEconomicInfrastructure();
         DevelopMilitaryInfrastructure();
         ReinforceMostUnderstrengthArmy();
-        OrderIdleFullArmiesToFrontier();
+        if (!IsPacifist) OrderIdleFullArmiesToFrontier();
+    }
+
+    public float RefreshManpowerTotal()
+    {
+        Manpower = 0f;
+        if (Owners.Instance == null || Owners.Instance.regionlist == null) return Manpower;
+        foreach (CampaignRegion region in Owners.Instance.regionlist)
+            if (region != null) Manpower += region.GetManpower(this);
+        return Manpower;
+    }
+
+    public float ManpowerCapacity()
+    {
+        float total = 0f;
+        if (Owners.Instance == null || Owners.Instance.regionlist == null) return total;
+        foreach (CampaignRegion region in Owners.Instance.regionlist)
+            if (region != null) total += region.GetManpowerCapacity(this);
+        return total;
+    }
+
+    public bool TrySpendManpower(Province source, float amount = 1f)
+    {
+        if (source == null || source.nation != this || Owners.Instance == null) return false;
+        amount = Mathf.Max(0f, amount);
+        List<CampaignRegion> accessible = GetAccessibleManpowerRegions(source);
+        float available = 0f;
+        foreach (CampaignRegion region in accessible) available += region.GetManpower(this);
+        if (available + 0.0001f < amount) return false;
+
+        float remaining = amount;
+        foreach (CampaignRegion region in accessible)
+        {
+            float spent = Mathf.Min(remaining, region.GetManpower(this));
+            if (spent <= 0f) continue;
+            region.TrySpendManpower(this, spent);
+            remaining -= spent;
+            if (remaining <= 0.0001f) break;
+        }
+        RefreshManpowerTotal();
+        return remaining <= 0.0001f;
+    }
+
+    public void RefundManpower(Province source, float amount = 1f)
+    {
+        if (source == null || Owners.Instance == null) return;
+        float remaining = Mathf.Max(0f, amount);
+        foreach (CampaignRegion region in GetAccessibleManpowerRegions(source))
+        {
+            float room = Mathf.Max(0f, region.GetManpowerCapacity(this) - region.GetManpower(this));
+            float refunded = Mathf.Min(remaining, room);
+            if (refunded <= 0f) continue;
+            region.AddManpower(this, refunded);
+            remaining -= refunded;
+            if (remaining <= 0.0001f) break;
+        }
+        RefreshManpowerTotal();
+    }
+
+    public bool AcceptPendingPeaceOffer()
+    {
+        if (string.IsNullOrWhiteSpace(PendingPeaceOfferFrom) || Owners.Instance == null) return false;
+        Nation proposer = Owners.Instance.nationlist.Find(candidate => candidate != null &&
+            string.Equals(candidate.name, PendingPeaceOfferFrom, System.StringComparison.OrdinalIgnoreCase));
+        PendingPeaceOfferFrom = string.Empty;
+        if (proposer == null) return false;
+        int playerOccupations = Owners.Instance.provincelist.FindAll(province => province != null &&
+            province.nation == proposer && province.OccupyingNation == this).Count;
+        int proposerOccupations = Owners.Instance.provincelist.FindAll(province => province != null &&
+            province.nation == this && province.OccupyingNation == proposer).Count;
+        Nation victor = playerOccupations > proposerOccupations ? this : proposer;
+        Nation defeated = victor == this ? proposer : this;
+        return CampaignPeaceSystem.Resolve(victor, defeated, PendingPeaceTerms);
+    }
+
+    public void RejectPendingPeaceOffer()
+    {
+        PendingPeaceOfferFrom = string.Empty;
+    }
+
+    private void ProcessAIDiplomacy()
+    {
+        if (Owners.Instance == null || Owners.Instance.turncounter < NextAIDiplomacyTurn) return;
+        int now = Owners.Instance.turncounter;
+        NextAIDiplomacyTurn = now + 24 + StableAIHash(name + "|diplomacy|" + now / 24) % 9;
+
+        List<Nation> enemies = Owners.Instance.nationlist.FindAll(candidate => candidate != null &&
+            candidate != this && DiplomacySystem.AreAtWar(this, candidate));
+        foreach (Nation enemy in enemies)
+        {
+            int duration = now - Mathf.Max(LastWarDeclarationTurn, enemy.LastWarDeclarationTurn);
+            int ours = Owners.Instance.provincelist.FindAll(province => province != null &&
+                province.nation == enemy && province.OccupyingNation == this).Count;
+            int theirs = Owners.Instance.provincelist.FindAll(province => province != null &&
+                province.nation == this && province.OccupyingNation == enemy).Count;
+            if (duration < 40 || ours == 0 && theirs == 0 && duration < 80) continue;
+
+            Nation victor = ours > theirs ? this : theirs > ours ? enemy : null;
+            Nation defeated = victor == this ? enemy : victor == enemy ? this : null;
+            BasicPeaceTerms terms = victor != null
+                ? CampaignPeaceSystem.ChooseBasicAITerms(victor, defeated) : BasicPeaceTerms.WhitePeace;
+            Nation proposer = victor ?? this;
+            Nation recipient = defeated ?? enemy;
+            if (enemy.IsPlayer)
+            {
+                enemy.PendingPeaceOfferFrom = name;
+                enemy.PendingPeaceTerms = terms;
+                Debug.Log(name + " offers " + enemy.name + " peace: " + terms + ".");
+            }
+            else if (!IsPlayer && string.CompareOrdinal(name, enemy.name) < 0)
+                CampaignPeaceSystem.Resolve(proposer, recipient, terms);
+            return;
+        }
+
+        // Keep early diplomacy legible: one active war per nation and declarations
+        // only against nations sharing a land border with its controlled territory.
+        if (DiplomacySystem.FindMaster(this) != null || IsPacifist) return;
+        if (enemies.Count > 0 || now < 24 || StableAIHash(name + "|war|" + now / 24) % 3 != 0) return;
+        List<Nation> candidates = new List<Nation>();
+        foreach (Province province in Owners.Instance.provincelist)
+        {
+            if (province == null || !DiplomacySystem.HasMasterAccess(this, province.ControllerNation)) continue;
+            foreach (Province adjacent in province.GrabAdjacents())
+                if (adjacent != null && adjacent.ControllerNation != null &&
+                    !DiplomacySystem.AreFriendly(this, adjacent.ControllerNation) &&
+                    !candidates.Contains(adjacent.ControllerNation)) candidates.Add(adjacent.ControllerNation);
+        }
+        candidates.Sort((left, right) => string.CompareOrdinal(left.name, right.name));
+        Nation target = null;
+        int ownStrength = DiplomaticMilitaryStrength(this);
+        foreach (Nation candidate in candidates)
+        {
+            if (DiplomacySystem.AreAtWar(this, candidate)) continue;
+            if (ownStrength * 5 < DiplomaticMilitaryStrength(candidate) * 4) continue;
+            target = candidate;
+            break;
+        }
+        if (target != null) DiplomacySystem.DeclareWar(this, target);
+    }
+
+    private static int DiplomaticMilitaryStrength(Nation nation)
+    {
+        if (nation == null || Owners.Instance == null) return 0;
+        int strength = 0;
+        foreach (FieldArmyHolder army in Owners.Instance.armylist)
+        {
+            if (army == null || army.fieldArmy == null || army.fieldArmy.nation == null) continue;
+            Nation armyNation = army.fieldArmy.nation;
+            if (armyNation == nation || DiplomacySystem.IsTributarySubjectOf(armyNation, nation) ||
+                DiplomacySystem.IsTributarySubjectOf(nation, armyNation))
+                strength += army.fieldArmy.GrabArmySize() + army.fieldArmy.GrabQueuedArmySize();
+        }
+        return strength;
+    }
+
+    private List<CampaignRegion> GetAccessibleManpowerRegions(Province source)
+    {
+        List<CampaignRegion> result = new List<CampaignRegion>();
+        if (source == null || Owners.Instance == null) return result;
+        CampaignRegion local = Owners.Instance.CallRegionByString(source.region);
+        if (local == null) return result;
+        result.Add(local);
+
+        List<CampaignRegion> neighboring = new List<CampaignRegion>();
+        foreach (Province localProvince in local.provincelist)
+        {
+            if (localProvince == null || localProvince.nation != this || localProvince.AdjacentProvinces == null) continue;
+            foreach (string adjacentName in localProvince.AdjacentProvinces)
+            {
+                if (string.IsNullOrWhiteSpace(adjacentName) || Owners.Instance.provincedict == null ||
+                    !Owners.Instance.provincedict.TryGetValue(adjacentName, out Province adjacent) ||
+                    adjacent == null || adjacent.nation != this || string.IsNullOrWhiteSpace(adjacent.region)) continue;
+                CampaignRegion adjacentRegion = Owners.Instance.CallRegionByString(adjacent.region);
+                if (adjacentRegion != null && adjacentRegion != local && !neighboring.Contains(adjacentRegion))
+                    neighboring.Add(adjacentRegion);
+            }
+        }
+        neighboring.Sort((left, right) => string.CompareOrdinal(left.name, right.name));
+        result.AddRange(neighboring);
+        return result;
     }
 
     private void CoordinateCampaignArmies()
@@ -2235,6 +2514,7 @@ public class Nation
             {
                 FieldArmyHolder second = armies[right];
                 if (!CanCoordinateArmy(second) || second.GrabNearestProvince() != firstProvince ||
+                    second.fieldArmy.nation != first.fieldArmy.nation ||
                     (second.transform.position - first.transform.position).sqrMagnitude > 64f) continue;
                 int firstSize = first.fieldArmy.GrabArmySize();
                 int secondSize = second.fieldArmy.GrabArmySize();
@@ -2266,9 +2546,48 @@ public class Nation
             FieldArmyHolder friendly = FindNearestCampaignArmy(army, true, 240f);
             if (friendly == null) continue;
             int combined = strength + friendly.fieldArmy.GrabArmySize();
-            bool canMerge = combined <= friendly.fieldArmy.MaxArmySize;
+            bool canMerge = friendly.fieldArmy.nation == army.fieldArmy.nation &&
+                combined <= friendly.fieldArmy.MaxArmySize;
             Province supportTarget = canMerge ? friendly.GrabNearestProvince() : friendly.TargetProvince;
             if (supportTarget != null && (canMerge || !friendly.IsTargetNull())) IssueAIMove(army, supportTarget);
+        }
+    }
+
+    private void CoordinatePacifistDefense()
+    {
+        if (Owners.Instance == null) return;
+        int now = Owners.Instance.turncounter;
+        if (now < NextAICoordinationTurn) return;
+        NextAICoordinationTurn = now + 4;
+        armies.RemoveAll(army => army == null || army.fieldArmy == null);
+        for (int i = armies.Count - 1; i >= 0; i--)
+            if (CanCoordinateArmy(armies[i]) && armies[i].fieldArmy.GrabArmySize() <= 0)
+                DisbandAIArmy(armies[i]);
+
+        List<Province> occupiedHome = Owners.Instance.provincelist.FindAll(province => province != null &&
+            province.nation == this && province.IsOccupied && DiplomacySystem.AreHostile(province.ControllerNation, this));
+        List<Province> threatenedHome = new List<Province>();
+        foreach (FieldArmyHolder enemy in Owners.Instance.armylist)
+        {
+            if (enemy == null || enemy.fieldArmy == null || enemy.fieldArmy.nation == null ||
+                !DiplomacySystem.AreHostile(enemy.fieldArmy.nation, this)) continue;
+            Province position = enemy.GrabNearestProvince();
+            if (position != null && position.nation == this && !threatenedHome.Contains(position)) threatenedHome.Add(position);
+        }
+        List<Province> objectives = occupiedHome.Count > 0 ? occupiedHome : threatenedHome;
+        if (objectives.Count == 0) return;
+        objectives.Sort((left, right) => string.CompareOrdinal(left.name, right.name));
+        foreach (FieldArmyHolder army in armies)
+        {
+            if (!CanCoordinateArmy(army) || !army.IsTargetNull() || !IsArmyCombatReady(army, true)) continue;
+            Province target = null;
+            float bestDistance = float.MaxValue;
+            foreach (Province objective in objectives)
+            {
+                float distance = army.GrabDistanceToProvince(objective);
+                if (distance < bestDistance) { target = objective; bestDistance = distance; }
+            }
+            if (target != null) IssueAIMove(army, target);
         }
     }
 
@@ -2288,8 +2607,8 @@ public class Nation
         {
             if (candidate == origin || candidate == null || candidate.fieldArmy == null ||
                 candidate.fieldArmy.nation == null || candidate.fieldArmy.GrabArmySize() <= 0) continue;
-            bool sameNation = candidate.fieldArmy.nation == this;
-            if (sameNation != friendly) continue;
+            bool allied = DiplomacySystem.AreFriendly(candidate.fieldArmy.nation, this);
+            if (allied != friendly) continue;
             float distance = (candidate.transform.position - origin.transform.position).sqrMagnitude;
             if (distance < bestDistance)
             {
@@ -2347,7 +2666,7 @@ public class Nation
         Province selected = null; int lowestFarm = int.MaxValue;
         foreach (Province province in Owners.Instance.provincelist)
         {
-            if (province == null || province.nation != this) continue;
+            if (province == null || province.IsOccupied || province.nation != this) continue;
             ProvinceBuilding farm = province.GetBuilding("Farm"); int level = farm != null ? farm.level : 0;
             if (level < ProvinceBuilding.StandardMaximumLevel && level < lowestFarm) { lowestFarm = level; selected = province; }
         }
@@ -2383,14 +2702,14 @@ public class Nation
         {
             if (string.Equals(buildingId, "Farm", System.StringComparison.OrdinalIgnoreCase)) continue;
             bool alreadyConstructing = Owners.Instance.provincelist.Exists(province =>
-                province != null && province.nation == this && province.constructionOrders != null &&
+                province != null && !province.IsOccupied && province.nation == this && province.constructionOrders != null &&
                 province.constructionOrders.Exists(order => order != null &&
                     string.Equals(order.buildingId, buildingId, System.StringComparison.OrdinalIgnoreCase)));
             if (alreadyConstructing) continue;
 
             foreach (Province province in Owners.Instance.provincelist)
             {
-                if (province == null || province.nation != this) continue;
+                if (province == null || province.IsOccupied || province.nation != this) continue;
                 ProvinceBuilding existing = province.GetBuilding(buildingId);
                 int candidateLevel = existing != null ? existing.level + 1 : 1;
                 if ((existing == null && FirstFreeBuildingSlot(province) < 0) ||
@@ -2456,12 +2775,14 @@ public class Nation
     private void OrderIdleFullArmiesToFrontier()
     {
         if (IsPlayer) return;
-        List<Province> hostile = Owners.Instance.provincelist.FindAll(province => province != null && province.nation != this);
+        List<Province> hostile = Owners.Instance.provincelist.FindAll(province => province != null &&
+            DiplomacySystem.AreHostile(province.ControllerNation, this));
         if (hostile.Count == 0) return;
         List<Province> frontier = hostile.FindAll(province =>
         {
             List<Province> adjacent = province.GrabAdjacents();
-            return adjacent != null && adjacent.Exists(neighbor => neighbor != null && neighbor.nation == this);
+            return adjacent != null && adjacent.Exists(neighbor => neighbor != null &&
+                DiplomacySystem.HasMasterAccess(this, neighbor.ControllerNation));
         });
         List<Province> candidates = frontier.Count > 0 ? frontier : hostile;
         foreach (FieldArmyHolder army in armies)
@@ -2512,9 +2833,18 @@ public class Nation
             army.fieldArmy.GrabArmySize() + army.fieldArmy.GrabQueuedArmySize() >= GetAIDesiredArmySize(army)) return false;
         if (Owners.Instance.turncounter < army.NextAIReinforcementTurn) return false;
         Province province = army.GrabNearestProvince();
-        if (province != null && province.nation == this)
+        Province tributarySource = FindTributaryReinforcementProvince(army);
+        if (tributarySource != null && (province == null || province.nation == this))
         {
-            List<UnitSaveData> units = province.GetRecruitableRegionUnits(this);
+            army.SetTarget(tributarySource);
+            army.TargetProvince = tributarySource;
+            return false;
+        }
+        if (province != null && DiplomacySystem.HasMasterAccess(this, province.nation))
+        {
+            Nation rosterNation = province.nation;
+            bool tributaryRecruitment = rosterNation != this;
+            List<UnitSaveData> units = province.GetRecruitableRegionUnits(rosterNation);
             int targetSize = GetAIDesiredArmySize(army);
             int professionalGoalPercent = 40 + StableAIHash(name + "|professionals|" + army.NetworkArmyId + "|" +
                 army.gameObject.name) % 31;
@@ -2527,16 +2857,17 @@ public class Nation
             int nearbyThreat = GetHostileFieldArmyStrengthNear(province);
             bool emergency = nearbyThreat > currentSize;
             bool levyHeavyCallup = IsAILevyHeavy(army);
-            if (prioritizeProfessionals && !emergency && !levyHeavyCallup && TryQueueAIProfessional(army, units)) return true;
+            if (prioritizeProfessionals && !emergency && !levyHeavyCallup &&
+                TryQueueAIProfessional(army, units, rosterNation)) return true;
             int levyBatch = emergency || levyHeavyCallup ? missing : Mathf.Min(missing, 1 +
                 StableAIHash(name + "|levy-batch|" + army.gameObject.name + "|" +
                     (Owners.Instance.turncounter / Mathf.Max(1, army.AIReinforcementIntervalTurns))) % 3);
-            if (province.RaiseBestAIRegionLevies(army, levyBatch) > 0)
+            if (!tributaryRecruitment && province.RaiseBestAIRegionLevies(army, levyBatch) > 0)
             {
                 army.NextAIReinforcementTurn = Owners.Instance.turncounter + Mathf.Max(1, army.AIReinforcementIntervalTurns);
                 return true;
             }
-            if (TryQueueAIProfessional(army, units)) return true;
+            if (TryQueueAIProfessional(army, units, rosterNation)) return true;
         }
 
         if (army.IsTargetNull())
@@ -2552,6 +2883,33 @@ public class Nation
         return false;
     }
 
+    private Province FindTributaryReinforcementProvince(FieldArmyHolder army)
+    {
+        if (army == null || army.fieldArmy == null || Owners.Instance == null) return null;
+        int desiredSize = GetAIDesiredArmySize(army);
+        int desiredTributaries = Mathf.Max(1, Mathf.CeilToInt(desiredSize * 0.3f));
+        int tributaries = army.fieldArmy.CountFormations(CampaignUnitOrigin.Mercenary);
+        if (army.fieldArmy.recruitmentOrders != null)
+            foreach (ArmyRecruitmentOrder order in army.fieldArmy.recruitmentOrders)
+                if (order != null && order.origin == CampaignUnitOrigin.Mercenary)
+                    tributaries += Mathf.Max(0, order.amount);
+        if (tributaries >= desiredTributaries) return null;
+
+        Province best = null;
+        float bestDistance = float.MaxValue;
+        foreach (Province candidate in Owners.Instance.provincelist)
+        {
+            if (candidate == null || candidate.IsOccupied || candidate.nation == null ||
+                !DiplomacySystem.IsTributarySubjectOf(candidate.nation, this) ||
+                !candidate.AllowsRecruitment(candidate.nation) || !CanAIReinforceAt(candidate, army)) continue;
+            float distance = army.GrabDistanceToProvince(candidate);
+            if (distance < bestDistance || Mathf.Approximately(distance, bestDistance) &&
+                (best == null || string.CompareOrdinal(candidate.name, best.name) < 0))
+            { best = candidate; bestDistance = distance; }
+        }
+        return best;
+    }
+
     private Province FindReinforcementProvince(FieldArmyHolder army, bool coreOnly)
     {
         if (army == null || Owners.Instance == null || Owners.Instance.provincelist == null) return null;
@@ -2559,7 +2917,8 @@ public class Nation
         float bestDistance = float.MaxValue;
         foreach (Province candidate in Owners.Instance.provincelist)
         {
-            if (candidate == null || candidate.nation != this || !candidate.AllowsRecruitment(this) ||
+            if (candidate == null || !DiplomacySystem.HasMasterAccess(this, candidate.nation) ||
+                !candidate.AllowsRecruitment(candidate.nation) ||
                 coreOnly && candidate.OriginalNation != this || !CanAIReinforceAt(candidate, army)) continue;
             // Province positions use map coordinates; armies use those coordinates minus their map offset.
             Vector3 candidateWorldPosition = new Vector3(candidate.position.x - army.offset.x,
@@ -2578,10 +2937,15 @@ public class Nation
     private bool CanAIReinforceAt(Province province, FieldArmyHolder army)
     {
         if (province == null || army == null || army.fieldArmy == null) return false;
-        List<UnitSaveData> professionals = province.GetRecruitableRegionUnits(this);
+        Nation rosterNation = province.nation;
+        List<UnitSaveData> professionals = province.GetRecruitableRegionUnits(rosterNation);
         bool hasUsableProfessionals = professionals.Exists(unit => unit != null &&
-            Manpower >= Mathf.Max(1, unit.cost / 100) && Gold >= CampaignEconomy.UnitGoldCost(unit));
+            rosterNation.GetRegionalManpower(province) >= 1f && Gold >= CampaignEconomy.UnitGoldCost(unit, 1, this,
+                rosterNation == this ? CampaignUnitOrigin.Professional : CampaignUnitOrigin.Mercenary));
         if (hasUsableProfessionals) return true;
+
+        // A master may use its subject's professional roster and manpower, never its levies.
+        if (rosterNation != this) return false;
 
         int targetSize = GetAIDesiredArmySize(army);
         int currentSize = army.fieldArmy.GrabArmySize() + army.fieldArmy.GrabQueuedArmySize();
@@ -2602,26 +2966,38 @@ public class Nation
             army.gameObject.name) % 100 < 20;
     }
 
-    private bool TryQueueAIProfessional(FieldArmyHolder army, List<UnitSaveData> units)
+    private bool TryQueueAIProfessional(FieldArmyHolder army, List<UnitSaveData> units, Nation rosterNation = null)
     {
         if (army == null || army.fieldArmy == null || units == null || units.Count == 0) return false;
         // Nations favour the best locally available tier while retaining
         // some lower-tier recruitment for cost and army variety.
-        units.Sort((left, right) => NationContentResolver.GetUnitTier(this, left)
-            .CompareTo(NationContentResolver.GetUnitTier(this, right)));
+        rosterNation = rosterNation != null ? rosterNation : this;
+        units.Sort((left, right) => NationContentResolver.GetUnitTier(rosterNation, left)
+            .CompareTo(NationContentResolver.GetUnitTier(rosterNation, right)));
         int upperHalfStart = Mathf.Max(0, units.Count / 2);
         UnitSaveData unit = Random.value < 0.7f
             ? units[Random.Range(upperHalfStart, units.Count)]
             : units[Random.Range(0, units.Count)];
-        int manpowerCost = Mathf.Max(1, unit.cost / 100);
-        int goldCost = CampaignEconomy.UnitGoldCost(unit);
-        if (Manpower < manpowerCost || Gold < goldCost) return false;
-        Manpower -= manpowerCost;
+        bool tributary = rosterNation != this;
+        CampaignUnitOrigin origin = tributary ? CampaignUnitOrigin.Mercenary : CampaignUnitOrigin.Professional;
+        int goldCost = CampaignEconomy.UnitGoldCost(unit, 1, this, origin);
+        Province source = army.GrabNearestProvince();
+        if (source == null || source.nation != rosterNation || Gold < goldCost ||
+            !rosterNation.TrySpendManpower(source, 1f)) return false;
         Gold -= goldCost;
-        if (!army.fieldArmy.QueueRecruitment(unit, 1))
-        { Manpower += manpowerCost; Gold += goldCost; return false; }
+        if (!army.fieldArmy.QueueRecruitment(unit, 1, origin, tributary ? rosterNation.name : null))
+        { rosterNation.RefundManpower(source, 1f); Gold += goldCost; return false; }
         army.NextAIReinforcementTurn = Owners.Instance.turncounter + Mathf.Max(1, army.AIReinforcementIntervalTurns);
         return true;
+    }
+
+    public float GetRegionalManpower(Province province)
+    {
+        if (province == null || Owners.Instance == null) return 0f;
+        float total = 0f;
+        foreach (CampaignRegion region in GetAccessibleManpowerRegions(province))
+            total += region.GetManpower(this);
+        return total;
     }
 
     public float AverageArmyStrength()
@@ -2640,6 +3016,7 @@ public class Nation
     }
     public int DesiredAIArmyLimit()
     {
+        if (IsPacifist) return 1;
         int ownedProvinces = Owners.Instance.provincelist.FindAll(province => province.nation == this).Count;
         return Mathf.Clamp(1 + Mathf.CeilToInt(ownedProvinces / 3f), 1, 8);
     }
@@ -2713,6 +3090,14 @@ public class RegionalLoyaltyShare
 }
 
 [System.Serializable]
+public class RegionalManpowerShare
+{
+    public string nationName;
+    [Min(0f)] public float current;
+    public bool initialized;
+}
+
+[System.Serializable]
 public class CampaignRegion
 {
     public string name;
@@ -2720,8 +3105,82 @@ public class CampaignRegion
     public Color32 identity;
     [Range(0f, 100f)] public float loyalty = 0f;
     public List<RegionalLoyaltyShare> loyaltyShares = new List<RegionalLoyaltyShare>();
+    public List<RegionalManpowerShare> manpowerShares = new List<RegionalManpowerShare>();
     public List<Province> provincelist = new List<Province>();
     [System.NonSerialized] private List<Nation> ownerScratch = new List<Nation>();
+
+    public float GetManpowerCapacity(Nation nation)
+    {
+        if (nation == null || provincelist == null) return 0f;
+        int holdings = 0;
+        foreach (Province province in provincelist)
+            if (province != null && !province.IsOccupied && province.nation == nation && province.holdings != null)
+                for (int i = 0; i < province.holdings.Count; i++)
+                    if (province.holdings[i] != null) holdings++;
+        return holdings * 0.1f;
+    }
+
+    public RegionalManpowerShare GetManpowerShare(Nation nation, bool create)
+    {
+        if (nation == null) return null;
+        if (manpowerShares == null) manpowerShares = new List<RegionalManpowerShare>();
+        RegionalManpowerShare share = manpowerShares.Find(item => item != null && item.nationName == nation.name);
+        if (share == null && create)
+        {
+            share = new RegionalManpowerShare { nationName = nation.name };
+            manpowerShares.Add(share);
+        }
+        if (share != null && !share.initialized)
+        {
+            share.current = GetManpowerCapacity(nation);
+            share.initialized = true;
+        }
+        return share;
+    }
+
+    public float GetManpower(Nation nation)
+    {
+        RegionalManpowerShare share = GetManpowerShare(nation, true);
+        if (share == null) return 0f;
+        share.current = Mathf.Clamp(share.current, 0f, GetManpowerCapacity(nation));
+        return share.current;
+    }
+
+    public bool TrySpendManpower(Nation nation, float amount)
+    {
+        amount = Mathf.Max(0f, amount);
+        RegionalManpowerShare share = GetManpowerShare(nation, true);
+        if (share == null || share.current + 0.0001f < amount) return false;
+        share.current = Mathf.Max(0f, share.current - amount);
+        return true;
+    }
+
+    public void AddManpower(Nation nation, float amount)
+    {
+        RegionalManpowerShare share = GetManpowerShare(nation, true);
+        if (share != null) share.current = Mathf.Clamp(share.current + Mathf.Max(0f, amount), 0f,
+            GetManpowerCapacity(nation));
+    }
+
+    public float ManpowerRecoveryPerTick(Nation nation)
+    {
+        if (nation == null || provincelist == null) return 0f;
+        float recovery = 0f;
+        foreach (Province province in provincelist)
+        {
+            if (province == null || province.IsOccupied || province.nation != nation) continue;
+            recovery += 0.005f;
+            if (province.buildings == null) continue;
+            foreach (ProvinceBuilding building in province.buildings)
+                if (building != null) recovery += building.DefinitionManpowerRecovery;
+        }
+        recovery *= 0.25f;
+        int recoveryMillionths = Mathf.RoundToInt(recovery * 1000000f);
+        recoveryMillionths = nation.ApplyLawModifiers(NationalLawEffectType.ManpowerRecovery, recoveryMillionths);
+        return Mathf.Max(0, recoveryMillionths) / 1000000f;
+    }
+
+    public void ProcessManpowerTurn(Nation nation) => AddManpower(nation, ManpowerRecoveryPerTick(nation));
 
     public float GetLoyalty(Nation nation)
     {
@@ -2877,6 +3336,7 @@ public class CampaignRegion
                 ownerScratch.Add(province.nation);
         foreach (Nation owner in ownerScratch)
         {
+            ProcessManpowerTurn(owner);
             float food = 0f;
             int population = 0, primaryCulturePopulation = 0;
             int fortLevels = 0, templeLevels = 0;
@@ -2887,7 +3347,7 @@ public class CampaignRegion
             // path created and scanned an owned-province list four times per owner.
             foreach (Province province in provincelist)
             {
-                if (province == null || province.nation != owner) continue;
+                if (province == null || province.IsOccupied || province.nation != owner) continue;
                 food += province.GetFoodOutputUnrounded();
                 population += Mathf.Max(0, province.population);
                 if (!string.IsNullOrEmpty(primaryCulture) && province.cultures != null)
@@ -2979,6 +3439,6 @@ public class CampaignRegion
 
     public List<Province> GetProvincesOwnedBy(Nation nation)
     {
-        return provincelist.FindAll(province => province != null && province.nation == nation);
+        return provincelist.FindAll(province => province != null && !province.IsOccupied && province.nation == nation);
     }
 }

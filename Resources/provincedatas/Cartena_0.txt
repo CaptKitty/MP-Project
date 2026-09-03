@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Cartena_0
+}
+Color ={
+255
+120
+96
+}
+Location ={
+263
+232
+}
+Region ={
+Masaesyli
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Numidia
+}
+}

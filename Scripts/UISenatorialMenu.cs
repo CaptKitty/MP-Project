@@ -147,7 +147,7 @@ public sealed class UISenatorialMenu : MonoBehaviour
             row.gameObject.SetActive(true);
             Text label = row.GetComponentInChildren<Text>(true);
             if (label != null) label.text = activeLaw ? activeLaws[i].displayName +
-                "\nNORMAL\n" + activeLaws[i].Describe() + "\n\nAVAILABLE EXTENSIONS\n" +
+                "\n" + activeLaws[i].Describe() + "\n\nAVAILABLE EXTENSIONS\n" +
                 activeLaws[i].DescribeExtensions() :
                 activeEdict ? "ACTIVE EDICT: " + activeEdicts[activeEdictIndex].title +
                     "\n" + PoliticalProposalSystem.DescribeEdict(activeEdicts[activeEdictIndex].edict) +

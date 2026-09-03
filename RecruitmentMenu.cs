@@ -11,6 +11,7 @@ public class RecruitmentMenu : MonoBehaviour
     private RectTransform content;
     private Text title;
     private Font font;
+    private readonly List<Material> generatedArtworkMaterials = new List<Material>();
 
     public static RecruitmentMenu Create(Canvas canvas)
     {
@@ -32,6 +33,8 @@ public class RecruitmentMenu : MonoBehaviour
 
     private void OnDestroy()
     {
+        foreach (Material material in generatedArtworkMaterials) if (material != null) Destroy(material);
+        generatedArtworkMaterials.Clear();
         if (Instance == this) Instance = null;
     }
 
@@ -154,6 +157,8 @@ public class RecruitmentMenu : MonoBehaviour
     public void Refresh()
     {
         if (army == null || Owners.Instance == null) return;
+        foreach (Material material in generatedArtworkMaterials) if (material != null) Destroy(material);
+        generatedArtworkMaterials.Clear();
         for (int i = content.childCount - 1; i >= 0; i--) Destroy(content.GetChild(i).gameObject);
 
         Province current = army.GrabNearestProvince();
@@ -212,9 +217,27 @@ public class RecruitmentMenu : MonoBehaviour
             return;
         }
         AddHeader("Regional units");
-        if (current.nation != army.fieldArmy.nation)
+        bool tributaryRecruitment = DiplomacySystem.CanRecruitTributaryRoster(army.fieldArmy.nation, current.nation);
+        if (current.nation != army.fieldArmy.nation && !tributaryRecruitment)
         {
             AddMessage("Local recruitment requires an owned province.");
+        }
+        else if (tributaryRecruitment)
+        {
+            Nation subject = current.nation;
+            AddHeader("Tributary units - " + subject.name);
+            if (!current.AllowsRecruitment(subject))
+                AddMessage("The tributary region requires at least 50% loyalty to recruit units.");
+            else
+            {
+                List<UnitSaveData> tributaryUnits = current.GetRecruitableRegionUnits(subject);
+                if (tributaryUnits.Count == 0) AddMessage("No tributary units are unlocked in this region.");
+                foreach (UnitSaveData unit in tributaryUnits)
+                {
+                    Province source = current.FindRegionalRecruitmentSource(unit, subject);
+                    if (source != null) AddRecruitButton(unit, false, source, -1, subject);
+                }
+            }
         }
         else
         {
@@ -246,6 +269,9 @@ public class RecruitmentMenu : MonoBehaviour
             }
         }
 
+        AddAccessibleTributaryRecruitment(current, army.fieldArmy.nation,
+            tributaryRecruitment ? current.nation : null);
+
         if (ProvinceMercenaryPool.Enabled)
         {
             AddHeader("Mercenaries - current province");
@@ -260,39 +286,85 @@ public class RecruitmentMenu : MonoBehaviour
         }
     }
 
-    private void AddRecruitButton(UnitSaveData unit, bool mercenary, Province source, int stock)
+    private void AddAccessibleTributaryRecruitment(Province current, Nation master, Nation alreadyShown)
+    {
+        if (current == null || master == null || Owners.Instance == null) return;
+        foreach (Nation subject in Owners.Instance.nationlist)
+        {
+            if (subject == null || subject == alreadyShown || !DiplomacySystem.IsTributarySubjectOf(subject, master)) continue;
+            List<Province> accessible = current.GetLocalAndAdjacentRegionProvinces(subject);
+            if (accessible.Count == 0) continue;
+            AddHeader("Tributary units - " + subject.name);
+            Dictionary<string, Province> sources = new Dictionary<string, Province>(System.StringComparer.OrdinalIgnoreCase);
+            foreach (Province candidate in accessible)
+            {
+                if (candidate == null || candidate.IsOccupied || !candidate.AllowsRecruitment(subject)) continue;
+                foreach (UnitSaveData unit in candidate.GetRecruitableRegionUnits(subject))
+                {
+                    if (unit == null || sources.ContainsKey(unit.name)) continue;
+                    Province source = candidate.FindRegionalRecruitmentSource(unit, subject);
+                    if (source != null) sources.Add(unit.name, source);
+                }
+            }
+            if (sources.Count == 0)
+            {
+                bool loyal = accessible.Exists(candidate => candidate != null && candidate.AllowsRecruitment(subject));
+                AddMessage(loyal ? "No tributary units are unlocked in accessible regions." :
+                    "Accessible tributary regions require at least 50% loyalty.");
+                continue;
+            }
+            List<string> unitNames = new List<string>(sources.Keys);
+            unitNames.Sort(System.StringComparer.OrdinalIgnoreCase);
+            foreach (string unitName in unitNames)
+            {
+                Province source = sources[unitName];
+                UnitSaveData unit = source.GetRecruitableRegionUnits(subject).Find(candidate => candidate != null &&
+                    string.Equals(candidate.name, unitName, System.StringComparison.OrdinalIgnoreCase));
+                if (unit != null) AddRecruitButton(unit, false, source, -1, subject);
+            }
+        }
+    }
+
+    private void AddRecruitButton(UnitSaveData unit, bool mercenary, Province source, int stock,
+        Nation tributarySource = null)
     {
         Nation recruitingNation = army != null && army.fieldArmy != null ? army.fieldArmy.nation : null;
-        CampaignUnitOrigin origin = mercenary ? CampaignUnitOrigin.Mercenary : CampaignUnitOrigin.Professional;
+        bool tributary = tributarySource != null;
+        CampaignUnitOrigin origin = mercenary || tributary ? CampaignUnitOrigin.Mercenary : CampaignUnitOrigin.Professional;
         string label = unit.name.Replace("(Clone)", "") + " — " + CampaignEconomy.UnitGoldCost(unit, 1, recruitingNation, origin) + " gold";
         label += mercenary ? " — " + source.name + " (" + stock + ")" : " — " + source.name;
+        if (tributary) label += " | tributary mercenary";
         int recruitmentTicks = unit.EffectiveRecruitmentTicks;
-        if (recruitingNation != null && mercenary)
+        if (recruitingNation != null && (mercenary || tributary))
             recruitmentTicks = Mathf.Max(1, recruitingNation.ApplyLawModifiers(
                 NationalLawEffectType.MercenaryRecruitmentTime, recruitmentTicks, null, origin));
         label += " | " + recruitmentTicks + " ticks";
-        Button button = CreateButton("Recruit " + unit.name, content, label, () => Recruit(unit, mercenary, source));
+        Button button = CreateButton("Recruit " + unit.name, content, label,
+            () => Recruit(unit, mercenary, source, tributarySource));
         LayoutElement layout = button.gameObject.AddComponent<LayoutElement>();
         layout.preferredHeight = 132f;
         button.interactable = !mercenary || stock > 0;
-        AddUnitArtwork(button, unit);
+        AddUnitArtwork(button, unit, tributarySource);
     }
 
-    private void Recruit(UnitSaveData unit, bool mercenary, Province source)
+    private void Recruit(UnitSaveData unit, bool mercenary, Province source, Nation tributarySource = null)
     {
         if (army == null || !army.IsTargetNull()) return;
         if (mercenary && !ProvinceMercenaryPool.Enabled) return;
         if (CampaignNetworkPlayer.Local != null && CampaignNetworkPlayer.Local.IsSpawned)
         {
-            CampaignNetworkPlayer.Local.RequestProvinceRecruit(unit.name, 1, mercenary, source.name);
+            CampaignNetworkPlayer.Local.RequestProvinceRecruit(unit.name, 1, mercenary, source.name,
+                tributarySource != null);
         }
         else if (army != null && army.fieldArmy != null && army.fieldArmy.nation != null && source != null)
         {
             Nation nation = army.fieldArmy.nation;
-            CampaignUnitOrigin origin = mercenary ? CampaignUnitOrigin.Mercenary : CampaignUnitOrigin.Professional;
+            bool tributary = tributarySource != null && DiplomacySystem.CanRecruitTributaryRoster(nation, tributarySource);
+            CampaignUnitOrigin origin = mercenary || tributary ? CampaignUnitOrigin.Mercenary : CampaignUnitOrigin.Professional;
             int goldCost = CampaignEconomy.UnitGoldCost(unit, 1, nation, origin);
             Province current = army.GrabNearestProvince();
-            if (current == null || !current.AllowsRecruitment(nation)) return;
+            Nation manpowerNation = tributary ? tributarySource : nation;
+            if (current == null || source == null || !source.AllowsRecruitment(manpowerNation)) return;
             if (nation.Gold < goldCost || army.fieldArmy.GrabArmySize() + army.fieldArmy.GrabQueuedArmySize() >= army.fieldArmy.MaxArmySize) return;
             if (mercenary)
             {
@@ -302,14 +374,22 @@ public class RecruitmentMenu : MonoBehaviour
                 if (pool == null || pool.available <= 0 || army.fieldArmy.ArmySupply < supplyCost) return;
                 pool.available--; army.fieldArmy.ArmySupply -= supplyCost;
             }
+            else if (tributary)
+            {
+                if (source.nation != manpowerNation || !current.CanAccessRecruitmentSource(source, manpowerNation) ||
+                    !source.CanRecruitLocal(unit) || !manpowerNation.TrySpendManpower(source, 1f)) return;
+            }
             else
             {
-                int manpowerCost = Mathf.Max(1, unit.cost / 100);
                 if (current == null || source.nation != nation || !current.SharesRegionWith(source) ||
-                    !source.CanRecruitLocal(unit) || nation.Manpower < manpowerCost) return;
-                nation.Manpower -= manpowerCost;
+                    !source.CanRecruitLocal(unit) || !nation.TrySpendManpower(source, 1f)) return;
             }
-            if (!army.fieldArmy.QueueRecruitment(unit, 1, origin)) return;
+            if (!army.fieldArmy.QueueRecruitment(unit, 1, origin, tributary ? manpowerNation.name : null))
+            {
+                if (tributary) manpowerNation.RefundManpower(source, 1f);
+                else if (!mercenary) nation.RefundManpower(source, 1f);
+                return;
+            }
             nation.Gold -= goldCost;
         }
         Invoke(nameof(Refresh), 0.2f);
@@ -369,7 +449,7 @@ public class RecruitmentMenu : MonoBehaviour
         return button;
     }
 
-    private void AddUnitArtwork(Button button, UnitSaveData unit)
+    private void AddUnitArtwork(Button button, UnitSaveData unit, Nation tributarySource = null)
     {
         if (unit == null || unit.bodyparts == null || unit.bodyparts.Count == 0) return;
 
@@ -383,7 +463,7 @@ public class RecruitmentMenu : MonoBehaviour
         portraitRect.anchoredPosition = new Vector2(70f, 0f);
         portraitRect.sizeDelta = new Vector2(120f, 120f);
 
-        Material artworkMaterial = FindArtworkMaterial();
+        Material artworkMaterial = CreateArtworkMaterial(unit, tributarySource);
 
         int layerCount = Mathf.Min(3, unit.bodyparts.Count);
         Vector2[] slotOffsets =
@@ -419,6 +499,27 @@ public class RecruitmentMenu : MonoBehaviour
             label.fontSize = 19;
             label.rectTransform.offsetMin = new Vector2(145f, 2f);
         }
+    }
+
+    private Material CreateArtworkMaterial(UnitSaveData unit, Nation tributarySource)
+    {
+        Material sourceMaterial = FindArtworkMaterial();
+        if (sourceMaterial == null) return null;
+        Material material = Instantiate(sourceMaterial);
+        material.name = "Recruitment Artwork " + (tributarySource != null ? tributarySource.name : unit.name);
+        Faction armyFaction = army != null && army.fieldArmy != null && army.fieldArmy.nation != null
+            ? army.fieldArmy.nation.faction : null;
+        if (armyFaction != null)
+        {
+            if (material.HasProperty("_FactionColor")) material.SetColor("_FactionColor", armyFaction.color);
+            if (material.HasProperty("_FactionColor2")) material.SetColor("_FactionColor2", armyFaction.color2);
+            Color skin = tributarySource != null && tributarySource.faction != null
+                ? tributarySource.faction.color3
+                : unit != null && unit.Mercenary ? unit.nativeSkintone : armyFaction.color3;
+            if (material.HasProperty("_FactionColor3")) material.SetColor("_FactionColor3", skin);
+        }
+        generatedArtworkMaterials.Add(material);
+        return material;
     }
 
     private static Material FindArtworkMaterial()

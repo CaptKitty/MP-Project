@@ -8516,7 +8516,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -350, y: 460}
+  m_AnchoredPosition: {x: -150, y: 460}
   m_SizeDelta: {x: 400, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &910000002
@@ -11625,6 +11625,85 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1215754276}
+  m_CullTransparentMesh: 1
+--- !u!1 &1216901547
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1216901548}
+  - component: {fileID: 1216901550}
+  - component: {fileID: 1216901549}
+  m_Layer: 5
+  m_Name: Manpower
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1216901548
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1216901547}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2049131521}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -460, y: 0}
+  m_SizeDelta: {x: 200, y: 160}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1216901549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1216901547}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 12800000, guid: b567d69cac787a546a2cad908ad6b09a, type: 3}
+    m_FontSize: 20
+    m_FontStyle: 0
+    m_BestFit: 0
+    m_MinSize: 0
+    m_MaxSize: 40
+    m_Alignment: 4
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: <X>/<Y> Manpower Capacity
+--- !u!222 &1216901550
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1216901547}
   m_CullTransparentMesh: 1
 --- !u!1 &1225632868
 GameObject:
@@ -17896,12 +17975,20 @@ MonoBehaviour:
     culture: {fileID: 0}
     religion: {fileID: 0}
     nationalbrainy: {fileID: 0}
+    TributaryMasterName: 
+    PeaceTreatyNationNames: []
+    WarNationNames: []
+    LastWarDeclarationTurn: -1000
+    NextAIDiplomacyTurn: 0
+    PendingPeaceOfferFrom: 
+    PendingPeaceTerms: 0
     Manpower: 0
     Gold: 500
     ArmyNumber: 0
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    NextAICoordinationTurn: 0
     LastGrossIncome: 0
     LastUnitUpkeep: 0
     UpkeepDebt: 0
@@ -17934,12 +18021,20 @@ MonoBehaviour:
       culture: {fileID: 0}
       religion: {fileID: 0}
       nationalbrainy: {fileID: 0}
+      TributaryMasterName: 
+      PeaceTreatyNationNames: []
+      WarNationNames: []
+      LastWarDeclarationTurn: -1000
+      NextAIDiplomacyTurn: 0
+      PendingPeaceOfferFrom: 
+      PendingPeaceTerms: 0
       Manpower: 0
       Gold: 500
       ArmyNumber: 0
       NextAIInfrastructureTurn: 0
       AIInfrastructureIntervalTurns: 12
       NextAIEconomyTurn: 0
+      NextAICoordinationTurn: 0
       LastGrossIncome: 0
       LastUnitUpkeep: 0
       UpkeepDebt: 0
@@ -17967,12 +18062,61 @@ MonoBehaviour:
       culture: {fileID: 0}
       religion: {fileID: 0}
       nationalbrainy: {fileID: 0}
+      TributaryMasterName: 
+      PeaceTreatyNationNames: []
+      WarNationNames: []
+      LastWarDeclarationTurn: -1000
+      NextAIDiplomacyTurn: 0
+      PendingPeaceOfferFrom: 
+      PendingPeaceTerms: 0
       Manpower: 0
       Gold: 500
       ArmyNumber: 0
       NextAIInfrastructureTurn: 0
       AIInfrastructureIntervalTurns: 12
       NextAIEconomyTurn: 0
+      NextAICoordinationTurn: 0
+      LastGrossIncome: 0
+      LastUnitUpkeep: 0
+      UpkeepDebt: 0
+      laws: []
+      politicalGroups: []
+      allegiances: []
+      startingAllegiancesAssigned: 0
+      politicalProposals: []
+      activeEdicts: []
+      latestPassedEdict: 
+      levyRecoveryBoostTicks: 0
+      levyRecoveryBonusPerTick: 0
+      LevyLawPermille: 200
+      holdingEconomyModifiers: []
+      AIMinimumCampaignArmySize: 10
+    OccupyingNation:
+      name: 
+      ownerIdentity:
+        serializedVersion: 2
+        rgba: 0
+      IsPlayer: 0
+      armies: []
+      faction: {fileID: 0}
+      civilization: {fileID: 0}
+      culture: {fileID: 0}
+      religion: {fileID: 0}
+      nationalbrainy: {fileID: 0}
+      TributaryMasterName: 
+      PeaceTreatyNationNames: []
+      WarNationNames: []
+      LastWarDeclarationTurn: -1000
+      NextAIDiplomacyTurn: 0
+      PendingPeaceOfferFrom: 
+      PendingPeaceTerms: 0
+      Manpower: 0
+      Gold: 500
+      ArmyNumber: 0
+      NextAIInfrastructureTurn: 0
+      AIInfrastructureIntervalTurns: 12
+      NextAIEconomyTurn: 0
+      NextAICoordinationTurn: 0
       LastGrossIncome: 0
       LastUnitUpkeep: 0
       UpkeepDebt: 0
@@ -18068,12 +18212,20 @@ MonoBehaviour:
     culture: {fileID: 11400000, guid: fd075a6193d7e1d4d8932b63d633f24c, type: 2}
     religion: {fileID: 0}
     nationalbrainy: {fileID: 0}
+    TributaryMasterName: 
+    PeaceTreatyNationNames: []
+    WarNationNames: []
+    LastWarDeclarationTurn: -1000
+    NextAIDiplomacyTurn: 0
+    PendingPeaceOfferFrom: 
+    PendingPeaceTerms: 0
     Manpower: 0
     Gold: 500
     ArmyNumber: 0
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    NextAICoordinationTurn: 0
     LastGrossIncome: 0
     LastUnitUpkeep: 0
     UpkeepDebt: 0
@@ -18100,12 +18252,20 @@ MonoBehaviour:
     culture: {fileID: 11400000, guid: 5b2ed46897ee958458285cd8c4f911e5, type: 2}
     religion: {fileID: 0}
     nationalbrainy: {fileID: 0}
+    TributaryMasterName: 
+    PeaceTreatyNationNames: []
+    WarNationNames: []
+    LastWarDeclarationTurn: -1000
+    NextAIDiplomacyTurn: 0
+    PendingPeaceOfferFrom: 
+    PendingPeaceTerms: 0
     Manpower: 0
     Gold: 500
     ArmyNumber: 0
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    NextAICoordinationTurn: 0
     LastGrossIncome: 0
     LastUnitUpkeep: 0
     UpkeepDebt: 0
@@ -18132,12 +18292,20 @@ MonoBehaviour:
     culture: {fileID: 11400000, guid: d5b5217bda1346d44afc2ae0d3ef8b00, type: 2}
     religion: {fileID: 0}
     nationalbrainy: {fileID: 0}
+    TributaryMasterName: 
+    PeaceTreatyNationNames: []
+    WarNationNames: []
+    LastWarDeclarationTurn: -1000
+    NextAIDiplomacyTurn: 0
+    PendingPeaceOfferFrom: 
+    PendingPeaceTerms: 0
     Manpower: 0
     Gold: 500
     ArmyNumber: 0
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    NextAICoordinationTurn: 0
     LastGrossIncome: 0
     LastUnitUpkeep: 0
     UpkeepDebt: 0
@@ -18164,12 +18332,20 @@ MonoBehaviour:
     culture: {fileID: 11400000, guid: d5b5217bda1346d44afc2ae0d3ef8b00, type: 2}
     religion: {fileID: 0}
     nationalbrainy: {fileID: 0}
+    TributaryMasterName: 
+    PeaceTreatyNationNames: []
+    WarNationNames: []
+    LastWarDeclarationTurn: -1000
+    NextAIDiplomacyTurn: 0
+    PendingPeaceOfferFrom: 
+    PendingPeaceTerms: 0
     Manpower: 0
     Gold: 500
     ArmyNumber: 0
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    NextAICoordinationTurn: 0
     LastGrossIncome: 0
     LastUnitUpkeep: 0
     UpkeepDebt: 0
@@ -18196,12 +18372,20 @@ MonoBehaviour:
     culture: {fileID: 11400000, guid: d5b5217bda1346d44afc2ae0d3ef8b00, type: 2}
     religion: {fileID: 0}
     nationalbrainy: {fileID: 0}
+    TributaryMasterName: 
+    PeaceTreatyNationNames: []
+    WarNationNames: []
+    LastWarDeclarationTurn: -1000
+    NextAIDiplomacyTurn: 0
+    PendingPeaceOfferFrom: 
+    PendingPeaceTerms: 0
     Manpower: 0
     Gold: 500
     ArmyNumber: 0
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    NextAICoordinationTurn: 0
     LastGrossIncome: 0
     LastUnitUpkeep: 0
     UpkeepDebt: 0
@@ -18228,12 +18412,20 @@ MonoBehaviour:
     culture: {fileID: 11400000, guid: 6ff9c797a256a5d46839f252d0956ab3, type: 2}
     religion: {fileID: 0}
     nationalbrainy: {fileID: 0}
+    TributaryMasterName: 
+    PeaceTreatyNationNames: []
+    WarNationNames: []
+    LastWarDeclarationTurn: -1000
+    NextAIDiplomacyTurn: 0
+    PendingPeaceOfferFrom: 
+    PendingPeaceTerms: 0
     Manpower: 0
     Gold: 500
     ArmyNumber: 0
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    NextAICoordinationTurn: 0
     LastGrossIncome: 0
     LastUnitUpkeep: 0
     UpkeepDebt: 0
@@ -18260,12 +18452,20 @@ MonoBehaviour:
     culture: {fileID: 11400000, guid: d7aeef1c4883ac94696712de76262a8b, type: 2}
     religion: {fileID: 0}
     nationalbrainy: {fileID: 0}
+    TributaryMasterName: 
+    PeaceTreatyNationNames: []
+    WarNationNames: []
+    LastWarDeclarationTurn: -1000
+    NextAIDiplomacyTurn: 0
+    PendingPeaceOfferFrom: 
+    PendingPeaceTerms: 0
     Manpower: 0
     Gold: 500
     ArmyNumber: 0
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    NextAICoordinationTurn: 0
     LastGrossIncome: 0
     LastUnitUpkeep: 0
     UpkeepDebt: 0
@@ -18292,12 +18492,20 @@ MonoBehaviour:
     culture: {fileID: 11400000, guid: d7aeef1c4883ac94696712de76262a8b, type: 2}
     religion: {fileID: 0}
     nationalbrainy: {fileID: 0}
+    TributaryMasterName: 
+    PeaceTreatyNationNames: []
+    WarNationNames: []
+    LastWarDeclarationTurn: -1000
+    NextAIDiplomacyTurn: 0
+    PendingPeaceOfferFrom: 
+    PendingPeaceTerms: 0
     Manpower: 0
     Gold: 500
     ArmyNumber: 0
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    NextAICoordinationTurn: 0
     LastGrossIncome: 0
     LastUnitUpkeep: 0
     UpkeepDebt: 0
@@ -18324,12 +18532,20 @@ MonoBehaviour:
     culture: {fileID: 11400000, guid: d7aeef1c4883ac94696712de76262a8b, type: 2}
     religion: {fileID: 0}
     nationalbrainy: {fileID: 0}
+    TributaryMasterName: 
+    PeaceTreatyNationNames: []
+    WarNationNames: []
+    LastWarDeclarationTurn: -1000
+    NextAIDiplomacyTurn: 0
+    PendingPeaceOfferFrom: 
+    PendingPeaceTerms: 0
     Manpower: 0
     Gold: 500
     ArmyNumber: 0
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    NextAICoordinationTurn: 0
     LastGrossIncome: 0
     LastUnitUpkeep: 0
     UpkeepDebt: 0
@@ -18356,12 +18572,140 @@ MonoBehaviour:
     culture: {fileID: 11400000, guid: d5b5217bda1346d44afc2ae0d3ef8b00, type: 2}
     religion: {fileID: 0}
     nationalbrainy: {fileID: 0}
+    TributaryMasterName: 
+    PeaceTreatyNationNames: []
+    WarNationNames: []
+    LastWarDeclarationTurn: -1000
+    NextAIDiplomacyTurn: 0
+    PendingPeaceOfferFrom: 
+    PendingPeaceTerms: 0
     Manpower: 0
     Gold: 500
     ArmyNumber: 0
     NextAIInfrastructureTurn: 0
     AIInfrastructureIntervalTurns: 12
     NextAIEconomyTurn: 0
+    NextAICoordinationTurn: 0
+    LastGrossIncome: 0
+    LastUnitUpkeep: 0
+    UpkeepDebt: 0
+    laws: []
+    politicalGroups: []
+    allegiances: []
+    startingAllegiancesAssigned: 0
+    politicalProposals: []
+    activeEdicts: []
+    latestPassedEdict: 
+    levyRecoveryBoostTicks: 0
+    levyRecoveryBonusPerTick: 0
+    LevyLawPermille: 200
+    holdingEconomyModifiers: []
+    AIMinimumCampaignArmySize: 10
+  - name: Numidia
+    ownerIdentity:
+      serializedVersion: 2
+      rgba: 2195368
+    IsPlayer: 0
+    armies: []
+    faction: {fileID: 11400000, guid: b39df2ff35720504da1b50b7d8ee8a24, type: 2}
+    civilization: {fileID: 11400000, guid: 2ac833defde66fe48a9f90737ccaa5bf, type: 2}
+    culture: {fileID: 11400000, guid: ccfd1fc0af1bceb4dbb2acee65e6f043, type: 2}
+    religion: {fileID: 0}
+    nationalbrainy: {fileID: 0}
+    TributaryMasterName: Carthage
+    PeaceTreatyNationNames: []
+    WarNationNames: []
+    LastWarDeclarationTurn: -1000
+    NextAIDiplomacyTurn: 0
+    PendingPeaceOfferFrom: 
+    PendingPeaceTerms: 0
+    Manpower: 0
+    Gold: 500
+    ArmyNumber: 0
+    NextAIInfrastructureTurn: 0
+    AIInfrastructureIntervalTurns: 12
+    NextAIEconomyTurn: 0
+    NextAICoordinationTurn: 0
+    LastGrossIncome: 0
+    LastUnitUpkeep: 0
+    UpkeepDebt: 0
+    laws: []
+    politicalGroups: []
+    allegiances: []
+    startingAllegiancesAssigned: 0
+    politicalProposals: []
+    activeEdicts: []
+    latestPassedEdict: 
+    levyRecoveryBoostTicks: 0
+    levyRecoveryBonusPerTick: 0
+    LevyLawPermille: 200
+    holdingEconomyModifiers: []
+    AIMinimumCampaignArmySize: 10
+  - name: Mauritania
+    ownerIdentity:
+      serializedVersion: 2
+      rgba: 12811088
+    IsPlayer: 0
+    armies: []
+    faction: {fileID: 11400000, guid: 99bf5d6de2f67944fb788bc20e9fa6f5, type: 2}
+    civilization: {fileID: 11400000, guid: 2ac833defde66fe48a9f90737ccaa5bf, type: 2}
+    culture: {fileID: 11400000, guid: ccfd1fc0af1bceb4dbb2acee65e6f043, type: 2}
+    religion: {fileID: 0}
+    nationalbrainy: {fileID: 0}
+    TributaryMasterName: Carthage
+    PeaceTreatyNationNames: []
+    WarNationNames: []
+    LastWarDeclarationTurn: -1000
+    NextAIDiplomacyTurn: 0
+    PendingPeaceOfferFrom: 
+    PendingPeaceTerms: 0
+    Manpower: 0
+    Gold: 500
+    ArmyNumber: 0
+    NextAIInfrastructureTurn: 0
+    AIInfrastructureIntervalTurns: 12
+    NextAIEconomyTurn: 0
+    NextAICoordinationTurn: 0
+    LastGrossIncome: 0
+    LastUnitUpkeep: 0
+    UpkeepDebt: 0
+    laws: []
+    politicalGroups: []
+    allegiances: []
+    startingAllegiancesAssigned: 0
+    politicalProposals: []
+    activeEdicts: []
+    latestPassedEdict: 
+    levyRecoveryBoostTicks: 0
+    levyRecoveryBonusPerTick: 0
+    LevyLawPermille: 200
+    holdingEconomyModifiers: []
+    AIMinimumCampaignArmySize: 10
+  - name: New Carthage
+    ownerIdentity:
+      serializedVersion: 2
+      rgba: 12811088
+    IsPlayer: 0
+    armies: []
+    faction: {fileID: 11400000, guid: 39fa5795b3af65841851ad69e7f87905, type: 2}
+    civilization: {fileID: 11400000, guid: 8d7a45049330e4a4b9bf22fc7794db3e, type: 2}
+    culture: {fileID: 11400000, guid: d5b5217bda1346d44afc2ae0d3ef8b00, type: 2}
+    religion: {fileID: 0}
+    nationalbrainy: {fileID: 0}
+    TributaryMasterName: Carthage
+    PeaceTreatyNationNames: []
+    WarNationNames: []
+    LastWarDeclarationTurn: -1000
+    NextAIDiplomacyTurn: 0
+    PendingPeaceOfferFrom: 
+    PendingPeaceTerms: 0
+    Manpower: 0
+    Gold: 500
+    ArmyNumber: 0
+    NextAIInfrastructureTurn: 0
+    AIInfrastructureIntervalTurns: 12
+    NextAIEconomyTurn: 0
+    NextAICoordinationTurn: 0
     LastGrossIncome: 0
     LastUnitUpkeep: 0
     UpkeepDebt: 0
@@ -18690,6 +19034,7 @@ RectTransform:
   m_Children:
   - {fileID: 494399434}
   - {fileID: 1590286984}
+  - {fileID: 1216901548}
   m_Father: {fileID: 453340826}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}

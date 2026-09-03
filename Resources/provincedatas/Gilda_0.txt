@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Gilda_0
+}
+Color ={
+255
+170
+86
+}
+Location ={
+138
+190
+}
+Region ={
+Mauretania
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Mauritania
+}
+}

@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Sabratha_0
+}
+Color ={
+174
+255
+140
+}
+Location ={
+514
+140
+}
+Region ={
+Africa
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Carthage
+}
+}

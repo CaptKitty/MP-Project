@@ -451,7 +451,7 @@ public class Mapshower : MonoBehaviour
         foreach (Province province in Owners.Instance.provincelist)
         {
             if (!TryGetProvinceRemap(province, out Color32 remapColor) || province.nation == null) continue;
-            SetPaletteColor(remapColor, province.nation.ownerIdentity);
+            SetPaletteColor(remapColor, province.OwnershipMapColor);
         }
         UploadPalette();
     }
@@ -463,7 +463,7 @@ public class Mapshower : MonoBehaviour
         foreach(Province province in Owners.Instance.provincelist)
         {
             if (!TryGetProvinceRemap(province, out Color32 remapColor) || province.nation == null) continue;
-            SetPaletteColor(remapColor, province.nation.ownerIdentity);
+            SetPaletteColor(remapColor, province.OwnershipMapColor);
         }
         UploadPalette();
     }
@@ -543,18 +543,20 @@ public class Mapshower : MonoBehaviour
 
                 if (Input.GetMouseButtonDown(1))
                 {
-                    if (FieldArmyHolder.SelectedPlayerArmy == null) return;
-                    Vector3 mapTarget = new Vector3(x, y, 0);
-                    if (CampaignNetworkPlayer.Local != null && CampaignNetworkPlayer.Local.IsSpawned)
+                    FieldArmyHolder selectedArmy = FieldArmyHolder.SelectedPlayerArmy;
+                    if (selectedArmy != null)
                     {
-                        CampaignNetworkPlayer.Local.RequestArmyMove(
-                            FieldArmyHolder.SelectedPlayerArmy.NetworkArmyId,
-                            mapTarget);
-                    }
-                    else
-                    {
-                        FieldArmyHolder commanded = FieldArmyHolder.SelectedPlayerArmy;
-                        commanded.IsPlayer = true; commanded.IsHumanControlled = true; commanded.SetTarget(mapTarget);
+                        Vector3 mapTarget = new Vector3(x, y, 0);
+                        if (CampaignNetworkPlayer.Local != null && CampaignNetworkPlayer.Local.IsSpawned)
+                        {
+                            CampaignNetworkPlayer.Local.RequestArmyMove(selectedArmy.NetworkArmyId, mapTarget);
+                        }
+                        else
+                        {
+                            selectedArmy.IsPlayer = true;
+                            selectedArmy.IsHumanControlled = true;
+                            selectedArmy.SetTarget(mapTarget);
+                        }
                     }
                 }
 
@@ -634,7 +636,7 @@ public class Mapshower : MonoBehaviour
                 }
                 if (Input.GetMouseButtonDown(1))
                 {
-                    //xAddFileOfPower(new Vector2(x,y),mainTex.GetPixel(x,y));
+                    //AddFileOfPower(new Vector2(x,y),mainTex.GetPixel(x,y));
                 }
 
             }

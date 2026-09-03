@@ -33,6 +33,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: f3068d8151f54539965173239269e2e8, type: 2}
     - {fileID: 11400000, guid: b8aacba79c404fd6a4783cb563031fd8, type: 2}
     - {fileID: 11400000, guid: 2bd5190344af43298421420a8399e4c8, type: 2}
+    - {fileID: 11400000, guid: 73d2a70cb30543c990068a72f84fd511, type: 2}
     generalNames: []
     flags:
     - Barbarian

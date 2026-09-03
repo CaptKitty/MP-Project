@@ -11,12 +11,15 @@ Location ={
 219
 268
 }
+Region ={
+New Carthage
+}
 Population ={
 0
 
 }
 Owner ={
 Normal ={
-Carthage
+New Carthage
 }
 }

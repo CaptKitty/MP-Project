@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Rusaddir_0
+}
+Color ={
+255
+22
+181
+}
+Location ={
+184
+218
+}
+Region ={
+Mauretania
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Mauritania
+}
+}

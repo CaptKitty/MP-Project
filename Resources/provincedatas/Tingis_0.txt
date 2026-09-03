@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Tingis_0
+}
+Color ={
+15
+255
+187
+}
+Location ={
+142
+240
+}
+Region ={
+Mauretania
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Mauritania
+}
+}

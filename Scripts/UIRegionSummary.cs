@@ -202,7 +202,7 @@ public sealed class UIRegionSummary : MonoBehaviour
             foreach (HoldingOutputType type in System.Enum.GetValues(typeof(HoldingOutputType)))
             {
                 if (type == HoldingOutputType.Income || type == HoldingOutputType.Food ||
-                    type == HoldingOutputType.PoliticalInfluence) continue;
+                    type == HoldingOutputType.PoliticalInfluence || type == HoldingOutputType.Manpower) continue;
                 float amount = province.GetHoldingOutputUnrounded(type);
                 outputs[type] = outputs.TryGetValue(type, out float current) ? current + amount : amount;
             }
@@ -223,10 +223,15 @@ public sealed class UIRegionSummary : MonoBehaviour
             ? referenceRegion.GetLoyaltyShare(referenceProvince.nation, true) : null;
         if (foodShare != null)
             text.Append("\nFood storage: ").Append(foodShare.foodStorage).Append(" / ").Append(foodShare.foodStorageCapacity);
+        if (referenceRegion != null && referenceProvince != null && referenceProvince.nation != null)
+            text.Append("\nManpower: ").Append(referenceRegion.GetManpower(referenceProvince.nation).ToString("0.###"))
+                .Append(" / ").Append(referenceRegion.GetManpowerCapacity(referenceProvince.nation).ToString("0.###"))
+                .Append(" (+").Append(referenceRegion.ManpowerRecoveryPerTick(referenceProvince.nation).ToString("0.###"))
+                .Append(" per tick)");
         foreach (HoldingOutputType type in System.Enum.GetValues(typeof(HoldingOutputType)))
         {
             if (type == HoldingOutputType.Income || type == HoldingOutputType.Food ||
-                type == HoldingOutputType.PoliticalInfluence) continue;
+                type == HoldingOutputType.PoliticalInfluence || type == HoldingOutputType.Manpower) continue;
             int amount = outputs.TryGetValue(type, out float value) ? Mathf.RoundToInt(value) : 0;
             text.Append("\n").Append(OutputLabel(type)).Append(": ")
                 .Append(amount >= 0 ? "+" : string.Empty).Append(amount);

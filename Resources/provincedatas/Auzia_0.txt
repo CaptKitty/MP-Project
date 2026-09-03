@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Auzia_0
+}
+Color ={
+255
+135
+225
+}
+Location ={
+289
+206
+}
+Region ={
+Masaesyli
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Numidia
+}
+}

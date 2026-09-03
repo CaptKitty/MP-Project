@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4c1af54aeb37c444a6600ee648e8d94, type: 3}
+  m_Name: Numidian
+  m_EditorClassIdentifier: Assembly-CSharp::NationCultureData
+  cultureName: Numidian
+  color:
+    serializedVersion: 2
+    rgba: 4278228924
+  assemblyName: 
+  startingUrbanization: 0
+  content:
+    units:
+    - unit: {fileID: 11400000, guid: e97bf7aaefbfd3a4fa8859e12cdec048, type: 2}
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 1
+    - unit: {fileID: 11400000, guid: 0006aa33c11cc2947a6b49ac7c0b1504, type: 2}
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 2
+    - unit: {fileID: 11400000, guid: c500bb9b138ab854483732ddb85cf82c, type: 2}
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 3
+    buildings:
+    - {fileID: 11400000, guid: b8aacba79c404fd6a4783cb563031fd8, type: 2}
+    - {fileID: 11400000, guid: 44ff81b29126426e82b6c7d493d54afe, type: 2}
+    generalNames:
+    - Hanno
+    - Hannibal
+    - Hasdrubal
+    - Twinkibal
+    - Magobal
+    - Canibal
+    - Didobal
+    - Barcabal
+    flags: []
+    AllegianceNames:
+    - Hanno
+    - Barca
+    - Mago
+    AllegianceType: Parties
+    allegiances: []
+    holdingEconomyModifiers: []
+    levies: []
+    laws: []

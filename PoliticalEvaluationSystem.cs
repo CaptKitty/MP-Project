@@ -112,6 +112,7 @@ public static class PoliticalEvaluationSystem
             int direction = effect.amountPermille == 0 ? 0 : effect.amountPermille > 0 ? 1 : -1;
             if (effect.type == NationalLawEffectType.LevyConscription ||
                 effect.type == NationalLawEffectType.LevyRecoveryTime ||
+                effect.type == NationalLawEffectType.ManpowerRecovery ||
                 effect.type == NationalLawEffectType.HoldingVictoryUpgradeChance) c.militaryStrength +=
                     effect.type == NationalLawEffectType.LevyRecoveryTime ? -direction : direction;
             if (effect.type == NationalLawEffectType.MercenaryPoolCapacity) c.militaryStrength += direction;

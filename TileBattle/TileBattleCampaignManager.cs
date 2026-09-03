@@ -97,7 +97,7 @@ namespace ProjectX.TileBattle
         public bool TryStartBattle(FieldArmyHolder armyA, FieldArmyHolder armyB)
         {
             if (!IsAuthority() || armyA == null || armyB == null || armyA == armyB || armyA.fieldArmy == null || armyB.fieldArmy == null ||
-                armyA.fieldArmy.nation == armyB.fieldArmy.nation) return false;
+                !DiplomacySystem.AreHostile(armyA.fieldArmy.nation, armyB.fieldArmy.nation)) return false;
             TileCampaignBattle existingA = FindBattle(armyA), existingB = FindBattle(armyB);
             if (existingA != null && existingB == null) return TryJoinBattle(existingA, armyB);
             if (existingB != null && existingA == null) return TryJoinBattle(existingB, armyA);
@@ -126,7 +126,8 @@ namespace ProjectX.TileBattle
             Nation leftNation = battle.ArmyA != null && battle.ArmyA.fieldArmy != null ? battle.ArmyA.fieldArmy.nation : null;
             Nation rightNation = battle.ArmyB != null && battle.ArmyB.fieldArmy != null ? battle.ArmyB.fieldArmy.nation :
                 battle.DefendedProvince != null ? battle.DefendedProvince.nation : null;
-            int side = reinforcement.fieldArmy.nation == leftNation ? 0 : reinforcement.fieldArmy.nation == rightNation ? 1 : -1;
+            int side = DiplomacySystem.AreFriendly(reinforcement.fieldArmy.nation, leftNation) ? 0 :
+                DiplomacySystem.AreFriendly(reinforcement.fieldArmy.nation, rightNation) ? 1 : -1;
             if (side < 0) return false;
             List<FieldArmyHolder> participants = side == 0 ? battle.LeftParticipants : battle.RightParticipants;
             participants.Add(reinforcement); SetEncounter(reinforcement, true); reinforcement.target = Vector3.zero;
@@ -138,10 +139,11 @@ namespace ProjectX.TileBattle
 
         public bool TryStartGarrisonBattle(FieldArmyHolder attacker, Province province)
         {
-            if (!IsAuthority() || attacker == null || attacker.fieldArmy == null || province == null || province.garrison == null ||
-                province.nation == attacker.fieldArmy.nation) return false;
+            if (!IsAuthority() || attacker == null || attacker.fieldArmy == null || province == null ||
+                !DiplomacySystem.AreHostile(province.ControllerNation, attacker.fieldArmy.nation)) return false;
             if (FindBattle(attacker) != null) return true;
-            if (province.garrison.GrabArmySize() <= 0) { attacker.ConquerProvince(province); return true; }
+            if (province.garrison == null || province.garrison.GrabArmySize() <= 0)
+            { attacker.ConquerProvince(province); return true; }
             if (ActiveBattles.Exists(item => item.DefendedProvince == province)) return true;
             string id = "tile_garrison_" + (Owners.Instance != null ? Owners.Instance.turncounter : 0) + "_" + (++battleSequence);
             TileCampaignBattle battle = CreateBattle(id, attacker, null, province);
@@ -549,7 +551,8 @@ namespace ProjectX.TileBattle
                 {
                     if (battle.UnitFormationSources.TryGetValue(unit.Id, out ArmyFormationRecord record) && record != null)
                     {
-                        army.fieldArmy.AddTroop(data, 1, true, record.origin, record.entitlementId);
+                        army.fieldArmy.AddTroop(data, 1, true, record.origin, record.entitlementId,
+                            record.sourceNationName);
                         if (record.origin == CampaignUnitOrigin.Levy) MarkLevyRaised(record.entitlementId, army.NetworkArmyId);
                     }
                     else army.fieldArmy.AddTroop(data, 1, true);
@@ -583,7 +586,8 @@ namespace ProjectX.TileBattle
         {
             if (army == null || army.fieldArmy == null) return;
             if (army.fieldArmy.GrabArmySize() <= 0) { Destroy(army.gameObject); return; }
-            List<Province> friendly = Owners.Instance.provincelist.FindAll(item => item != null && item.nation == army.fieldArmy.nation);
+            List<Province> friendly = Owners.Instance.provincelist.FindAll(item => item != null &&
+                DiplomacySystem.HasMasterAccess(army.fieldArmy.nation, item.nation));
             if (friendly.Count == 0) return;
             Province nearest = null, safest = null; float nearestDistance = float.MaxValue, safestDistance = -1f;
             for (int i = 0; i < friendly.Count; i++)

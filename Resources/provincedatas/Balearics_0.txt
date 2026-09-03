@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Baelarics_0
+}
+Color ={
+140
+172
+255
+}
+Location ={
+308
+304
+}
+Region ={
+Western Isles
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Carthage
+}
+}

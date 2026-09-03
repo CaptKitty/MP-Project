@@ -379,7 +379,10 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             {
                 if (nation == null) { hash *= 31; continue; }
                 hash = hash * 31 + StableTextHash(nation.name); hash = hash * 31 + nation.Gold;
-                hash = hash * 31 + nation.Manpower; hash = hash * 31 + nation.UpkeepDebt;
+                hash = hash * 31 + Mathf.RoundToInt(nation.Manpower * 1000f); hash = hash * 31 + nation.UpkeepDebt;
+                hash = hash * 31 + StableTextHash(nation.TributaryMasterName);
+                hash = hash * 31 + StableTextHash(nation.WarNationNames != null
+                    ? string.Join("|", nation.WarNationNames) : string.Empty);
             }
             foreach (Province province in Owners.Instance.provincelist)
             {
@@ -573,16 +576,17 @@ public class CampaignNetworkPlayer : NetworkBehaviour
 
     public void RequestRecruit(string unitName, int amount = 1)
     {
-        RequestProvinceRecruit(unitName, amount, false, string.Empty);
+        RequestProvinceRecruit(unitName, amount, false, string.Empty, false);
     }
 
-    public void RequestProvinceRecruit(string unitName, int amount, bool mercenary, string sourceProvinceName)
+    public void RequestProvinceRecruit(string unitName, int amount, bool mercenary, string sourceProvinceName,
+        bool tributary = false)
     {
         if (IsOwner && HasAssignment && amount > 0)
         {
             string armyId = FieldArmyHolder.SelectedPlayerArmy != null
                 ? FieldArmyHolder.SelectedPlayerArmy.NetworkArmyId : string.Empty;
-            RequestRecruitRpc(unitName, amount, mercenary, sourceProvinceName ?? string.Empty, armyId ?? string.Empty);
+            RequestRecruitRpc(unitName, amount, mercenary, tributary, sourceProvinceName ?? string.Empty, armyId ?? string.Empty);
         }
     }
 
@@ -602,21 +606,23 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         RequestRaiseAllLeviesRpc(armyId ?? string.Empty);
     }
 
-    public void BroadcastRecruitmentVisual(string armyId, string unitName)
+    public void BroadcastRecruitmentVisual(string armyId, string unitName, string sourceNationName = null)
     {
         if (!IsServer || string.IsNullOrEmpty(armyId) || string.IsNullOrEmpty(unitName)) return;
-        ReceiveRecruitmentVisualRpc(new FixedString64Bytes(armyId), new FixedString64Bytes(unitName));
+        ReceiveRecruitmentVisualRpc(new FixedString64Bytes(armyId), new FixedString64Bytes(unitName),
+            new FixedString64Bytes(sourceNationName ?? string.Empty));
     }
 
     [Rpc(SendTo.NotServer)]
-    private void ReceiveRecruitmentVisualRpc(FixedString64Bytes armyId, FixedString64Bytes unitName)
+    private void ReceiveRecruitmentVisualRpc(FixedString64Bytes armyId, FixedString64Bytes unitName,
+        FixedString64Bytes sourceNationName)
     {
         if (Owners.Instance == null) return;
         FieldArmyHolder army = Owners.Instance.armylist.Find(candidate => candidate != null &&
             candidate.NetworkArmyId == armyId.ToString() && candidate.fieldArmy != null);
         if (army == null || army.fieldArmy.nation == null) return;
         UnitSaveData unit = FindUnit(army.fieldArmy.nation, unitName.ToString());
-        if (unit != null) CampaignRecruitmentVisual.SpawnLocal(unit, army);
+        if (unit != null) CampaignRecruitmentVisual.SpawnLocal(unit, army, sourceNationName.ToString());
     }
 
     public void RequestDemobilizeAllLevies()
@@ -887,7 +893,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server)]
-    private void RequestRecruitRpc(FixedString64Bytes unitName, int amount, bool mercenary,
+    private void RequestRecruitRpc(FixedString64Bytes unitName, int amount, bool mercenary, bool tributary,
         FixedString64Bytes sourceProvinceName, FixedString64Bytes armyId, RpcParams rpcParams = default)
     {
         if (mercenary && !ProvinceMercenaryPool.Enabled) return;
@@ -919,18 +925,21 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         {
             return;
         }
-        if (!currentProvince.AllowsRecruitment(nation)) return;
+        Nation manpowerNation = tributary ? sourceProvince.nation : nation;
+        if (tributary && !DiplomacySystem.CanRecruitTributaryRoster(nation, manpowerNation) ||
+            !sourceProvince.AllowsRecruitment(manpowerNation)) return;
 
         ProvinceMercenaryPool requestedMercenaryPool = mercenary ? sourceProvince.FindMercenary(unitName.ToString()) : null;
         UnitSaveData unit = mercenary
             ? requestedMercenaryPool != null ? requestedMercenaryPool.unit : null
-            : FindUnit(nation, unitName.ToString());
+            : FindUnit(manpowerNation, unitName.ToString());
         if (unit == null) return;
 
         int availableSlots = army.fieldArmy.MaxArmySize - army.fieldArmy.GrabArmySize() - army.fieldArmy.GrabQueuedArmySize();
         int recruitAmount = Mathf.Min(amount, availableSlots);
         if (recruitAmount <= 0) return;
-        CampaignUnitOrigin recruitmentOrigin = mercenary ? CampaignUnitOrigin.Mercenary : CampaignUnitOrigin.Professional;
+        CampaignUnitOrigin recruitmentOrigin = mercenary || tributary
+            ? CampaignUnitOrigin.Mercenary : CampaignUnitOrigin.Professional;
         int goldCost = CampaignEconomy.UnitGoldCost(unit, recruitAmount, nation, recruitmentOrigin);
         if (nation.Gold < goldCost) return;
 
@@ -944,16 +953,26 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             army.fieldArmy.ArmySupply -= supplyCost;
             pool.available -= recruitAmount;
         }
+        else if (tributary)
+        {
+            if (sourceProvince.nation != manpowerNation ||
+                !currentProvince.CanAccessRecruitmentSource(sourceProvince, manpowerNation) ||
+                !sourceProvince.CanRecruitLocal(unit) || !manpowerNation.TrySpendManpower(sourceProvince, recruitAmount)) return;
+        }
         else
         {
             if (currentProvince.nation != nation || sourceProvince.nation != nation ||
                 !currentProvince.SharesRegionWith(sourceProvince) || !sourceProvince.CanRecruitLocal(unit)) return;
-            int manpowerCost = Mathf.Max(1, unit.cost / 100) * recruitAmount;
-            if (nation.Manpower < manpowerCost) return;
-            nation.Manpower -= manpowerCost;
+            if (!nation.TrySpendManpower(sourceProvince, recruitAmount)) return;
         }
 
-        if (!army.fieldArmy.QueueRecruitment(unit, recruitAmount, recruitmentOrigin)) return;
+        if (!army.fieldArmy.QueueRecruitment(unit, recruitAmount, recruitmentOrigin,
+            tributary ? manpowerNation.name : null))
+        {
+            if (tributary) manpowerNation.RefundManpower(sourceProvince, recruitAmount);
+            else if (!mercenary) nation.RefundManpower(sourceProvince, recruitAmount);
+            return;
+        }
         nation.Gold -= goldCost;
     }
 
@@ -1135,6 +1154,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             unchecked
             {
                 signature = signature * 31 + state.NationIndex; signature = signature * 31 + state.Supply;
+                signature = signature * 31 + state.OccupyingNationIndex;
                 signature = signature * 31 + state.Population; signature = signature * 31 + state.Urbanization;
                 signature = signature * 31 + state.TerrainProfile;
                 // Food storage belongs to a region/owner pair, not every province.
@@ -1145,6 +1165,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                     signature = signature * 31 + state.RegionalFoodStorage;
                     signature = signature * 31 + state.RegionalFoodStorageCapacity;
                     signature = signature * 31 + state.RegionalFoodShortage;
+                    signature = signature * 31 + Mathf.RoundToInt(state.RegionalManpower * 1000f);
                 }
             }
             if (fullSnapshot || lastProvinceSignatures[i] != signature) changed.Add(state);
@@ -1178,7 +1199,8 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                         UnitName = record.unit.name,
                         Amount = 1,
                         Origin = (byte)record.origin,
-                        EntitlementId = record.entitlementId ?? string.Empty
+                        EntitlementId = record.entitlementId ?? string.Empty,
+                        SourceNationName = record.sourceNationName ?? string.Empty
                     });
                 }
             }
@@ -1207,6 +1229,13 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 Gold = nation.Gold
                 ,UpkeepDebt = nation.UpkeepDebt,
                 LevyLawPermille = nation.LevyLawPermille
+                ,TributaryMasterName = nation.TributaryMasterName ?? string.Empty
+                ,PeaceTreatyNationNames = nation.PeaceTreatyNationNames != null
+                    ? string.Join("|", nation.PeaceTreatyNationNames) : string.Empty
+                ,WarNationNames = nation.WarNationNames != null ? string.Join("|", nation.WarNationNames) : string.Empty
+                ,LastWarDeclarationTurn = nation.LastWarDeclarationTurn
+                ,PendingPeaceOfferFrom = nation.PendingPeaceOfferFrom ?? string.Empty
+                ,PendingPeaceTerms = (byte)nation.PendingPeaceTerms
             };
             foreach (NationalLaw law in nation.laws)
             {
@@ -1396,7 +1425,8 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                     UnitName = order.unit.name,
                     Amount = order.amount,
                     RemainingTicks = order.remainingTicks,
-                    Origin = (byte)order.origin
+                    Origin = (byte)order.origin,
+                    SourceNationName = order.sourceNationName ?? string.Empty
                 });
             }
         }
@@ -1441,6 +1471,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 signature = signature * 31 + state.Amount;
                 signature = signature * 31 + state.RemainingTicks;
                 signature = signature * 31 + state.Origin;
+                signature = signature * 31 + state.SourceNationName.GetHashCode();
             }
             foreach (CampaignConstructionOrderState state in construction)
             {
@@ -1510,7 +1541,8 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 army.fieldArmy.recruitmentOrders.Add(new ArmyRecruitmentOrder
                 {
                     unit = unit, amount = state.Amount, remainingTicks = state.RemainingTicks,
-                    origin = (CampaignUnitOrigin)Mathf.Clamp(state.Origin, 0, 3)
+                    origin = (CampaignUnitOrigin)Mathf.Clamp(state.Origin, 0, 3),
+                    sourceNationName = state.SourceNationName.ToString()
                 });
             }
             // Only the currently displayed army can have visible queue content;
@@ -1559,7 +1591,8 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             ArmyRecruitmentOrder order = army.fieldArmy.recruitmentOrders[index++];
             if (order == null || order.unit == null || order.unit.name != state.UnitName.ToString() ||
                 order.amount != state.Amount || order.remainingTicks != state.RemainingTicks ||
-                (byte)order.origin != state.Origin) return false;
+                (byte)order.origin != state.Origin ||
+                (order.sourceNationName ?? string.Empty) != state.SourceNationName.ToString()) return false;
         }
         return true;
     }
@@ -1600,6 +1633,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
     {
         if (Owners.Instance == null) return;
         long perfStamp = CampaignPerformanceTrace.Stamp();
+        bool diplomacyChanged = false;
         foreach (CampaignNationState state in nations)
         {
             if (state.NationIndex >= Owners.Instance.nationlist.Count) continue;
@@ -1612,7 +1646,20 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             nation.Gold = state.Gold;
             nation.UpkeepDebt = state.UpkeepDebt;
             nation.LevyLawPermille = Mathf.Clamp(state.LevyLawPermille, 0, 1000);
+            string receivedMaster = state.TributaryMasterName.ToString();
+            if (nation.TributaryMasterName != receivedMaster) diplomacyChanged = true;
+            nation.TributaryMasterName = receivedMaster;
+            string peaceNames = state.PeaceTreatyNationNames.ToString();
+            nation.PeaceTreatyNationNames = string.IsNullOrWhiteSpace(peaceNames)
+                ? new List<string>() : new List<string>(peaceNames.Split('|'));
+            string warNames = state.WarNationNames.ToString();
+            nation.WarNationNames = string.IsNullOrWhiteSpace(warNames)
+                ? new List<string>() : new List<string>(warNames.Split('|'));
+            nation.LastWarDeclarationTurn = state.LastWarDeclarationTurn;
+            nation.PendingPeaceOfferFrom = state.PendingPeaceOfferFrom.ToString();
+            nation.PendingPeaceTerms = (BasicPeaceTerms)Mathf.Clamp(state.PendingPeaceTerms, 0, 3);
         }
+        if (diplomacyChanged && Mapshower.Instance != null) Mapshower.Instance.RePaint();
         if (!replaceLaws)
         {
             double nationStateMs = CampaignPerformanceTrace.MillisecondsSince(perfStamp);
@@ -1753,7 +1800,8 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             {
                 UnitSaveData unit = FindUnit(army.fieldArmy.nation, unitState.UnitName.ToString());
                 if (unit != null) army.fieldArmy.AddTroop(unit, unitState.Amount, true,
-                    (CampaignUnitOrigin)Mathf.Clamp(unitState.Origin, 0, 3), unitState.EntitlementId.ToString());
+                    (CampaignUnitOrigin)Mathf.Clamp(unitState.Origin, 0, 3), unitState.EntitlementId.ToString(),
+                    unitState.SourceNationName.ToString());
             }
         }
     }
@@ -1950,7 +1998,8 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         {
             int index = unmatched.FindIndex(record => record != null && record.unit != null &&
                 record.unit.name == state.UnitName.ToString() && (byte)record.origin == state.Origin &&
-                (record.entitlementId ?? string.Empty) == state.EntitlementId.ToString());
+                (record.entitlementId ?? string.Empty) == state.EntitlementId.ToString() &&
+                (record.sourceNationName ?? string.Empty) == state.SourceNationName.ToString());
             if (index < 0) return false;
             unmatched.RemoveAt(index);
         }
@@ -2298,6 +2347,15 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 province.nation = receivedNation;
                 ownershipChanged = true;
             }
+            Nation receivedOccupier = state.OccupyingNationIndex < Owners.Instance.nationlist.Count
+                ? Owners.Instance.nationlist[state.OccupyingNationIndex] : null;
+            if (province.OccupyingNation != receivedOccupier)
+            {
+                province.OccupyingNation = receivedOccupier;
+                if (province.IsOccupied) province.garrison = null;
+                else if (province.garrison == null) province.CreateGarrison();
+                ownershipChanged = true;
+            }
             province.supply = state.Supply;
             province.urbanization = Mathf.Clamp(state.Urbanization, -100, province.MaximumDevelopment);
             province.terrainProfile = (CampaignTerrainProfile)state.TerrainProfile;
@@ -2308,6 +2366,9 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 foodShare.foodStorageCapacity = Mathf.Max(1, state.RegionalFoodStorageCapacity);
                 foodShare.foodStorage = Mathf.Clamp(state.RegionalFoodStorage, 0, foodShare.foodStorageCapacity);
                 foodShare.lastFoodShortage = Mathf.Max(0, state.RegionalFoodShortage);
+                RegionalManpowerShare manpowerShare = region.GetManpowerShare(receivedNation, true);
+                manpowerShare.current = Mathf.Clamp(state.RegionalManpower, 0f, region.GetManpowerCapacity(receivedNation));
+                manpowerShare.initialized = true;
             }
         }
         if (ownershipChanged) Mapshower.Instance.RePaint();

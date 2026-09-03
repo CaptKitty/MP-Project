@@ -238,7 +238,7 @@ public class FieldArmyHolder : MonoBehaviour
 
         if (Owners.Instance != null && (Owners.Instance.turncounter < CannotEngageUntilTurn ||
             Owners.Instance.turncounter < otherarmy.CannotEngageUntilTurn)) return;
-        if (otherarmy.fieldArmy.nation == fieldArmy.nation)
+        if (DiplomacySystem.AreFriendly(otherarmy.fieldArmy.nation, fieldArmy.nation))
         {
             if (ProjectX.TileBattle.TileBattleCampaignManager.Instance != null)
                 ProjectX.TileBattle.TileBattleCampaignManager.Instance.TryJoinFriendlyBattle(this, otherarmy);
@@ -365,7 +365,8 @@ public class FieldArmyHolder : MonoBehaviour
         {
             LocalProvince = target;
             var destination = TargetProvince;
-            if (destination != null && destination.nation != fieldArmy.nation)
+            if (destination != null && destination.ControllerNation != fieldArmy.nation &&
+                !DiplomacySystem.HasMasterAccess(fieldArmy.nation, destination.ControllerNation))
             {
                 if (DeterministicBattleManager.Instance != null &&
                     DeterministicBattleManager.Instance.BattleSystemMode == CampaignBattleSystemMode.TileBased &&
@@ -431,41 +432,47 @@ public class FieldArmyHolder : MonoBehaviour
     public void ConquerProvince(Province province)
     {
         if (province == null || fieldArmy == null || fieldArmy.nation == null) return;
-        Nation previousOwner = province.nation;
-        CampaignRegion conqueredRegion = Owners.Instance != null ? Owners.Instance.CallRegionByString(province.region) : null;
-        bool alreadyOwnedRegionPart = conqueredRegion != null && fieldArmy.nation != null &&
-            conqueredRegion.provincelist.Exists(candidate => candidate != null && candidate != province &&
-                candidate.nation == fieldArmy.nation);
-        bool actualConquest = previousOwner != fieldArmy.nation;
-        province.nation = fieldArmy.nation;
-        if (actualConquest)
+        // The legal owner retaking an occupied province simply restores control.
+        if (province.IsOccupied && province.nation == fieldArmy.nation)
         {
-            province.ApplyConquestDevastation(previousOwner, fieldArmy.nation,
-                Owners.Instance != null ? Owners.Instance.turncounter : 0);
-            fieldArmy.nation.Gold += Mathf.Max(0,
-                fieldArmy.nation.ApplyLawModifiers(NationalLawEffectType.ConquestGold, 0));
+            province.OccupyingNation = null;
+            province.CreateGarrison();
+            province.EnsureMinimumGarrison(1);
+            if (Mapshower.Instance != null) Mapshower.Instance.RePaint();
+            return;
         }
-        if (province.holdings != null && fieldArmy.nation != null)
+        Nation restorationRecipient = DiplomacySystem.RestorationRecipient(fieldArmy.nation, province);
+        if (restorationRecipient != null)
         {
-            foreach (ProvinceHolding holding in province.holdings) fieldArmy.nation.ApplyHoldingClassLaws(holding);
-            province.RebuildPopulationFromHoldings();
+            Nation displacedOwner = province.nation;
+            province.nation = restorationRecipient;
+            province.OccupyingNation = null;
             province.ReconcileLevyEntitlements();
+            restorationRecipient.nationalbrainy?.ReSetPriorities();
+            if (displacedOwner != null && displacedOwner != restorationRecipient)
+                displacedOwner.nationalbrainy?.ReSetPriorities();
+            if (Mapshower.Instance != null) Mapshower.Instance.RePaint();
+            province.CreateGarrison();
+            province.EnsureMinimumGarrison(1);
+            return;
         }
-        if (previousOwner != fieldArmy.nation && Owners.Instance != null)
+        Nation previousController = province.ControllerNation;
+        if (previousController == fieldArmy.nation) return;
+        province.OccupyingNation = fieldArmy.nation;
+        province.ApplyOccupationDevastation(previousController, fieldArmy.nation,
+            Owners.Instance != null ? Owners.Instance.turncounter : 0);
+        fieldArmy.nation.Gold += Mathf.Max(0,
+            fieldArmy.nation.ApplyLawModifiers(NationalLawEffectType.ConquestGold, 0));
+        int lootedSupply = Mathf.Max(0, province.supply / 10);
+        if (lootedSupply > 0)
         {
-            if (conqueredRegion != null && fieldArmy.nation != null && !alreadyOwnedRegionPart)
-                conqueredRegion.SetLoyalty(fieldArmy.nation, 0f);
+            province.supply -= lootedSupply;
+            fieldArmy.AddSupply(lootedSupply);
         }
-        if (fieldArmy.nation != null && fieldArmy.nation.nationalbrainy != null)
-            fieldArmy.nation.nationalbrainy.ReSetPriorities();
-        if (previousOwner != null && previousOwner != fieldArmy.nation && previousOwner.nationalbrainy != null)
-            previousOwner.nationalbrainy.ReSetPriorities();
-        Mapshower.Instance.RePaint();
-        province.CreateGarrison();
-        // Every occupation must leave the new owner with at least one defender.
-        // Keeping this guarantee in the shared conquest path also covers direct
-        // occupation of an already-empty province and both battle systems.
-        province.EnsureMinimumGarrison(1);
+        province.garrison = null;
+        fieldArmy.nation.nationalbrainy?.ReSetPriorities();
+        previousController?.nationalbrainy?.ReSetPriorities();
+        if (Mapshower.Instance != null) Mapshower.Instance.RePaint();
     }
 
     private void LateUpdate()
@@ -769,7 +776,7 @@ public class FieldArmyHolder : MonoBehaviour
         foreach (Province province in Owners.Instance.provincelist)
         {
             if (province == null || province.nation == null) continue;
-            if (province.nation == armyNation || province.nation.name == armyNation.name) return province;
+            if (DiplomacySystem.HasMasterAccess(armyNation, province.nation)) return province;
         }
 
         return null;

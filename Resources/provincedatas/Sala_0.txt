@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Sala_0
+}
+Color ={
+124
+170
+105
+}
+Location ={
+102
+202
+}
+Region ={
+Mauretania
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Mauritania
+}
+}

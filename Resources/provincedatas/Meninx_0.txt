@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Meninx_0
+}
+Color ={
+255
+135
+171
+}
+Location ={
+451
+158
+}
+Region ={
+Africa
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Carthage
+}
+}

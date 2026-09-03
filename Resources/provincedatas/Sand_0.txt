@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Sand_0
+}
+Color ={
+238
+255
+130
+}
+Location ={
+265
+183
+}
+Region ={
+Masaesyli
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Numidia
+}
+}

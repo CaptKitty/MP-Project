@@ -11,7 +11,8 @@ public enum NationalLawEffectType : byte
     HoldingVictoryUpgradeChance,
     ConquestGold,
     LevyRecoveryTime,
-    HoldingTaxation
+    HoldingTaxation,
+    ManpowerRecovery
 }
 
 public enum NationalLawOperation : byte { AddFlat, AddPercent, Multiply, Override }
@@ -122,6 +123,7 @@ public sealed class NationalLawEffect
             type == NationalLawEffectType.ConquestGold ? "conquest loot" :
             type == NationalLawEffectType.LevyRecoveryTime ? "levy recovery time" :
             type == NationalLawEffectType.HoldingTaxation ? "holding taxation" :
+            type == NationalLawEffectType.ManpowerRecovery ? "manpower recovery" :
             "holding upgrade chance after victories";
         string scope = target.ToString().ToLowerInvariant();
         if (target == NationalLawTarget.Holdings)
@@ -264,6 +266,23 @@ public static class NationalLawDefaults
         NationalLaw law = new NationalLaw { id = "roman_muster_rolls", displayName = "Citizen Muster Rolls" };
         law.effects.Add(new NationalLawEffect { type = NationalLawEffectType.LevyRecoveryTime,
             operation = NationalLawOperation.AddPercent, amountPermille = -500, target = NationalLawTarget.Nation });
+        return law;
+    }
+
+    public static NationalLaw CarthaginianManpowerRecovery()
+    {
+        NationalLaw law = new NationalLaw
+        {
+            id = "carthaginian_subject_mustering",
+            displayName = "Reliance on Subject Musters"
+        };
+        law.effects.Add(new NationalLawEffect
+        {
+            type = NationalLawEffectType.ManpowerRecovery,
+            operation = NationalLawOperation.AddPercent,
+            amountPermille = -500,
+            target = NationalLawTarget.Nation
+        });
         return law;
     }
 

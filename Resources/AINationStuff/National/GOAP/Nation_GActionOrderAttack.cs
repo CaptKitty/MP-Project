@@ -13,7 +13,9 @@ public class Nation_GActionOrderAttack : Nation_GAction
     {
         army = null;
         Nation nation = nationalbrainy.GrabNation();
-        if(nation.armies.Count == 0 || !nationalbrainy.priorityList.Exists(item => item.province != null && item.province.nation != nation))
+        if(nation.armies.Count == 0 || !nationalbrainy.priorityList.Exists(item => item.province != null &&
+            DiplomacySystem.AreHostile(item.province.ControllerNation, nation) &&
+            (!nation.IsPacifist || item.province.nation == nation && item.province.IsOccupied)))
         {
             return false;
         }
@@ -35,7 +37,7 @@ public class Nation_GActionOrderAttack : Nation_GAction
     }
     public float AggroNumber(Province province)
     {
-        if(province.nation == nationalbrainy.GrabNation())
+        if(!DiplomacySystem.AreHostile(province.ControllerNation, nationalbrainy.GrabNation()))
         {
             return 0f;
         }
@@ -66,7 +68,8 @@ public class Nation_GActionOrderAttack : Nation_GAction
         }
         Nation nation = nationalbrainy.GrabNation();
         List<Priority> hostile = nationalbrainy.priorityList.FindAll(item =>
-            item != null && item.province != null && item.province.nation != nation);
+            item != null && item.province != null && DiplomacySystem.AreHostile(item.province.ControllerNation, nation) &&
+            (!nation.IsPacifist || item.province.nation == nation && item.province.IsOccupied));
         if (hostile.Count == 0) { running = false; return false; }
 
         // Prefer a connected frontier conquest. This prevents armies crossing the entire map
@@ -74,7 +77,8 @@ public class Nation_GActionOrderAttack : Nation_GAction
         List<Priority> frontier = hostile.FindAll(item =>
         {
             List<Province> adjacent = item.province.GrabAdjacents();
-            return adjacent != null && adjacent.Exists(province => province != null && province.nation == nation);
+            return adjacent != null && adjacent.Exists(province => province != null &&
+                DiplomacySystem.HasMasterAccess(nation, province.ControllerNation));
         });
         List<Priority> candidates = frontier.Count > 0 ? frontier : hostile;
         Priority b = null;

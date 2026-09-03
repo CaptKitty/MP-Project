@@ -1,0 +1,131 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcd7e51e799ed68459ac45f74d6d8f85, type: 3}
+  m_Name: North African
+  m_EditorClassIdentifier: Assembly-CSharp::CivilizationData
+  assemblyName: Council of Aristocrats
+  content:
+    units:
+    - unit: {fileID: 11400000, guid: e97bf7aaefbfd3a4fa8859e12cdec048, type: 2}
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 1
+    - unit: {fileID: 11400000, guid: e97bf7aaefbfd3a4fa8859e12cdec048, type: 2}
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 3
+    buildings:
+    - {fileID: 11400000, guid: 05fb6ded8375fbb4a81c7af3ff0cfff7, type: 2}
+    - {fileID: 11400000, guid: 42f8062780014adc9668816a333e84c1, type: 2}
+    - {fileID: 11400000, guid: 5d7da345adbd41bd80e4abf4439573c4, type: 2}
+    - {fileID: 11400000, guid: 8fc882db24aae7b41829e618229ee4c2, type: 2}
+    - {fileID: 11400000, guid: 5eaecf0524774e546982605765c61c6d, type: 2}
+    - {fileID: 11400000, guid: a15c73e0279a4a7fa562b2c842edc441, type: 2}
+    - {fileID: 11400000, guid: c7611d9213d74a66b5dc965a75e4f18b, type: 2}
+    - {fileID: 11400000, guid: f3068d8151f54539965173239269e2e8, type: 2}
+    - {fileID: 11400000, guid: b8aacba79c404fd6a4783cb563031fd8, type: 2}
+    - {fileID: 11400000, guid: 2bd5190344af43298421420a8399e4c8, type: 2}
+    - {fileID: 11400000, guid: 73d2a70cb30543c990068a72f84fd511, type: 2}
+    generalNames: []
+    flags:
+    - Civilized
+    AllegianceNames: []
+    AllegianceType: 
+    allegiances: []
+    holdingEconomyModifiers: []
+    levies: []
+    laws:
+    - id: tribal_muster
+      displayName: Tribal Muster
+      effects:
+      - type: 0
+        operation: 0
+        amountPermille: 200
+        target: 1
+        anySocioEconomicClass: 1
+        socioEconomicClass: 2
+        cultureScope: 0
+        cultureName: 
+        anyUnitOrigin: 1
+        unitOrigin: 0
+        anyAllegiance: 1
+        allegianceId: 
+        useAllegianceFocusedRegions: 0
+      classRules: []
+      availableExtensions: []
+      amountPermille: 0
+      effect: 0
+      anySocioEconomicClass: 1
+      socioEconomicClass: 6
+      anyCulture: 1
+      cultureName: 
+    - id: warrior_rites
+      displayName: Warrior Rites
+      effects:
+      - type: 4
+        operation: 0
+        amountPermille: 250
+        target: 0
+        anySocioEconomicClass: 1
+        socioEconomicClass: 6
+        cultureScope: 0
+        cultureName: 
+        anyUnitOrigin: 1
+        unitOrigin: 0
+        anyAllegiance: 1
+        allegianceId: 
+        useAllegianceFocusedRegions: 0
+      classRules: []
+      availableExtensions: []
+      amountPermille: 0
+      effect: 0
+      anySocioEconomicClass: 1
+      socioEconomicClass: 6
+      anyCulture: 1
+      cultureName: 
+    - id: ancestral_nobility
+      displayName: Ancestral Nobility
+      effects: []
+      classRules:
+      - type: 0
+        affectedClass: 5
+        resultingClass: 2
+        cultureName: 
+      availableExtensions: []
+      amountPermille: 0
+      effect: 0
+      anySocioEconomicClass: 1
+      socioEconomicClass: 6
+      anyCulture: 1
+      cultureName: 
+    - id: kings_share
+      displayName: King's Share
+      effects:
+      - type: 5
+        operation: 0
+        amountPermille: 200
+        target: 0
+        anySocioEconomicClass: 1
+        socioEconomicClass: 6
+        cultureScope: 0
+        cultureName: 
+        anyUnitOrigin: 1
+        unitOrigin: 0
+        anyAllegiance: 1
+        allegianceId: 
+        useAllegianceFocusedRegions: 0
+      classRules: []
+      availableExtensions: []
+      amountPermille: 0
+      effect: 0
+      anySocioEconomicClass: 1
+      socioEconomicClass: 6
+      anyCulture: 1
+      cultureName: 

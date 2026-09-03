@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Siga_0
+}
+Color ={
+163
+255
+178
+}
+Location ={
+215
+214
+}
+Region ={
+Masaesyli
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Numidia
+}
+}

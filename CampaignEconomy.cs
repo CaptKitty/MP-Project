@@ -27,6 +27,9 @@ public static class CampaignEconomy
     public static int UnitUpkeep(UnitSaveData unit, int amount = 1) =>
         unit == null ? 0 : Mathf.Max(2, unit.upkeep) * Mathf.Max(0, amount);
 
+    public static int MercenaryUnitUpkeep(UnitSaveData unit, int amount = 1) =>
+        unit == null ? 0 : Mathf.Max(3, unit.upkeep) * Mathf.Max(0, amount);
+
     public static int BuildingGoldCost(string buildingId, int targetLevel)
     {
         BuildingDefinition definition = BuildingDefinition.Find(buildingId);

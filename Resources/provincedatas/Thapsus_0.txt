@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Thapsus_0
+}
+Color ={
+122
+122
+255
+}
+Location ={
+409
+198
+}
+Region ={
+Africa
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Carthage
+}
+}

@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Russicada_0
+}
+Color ={
+255
+195
+122
+}
+Location ={
+375
+236
+}
+Region ={
+Massylii
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Numidia
+}
+}

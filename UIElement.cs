@@ -17,6 +17,7 @@ public class UIElement : MonoBehaviour
     private Text armyCommanderText;
     private RectTransform armyCompositionSprites;
     private Material armyCompositionMaterial;
+    private readonly List<Material> armyCompositionMercenaryMaterials = new List<Material>();
     private UnitStatDisplayMenu compositionStatDisplay;
     private Coroutine compositionHideRoutine;
     private string currencyTemplate;
@@ -25,6 +26,7 @@ public class UIElement : MonoBehaviour
     private string armyCommanderTemplate;
     private int lastGold = int.MinValue;
     private int lastUpkeep = int.MinValue;
+    private float lastManpower = float.MinValue;
     private FieldArmyHolder lastArmy;
     private int lastCompositionSignature = int.MinValue;
     private Button recruitUnitsButton;
@@ -108,6 +110,8 @@ public class UIElement : MonoBehaviour
         ProvinceHostCandidates.Remove(this);
         if (ProvinceHost == this) { ProvinceHost = null; ResolveProvinceHost(); }
         if (armyCompositionMaterial != null) Destroy(armyCompositionMaterial);
+        foreach (Material material in armyCompositionMercenaryMaterials) if (material != null) Destroy(material);
+        armyCompositionMercenaryMaterials.Clear();
         if (compositionStatDisplay != null) Destroy(compositionStatDisplay.gameObject);
     }
 
@@ -117,7 +121,9 @@ public class UIElement : MonoBehaviour
         {
             int nationGold = LocalNation() != null ? LocalNation().Gold : 0;
             int nationUpkeep = LocalNation() != null ? LocalNation().LastUnitUpkeep : 0;
-            if (nationGold != lastGold || nationUpkeep != lastUpkeep) RefreshCurrency();
+            float nationManpower = LocalNation() != null ? LocalNation().Manpower : 0f;
+            if (nationGold != lastGold || nationUpkeep != lastUpkeep ||
+                !Mathf.Approximately(nationManpower, lastManpower)) RefreshCurrency();
         }
         if (ArmyHost != this) return;
         FieldArmyHolder selected = SelectedArmy();
@@ -264,15 +270,19 @@ public class UIElement : MonoBehaviour
         if (recruitUnitsButton == null || recruitAllLeviesButton == null || demobilizeLeviesButton == null) return;
         FieldArmyHolder army = FieldArmyHolder.SelectedPlayerArmy;
         Province province = army != null ? army.GrabNearestProvince() : null;
-        bool friendlyLocal = army != null && army.IsFriendlyToLocalPlayer() && province != null &&
-            army.fieldArmy != null && province.nation == army.fieldArmy.nation;
-        bool stationary = friendlyLocal && army.IsTargetNull();
+        bool friendlyArmy = army != null && army.IsFriendlyToLocalPlayer() && province != null &&
+            army.fieldArmy != null && army.fieldArmy.nation != null;
+        bool friendlyLocal = friendlyArmy && province.nation == army.fieldArmy.nation;
+        bool tributaryRecruitment = friendlyArmy &&
+            DiplomacySystem.CanRecruitTributaryRoster(army.fieldArmy.nation, province.nation);
+        bool stationary = friendlyArmy && army.IsTargetNull();
+        bool canOpenRecruitment = stationary && (friendlyLocal || tributaryRecruitment);
         int availableLevies = friendlyLocal
             ? province.GetAvailableLocalAndAdjacentRegionLevies(army.fieldArmy.nation).Count : 0;
         int capacity = friendlyLocal ? army.fieldArmy.MaxArmySize - army.fieldArmy.GrabArmySize() - army.fieldArmy.GrabQueuedArmySize() : 0;
         int raisedLevies = friendlyLocal ? army.fieldArmy.CountRaisedLevies() : 0;
-        recruitUnitsButton.interactable = stationary;
-        recruitAllLeviesButton.interactable = stationary && availableLevies > 0 && capacity > 0;
+        recruitUnitsButton.interactable = canOpenRecruitment;
+        recruitAllLeviesButton.interactable = stationary && friendlyLocal && availableLevies > 0 && capacity > 0;
         demobilizeLeviesButton.interactable = stationary && raisedLevies > 0;
         if (recruitUnitsLabel != null) recruitUnitsLabel.text = "Recruit Units";
         if (recruitAllLeviesLabel != null) recruitAllLeviesLabel.text = "Recruit All Available Levies (" +
@@ -332,9 +342,12 @@ public class UIElement : MonoBehaviour
         Nation localNation = LocalNation();
         lastGold = localNation != null ? localNation.Gold : 0;
         lastUpkeep = localNation != null ? localNation.LastUnitUpkeep : 0;
+        lastManpower = localNation != null ? localNation.RefreshManpowerTotal() : 0f;
         string value = localNation != null
             ? lastGold + " (income " + localNation.LastGrossIncome + ", upkeep " + lastUpkeep +
-                (localNation.UpkeepDebt > 0 ? ", debt " + localNation.UpkeepDebt : string.Empty) + ")"
+                (localNation.UpkeepDebt > 0 ? ", debt " + localNation.UpkeepDebt : string.Empty) +
+                ", manpower " + lastManpower.ToString("0.###") + "/" +
+                localNation.ManpowerCapacity().ToString("0.###") + ")"
             : lastGold.ToString();
         SetTemplateText(currencyText, currencyTemplate, value);
     }
@@ -373,6 +386,13 @@ public class UIElement : MonoBehaviour
                 hash = hash * 31 + reserve.USD.GetInstanceID();
                 hash = hash * 31 + reserve.amount;
             }
+            army.fieldArmy.ReconcileFormationRecords();
+            foreach (ArmyFormationRecord record in army.fieldArmy.formationRecords)
+            {
+                if (record == null || record.unit == null) continue;
+                hash = hash * 31 + (int)record.origin;
+                hash = hash * 31 + (record.sourceNationName ?? string.Empty).GetHashCode();
+            }
             return hash;
         }
     }
@@ -384,12 +404,24 @@ public class UIElement : MonoBehaviour
             Destroy(armyCompositionSprites.GetChild(i).gameObject);
         if (armyCompositionMaterial != null) Destroy(armyCompositionMaterial);
         armyCompositionMaterial = null;
+        foreach (Material material in armyCompositionMercenaryMaterials) if (material != null) Destroy(material);
+        armyCompositionMercenaryMaterials.Clear();
         if (army == null || army.fieldArmy == null) return;
 
         List<UnitSaveData> units = new List<UnitSaveData>();
+        List<ArmyFormationRecord> records = new List<ArmyFormationRecord>();
+        army.fieldArmy.ReconcileFormationRecords();
+        List<ArmyFormationRecord> unusedRecords = new List<ArmyFormationRecord>(army.fieldArmy.formationRecords);
         foreach (ArmyReserves reserve in army.fieldArmy.USDReserves)
             if (reserve != null && reserve.USD != null)
-                for (int i = 0; i < reserve.amount; i++) units.Add(reserve.USD);
+                for (int i = 0; i < reserve.amount; i++)
+                {
+                    units.Add(reserve.USD);
+                    int recordIndex = unusedRecords.FindIndex(record => record != null && record.unit != null &&
+                        record.unit.name == reserve.USD.name);
+                    records.Add(recordIndex >= 0 ? unusedRecords[recordIndex] : null);
+                    if (recordIndex >= 0) unusedRecords.RemoveAt(recordIndex);
+                }
         if (units.Count == 0) return;
 
         Material baseMaterial = FindUnitArtworkMaterial();
@@ -412,10 +444,12 @@ public class UIElement : MonoBehaviour
         float usedWidth = iconSize + iconSpacing * Mathf.Max(0, units.Count - 1);
         float startX = Mathf.Max(0f, (availableWidth - usedWidth) * .5f);
         for (int unitIndex = 0; unitIndex < units.Count; unitIndex++)
-            CreateCompositionPortrait(units[unitIndex], unitIndex, startX + iconSize * .5f + iconSpacing * unitIndex, iconSize);
+            CreateCompositionPortrait(units[unitIndex], records[unitIndex], army, baseMaterial, unitIndex,
+                startX + iconSize * .5f + iconSpacing * unitIndex, iconSize);
     }
 
-    private void CreateCompositionPortrait(UnitSaveData unit, int index, float x, float size)
+    private void CreateCompositionPortrait(UnitSaveData unit, ArmyFormationRecord record, FieldArmyHolder army,
+        Material baseMaterial, int index, float x, float size)
     {
         if (unit == null || unit.bodyparts == null) return;
         GameObject portrait = new GameObject("Unit " + index + " - " + unit.name,
@@ -441,6 +475,8 @@ public class UIElement : MonoBehaviour
             new Vector2(-.072f, -.216f) * size,
             new Vector2(.146f, -.082f) * size
         };
+        Material portraitMaterial = ResolveCompositionMaterial(unit, record, army, baseMaterial);
+        hover.ArtworkMaterial = portraitMaterial;
         for (int layerIndex = 0; layerIndex < Mathf.Min(3, unit.bodyparts.Count); layerIndex++)
         {
             Sprite sprite = unit.bodyparts[layerIndex];
@@ -450,7 +486,7 @@ public class UIElement : MonoBehaviour
             layer.transform.SetParent(portrait.transform, false);
             Image image = layer.GetComponent<Image>();
             image.sprite = sprite;
-            image.material = armyCompositionMaterial;
+            image.material = portraitMaterial;
             image.type = Image.Type.Sliced;
             image.fillCenter = true;
             image.preserveAspect = true;
@@ -471,12 +507,12 @@ public class UIElement : MonoBehaviour
         return null;
     }
 
-    public void ShowCompositionUnitDetails(UnitSaveData unit)
+    public void ShowCompositionUnitDetails(UnitSaveData unit, Material artworkMaterial = null)
     {
         if (unit == null || !EnsureCompositionStatDisplay()) return;
         KeepCompositionUnitDetailsOpen();
         compositionStatDisplay.gameObject.SetActive(true);
-        compositionStatDisplay.LoadNewUnit(unit, armyCompositionMaterial);
+        compositionStatDisplay.LoadNewUnit(unit, artworkMaterial != null ? artworkMaterial : armyCompositionMaterial);
         PositionCompositionStatDisplay();
         compositionStatDisplay.transform.SetAsLastSibling();
     }
@@ -587,6 +623,35 @@ public class UIElement : MonoBehaviour
             Text title = transform.GetChild(0).GetComponent<Text>();
             if (title != null) title.text = text;
         }
+    }
+
+    private Material ResolveCompositionMaterial(UnitSaveData unit, ArmyFormationRecord record,
+        FieldArmyHolder army, Material baseMaterial)
+    {
+        if (record == null || record.origin != CampaignUnitOrigin.Mercenary || baseMaterial == null)
+            return armyCompositionMaterial;
+        Color skin = unit != null ? unit.nativeSkintone : Color.white;
+        if (!string.IsNullOrWhiteSpace(record.sourceNationName) && Owners.Instance != null)
+        {
+            Nation source = Owners.Instance.nationlist.Find(candidate => candidate != null &&
+                string.Equals(candidate.name, record.sourceNationName, System.StringComparison.OrdinalIgnoreCase));
+            if (source != null && source.faction != null) skin = source.faction.color3;
+        }
+        string colorKey = ColorUtility.ToHtmlStringRGBA(skin);
+        foreach (Material existing in armyCompositionMercenaryMaterials)
+            if (existing != null && existing.name == "Army Composition Mercenary " + colorKey) return existing;
+        Material material = Instantiate(baseMaterial);
+        material.name = "Army Composition Mercenary " + colorKey;
+        Faction faction = army != null && army.fieldArmy != null && army.fieldArmy.nation != null
+            ? army.fieldArmy.nation.faction : null;
+        if (faction != null)
+        {
+            if (material.HasProperty("_FactionColor")) material.SetColor("_FactionColor", faction.color);
+            if (material.HasProperty("_FactionColor2")) material.SetColor("_FactionColor2", faction.color2);
+            if (material.HasProperty("_FactionColor3")) material.SetColor("_FactionColor3", skin);
+        }
+        armyCompositionMercenaryMaterials.Add(material);
+        return material;
     }
     public void UpdateSecond(string text, string supply = "")
     {

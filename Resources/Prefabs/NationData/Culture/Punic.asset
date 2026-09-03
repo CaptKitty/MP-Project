@@ -19,18 +19,8 @@ MonoBehaviour:
   assemblyName: 
   startingUrbanization: 50
   content:
-    units:
-    - unit: {fileID: 11400000, guid: 0006aa33c11cc2947a6b49ac7c0b1504, type: 2}
-      requiredBuilding: {fileID: 11400000, guid: e526ddeb476252148a90237a2763ca24, type: 2}
-      minimumBuildingLevel: 1
-    - unit: {fileID: 11400000, guid: e97bf7aaefbfd3a4fa8859e12cdec048, type: 2}
-      requiredBuilding: {fileID: 11400000, guid: e526ddeb476252148a90237a2763ca24, type: 2}
-      minimumBuildingLevel: 1
-    - unit: {fileID: 11400000, guid: 51919457534f672489ebf26eb0bc2224, type: 2}
-      requiredBuilding: {fileID: 11400000, guid: e526ddeb476252148a90237a2763ca24, type: 2}
-      minimumBuildingLevel: 2
+    units: []
     buildings:
-    - {fileID: 11400000, guid: e526ddeb476252148a90237a2763ca24, type: 2}
     - {fileID: 11400000, guid: b8aacba79c404fd6a4783cb563031fd8, type: 2}
     - {fileID: 11400000, guid: 44ff81b29126426e82b6c7d493d54afe, type: 2}
     generalNames:
@@ -48,6 +38,7 @@ MonoBehaviour:
     - Barca
     - Mago
     AllegianceType: Parties
+    allegiances: []
     holdingEconomyModifiers: []
     levies: []
     laws: []

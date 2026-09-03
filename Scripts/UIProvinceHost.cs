@@ -54,7 +54,7 @@ public class UIProvinceHost : MonoBehaviour
         if (selected != LoadedProvince) LoadProvince(selected);
         else if (LoadedProvince != null)
         {
-            string owner = LoadedProvince.nation != null ? LoadedProvince.nation.name : "Unowned";
+            string owner = OwnerDisplay(LoadedProvince);
             int gold = LoadedProvince.nation != null ? LoadedProvince.nation.Gold : 0;
             string administration = AdministrationSummary(LoadedProvince);
             if (owner != lastOwnerName || gold != lastNationGold || administration != lastAdministrationSummary) RefreshHeader();
@@ -225,7 +225,7 @@ public class UIProvinceHost : MonoBehaviour
         if (provinceName != null) provinceName.text = !string.IsNullOrWhiteSpace(LoadedProvince.region)
             ? LoadedProvince.region
             : LoadedProvince.name;
-        lastOwnerName = LoadedProvince.nation != null ? LoadedProvince.nation.name : "Unowned";
+        lastOwnerName = OwnerDisplay(LoadedProvince);
         lastNationGold = LoadedProvince.nation != null ? LoadedProvince.nation.Gold : 0;
         lastAdministrationSummary = AdministrationSummary(LoadedProvince);
         if (provinceOwnerName != null) provinceOwnerName.text = lastOwnerName + " | " + lastAdministrationSummary;
@@ -234,6 +234,15 @@ public class UIProvinceHost : MonoBehaviour
         RefreshRaiseArmyButton();
         RefreshRecruitUnitsButton();
         RefreshHoldingsSummary();
+    }
+
+    private static string OwnerDisplay(Province province)
+    {
+        if (province == null) return "Unowned";
+        string result = province.nation != null ? province.nation.name : "Unowned";
+        if (province.IsOccupied && province.OccupyingNation != null)
+            result += " | Occupied by " + province.OccupyingNation.name;
+        return result;
     }
 
     private void CreateHoldingsSummary()

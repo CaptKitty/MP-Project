@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Tbessa_0
+}
+Color ={
+130
+255
+171
+}
+Location ={
+388
+194
+}
+Region ={
+Massylii
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Numidia
+}
+}

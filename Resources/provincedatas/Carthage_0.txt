@@ -1,0 +1,25 @@
+Province ={
+Name ={
+Carthage_0
+}
+Color ={
+76
+255
+246
+}
+Location ={
+435
+234
+}
+Region ={
+Africa
+}
+Population ={
+0
+
+}
+Owner ={
+Normal ={
+Carthage
+}
+}

@@ -11,16 +11,17 @@ public sealed class CampaignRecruitmentVisual : MonoBehaviour
     private Vector3 start;
     private Vector3 referenceScale;
     private float elapsed;
+    private Material visualMaterial;
 
-    public static void Present(UnitSaveData unit, FieldArmyHolder army, bool broadcast = true)
+    public static void Present(UnitSaveData unit, FieldArmyHolder army, string sourceNationName = null, bool broadcast = true)
     {
         if (unit == null || army == null || !army.gameObject.activeInHierarchy) return;
-        SpawnLocal(unit, army);
+        SpawnLocal(unit, army, sourceNationName);
         if (broadcast && CampaignNetworkPlayer.Local != null && CampaignNetworkPlayer.Local.IsServer)
-            CampaignNetworkPlayer.Local.BroadcastRecruitmentVisual(army.NetworkArmyId, unit.name);
+            CampaignNetworkPlayer.Local.BroadcastRecruitmentVisual(army.NetworkArmyId, unit.name, sourceNationName);
     }
 
-    public static void SpawnLocal(UnitSaveData unit, FieldArmyHolder army)
+    public static void SpawnLocal(UnitSaveData unit, FieldArmyHolder army, string sourceNationName = null)
     {
         if (unit == null || army == null || Owners.Instance == null) return;
         // A very large simultaneous levy call-up remains legible without leaving hundreds
@@ -47,11 +48,11 @@ public sealed class CampaignRecruitmentVisual : MonoBehaviour
         CampaignRecruitmentVisual effect = root.AddComponent<CampaignRecruitmentVisual>();
         effect.target = army; effect.start = sourcePosition; effect.referenceScale = army.transform.lossyScale;
         root.transform.position = sourcePosition;
-        effect.BuildArt(unit, army);
+        effect.BuildArt(unit, army, sourceNationName);
         active.Add(effect);
     }
 
-    private void BuildArt(UnitSaveData unit, FieldArmyHolder army)
+    private void BuildArt(UnitSaveData unit, FieldArmyHolder army, string sourceNationName)
     {
         int count = Mathf.Min(3, unit.bodyparts != null ? unit.bodyparts.Count : 0);
         for (int i = 0; i < count; i++)
@@ -77,6 +78,19 @@ public sealed class CampaignRecruitmentVisual : MonoBehaviour
             }
             renderers.Add(renderer);
         }
+        if (!string.IsNullOrWhiteSpace(sourceNationName) && Owners.Instance != null)
+        {
+            Nation sourceNation = Owners.Instance.nationlist.Find(candidate => candidate != null &&
+                string.Equals(candidate.name, sourceNationName, System.StringComparison.OrdinalIgnoreCase));
+            Material reference = renderers.Count > 0 ? renderers[0].sharedMaterial : null;
+            if (sourceNation != null && sourceNation.faction != null && reference != null)
+            {
+                visualMaterial = new Material(reference);
+                if (visualMaterial.HasProperty("_FactionColor3"))
+                    visualMaterial.SetColor("_FactionColor3", sourceNation.faction.color3);
+                foreach (SpriteRenderer renderer in renderers) if (renderer != null) renderer.sharedMaterial = visualMaterial;
+            }
+        }
     }
 
     private void Update()
@@ -97,5 +111,6 @@ public sealed class CampaignRecruitmentVisual : MonoBehaviour
     private void OnDestroy()
     {
         active.Remove(this);
+        if (visualMaterial != null) Destroy(visualMaterial);
     }
 }

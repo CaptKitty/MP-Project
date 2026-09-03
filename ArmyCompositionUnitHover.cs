@@ -7,6 +7,7 @@ public sealed class ArmyCompositionUnitHover : MonoBehaviour, IPointerEnterHandl
 {
     public UIElement Owner;
     public UnitSaveData Unit;
+    public Material ArtworkMaterial;
     private Coroutine pendingShow;
     private Image background;
 
@@ -44,7 +45,7 @@ public sealed class ArmyCompositionUnitHover : MonoBehaviour, IPointerEnterHandl
         yield return new WaitForSecondsRealtime(1f);
         pendingShow = null;
         SetTint(true);
-        if (Owner != null && Unit != null) Owner.ShowCompositionUnitDetails(Unit);
+        if (Owner != null && Unit != null) Owner.ShowCompositionUnitDetails(Unit, ArtworkMaterial);
     }
 
     private void SetTint(bool active)

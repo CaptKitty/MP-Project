@@ -7,7 +7,6 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "NationalAI/base_order_assemble")]
 public class Nation_GActionAssembleArmy : Nation_GAction
 {
-    public int armycost = 50;
     public override bool IsAchievable() 
     {
         Nation nation = nationalbrainy.GrabNation();
@@ -24,12 +23,10 @@ public class Nation_GActionAssembleArmy : Nation_GAction
             return false;
         }
         if (nation.Gold < CampaignEconomy.ArmyCreationCost) return false;
-        if(nation.Manpower >= armycost)
+        // Army containers are manpower-free; manpower is spent when units are recruited.
+        if(nationalbrainy.ArmySpawnCooldown <= Owners.Instance.turncounter)
         {
-            if(nationalbrainy.ArmySpawnCooldown <= Owners.Instance.turncounter)
-            {
-                return true;
-            }   
+            return true;
         }
         return false;
     }
@@ -43,7 +40,6 @@ public class Nation_GActionAssembleArmy : Nation_GAction
         
         Nation nation = nationalbrainy.GrabNation();
         if (!nation.SpawnArmy()) return false;
-        nation.Manpower -= armycost;
 
         nationalbrainy.ArmySpawnCooldown = Owners.Instance.turncounter + nationalbrainy.SetArmySpawnCooldown;
         if(nationalbrainy.GrabNation().faction.HasFlag("Decentralized"))

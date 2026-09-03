@@ -357,7 +357,7 @@ namespace ProjectX.TileBattle
                 Image image = AcquireUnit(unit.Id); UnitSaveData data = FindUnitData(selected, unit.Id);
                 LayeredBattleUnitVisual art = image.GetComponent<LayeredBattleUnitVisual>();
                 if (art == null) art = image.gameObject.AddComponent<LayeredBattleUnitVisual>();
-                art.Configure(data, GetFactionMaterial(selected, unit.Side, data)); art.Attacking = false;
+                art.Configure(data, GetFactionMaterial(selected, unit.Side, unit.Id, data)); art.Attacking = false;
                 ApplySnapshotWeapon(art, data, unit);
                 art.SetHorizontalFacing(unit.Facing == TileFacing.West || unit.Facing != TileFacing.East && unit.Side == 1);
                 RectTransform rect = image.rectTransform;
@@ -787,13 +787,22 @@ namespace ProjectX.TileBattle
             return System.Array.Find(all, item => item != null && item.name == name);
         }
 
-        private Material GetFactionMaterial(TileCampaignBattle battle, int side, UnitSaveData unit)
+        private Material GetFactionMaterial(TileCampaignBattle battle, int side, int unitId, UnitSaveData unit)
         {
             FieldArmy army = side == 0 ? battle.ArmyA != null ? battle.ArmyA.fieldArmy : null : battle.ArmyB != null ? battle.ArmyB.fieldArmy : battle.Garrison;
             Faction faction = army != null && army.nation != null ? army.nation.faction : null;
-            bool mercenary = unit != null && unit.Mercenary;
+            ArmyFormationRecord record = null;
+            battle.UnitFormationSources.TryGetValue(unitId, out record);
+            bool mercenary = record != null ? record.origin == CampaignUnitOrigin.Mercenary : unit != null && unit.Mercenary;
+            Color mercenarySkin = unit != null ? unit.nativeSkintone : Color.white;
+            if (mercenary && record != null && !string.IsNullOrWhiteSpace(record.sourceNationName) && Owners.Instance != null)
+            {
+                Nation sourceNation = Owners.Instance.nationlist.Find(candidate => candidate != null &&
+                    string.Equals(candidate.name, record.sourceNationName, System.StringComparison.OrdinalIgnoreCase));
+                if (sourceNation != null && sourceNation.faction != null) mercenarySkin = sourceNation.faction.color3;
+            }
             string key = (faction != null ? faction.name : "side" + side) +
-                (mercenary ? ":mercenary:" + ColorUtility.ToHtmlStringRGBA(unit.nativeSkintone) : string.Empty);
+                (mercenary ? ":mercenary:" + ColorUtility.ToHtmlStringRGBA(mercenarySkin) : string.Empty);
             if (materialCache.TryGetValue(key, out Material cached)) return cached;
             if (baseUnitMaterial == null) return null;
             Material material = new Material(baseUnitMaterial) { name = "Tile Battle " + key };
@@ -802,7 +811,7 @@ namespace ProjectX.TileBattle
                 if (material.HasProperty("_FactionColor")) material.SetColor("_FactionColor", faction.color);
                 if (material.HasProperty("_FactionColor2")) material.SetColor("_FactionColor2", faction.color2);
                 if (material.HasProperty("_FactionColor3"))
-                    material.SetColor("_FactionColor3", mercenary ? unit.nativeSkintone : faction.color3);
+                    material.SetColor("_FactionColor3", mercenary ? mercenarySkin : faction.color3);
             }
             materialCache[key] = material; return material;
         }

@@ -31,11 +31,21 @@ public class ProvinceBuilding
     public int DefinitionFoodOutput => SumDefinitionEffect(entry => entry.food);
     public int DefinitionFoodConsumption => SumDefinitionEffect(entry => Mathf.Max(0, entry.foodConsumption));
     public int DefinitionGarrisonCapacity => SumDefinitionEffect(entry => entry.garrisonCapacity);
+    public float DefinitionManpowerRecovery => SumDefinitionFloatEffect(entry => entry.manpowerRecovery);
 
     private int SumDefinitionEffect(Func<BuildingLevelDefinition, int> selector)
     {
         if (definition == null || definition.levels == null) return 0;
         int total = 0;
+        foreach (BuildingLevelDefinition entry in definition.levels)
+            if (entry != null && entry.level <= level) total += selector(entry);
+        return total;
+    }
+
+    private float SumDefinitionFloatEffect(Func<BuildingLevelDefinition, float> selector)
+    {
+        if (definition == null || definition.levels == null) return 0f;
+        float total = 0f;
         foreach (BuildingLevelDefinition entry in definition.levels)
             if (entry != null && entry.level <= level) total += selector(entry);
         return total;

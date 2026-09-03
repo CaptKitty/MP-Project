@@ -602,6 +602,9 @@ public class UIBuildingMenu : MonoBehaviour
         int garrison = building.definition != null ? building.DefinitionGarrisonCapacity :
             building.BuildingId.Equals("Fort", System.StringComparison.OrdinalIgnoreCase) ? building.level * 3 : 0;
         if (garrison > 0) { text.Append("\n- Garrison capacity: +").Append(garrison); any = true; }
+        float manpowerRecovery = building.definition != null ? building.DefinitionManpowerRecovery : 0f;
+        if (manpowerRecovery > 0f)
+        { text.Append("\n- Manpower recovery: +").Append(manpowerRecovery.ToString("0.###")); any = true; }
         if (building.BuildingId.Equals("Fort", System.StringComparison.OrdinalIgnoreCase))
         { text.Append("\n- Regional loyalty: +").Append((building.level * .1f).ToString("0.#")); any = true; }
         if (building.BuildingId.Equals("Temple", System.StringComparison.OrdinalIgnoreCase))

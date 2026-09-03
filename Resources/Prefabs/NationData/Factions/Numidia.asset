@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: feeb2f63c62761344bf2889db73c56d4, type: 3}
+  m_Name: Numidia
+  m_EditorClassIdentifier: 
+  color: {r: 0.83137256, g: 0.53968865, b: 0.12941177, a: 0}
+  color2: {r: 0.5377358, g: 0.52065164, b: 0.10399607, a: 0}
+  color3: {r: 0.71599996, g: 0.48843408, b: 0.40517828, a: 0}
+  UnitList: []
+  UnitDataList: []
+  BarracksLevel: 2
+  MercLevel: 0
+  FarmLevel: 10
+  BarracksUnits:
+  - {fileID: 1002579342033724372, guid: c4768673248ce4e49babf3295139292b, type: 3}
+  - {fileID: 5815002448955544719, guid: ee2a0342b3d10a849bea2717893c1cb1, type: 3}
+  - {fileID: 1002579342033724372, guid: 29665083b747bd54aa900a8285ed01a6, type: 3}
+  BarracksDataList: []
+  MercenaryUnits:
+  - {fileID: 1002579342033724372, guid: e20ae5212fbd75843aaefae8cc3d4c71, type: 3}
+  - {fileID: 1002579342033724372, guid: 29665083b747bd54aa900a8285ed01a6, type: 3}
+  - {fileID: 1002579342033724372, guid: dc0ec296db2ed5543b6f4b990fb0f74d, type: 3}
+  - {fileID: 1002579342033724372, guid: d71592f662aacdd478c8937d36798e52, type: 3}
+  - {fileID: 1002579342033724372, guid: dce30088f80515b49bc5661b6f2e9c00, type: 3}
+  MercenaryDataList: []
+  Flaglist:
+  - Decentralized
+  - Barbarian
+  - Pacificst
+  - Pacifist
+  factionTheme: {fileID: 11400000, guid: bc69b654c6f349c40b5b5b11dff99548, type: 2}
+  assemblyName: 
+  content:
+    units: []
+    buildings: []
+    generalNames: []
+    flags: []
+    AllegianceNames: []
+    AllegianceType: Tribe
+    allegiances:
+    - {fileID: 11400000, guid: d1120000000000000000000000000012, type: 2}
+    holdingEconomyModifiers: []
+    levies: []
+    laws: []
+  unitReplacements: []
+  buildingReplacements: []
+  Income: 500

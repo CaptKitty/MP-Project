@@ -361,7 +361,7 @@ public class UIProvinceHost : MonoBehaviour
         else foreach (ProvinceHolding holding in LoadedProvince.holdings)
         {
             if (holding == null) continue;
-            text.Append("\n").Append(holding.DisplayName).Append(" Lv ").Append(holding.level);
+            text.Append("\n").Append(holding.DisplayName);
             if (!string.IsNullOrWhiteSpace(holding.cultureName)) text.Append(" - ").Append(holding.cultureName);
             text.Append(" - ").Append(SocioEconomicClassRules.DisplayName(holding.socioEconomicClass));
             bool mobilized = LoadedProvince.IsHoldingMobilized(holding.instanceId);
@@ -374,8 +374,8 @@ public class UIProvinceHost : MonoBehaviour
             if (manpower != 0) text.Append(" - ").Append(manpower).Append(" manpower");
             if (recoveryTicks > 0) text.Append(" - LEVY LOSSES: NO PRODUCTION (").Append(recoveryTicks).Append(" ticks)");
             else if (mobilized) text.Append(" - MOBILIZED");
-            if (holding.CanRaiseLevies) text.Append(" - ")
-                .Append(holding.EffectiveLevyContribution(LoadedProvince.nation).ToString("0.###")).Append(" levy capacity");
+            float capacity = LevyEconomySystem.CapacityShareForEntitlements(LoadedProvince, holding);
+            if (capacity > 0f) text.Append(" - ").Append(capacity.ToString("0.###")).Append(" levy capacity");
         }
         if (LoadedProvince.holdingConstructionOrders != null)
             foreach (HoldingConstructionOrder order in LoadedProvince.holdingConstructionOrders)
@@ -450,7 +450,7 @@ public class UIProvinceHost : MonoBehaviour
     {
         bool mobilized = LoadedProvince.IsHoldingMobilized(holding.instanceId);
         int recoveryTicks = LoadedProvince.GetHoldingLevyRecoveryTicks(holding.instanceId);
-        message.Append("\n- ").Append(holding.DisplayName).Append(" Lv ").Append(holding.level)
+        message.Append("\n- ").Append(holding.DisplayName)
             .Append(" - ").Append(!string.IsNullOrWhiteSpace(holding.cultureName) ? holding.cultureName : "Unassigned");
         message.Append("\n    Class: ").Append(SocioEconomicClassRules.DisplayName(holding.socioEconomicClass));
         if (holding.definition != null && holding.definition.outputs != null)
@@ -478,7 +478,9 @@ public class UIProvinceHost : MonoBehaviour
         System.Collections.Generic.List<ProvinceLevyEntitlement> holdingLevies =
             LoadedProvince.GetRegionalLevyEntitlementsForHolding(holding.instanceId);
         int levyTotal = holdingLevies.Count;
-        float levyContribution = holding.EffectiveLevyContribution(LoadedProvince.nation);
+        float levyContribution = LevyEconomySystem.CapacityShareForEntitlements(LoadedProvince, holding) *
+            (LoadedProvince.nation != null ? LoadedProvince.nation.GetHoldingLawAmount(
+                NationalLawEffectType.LevyConscription, holding, LoadedProvince.region) : 1000) / 1000f;
         if (levyContribution > 0f)
         {
             int available = 0;

@@ -177,11 +177,8 @@ public class FieldArmy : ScriptableObject
             ProvinceLevyEntitlement entitlement = province != null && province.levyEntitlements != null
                 ? province.levyEntitlements.Find(item => item != null && item.id == entitlementId) : null;
             if (entitlement == null) continue;
-            LevyGrantRule rule = LevySystem.FindRule(province.nation, entitlement.ruleId);
-            HoldingDefinition holding = HoldingDefinition.Find(entitlement.holdingId);
             entitlement.state = LevyEntitlementState.Recovering; entitlement.raisedArmyId = null;
-            entitlement.remainingTicks = holding != null ? Mathf.Max(0, holding.levyDemobilizationTicks) :
-                rule != null ? Mathf.Max(0, rule.demobilizationTicks) : 0;
+            entitlement.remainingTicks = LevyEconomySystem.DefaultDemobilizationTicks;
             if (entitlement.remainingTicks == 0 && entitlement.eligible) entitlement.state = LevyEntitlementState.Available;
             break;
         }

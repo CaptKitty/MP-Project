@@ -255,13 +255,14 @@ public class UIBuildingMenu : MonoBehaviour
             {
                 if (!NationContentResolver.CanConstructBuildingLevel(nation, buildingId, 1)) continue;
                 BuildingDefinition definition = BuildingDefinition.Find(buildingId);
-                if (definition != null && definition.provinceUnique &&
-                    (targetProvince.buildings.Exists(item => item != null &&
-                        item.BuildingId.Equals(buildingId, System.StringComparison.OrdinalIgnoreCase)) ||
-                     targetProvince.constructionOrders.Exists(order => order != null &&
-                        order.buildingId.Equals(buildingId, System.StringComparison.OrdinalIgnoreCase)))) continue;
+                if (definition != null && definition.isSpecialization) continue;
                 AddBuildOption(slot, buildingId, 1);
             }
+        }
+        else if (building.definition != null && building.definition.upgradeOptions != null && building.definition.upgradeOptions.Count > 0)
+        {
+            foreach (BuildingDefinition upgrade in building.definition.upgradeOptions)
+                if (upgrade != null) AddBuildOption(slot, upgrade.StableId, 1);
         }
         else if (building.level < NationContentResolver.UsefulBuildingMaximumLevel(targetProvince.nation, building.BuildingId))
         {
@@ -358,6 +359,8 @@ public class UIBuildingMenu : MonoBehaviour
         text.rectTransform.offsetMin = new Vector2(3f, 2f);
         text.rectTransform.offsetMax = new Vector2(-3f, -1f);
         option.GetComponent<Button>().onClick.AddListener(() => BeginConstruction(slot, buildingId, targetLevel));
+        if (definition != null && !BuildingPlacementSystem.CanPlace(slot != null ? slot.Province : null,
+            definition, slot != null ? slot.SlotIndex : -1, out _)) option.GetComponent<Button>().interactable = false;
         option.GetComponent<UIBuildingOptionHover>().Configure(this, slot != null ? slot.Province : null, buildingId, targetLevel);
         LayoutBuildGrid();
     }
@@ -386,6 +389,12 @@ public class UIBuildingMenu : MonoBehaviour
         text.Append("\n\nConstruction:");
         text.Append("\n- Cost: ").Append(CampaignEconomy.BuildingGoldCost(buildingId, targetLevel)).Append(" gold");
         text.Append("\n- Time: ").Append(BuildingDefinition.ConstructionTicks(buildingId, targetLevel)).Append(" ticks");
+        if (definition != null)
+        {
+            text.Append("\n- Placement: ").Append(definition.EffectivePlacementLimit == BuildingPlacementLimit.Unlimited
+                ? "Unlimited" : definition.EffectivePlacementLimit == BuildingPlacementLimit.ProvinceUnique ? "Province Unique" : "Region Unique");
+            if (!BuildingPlacementSystem.CanPlace(province, definition, -1, out string reason)) text.Append("\n- Cannot build: ").Append(reason);
+        }
         return text.ToString();
     }
 
@@ -572,6 +581,43 @@ public class UIBuildingMenu : MonoBehaviour
                     holdingPressure[modifier.tag] = holdingPressure.TryGetValue(modifier.tag, out float pressure)
                         ? pressure + modifier.desiredWeight : modifier.desiredWeight;
                 }
+            }
+        if (building.definition != null && building.definition.economicEffects != null)
+            foreach (BuildingEconomicEffect effect in building.definition.economicEffects)
+            {
+                if (effect == null || Mathf.Approximately(effect.amount, 0f)) continue;
+                string prefix = effect.scope == BuildingEffectScope.Region ? "Region: " : string.Empty;
+                switch (effect.type)
+                {
+                    case BuildingEconomicEffectType.HoldingTypePressure:
+                        text.Append("\n- ").Append(prefix).Append(Signed(effect.amount)).Append(" ").Append(effect.holdingType).Append(" Pressure"); break;
+                    case BuildingEconomicEffectType.ClassPressure:
+                        text.Append("\n- ").Append(prefix).Append(Signed(effect.amount)).Append(" ")
+                            .Append(SocioEconomicClassRules.DisplayName(effect.socialClass)).Append(" Class Pressure"); break;
+                    case BuildingEconomicEffectType.LevyTypePressure:
+                        text.Append("\n- ").Append(prefix).Append(Signed(effect.amount)).Append(" ").Append(effect.levyType).Append(" Pressure"); break;
+                    case BuildingEconomicEffectType.LocalLevyCapacity:
+                        text.Append("\n- ").Append(prefix).Append(Signed(effect.amount)).Append(" Local Levy Capacity"); break;
+                    case BuildingEconomicEffectType.EconomicValuePercent:
+                        text.Append("\n- ").Append(prefix).Append(Signed(effect.amount)).Append("% ")
+                            .Append(effect.outputType == HoldingOutputType.Income ? "Economic" : effect.outputType.ToString().Replace("Value", ""))
+                            .Append(" Value"); break;
+                    case BuildingEconomicEffectType.FoodOutputPercent:
+                        text.Append("\n- ").Append(prefix).Append(Signed(effect.amount)).Append("% Food Output"); break;
+                }
+                any = true;
+            }
+        if (building.definition != null && building.definition.valueConversions != null)
+            for (int conversionIndex = 0; conversionIndex < building.definition.valueConversions.Count; conversionIndex++)
+            {
+                BuildingValueConversion conversion = building.definition.valueConversions[conversionIndex];
+                if (conversion == null || building.level < Mathf.Max(1, conversion.minimumLevel)) continue;
+                text.Append("\n- Diverts up to ").Append(conversion.inputAmount.ToString("0.##")).Append(" ")
+                    .Append(conversion.input).Append(" -> ").Append(conversion.outputAmount.ToString("0.##")).Append(" ")
+                    .Append(conversion.output);
+                if (province != null && building.slotIndex >= 0)
+                    text.Append(" (operating at ").Append((ValueTradeSystem.OperatingFraction(province, building, conversionIndex) * 100f).ToString("0.#")).Append("%)");
+                any = true;
             }
         int rawIncome = building.definition != null ? building.DefinitionGoldIncomeAt(province != null ? province.urbanization : 0) :
             building.BuildingId.Equals("Farm", System.StringComparison.OrdinalIgnoreCase) ? building.level * CampaignEconomy.FarmIncomePerLevel : 0;

@@ -30,10 +30,21 @@ public class NationContentLayer
     public List<AllegianceDefinition> allegiances = new List<AllegianceDefinition>();
     [Header("Holding economy")]
     public List<HoldingTagModifier> holdingEconomyModifiers = new List<HoldingTagModifier>();
+    public List<NationClassModifier> classEconomicModifiers = new List<NationClassModifier>();
     [Header("Recoverable levies")]
     public List<LevyGrantRule> levies = new List<LevyGrantRule>();
     [Header("National laws")]
     public List<NationalLaw> laws = new List<NationalLaw>();
+}
+
+[Serializable]
+public sealed class NationClassModifier
+{
+    public SocioEconomicClass socialClass;
+    public float valueGenerationPercent;
+    public float levyCapacityPercent;
+    public bool replaceLightLevyWithHeavy;
+    public float heavyInfantryPressure;
 }
 
 [Serializable]
@@ -61,6 +72,12 @@ public class FactionBuildingReplacement
 public static class NationContentResolver
 {
     private static readonly string[] LegacyBuildings = { "Barracks", "Farm", "Fort" };
+    private static readonly string[] GenericEconomyBuildings =
+        { "Mill", "ProvisioningMill", "CommercialMill", "Granary", "Forum", "TribalAssembly", "Armoury", "Stable",
+          "RegionalMarket", "IndustrialYard", "Market", "Port", "FoodMarket", "ManufacturingCentre", "TradeExchange",
+          "SlaveMarket", "Villa", "TrainingGround" };
+    private static readonly Dictionary<Nation, List<NationClassModifier>> ClassModifierCache =
+        new Dictionary<Nation, List<NationClassModifier>>();
 
     public static string ResolveAssemblyName(Nation nation)
     {
@@ -193,6 +210,10 @@ public static class NationContentResolver
         AddBuildings(result, nation.religion != null ? nation.religion.content.buildings : null);
         AddBuildings(result, nation.faction != null ? nation.faction.content.buildings : null);
         if (result.Count == 0) AddStrings(result, LegacyBuildings);
+        AddStrings(result, GenericEconomyBuildings);
+        if (string.Equals(nation.name, "Rome", StringComparison.OrdinalIgnoreCase)) AddString(result, "RomanColony");
+        if (string.Equals(nation.name, "Carthage", StringComparison.OrdinalIgnoreCase)) AddString(result, "PunicMerchantQuarter");
+        if (nation.civilization != null && string.Equals(nation.civilization.name, "Barbarian", StringComparison.OrdinalIgnoreCase)) AddString(result, "WarriorHall");
 
         if (nation.faction != null && nation.faction.buildingReplacements != null)
         {
@@ -218,6 +239,29 @@ public static class NationContentResolver
         AddStrings(result, nation.faction != null ? nation.faction.content.generalNames : null);
         return result;
     }
+
+    public static List<NationClassModifier> ResolveClassModifiers(Nation nation)
+    {
+        if (nation != null && ClassModifierCache.TryGetValue(nation, out List<NationClassModifier> cached)) return cached;
+        List<NationClassModifier> result = new List<NationClassModifier>();
+        if (nation != null)
+        {
+            AddClassModifiers(result, nation.civilization != null ? nation.civilization.content.classEconomicModifiers : null);
+            AddClassModifiers(result, nation.culture != null ? nation.culture.content.classEconomicModifiers : null);
+            AddClassModifiers(result, nation.religion != null ? nation.religion.content.classEconomicModifiers : null);
+            AddClassModifiers(result, nation.faction != null ? nation.faction.content.classEconomicModifiers : null);
+        }
+        if (nation != null) ClassModifierCache[nation] = result;
+        return result;
+    }
+
+    public static float ClassValueMultiplier(Nation nation, SocioEconomicClass socialClass)
+    { float percent = 0f; foreach (NationClassModifier modifier in ResolveClassModifiers(nation)) if (modifier != null && SocioEconomicClassRules.Normalize(modifier.socialClass) == socialClass) percent += modifier.valueGenerationPercent; return Mathf.Max(0f, 1f + percent / 100f); }
+    public static float ClassLevyCapacityMultiplier(Nation nation, SocioEconomicClass socialClass)
+    { float percent = 0f; foreach (NationClassModifier modifier in ResolveClassModifiers(nation)) if (modifier != null && SocioEconomicClassRules.Normalize(modifier.socialClass) == socialClass) percent += modifier.levyCapacityPercent; return Mathf.Max(0f, 1f + percent / 100f); }
+
+    private static void AddClassModifiers(List<NationClassModifier> target, IEnumerable<NationClassModifier> values)
+    { if (values != null) foreach (NationClassModifier value in values) if (value != null) target.Add(value); }
 
     public static string GenerateGeneralName(Nation nation, string stableIdentity)
     {

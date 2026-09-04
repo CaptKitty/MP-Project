@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56c9a7030e3fdb348bc8977e4e3f9973, type: 3}
+  m_Name: Mill
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
+  id: Mill
+  displayName: Mill
+  description: Encourages farms and improves local agricultural value.
+  maximumLevel: 1
+  provinceUnique: 0
+  placementLimit: 0
+  defaultConstructionTicks: 10
+  levels: []
+  economicEffects:
+  - type: 0
+    scope: 0
+    amount: 10
+    holdingType: 1
+    socialClass: 2
+    levyType: 0
+    outputType: 0
+  - type: 4
+    scope: 0
+    amount: 10
+    holdingType: 0
+    socialClass: 2
+    levyType: 0
+    outputType: 6
+  upgradeOptions:
+  - {fileID: 11400000, guid: 5110a69492fb443f8164911c8e173b6a, type: 2}
+  - {fileID: 11400000, guid: b4bb3a65345749d2bd42011634f24891, type: 2}

@@ -14,42 +14,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HoldingDefinition
   id: Mine
   displayName: Mine
-  description: "Mine \u2014 tier 2 Mining holding."
+  description: Produces industrial value through raw labour.
   icon: {fileID: 1781684785519343535, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
-  category: 9
-  categoryTier: 2
-  tags: 64
+  category: 0
+  economicType: 5
+  categoryTier: 1
+  tags: 0
   suggestedAllegiance: 
   maximumLevel: 1
-  defaultConstructionTicks: 16
-  levels:
-  - level: 1
-    goldCost: 200
-    constructionTicks: 16
-    goldIncome: 0
-    urbanizationResponse: 0
-    displayedEffect: 
-    localModifiers:
-      maxDevelopment: 0
-      holdingEconomyModifiers: []
-  outputs:
-  - type: 0
-    baseValue: 3
-    scalesWithUrbanization: 0
-    suitability: 1
-    urbanizationResponse: 0
+  defaultConstructionTicks: 10
+  levels: []
+  outputs: []
+  economicOutputs:
+  - type: 7
+    baseValue: 10
+    labourCategory: 1
     disabledWhileMobilized: 0
-  transformations:
-  - targetHoldingId: MiningSettlement
-    minimumUrbanization: -100
-    maximumUrbanization: 100
+  transformations: []
   foodConsumption: 1
-  foodUpkeep: 1
+  foodUpkeep: 0
+  garrisonCapacity: 0
   defaultClass: 2
   canRaiseLevies: 0
   levyUnit: {fileID: 0}
   levyArchetype: 0
-  levyContributionPermillePerLevel: 0
+  levyContributionPermillePerLevel: 1000
   levyFormationsPerLevel: 1
   levyMobilizationTicks: 0
   levyRecoveryTicks: 120

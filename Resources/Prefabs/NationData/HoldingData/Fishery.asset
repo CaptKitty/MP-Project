@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d02d5c403b94ed68e3d3521f324708d, type: 3}
+  m_Name: Fishery
+  m_EditorClassIdentifier: Assembly-CSharp::HoldingDefinition
+  id: Fishery
+  displayName: Fishery
+  description: Produces food and agricultural value.
+  icon: {fileID: 0}
+  category: 0
+  economicType: 6
+  categoryTier: 1
+  tags: 0
+  suggestedAllegiance: 
+  maximumLevel: 1
+  defaultConstructionTicks: 10
+  levels: []
+  outputs: []
+  economicOutputs:
+  - type: 1
+    baseValue: 2
+    labourCategory: 0
+    disabledWhileMobilized: 0
+  - type: 6
+    baseValue: 6
+    labourCategory: 0
+    disabledWhileMobilized: 0
+  transformations: []
+  foodConsumption: 1
+  foodUpkeep: 0
+  garrisonCapacity: 0
+  defaultClass: 2
+  canRaiseLevies: 0
+  levyUnit: {fileID: 0}
+  levyArchetype: 0
+  levyContributionPermillePerLevel: 1000
+  levyFormationsPerLevel: 1
+  levyMobilizationTicks: 0
+  levyRecoveryTicks: 120
+  levyDemobilizationTicks: 0

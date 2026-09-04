@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_Script: {fileID: 11500000, guid: 56c9a7030e3fdb348bc8977e4e3f9973, type: 3}
+  m_Name: TrainingGround
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
+  id: TrainingGround
+  displayName: Training Ground
+  description: Expands the locally trainable levy pool.
+  maximumLevel: 1
+  placementLimit: 0
+  defaultConstructionTicks: 10
+  levels: []
+  economicEffects:
+  - {type: 3, scope: 0, amount: 1}
+  - {type: 2, scope: 0, amount: 5, levyType: 1}

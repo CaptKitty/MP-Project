@@ -518,6 +518,10 @@ public class Province
     public List<HoldingConstructionOrder> holdingConstructionOrders = new List<HoldingConstructionOrder>();
     [Header("Holding composition")]
     public List<HoldingTagModifier> baseHoldingTagDesires = new List<HoldingTagModifier>();
+    [Tooltip("Additive holding-type demand sources. Values are normalized into desired shares.")]
+    public List<HoldingTypePressure> holdingTypePressures = new List<HoldingTypePressure>();
+    [Tooltip("Additive population-class demand sources. Values are normalized after eligibility rules.")]
+    public List<HoldingClassPressure> holdingClassPressures = new List<HoldingClassPressure>();
     public HoldingEvolutionSettings holdingEvolution = new HoldingEvolutionSettings();
     [System.NonSerialized] public int holdingEvolutionCursor;
     [System.NonSerialized] public int lastHoldingEvolutionTick = -1;
@@ -536,24 +540,6 @@ public class Province
 
         urbanization = Mathf.Clamp(urbanization - 25, -100, MaximumDevelopment);
 
-        if (holdings == null || holdings.Count == 0) return;
-        List<ProvinceHolding> downgradeable = holdings.FindAll(holding => holding != null && holding.definition != null &&
-            holding.definition.categoryTier > 1 && HoldingEvolutionSystem.FindCategoryTier(
-                holding.definition.category, holding.definition.categoryTier - 1) != null);
-        downgradeable.Sort((left, right) => ConquestHoldingHash(left, previousOwner, conqueror, campaignTick)
-            .CompareTo(ConquestHoldingHash(right, previousOwner, conqueror, campaignTick)));
-        int downgradeCount = Mathf.Min(downgradeable.Count, holdings.Count / 2);
-        for (int i = 0; i < downgradeCount; i++)
-        {
-            ProvinceHolding holding = downgradeable[i];
-            HoldingDefinition lower = HoldingEvolutionSystem.FindCategoryTier(holding.definition.category,
-                holding.definition.categoryTier - 1);
-            if (lower == null) continue;
-            holding.definition = lower; holding.id = lower.StableId;
-            holding.level = Mathf.Clamp(holding.level, 1, Mathf.Max(1, lower.maximumLevel));
-            holding.adaptationTargetId = string.Empty; holding.adaptationPressure = 0;
-            holding.adaptationCooldownTicks = Mathf.Max(holding.adaptationCooldownTicks, 8);
-        }
         ClampDevelopment(); ReconcileLevyEntitlements();
     }
 
@@ -566,27 +552,6 @@ public class Province
         else constructionOrders.Clear();
         urbanization = Mathf.Clamp(urbanization - 25, -100, MaximumDevelopment);
 
-        if (holdings != null && holdings.Count > 0)
-        {
-            List<ProvinceHolding> downgradeable = holdings.FindAll(holding => holding != null &&
-                holding.definition != null && holding.definition.categoryTier > 1 &&
-                HoldingEvolutionSystem.FindCategoryTier(holding.definition.category,
-                    holding.definition.categoryTier - 1) != null);
-            downgradeable.Sort((left, right) => ConquestHoldingHash(left, defender, occupier, campaignTick)
-                .CompareTo(ConquestHoldingHash(right, defender, occupier, campaignTick)));
-            int count = Mathf.Min(downgradeable.Count, holdings.Count / 2);
-            for (int i = 0; i < count; i++)
-            {
-                HoldingDefinition lower = HoldingEvolutionSystem.FindCategoryTier(
-                    downgradeable[i].definition.category, downgradeable[i].definition.categoryTier - 1);
-                if (lower == null) continue;
-                downgradeable[i].definition = lower;
-                downgradeable[i].id = lower.StableId;
-                downgradeable[i].level = 1;
-                downgradeable[i].adaptationTargetId = string.Empty;
-                downgradeable[i].adaptationPressure = 0;
-            }
-        }
         ClampDevelopment();
         ReconcileLevyEntitlements();
     }
@@ -719,7 +684,7 @@ public class Province
                 SocioEconomicClass socialClass = FallbackHoldingClass(i, barbarian, definition);
                 holdings.Add(new ProvinceHolding { instanceId = name + "-holding-" + i,
                     definition = definition, id = definition.StableId, level = 1, slotIndex = i,
-                    cultureName = i <= 5 || i == 8 ? cultureNames[0] : i <= 7 ? cultureNames[1] : cultureNames[2],
+                    cultureName = FallbackHoldingCulture(i, initialHoldingCount, cultureNames, socialClass),
                     socioEconomicClass = socialClass,
                     allegiance = definition != null ? definition.suggestedAllegiance : string.Empty });
             }
@@ -729,7 +694,13 @@ public class Province
             ProvinceHolding holding = holdings[i];
             if (holding.slotIndex < 0) holding.slotIndex = i;
             if (string.IsNullOrWhiteSpace(holding.instanceId)) holding.instanceId = name + "-holding-" + holding.slotIndex;
-            if (holding.definition == null) holding.definition = HoldingDefinition.Find(holding.id);
+            HoldingDefinition loaded = holding.definition != null ? holding.definition : HoldingDefinition.Find(holding.id);
+            HoldingEconomicType migratedType = loaded != null ? loaded.EffectiveEconomicType : HoldingEconomicType.Farm;
+            holding.definition = HoldingArchetypeCatalog.Find(migratedType) ?? loaded;
+            if (holding.definition != null) holding.id = holding.definition.StableId;
+            holding.level = 1;
+            holding.adaptationTargetId = string.Empty;
+            holding.adaptationPressure = 0;
             holding.socioEconomicClass = SocioEconomicClassRules.Normalize(holding.socioEconomicClass);
             nation?.ApplyHoldingClassLaws(holding);
         }
@@ -764,39 +735,64 @@ public class Province
             // from each tier; the additional tenth holding favours subsistence.
             switch (slot)
             {
-                case 0: return HoldingDefinition.Find("Homestead");
-                case 1: return HoldingDefinition.Find("Homestead");
-                case 2: return HoldingDefinition.Find("Hamlet");
-                case 3: return HoldingDefinition.Find("Village");
-                case 4: return HoldingDefinition.Find("HerdingHomestead");
-                case 5: return HoldingDefinition.Find("PastoralHolding");
-                case 6: return HoldingDefinition.Find("PastoralEstate");
-                case 7: return HoldingDefinition.Find("HunterCamp");
-                case 8: return HoldingDefinition.Find("HunterCommunity");
-                default: return HoldingDefinition.Find("HunterLodge");
+                case 0: case 1: case 2: case 3: return HoldingArchetypeCatalog.Find(HoldingEconomicType.Farm);
+                case 4: case 5: case 6: case 7: case 8: default: return HoldingArchetypeCatalog.Find(HoldingEconomicType.Pasture);
             }
         }
         if (slot <= 3) return citizenFarm;
-        if (slot <= 6) return HoldingDefinition.Find("TenantFarm");
+        if (slot <= 6) return HoldingArchetypeCatalog.Find(HoldingEconomicType.Farm);
         if (slot == 7) return TerrainSpecialistHolding();
-        if (slot == 8) return HoldingDefinition.Find("Manor");
-        return HoldingDefinition.Find("SlaveFarm");
+        if (slot == 8) return HoldingArchetypeCatalog.Find(HoldingEconomicType.Commerce);
+        return HoldingArchetypeCatalog.Find(HoldingEconomicType.Farm);
     }
 
     private HoldingDefinition TerrainSpecialistHolding()
     {
-        if (terrainProfile == CampaignTerrainProfile.Forested) return HoldingDefinition.Find("HunterCamp");
+        if (terrainProfile == CampaignTerrainProfile.Forested) return HoldingArchetypeCatalog.Find(HoldingEconomicType.Pasture);
         if (terrainProfile == CampaignTerrainProfile.Hilly || terrainProfile == CampaignTerrainProfile.Mountainous)
-            return HoldingDefinition.Find("SurfaceWorking");
-        if (terrainProfile == CampaignTerrainProfile.RoughCountry) return HoldingDefinition.Find("HerdingHomestead");
-        return HoldingDefinition.Find("TraderHousehold");
+            return HoldingArchetypeCatalog.Find(HoldingEconomicType.Mine);
+        if (terrainProfile == CampaignTerrainProfile.RoughCountry) return HoldingArchetypeCatalog.Find(HoldingEconomicType.Pasture);
+        return HoldingArchetypeCatalog.Find(HoldingEconomicType.Commerce);
     }
 
-    private static SocioEconomicClass FallbackHoldingClass(int slot, bool barbarian, HoldingDefinition definition)
+    private SocioEconomicClass FallbackHoldingClass(int slot, bool barbarian, HoldingDefinition definition)
     {
-        if (!barbarian && slot == 8) return SocioEconomicClass.Aristocracy;
-        if (!barbarian && slot == 9) return SocioEconomicClass.Enslaved;
+        CivilizationClassBaseline baseline = nation != null && nation.civilization != null
+            ? nation.civilization.classBaseline : null;
+        if (baseline != null)
+        {
+            float total = baseline.citizen + baseline.tribesman + baseline.freemen + baseline.elite + baseline.enslaved;
+            if (total > .001f)
+            {
+                float cursor = ((slot + .5f) / Mathf.Max(1, InitialHoldingCount(barbarian))) * total;
+                if (cursor < baseline.citizen) return SocioEconomicClass.Citizen;
+                cursor -= baseline.citizen;
+                if (cursor < baseline.tribesman) return SocioEconomicClass.Tribesman;
+                cursor -= baseline.tribesman;
+                if (cursor < baseline.freemen) return SocioEconomicClass.Freemen;
+                cursor -= baseline.freemen;
+                if (cursor < baseline.elite) return SocioEconomicClass.Elite;
+                return SocioEconomicClass.Enslaved;
+            }
+        }
+        if (slot == 8) return SocioEconomicClass.Elite;
+        if (slot == 9) return SocioEconomicClass.Enslaved;
         return definition != null ? definition.defaultClass : SocioEconomicClass.Freemen;
+    }
+
+    private static string FallbackHoldingCulture(int slot, int total, List<string> cultures,
+        SocioEconomicClass socialClass)
+    {
+        if (cultures == null || cultures.Count == 0) return "Unassigned";
+        // Citizenship starts among the local primary culture. Other classes use
+        // an approximately 80/15/5 cultural mix rather than assigning the entire
+        // tail of a 15-holding province to the third neighbouring culture.
+        if (SocioEconomicClassRules.Normalize(socialClass) == SocioEconomicClass.Citizen) return cultures[0];
+        int secondCount = cultures.Count > 1 ? Mathf.RoundToInt(total * .15f) : 0;
+        int thirdCount = cultures.Count > 2 ? Mathf.RoundToInt(total * .05f) : 0;
+        if (thirdCount > 0 && slot >= total - thirdCount) return cultures[2];
+        if (secondCount > 0 && slot >= total - thirdCount - secondCount) return cultures[1];
+        return cultures[0];
     }
 
     public void RebuildPopulationFromHoldings()
@@ -905,7 +901,8 @@ public class Province
         foreach (Province sourceProvince in sourceProvinces)
         {
             if (sourceProvince == null || sourceProvince.holdings == null) continue;
-            List<ProvinceHolding> sources = sourceProvince.holdings.FindAll(item => item != null && item.CanRaiseLevies);
+            List<ProvinceHolding> sources = sourceProvince.holdings.FindAll(item => item != null && item.definition != null &&
+                LevyEconomySystem.CapacityShareForEntitlements(sourceProvince, item) > 0f);
             sources.Sort((left, right) =>
             {
                 int bySlot = left.slotIndex.CompareTo(right.slotIndex);
@@ -913,14 +910,15 @@ public class Province
             });
             foreach (ProvinceHolding holding in sources)
             {
-                UnitSaveData resolvedLevy = HoldingEvolutionSystem.ResolveLevyUnit(sourceProvince, holding);
+                LevyPressureType broadRole = LevyEconomySystem.RoleFor(sourceProvince, holding);
+                UnitSaveData resolvedLevy = LevyUnitResolver.Resolve(sourceProvince, holding, broadRole);
                 if (resolvedLevy == null) continue;
                 string poolId = !string.IsNullOrWhiteSpace(resolvedLevy.name) ? resolvedLevy.name : resolvedLevy.unitname;
                 if (!unitPools.TryGetValue(poolId, out LevyUnitPool pool))
                 { pool = new LevyUnitPool { unit = resolvedLevy }; unitPools.Add(poolId, pool); }
                 long before = pool.accumulated / completeFormation;
                 if (!pool.pendingContributors.Contains(holding.instanceId)) pool.pendingContributors.Add(holding.instanceId);
-                pool.accumulated += (long)holding.LevyContributionPermille *
+                pool.accumulated += (long)Mathf.RoundToInt(LevyEconomySystem.CapacityShareForEntitlements(sourceProvince, holding) * 1000f) *
                     nation.GetHoldingLawAmount(NationalLawEffectType.LevyConscription, holding, sourceProvince.region);
                 pool.remainderProvince = sourceProvince;
                 pool.remainderHolding = holding;
@@ -1231,8 +1229,7 @@ public class Province
                 source.GetHoldingOutput(holding, HoldingOutputType.Income, true));
             int manpowerLoss = Mathf.Max(0, source.GetHoldingOutput(holding, HoldingOutputType.Manpower, false) -
                 source.GetHoldingOutput(holding, HoldingOutputType.Manpower, true));
-            impact += foodLoss * 100 + incomeLoss * 20 + manpowerLoss * 10 +
-                Mathf.Max(1, holding.definition != null ? holding.definition.categoryTier : 1) * 2;
+            impact += foodLoss * 100 + incomeLoss * 20 + manpowerLoss * 10 + 2;
         }
         return impact;
     }
@@ -1241,12 +1238,9 @@ public class Province
     {
         ProvinceLevyEntitlement entitlement = levyEntitlements.Find(item => item != null && item.id == entitlementId);
         if (entitlement == null) return;
-        LevyGrantRule rule = LevySystem.FindRule(nation, entitlement.ruleId);
         entitlement.state = LevyEntitlementState.Recovering; entitlement.raisedArmyId = null;
         HoldingRecoveryCache.Clear();
-        HoldingDefinition holding = HoldingDefinition.Find(entitlement.holdingId);
-        int baseRecoveryTicks = holding != null ? Mathf.Max(0, holding.levyRecoveryTicks) :
-            rule != null ? Mathf.Max(0, rule.recoveryTicks) : 120;
+        int baseRecoveryTicks = LevyEconomySystem.DefaultRecoveryTicks;
         entitlement.remainingTicks = nation != null
             ? Mathf.Max(0, nation.ApplyLawModifiers(NationalLawEffectType.LevyRecoveryTime,
                 baseRecoveryTicks, GetHolding(entitlement.holdingInstanceId), CampaignUnitOrigin.Levy))
@@ -1365,7 +1359,7 @@ public class Province
         float income = 0f;
         if (buildings != null) foreach (ProvinceBuilding building in buildings)
             if (building != null && building.definition != null)
-                income += building.DefinitionGoldIncomeUnrounded(urbanization);
+                income += building.DefinitionGoldIncomeUnrounded(0);
         if (holdings != null) foreach (ProvinceHolding holding in holdings)
             if (holding != null)
             {
@@ -1397,19 +1391,7 @@ public class Province
 
     public int GetHoldingOutput(ProvinceHolding holding, HoldingOutputType type, bool mobilized)
     {
-        if (holding == null) return 0;
-        bool recoveringFromLevyLoss = GetHoldingLevyRecoveryTicks(holding.instanceId) > 0;
-        if (recoveringFromLevyLoss)
-            return type == HoldingOutputType.Food ? -holding.FoodConsumption : 0;
-        int value = holding.GetOutput(type, urbanization, mobilized);
-        float efficiency = GetHoldingEfficiency(holding.definition);
-        if (type == HoldingOutputType.Food)
-        {
-            int consumption = holding.FoodConsumption;
-            int grossProduction = value + consumption;
-            return Mathf.RoundToInt(grossProduction * (1f + efficiency / 100f)) - consumption;
-        }
-        return Mathf.RoundToInt(value * (1f + efficiency / 100f));
+        return Mathf.RoundToInt(GetHoldingOutputUnrounded(holding, type, mobilized));
     }
 
     public float GetHoldingOutputUnrounded(HoldingOutputType type)
@@ -1426,26 +1408,7 @@ public class Province
         if (holding == null) return 0f;
         if (GetHoldingLevyRecoveryTicks(holding.instanceId) > 0)
             return type == HoldingOutputType.Food ? -holding.FoodConsumption : 0f;
-        if (type == HoldingOutputType.PoliticalInfluence) return 0f;
-
-        float value = 0f;
-        HoldingDefinition definition = holding.definition;
-        if (definition != null && definition.outputs != null)
-            foreach (HoldingOutputDefinition output in definition.outputs)
-                if (output != null && output.type == type && !(mobilized && output.disabledWhileMobilized))
-                    value += UrbanizationOutputScaling.ApplyUnrounded(output.baseValue,
-                        output.EffectiveUrbanizationResponse, urbanization);
-        if (type == HoldingOutputType.Income && Mathf.Approximately(value, 0f) &&
-            definition != null && definition.levels != null)
-            foreach (HoldingLevelDefinition level in definition.levels)
-                if (level != null && level.level <= holding.level)
-                    value += UrbanizationOutputScaling.ApplyUnrounded(level.goldIncome,
-                        level.urbanizationResponse, urbanization);
-
-        float efficiencyMultiplier = 1f + GetHoldingEfficiency(definition) / 100f;
-        if (type == HoldingOutputType.Food)
-            return value * efficiencyMultiplier - holding.FoodConsumption;
-        return value * efficiencyMultiplier;
+        return HoldingEconomySystem.GetOutput(this, holding, type, mobilized, 1f);
     }
 
     private float GetHoldingEfficiency(HoldingDefinition definition)
@@ -1470,7 +1433,7 @@ public class Province
     public void ProcessHoldingEvolutionTick(int campaignTick)
     {
         if (IsOccupied) return;
-        HoldingEvolutionSystem.ProcessTick(this, campaignTick);
+        HoldingEconomySystem.ProcessTick(this, campaignTick);
     }
 
     public int GetFoodOutput()
@@ -1494,8 +1457,8 @@ public class Province
                     IsHoldingMobilized(holding.instanceId)) + holding.FoodConsumption;
         if (buildings != null) foreach (ProvinceBuilding building in buildings)
             if (building != null && building.definition != null)
-                total += building.DefinitionFoodOutputUnrounded(urbanization);
-        return total + RuralizationFoodBonusUnrounded();
+                total += building.DefinitionFoodOutputUnrounded(0);
+        return total + ValueTradeSystem.ConvertedFood(this);
     }
 
     public int GetFoodConsumption()
@@ -1673,6 +1636,7 @@ public class Province
         ProvinceBuilding building = GetBuildingInSlot(slotIndex);
         if (building == null) return false;
         buildings.Remove(building);
+        LevyEconomySystem.InvalidateAll();
         ClampDevelopment();
         RefreshGarrisonForFort();
         return true;
@@ -1741,15 +1705,10 @@ public class Province
         if (slotIndex < 0 || string.IsNullOrEmpty(buildingId) || constructionOrders.Exists(order => order.slotIndex == slotIndex)) return false;
         if (nation == null || !NationContentResolver.CanConstructBuildingLevel(nation, buildingId, targetLevel)) return false;
         ProvinceBuilding existing = GetBuildingInSlot(slotIndex);
-        if (existing != null && !existing.BuildingId.Equals(buildingId, System.StringComparison.OrdinalIgnoreCase)) return false;
         BuildingDefinition definition = BuildingDefinition.Find(buildingId);
-        if (definition != null && definition.provinceUnique)
-        {
-            if (buildings.Exists(building => building != null && building.slotIndex != slotIndex &&
-                building.BuildingId.Equals(buildingId, System.StringComparison.OrdinalIgnoreCase))) return false;
-            if (constructionOrders.Exists(order => order != null && order.slotIndex != slotIndex &&
-                order.buildingId.Equals(buildingId, System.StringComparison.OrdinalIgnoreCase))) return false;
-        }
+        bool replacement = existing != null && !existing.BuildingId.Equals(buildingId, System.StringComparison.OrdinalIgnoreCase);
+        if (replacement && (existing.definition == null || definition == null || !existing.definition.CanUpgradeTo(definition))) return false;
+        if (definition != null && !BuildingPlacementSystem.CanPlace(this, definition, slotIndex, out _)) return false;
         ProvinceConstructionOrder order = new ProvinceConstructionOrder
         {
             slotIndex = slotIndex, buildingId = buildingId,
@@ -1785,8 +1744,15 @@ public class Province
                 id = order.buildingId, level = order.targetLevel, maxLevel = maximum, slotIndex = order.slotIndex
             });
         }
+        else if (!building.BuildingId.Equals(order.buildingId, System.StringComparison.OrdinalIgnoreCase))
+        {
+            BuildingDefinition replacement = BuildingDefinition.Find(order.buildingId);
+            if (replacement != null && building.definition != null && building.definition.CanUpgradeTo(replacement))
+            { building.definition = replacement; building.id = replacement.StableId; building.level = 1; building.maxLevel = replacement.maximumLevel; }
+        }
         else building.level = Mathf.Min(building.maxLevel, Mathf.Max(building.level, order.targetLevel));
         constructionOrders.Remove(order);
+        LevyEconomySystem.InvalidateAll();
         ClampDevelopment();
         if (building != null && building.DefinitionGarrisonCapacity > 0 ||
             order.buildingId.Equals("Fort", System.StringComparison.OrdinalIgnoreCase) ||

@@ -352,7 +352,7 @@ public class CampaignSaveData
                     level = Mathf.Max(1, holding.level), slotIndex = holding.slotIndex,
                     cultureName = holding.cultureName,
                     socioEconomicClass = SocioEconomicClassRules.Normalize(
-                        (SocioEconomicClass)Mathf.Clamp(holding.socioEconomicClass, 0, 8)),
+                        (SocioEconomicClass)Mathf.Clamp(holding.socioEconomicClass, 0, 9)),
                     allegiance = holding.allegiance,
                     levyEnabled = holding.levyEnabled, adaptationTargetId = holding.adaptationTargetId,
                     adaptationPressure = Mathf.Max(0, holding.adaptationPressure),

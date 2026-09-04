@@ -194,7 +194,8 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
         foreach (ProvinceHolding holding in holdings)
         {
             string culture = !string.IsNullOrWhiteSpace(holding.cultureName) ? holding.cultureName : "Unassigned";
-            string key = holding.HoldingId + "|" + culture;
+            SocioEconomicClass socialClass = SocioEconomicClassRules.Normalize(holding.socioEconomicClass);
+            string key = holding.HoldingId + "|" + culture + "|" + (byte)socialClass;
             if (!identical.TryGetValue(key, out List<ProvinceHolding> group)) { group = new List<ProvinceHolding>(); identical.Add(key, group); }
             group.Add(holding);
         }
@@ -247,7 +248,9 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
     {
         ProvinceHolding example = group[0];
         string culture = !string.IsNullOrWhiteSpace(example.cultureName) ? example.cultureName : "Unassigned";
-        result.Append(group.Count).Append("x ").Append(example.DisplayName).Append(" - ").Append(culture);
+        string socialClass = SocioEconomicClassRules.DisplayName(example.socioEconomicClass);
+        result.Append(group.Count).Append("x ").Append(example.DisplayName).Append(" - ").Append(culture)
+            .Append(" - ").Append(socialClass);
         List<string> outputs = new List<string>();
         bool produced = false;
         foreach (HoldingOutputType type in System.Enum.GetValues(typeof(HoldingOutputType)))
@@ -278,12 +281,6 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
             outputs.Add("Upkeep: " + foodUpkeep + " food");
             produced = true;
         }
-        if (example.definition != null && example.definition.category == HoldingCategory.EliteAgriculture)
-        {
-            int servileEfficiency = Mathf.Clamp(example.definition.categoryTier, 1, 3) * 5 * group.Count;
-            outputs.Add("Servile output +" + servileEfficiency + "%");
-            produced = true;
-        }
         result.Append("\n").Append(produced ? string.Join(" | ", outputs) : "No output");
         float levyContribution = 0f;
         HashSet<string> levyEntitlementIds = new HashSet<string>(System.StringComparer.Ordinal);
@@ -291,10 +288,12 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
         Dictionary<string, float> resolvedLevies = new Dictionary<string, float>(System.StringComparer.OrdinalIgnoreCase);
         foreach (ProvinceHolding holding in group)
         {
-            float contribution = holding.EffectiveLevyContribution(province.nation);
+            float contribution = LevyEconomySystem.CapacityShareForEntitlements(province, holding) *
+                (province.nation != null ? province.nation.GetHoldingLawAmount(
+                    NationalLawEffectType.LevyConscription, holding, province.region) : 1000) / 1000f;
             if (contribution <= 0f) continue;
             levyContribution += contribution;
-            UnitSaveData levy = HoldingEvolutionSystem.ResolveLevyUnit(province, holding);
+            UnitSaveData levy = LevyUnitResolver.Resolve(province, holding, LevyEconomySystem.RoleFor(province, holding));
             string levyName = levy != null && !string.IsNullOrWhiteSpace(levy.unitname)
                 ? levy.unitname : levy != null ? levy.name : "No matching levy";
             if (!resolvedLevies.ContainsKey(levyName)) resolvedLevies.Add(levyName, 0f);
@@ -331,7 +330,7 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
 
     public void ShowProductionBreakdownTooltip()
     {
-        HoldingTooltipData data = new HoldingTooltipData { title = "Provincial holding efficiencies" };
+        HoldingTooltipData data = new HoldingTooltipData { title = "Provincial economy\n" + BuildLevySummary() };
         if (province == null || province.holdings == null || province.holdings.Count == 0)
         {
             data.entries.Add(new HoldingTooltipEntry { text = "No holdings." });
@@ -367,25 +366,34 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
     private string BuildProductionEfficiencySummary(List<ProvinceHolding> group)
     {
         ProvinceHolding example = group[0];
-        HoldingDefinition definition = example.definition;
-        float provincialEfficiency = HoldingEvolutionSystem.OutputEfficiencyPercent(province, definition);
         StringBuilder result = new StringBuilder();
-        result.Append(group.Count).Append("x ").Append(example.DisplayName);
-
-        List<string> efficiencies = new List<string>();
-        if (definition != null && definition.outputs != null)
-            foreach (HoldingOutputDefinition output in definition.outputs)
-            {
-                if (output == null || output.type == HoldingOutputType.PoliticalInfluence || output.baseValue == 0) continue;
-                float urbanization = UrbanizationPercent(output.EffectiveUrbanizationResponse, province.urbanization);
-                float combined = ((1f + urbanization / 100f) * (1f + provincialEfficiency / 100f) - 1f) * 100f;
-                efficiencies.Add(OutputLabel(output.type) + " " + SignedPercent(combined));
-            }
-        if (efficiencies.Count == 0)
-            efficiencies.Add("Net efficiency " + SignedPercent(provincialEfficiency));
-        result.Append("\nNet efficiency: ").Append(string.Join(" | ", efficiencies));
+        HoldingEconomySystem.ClassMultipliers multipliers = HoldingEconomySystem.Multipliers(example.socioEconomicClass);
+        result.Append(group.Count).Append("x ").Append(example.definition.EffectiveEconomicType)
+            .Append(" - ").Append(SocioEconomicClassRules.DisplayName(example.socioEconomicClass));
+        result.Append("\nRaw x").Append(multipliers.raw.ToString("0.##"))
+            .Append(" | Skilled x").Append(multipliers.skilled.ToString("0.##"))
+            .Append(" | Value x").Append(multipliers.value.ToString("0.##"));
+        result.Append("\nMobilization: ").Append(LevyEconomySystem.Sensitivity(example.socioEconomicClass))
+            .Append(" sensitivity, output x").Append(LevyEconomySystem.OutputMultiplier(province, example).ToString("0.##"));
         result.Append("\nHover for breakdown");
         return result.ToString();
+    }
+
+    private string BuildLevySummary()
+    {
+        if (province == null) return "No levy data";
+        float total = LevyEconomySystem.RegionCapacity(province);
+        float raised = LevyEconomySystem.RaisedCapacity(province);
+        Dictionary<LevyPressureType, float> pressure = LevyEconomySystem.Pressure(province);
+        Dictionary<LevyPressureType, float> composition = LevyEconomySystem.Composition(province);
+        return "Local levies: " + raised.ToString("0.##") + "/" + total.ToString("0.##") +
+            " (" + (LevyEconomySystem.MobilizationFraction(province) * 100f).ToString("0.#") + "%)" +
+            "\nPressure: Light " + pressure[LevyPressureType.LightInfantry].ToString("0.#") +
+            ", Heavy " + pressure[LevyPressureType.HeavyInfantry].ToString("0.#") +
+            ", Cavalry " + pressure[LevyPressureType.Cavalry].ToString("0.#") +
+            "\nComposition: " + (composition[LevyPressureType.LightInfantry] * 100f).ToString("0.#") + "% / " +
+            (composition[LevyPressureType.HeavyInfantry] * 100f).ToString("0.#") + "% / " +
+            (composition[LevyPressureType.Cavalry] * 100f).ToString("0.#") + "%";
     }
 
     public void ToggleProductionBreakdownTooltip()
@@ -409,43 +417,18 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
     private string BuildProductionBreakdown(List<ProvinceHolding> group)
     {
         ProvinceHolding example = group[0];
-        HoldingDefinition definition = example.definition;
-        float efficiency = HoldingEvolutionSystem.OutputEfficiencyPercent(province, definition);
-        string tags = HoldingEvolutionSystem.TagList(definition);
         StringBuilder result = new StringBuilder();
         if (group.Count > 1) result.Append(group.Count).Append("x ");
-        result.Append(example.DisplayName);
-
-        bool any = false;
-        if (definition.outputs != null) foreach (HoldingOutputDefinition output in definition.outputs)
+        result.Append(example.definition.EffectiveEconomicType).Append(" / ")
+            .Append(SocioEconomicClassRules.DisplayName(example.socioEconomicClass));
+        foreach (HoldingOutputType type in new[] { HoldingOutputType.Food, HoldingOutputType.AgriculturalValue,
+            HoldingOutputType.IndustrialValue, HoldingOutputType.CommercialValue, HoldingOutputType.Income })
         {
-            if (output == null || output.type == HoldingOutputType.PoliticalInfluence || output.baseValue == 0) continue;
-            any = true;
-            int response = output.EffectiveUrbanizationResponse;
-            float urbanized = UrbanizationOutputScaling.ApplyUnrounded(output.baseValue, response, province.urbanization);
-            float final = urbanized * (1f + efficiency / 100f);
-            result.Append("\n").Append(OutputLabel(output.type)).Append(": ")
-                .Append(output.baseValue).Append(" base")
-                .Append(" x urbanization ").Append(SignedPercent(UrbanizationPercent(response, province.urbanization)))
-                .Append(" x provincial ").Append(tags).Append(" ").Append(SignedPercent(efficiency))
-                .Append(" = ").Append(final.ToString("0.###")).Append(" unrounded output added to region");
+            float value = province.GetHoldingOutputUnrounded(example, type, false);
+            if (!Mathf.Approximately(value, 0f)) result.Append("\n").Append(OutputLabel(type)).Append(": ").Append(value.ToString("0.###"));
         }
-
-        if (!any && example.GoldIncome != 0)
-        {
-            int urbanized = example.GoldIncomeAt(Mathf.RoundToInt(province.urbanization));
-            int final = Mathf.RoundToInt(urbanized * (1f + efficiency / 100f));
-            result.Append("\nGold: ").Append(example.GoldIncome).Append(" base")
-                .Append(" x provincial ").Append(tags).Append(" ").Append(SignedPercent(efficiency))
-                .Append(" = ").Append(final).Append(" (after rounding)");
-        }
-
-        List<string> buildingEffects = MatchingBuildingEfficiencyEffects(definition);
-        if (buildingEffects.Count > 0)
-            result.Append("\nBuildings: ").Append(string.Join(", ", buildingEffects));
-        string holdingEffects = HoldingEfficiencyEffects(definition);
-        if (!string.IsNullOrEmpty(holdingEffects))
-            result.Append("\nHoldings: ").Append(holdingEffects);
+        result.Append("\nCulture: ").Append(string.IsNullOrWhiteSpace(example.cultureName) ? "Unassigned" : example.cultureName);
+        result.Append("\nAllegiance: ").Append(string.IsNullOrWhiteSpace(example.allegiance) ? "Unaligned" : example.allegiance);
         if (example.FoodConsumption > 0)
             result.Append("\nFood consumed: ").Append(example.FoodConsumption).Append(" each");
         if (group.Count > 1) result.Append("\nValues above are per holding.");
@@ -474,29 +457,6 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
                 result.Add(building.DisplayName + " " + SignedPercent(amount));
         }
         return result;
-    }
-
-    private string HoldingEfficiencyEffects(HoldingDefinition receivingDefinition)
-    {
-        if (province == null || province.holdings == null || receivingDefinition == null ||
-            (HoldingEvolutionSystem.EffectiveTags(receivingDefinition) & HoldingTag.Servile) == 0)
-            return string.Empty;
-        Dictionary<string, int> sources = new Dictionary<string, int>(System.StringComparer.OrdinalIgnoreCase);
-        float total = 0f;
-        foreach (ProvinceHolding holding in province.holdings)
-        {
-            if (holding == null || holding.definition == null ||
-                holding.definition.category != HoldingCategory.EliteAgriculture) continue;
-            float amount = Mathf.Clamp(holding.definition.categoryTier, 1, 3) * 5f;
-            string label = holding.DisplayName + " " + SignedPercent(amount);
-            sources[label] = sources.TryGetValue(label, out int count) ? count + 1 : 1;
-            total += amount;
-        }
-        if (sources.Count == 0) return string.Empty;
-        List<string> parts = new List<string>();
-        foreach (KeyValuePair<string, int> source in sources)
-            parts.Add((source.Value > 1 ? source.Value + "x " : string.Empty) + source.Key);
-        return string.Join(", ", parts) + " = " + SignedPercent(total) + " Servile output";
     }
 
     private static float UrbanizationPercent(int response, float urbanization) =>

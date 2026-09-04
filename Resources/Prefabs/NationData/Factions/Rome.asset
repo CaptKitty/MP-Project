@@ -49,6 +49,9 @@ MonoBehaviour:
     - unit: {fileID: 11400000, guid: 532f59a396dcfa04596c6704595f7feb, type: 2}
       requiredBuilding: {fileID: 0}
       minimumBuildingLevel: 2
+    - unit: {fileID: 11400000, guid: ee30590a308de1749bac4bc02c264797, type: 2}
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 3
     buildings: []
     generalNames: []
     flags: []
@@ -59,6 +62,12 @@ MonoBehaviour:
     - {fileID: 11400000, guid: d1020000000000000000000000000002, type: 2}
     - {fileID: 11400000, guid: d1030000000000000000000000000003, type: 2}
     holdingEconomyModifiers: []
+    classEconomicModifiers:
+    - socialClass: 6
+      valueGenerationPercent: 0
+      levyCapacityPercent: 0
+      replaceLightLevyWithHeavy: 1
+      heavyInfantryPressure: 0
     levies: []
     laws:
     - id: roman_citizen_levy

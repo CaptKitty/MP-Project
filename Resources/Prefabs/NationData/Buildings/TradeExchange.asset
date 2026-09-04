@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56c9a7030e3fdb348bc8977e4e3f9973, type: 3}
+  m_Name: TradeExchange
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
+  id: TradeExchange
+  displayName: Trade Exchange
+  description: Coordinates commerce across the region.
+  maximumLevel: 1
+  placementLimit: 2
+  defaultConstructionTicks: 20
+  levels: []
+  economicEffects:
+  - {type: 0, scope: 1, amount: 10, holdingType: 4}
+  - {type: 4, scope: 1, amount: 10, outputType: 8}

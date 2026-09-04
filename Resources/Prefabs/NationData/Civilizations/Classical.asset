@@ -13,6 +13,12 @@ MonoBehaviour:
   m_Name: Classical
   m_EditorClassIdentifier: Assembly-CSharp::CivilizationData
   assemblyName: Council of Aristocrats
+  classBaseline:
+    citizen: 50
+    tribesman: 0
+    freemen: 20
+    elite: 20
+    enslaved: 10
   content:
     units:
     - unit: {fileID: 11400000, guid: 1c0e49bb946563549b1164e0979b86d2, type: 2}

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LegionaryLevy
   m_EditorClassIdentifier: 
   unitname: Hastati
-  unittype: 1
+  unittype: 2
   cost: 100
   health: 100
   recruitmentTicks: 3

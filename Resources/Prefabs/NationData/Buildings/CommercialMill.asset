@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56c9a7030e3fdb348bc8977e4e3f9973, type: 3}
+  m_Name: CommercialMill
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
+  id: CommercialMill
+  displayName: Commercial Mill
+  description: Maximizes agricultural value for taxation and sale.
+  maximumLevel: 1
+  placementLimit: 0
+  defaultConstructionTicks: 15
+  levels: []
+  economicEffects:
+  - type: 0
+    scope: 0
+    amount: 20
+    holdingType: 1
+  - type: 4
+    scope: 0
+    amount: 20
+    outputType: 6
+  isSpecialization: 1

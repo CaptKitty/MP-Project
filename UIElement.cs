@@ -27,6 +27,8 @@ public class UIElement : MonoBehaviour
     private int lastGold = int.MinValue;
     private int lastUpkeep = int.MinValue;
     private float lastManpower = float.MinValue;
+    private float lastTradeGenerated = float.MinValue;
+    private float lastTradeUsed = float.MinValue;
     private FieldArmyHolder lastArmy;
     private int lastCompositionSignature = int.MinValue;
     private Button recruitUnitsButton;
@@ -122,8 +124,11 @@ public class UIElement : MonoBehaviour
             int nationGold = LocalNation() != null ? LocalNation().Gold : 0;
             int nationUpkeep = LocalNation() != null ? LocalNation().LastUnitUpkeep : 0;
             float nationManpower = LocalNation() != null ? LocalNation().Manpower : 0f;
+            ValueTradeSystem.TradeFlow trade = ValueTradeSystem.NationTrade(LocalNation());
             if (nationGold != lastGold || nationUpkeep != lastUpkeep ||
-                !Mathf.Approximately(nationManpower, lastManpower)) RefreshCurrency();
+                !Mathf.Approximately(nationManpower, lastManpower) ||
+                !Mathf.Approximately(trade.generated, lastTradeGenerated) ||
+                !Mathf.Approximately(trade.allocated, lastTradeUsed)) RefreshCurrency();
         }
         if (ArmyHost != this) return;
         FieldArmyHolder selected = SelectedArmy();
@@ -343,13 +348,43 @@ public class UIElement : MonoBehaviour
         lastGold = localNation != null ? localNation.Gold : 0;
         lastUpkeep = localNation != null ? localNation.LastUnitUpkeep : 0;
         lastManpower = localNation != null ? localNation.RefreshManpowerTotal() : 0f;
+        ValueTradeSystem.TradeFlow trade = ValueTradeSystem.NationTrade(localNation);
+        lastTradeGenerated = trade.generated; lastTradeUsed = trade.allocated;
         string value = localNation != null
             ? lastGold + " (income " + localNation.LastGrossIncome + ", upkeep " + lastUpkeep +
                 (localNation.UpkeepDebt > 0 ? ", debt " + localNation.UpkeepDebt : string.Empty) +
                 ", manpower " + lastManpower.ToString("0.###") + "/" +
-                localNation.ManpowerCapacity().ToString("0.###") + ")"
+                localNation.ManpowerCapacity().ToString("0.###") +
+                ", trade " + lastTradeUsed.ToString("0.##") + "/" + lastTradeGenerated.ToString("0.##") + ")"
             : lastGold.ToString();
         SetTemplateText(currencyText, currencyTemplate, value);
+        if (currencyText != null)
+        {
+            Tooltip tooltip = currencyText.GetComponent<Tooltip>();
+            if (tooltip == null) tooltip = currencyText.gameObject.AddComponent<Tooltip>();
+            tooltip.message = TradeBreakdown(localNation, trade);
+            tooltip.resize = true; tooltip.resizesize = new Vector2(360f, 300f); tooltip.fontSize = 16;
+        }
+    }
+
+    private static string TradeBreakdown(Nation nation, ValueTradeSystem.TradeFlow trade)
+    {
+        if (nation == null) return "No national economy.";
+        StringBuilder text = new StringBuilder("Trade Capacity: ").Append(trade.allocated.ToString("0.##"))
+            .Append("/").Append(trade.generated.ToString("0.##")).Append(" used");
+        text.Append("\nGenerated:");
+        foreach (ValueTradeSystem.ConversionResult item in trade.generators)
+            text.Append("\n- ").Append(item.buildingName).Append(", ").Append(item.provinceName)
+                .Append(": +").Append(item.producedOutput.ToString("0.##"));
+        if (trade.generators.Count == 0) text.Append(" none");
+        text.Append("\nUsed:");
+        foreach (ValueTradeSystem.ConversionResult item in trade.consumers)
+            text.Append("\n- ").Append(item.buildingName).Append(", ").Append(item.provinceName).Append(": ")
+                .Append(item.consumedInput.ToString("0.##")).Append("/").Append(item.requestedInput.ToString("0.##"));
+        if (trade.consumers.Count == 0) text.Append(" none");
+        text.Append("\nRequested: ").Append(trade.requested.ToString("0.##"))
+            .Append(" | Unused: ").Append(trade.Unused.ToString("0.##"));
+        return text.ToString();
     }
 
     private static void SetTemplateText(Text target, string template, string value)

@@ -17,6 +17,8 @@ MonoBehaviour:
   description: Permanent fortifications that increase the province's garrison capacity.
   icon: {fileID: 391309360109239665, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
   maximumLevel: 1
+  provinceUnique: 1
+  placementLimit: 1
   defaultConstructionTicks: 5
   levels:
   - level: 1

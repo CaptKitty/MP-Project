@@ -393,7 +393,6 @@ namespace ProjectX.TileBattle
         private void FinishBattle(int index, TileCampaignBattle battle)
         {
             int winner = battle.Simulation.Result.WinningSide;
-            ApplyLevyHoldingOutcomes(battle, winner);
             for (int i = 0; i < battle.LeftParticipants.Count; i++)
                 ApplyArmyResult(battle, battle.LeftParticipants[i] != null ? battle.LeftParticipants[i].fieldArmy : null, 0, battle.LeftParticipants[i]);
             for (int i = 0; i < battle.RightParticipants.Count; i++)
@@ -422,71 +421,6 @@ namespace ProjectX.TileBattle
                     battle.ArmyA.ConquerProvince(battle.DefendedProvince);
                 }
             }
-        }
-
-        private static void ApplyLevyHoldingOutcomes(TileCampaignBattle battle, int winningSide)
-        {
-            if (battle == null || Owners.Instance == null) return;
-            Dictionary<string, int> holdingDeltas = new Dictionary<string, int>(StringComparer.Ordinal);
-            foreach (KeyValuePair<int, ArmyFormationRecord> pair in battle.UnitFormationSources)
-            {
-                ArmyFormationRecord record = pair.Value;
-                if (record == null || record.origin != CampaignUnitOrigin.Levy || string.IsNullOrEmpty(record.entitlementId)) continue;
-                TileBattleUnit unit = battle.Simulation.Units.Find(candidate => candidate.Id == pair.Key);
-                bool died = unit == null || unit.Strength <= 0 || unit.State == TileUnitState.Destroyed;
-                bool victorious = !died && unit.Side == winningSide;
-                Province source = Owners.Instance.provincelist.Find(province => province != null && province.levyEntitlements != null &&
-                    province.levyEntitlements.Exists(entitlement => entitlement != null && entitlement.id == record.entitlementId));
-                ProvinceLevyEntitlement levy = source != null
-                    ? source.levyEntitlements.Find(entitlement => entitlement != null && entitlement.id == record.entitlementId) : null;
-                if (levy == null) continue;
-                int victoryChancePermille = source.nation != null
-                    ? source.nation.ApplyLawModifiers(NationalLawEffectType.HoldingVictoryUpgradeChance, 500)
-                    : 500;
-                victoryChancePermille = Mathf.Clamp(victoryChancePermille, 0, 1000);
-                bool victoryUpgrade = victorious && (StableOutcomeHash(battle.BattleId + "|win|" +
-                    record.entitlementId) & int.MaxValue) % 1000 < victoryChancePermille;
-                int delta = died ? -1 : victoryUpgrade ? 1 : 0;
-                if (delta == 0) continue;
-                HashSet<string> contributors = new HashSet<string>(StringComparer.Ordinal);
-                if (!string.IsNullOrEmpty(levy.holdingInstanceId)) contributors.Add(levy.holdingInstanceId);
-                if (levy.contributorHoldingInstanceIds != null)
-                    foreach (string contributor in levy.contributorHoldingInstanceIds)
-                        if (!string.IsNullOrEmpty(contributor)) contributors.Add(contributor);
-                if (contributors.Count == 0) continue;
-                List<string> orderedContributors = new List<string>(contributors);
-                orderedContributors.Sort(StringComparer.Ordinal);
-                int selectedIndex = (StableOutcomeHash(battle.BattleId + "|holding|" + record.entitlementId) & int.MaxValue) %
-                    orderedContributors.Count;
-                AddHoldingDelta(holdingDeltas, orderedContributors[selectedIndex], delta);
-            }
-
-            HashSet<Province> changedProvinces = new HashSet<Province>();
-            foreach (Province province in Owners.Instance.provincelist)
-            {
-                if (province == null || province.holdings == null) continue;
-                foreach (ProvinceHolding holding in province.holdings)
-                {
-                    if (holding == null || holding.definition == null ||
-                        !holdingDeltas.TryGetValue(holding.instanceId, out int delta) || delta == 0) continue;
-                    int targetTier = Mathf.Clamp(holding.definition.categoryTier + delta, 1, 3);
-                    HoldingDefinition target = HoldingEvolutionSystem.FindCategoryTier(holding.definition.category, targetTier);
-                    if (target == null || target == holding.definition) continue;
-                    holding.definition = target;
-                    holding.id = target.StableId;
-                    holding.level = 1;
-                    holding.adaptationTargetId = string.Empty;
-                    holding.adaptationPressure = 0;
-                    changedProvinces.Add(province);
-                }
-            }
-            foreach (Province province in changedProvinces) province.ReconcileLevyEntitlements();
-        }
-
-        private static void AddHoldingDelta(Dictionary<string, int> deltas, string holdingId, int delta)
-        {
-            if (string.IsNullOrEmpty(holdingId)) return;
-            deltas[holdingId] = deltas.TryGetValue(holdingId, out int current) ? current + delta : delta;
         }
 
         private static int StableOutcomeHash(string value)

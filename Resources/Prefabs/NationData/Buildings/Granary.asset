@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_Script: {fileID: 11500000, guid: 56c9a7030e3fdb348bc8977e4e3f9973, type: 3}
+  m_Name: Granary
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
+  id: Granary
+  displayName: Granary
+  description: Reserves agricultural output for future population growth mechanics.
+  maximumLevel: 1
+  placementLimit: 0
+  defaultConstructionTicks: 10
+  levels: []
+  economicEffects:
+  - {type: 0, scope: 0, amount: 10, holdingType: 1}
+  valueConversions:
+  - {minimumLevel: 1, input: 0, inputAmount: 20, output: 1, outputAmount: 1}

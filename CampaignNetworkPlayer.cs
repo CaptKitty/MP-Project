@@ -837,8 +837,12 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         {
             if (targetLevel != 1 || !NationContentResolver.HasBuilding(province.nation, id)) return;
         }
-        else if (!existing.BuildingId.Equals(id, System.StringComparison.OrdinalIgnoreCase) ||
-            targetLevel != existing.level + 1 || targetLevel > existing.maxLevel) return;
+        else if (!existing.BuildingId.Equals(id, System.StringComparison.OrdinalIgnoreCase))
+        {
+            BuildingDefinition target = BuildingDefinition.Find(id);
+            if (targetLevel != 1 || existing.definition == null || target == null || !existing.definition.CanUpgradeTo(target)) return;
+        }
+        else if (targetLevel != existing.level + 1 || targetLevel > existing.maxLevel) return;
 
         int goldCost = CampaignEconomy.BuildingGoldCost(id, targetLevel);
         Nation owner = province.nation;
@@ -1688,7 +1692,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 target = (NationalLawTarget)Mathf.Clamp(state.Target, 0, 3),
                 anySocioEconomicClass = state.AnySocioEconomicClass,
                 socioEconomicClass = SocioEconomicClassRules.Normalize(
-                    (SocioEconomicClass)Mathf.Clamp(state.SocioEconomicClass, 0, 8)),
+                    (SocioEconomicClass)Mathf.Clamp(state.SocioEconomicClass, 0, 9)),
                 cultureScope = (NationalLawCultureScope)Mathf.Clamp(state.CultureScope, 0, 3),
                 cultureName = state.CultureName.ToString(), anyUnitOrigin = state.AnyUnitOrigin,
                 unitOrigin = (CampaignUnitOrigin)Mathf.Clamp(state.UnitOrigin, 0, 3),
@@ -1704,9 +1708,9 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             if (law == null) { law = new NationalLaw { id = lawId, displayName = state.DisplayName.ToString() }; nation.laws.Add(law); }
             law.classRules.Add(new NationalClassRule { type = (NationalClassRuleType)Mathf.Clamp(state.Type, 0, 1),
                 affectedClass = SocioEconomicClassRules.Normalize(
-                    (SocioEconomicClass)Mathf.Clamp(state.AffectedClass, 0, 8)),
+                    (SocioEconomicClass)Mathf.Clamp(state.AffectedClass, 0, 9)),
                 resultingClass = SocioEconomicClassRules.Normalize(
-                    (SocioEconomicClass)Mathf.Clamp(state.ResultingClass, 0, 8)),
+                    (SocioEconomicClass)Mathf.Clamp(state.ResultingClass, 0, 9)),
                 cultureName = state.CultureName.ToString() });
         }
         foreach (Nation nation in Owners.Instance.nationlist) nation.EnsureDefaultLaws();
@@ -1870,7 +1874,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 definition = HoldingDefinition.Find(holdingId), id = holdingId, level = Mathf.Max(1, state.Level),
                 slotIndex = state.SlotIndex, cultureName = state.CultureName.ToString(),
                 socioEconomicClass = SocioEconomicClassRules.Normalize(
-                    (SocioEconomicClass)Mathf.Clamp(state.SocioEconomicClass, 0, 8)),
+                    (SocioEconomicClass)Mathf.Clamp(state.SocioEconomicClass, 0, 9)),
                 allegiance = state.Allegiance.ToString(),
                 levyEnabled = state.LevyEnabled, adaptationTargetId = state.AdaptationTargetId.ToString(),
                 adaptationPressure = Mathf.Max(0, state.AdaptationPressure),
@@ -1910,7 +1914,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             holding.level = Mathf.Max(1, state.Level); holding.slotIndex = state.SlotIndex;
             holding.cultureName = state.CultureName.ToString();
             holding.socioEconomicClass = SocioEconomicClassRules.Normalize(
-                (SocioEconomicClass)Mathf.Clamp(state.SocioEconomicClass, 0, 8));
+                (SocioEconomicClass)Mathf.Clamp(state.SocioEconomicClass, 0, 9));
             holding.allegiance = state.Allegiance.ToString(); holding.levyEnabled = state.LevyEnabled;
             holding.adaptationTargetId = state.AdaptationTargetId.ToString();
             holding.adaptationPressure = Mathf.Max(0, state.AdaptationPressure);

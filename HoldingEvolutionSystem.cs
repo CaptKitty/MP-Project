@@ -149,6 +149,24 @@ public static class HoldingEvolutionSystem
         return resolved != null ? resolved : holding.definition.levyUnit;
     }
 
+    public static UnitSaveData ResolveLevyUnit(Province province, ProvinceHolding holding, LevyArchetype archetype)
+    {
+        if (holding == null) return null;
+        string cultureName = holding.cultureName ?? string.Empty;
+        string nationName = province != null && province.nation != null ? province.nation.name : string.Empty;
+        string cacheKey = cultureName.ToLowerInvariant() + "|" + nationName.ToLowerInvariant() + "|broad|" + (byte)archetype;
+        if (LevyResolutionCache.TryGetValue(cacheKey, out UnitSaveData cached)) return cached;
+        UnitSaveData best = null; int bestScore = int.MinValue;
+        foreach (UnitSaveData unit in CulturalCandidates(province, cultureName))
+        {
+            int score = Score(unit, archetype);
+            if (score > bestScore || score == bestScore && StableUnitId(unit).CompareTo(StableUnitId(best)) < 0)
+            { best = unit; bestScore = score; }
+        }
+        LevyResolutionCache[cacheKey] = best;
+        return best;
+    }
+
     private static List<UnitSaveData> CulturalCandidates(Province province, string cultureName)
     {
         List<UnitSaveData> result = new List<UnitSaveData>();
@@ -216,6 +234,23 @@ public static class HoldingEvolutionSystem
         // Small stable local preferences stop otherwise identical provinces from converging on one monoculture.
         foreach (HoldingTag tag in IndividualTags)
             result[tag] = Mathf.Max(0f, result[tag] + (PositiveHash(province.name + "|" + tag) % 11 - 5));
+        Apply(result, province.baseHoldingTagDesires, province.nation);
+        if (province.buildings != null) foreach (ProvinceBuilding building in province.buildings)
+            if (building != null && building.definition != null && building.definition.levels != null)
+                foreach (BuildingLevelDefinition level in building.definition.levels)
+                    if (level != null && level.level <= building.level) Apply(result, level.holdingEconomyModifiers, province.nation);
+        ProvinceLocalModifiers local = province.GetLocalModifiers();
+        if (local != null) Apply(result, local.holdingEconomyModifiers, province.nation);
+        ApplyNation(result, province.nation);
+        return result;
+    }
+
+    /// <summary>Compatibility bridge for the replacement economy: dynamic sources only, never urbanization.</summary>
+    public static Dictionary<HoldingTag, float> EconomicPressureSources(Province province)
+    {
+        Dictionary<HoldingTag, float> result = new Dictionary<HoldingTag, float>();
+        foreach (HoldingTag tag in IndividualTags) result[tag] = 0f;
+        if (province == null) return result;
         Apply(result, province.baseHoldingTagDesires, province.nation);
         if (province.buildings != null) foreach (ProvinceBuilding building in province.buildings)
             if (building != null && building.definition != null && building.definition.levels != null)

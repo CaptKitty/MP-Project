@@ -13,7 +13,8 @@ public enum SocioEconomicClass : byte
     Aristocracy,
     Citizen,
     Elite,
-    Enslaved
+    Enslaved,
+    Tribesman
 }
 
 public static class SocioEconomicClassRules
@@ -23,23 +24,59 @@ public static class SocioEconomicClassRules
         switch (value)
         {
             case SocioEconomicClass.Subsistence:
+                return SocioEconomicClass.Tribesman;
             case SocioEconomicClass.Laborers:
             case SocioEconomicClass.Burghers:
             case SocioEconomicClass.Clergy:
                 return SocioEconomicClass.Freemen;
-            case SocioEconomicClass.Elite:
-                return SocioEconomicClass.Aristocracy;
+            case SocioEconomicClass.Aristocracy:
+                return SocioEconomicClass.Elite;
             default:
                 return value;
         }
     }
 
-    public static string DisplayName(SocioEconomicClass value) => Normalize(value).ToString();
+    public static string DisplayName(SocioEconomicClass value)
+    {
+        value = Normalize(value);
+        if (value == SocioEconomicClass.Enslaved) return "Slave";
+        if (value == SocioEconomicClass.Freemen) return "Freeman";
+        return value.ToString();
+    }
 }
 
 public enum HoldingOutputType : byte
 {
-    Income, Food, PoliticalInfluence, Manpower, CulturalInfluence, ReligiousInfluence
+    Income, Food, PoliticalInfluence, Manpower, CulturalInfluence, ReligiousInfluence,
+    AgriculturalValue, IndustrialValue, CommercialValue
+}
+
+public enum HoldingEconomicType : byte { Unspecified, Farm, Pasture, Workshop, Commerce, Mine, Fishery }
+public enum HoldingLabourCategory : byte { Automatic, Raw, Skilled, Value }
+
+[Serializable]
+public sealed class HoldingEconomicOutputDefinition
+{
+    public HoldingOutputType type;
+    public float baseValue;
+    public HoldingLabourCategory labourCategory = HoldingLabourCategory.Automatic;
+    public bool disabledWhileMobilized;
+}
+
+[Serializable]
+public sealed class HoldingTypePressure
+{
+    public HoldingEconomicType type;
+    public float amount;
+    public string source;
+}
+
+[Serializable]
+public sealed class HoldingClassPressure
+{
+    public SocioEconomicClass socialClass = SocioEconomicClass.Freemen;
+    public float amount;
+    public string source;
 }
 
 public enum UrbanizationSuitability : byte { Rural, Neutral, Urban }
@@ -65,7 +102,7 @@ public static class HoldingCategoryRules
     }
 
     public static string GroupName(ProvinceHolding holding) => holding != null && holding.definition != null
-        ? DisplayName(holding.definition.category) : "Unassigned";
+        ? holding.definition.EffectiveEconomicType.ToString() : "Unassigned";
 
     public static Sprite RepresentativeIcon(IList<ProvinceHolding> holdings)
     {
@@ -165,12 +202,12 @@ public sealed class ProvinceHolding
     public string HoldingId => definition != null ? definition.StableId : id;
     public string DisplayName => definition != null ? definition.DisplayName : id;
     public int MaximumLevel => definition != null ? Mathf.Max(1, definition.maximumLevel) : 5;
-    public bool CanRaiseLevies => levyEnabled && definition != null && definition.canRaiseLevies &&
-        (definition.levyArchetype != LevyArchetype.None || definition.levyUnit != null);
-    public int LevyContributionPermille => CanRaiseLevies
-        ? Mathf.Max(0, definition.levyContributionPermillePerLevel) * Mathf.Max(1, level) : 0;
-    public float EffectiveLevyContribution(Nation nation) => LevyContributionPermille *
-        (nation != null ? nation.GetHoldingLawAmount(NationalLawEffectType.LevyConscription, this) : 0) / 1000000f;
+    [Obsolete("Use LevyEconomySystem.CapacityShareForEntitlements with the holding's province.")]
+    public bool CanRaiseLevies => levyEnabled;
+    [Obsolete("Use LevyEconomySystem.CapacityShareForEntitlements with the holding's province.")]
+    public int LevyContributionPermille => 0;
+    [Obsolete("Use LevyEconomySystem.CapacityShareForEntitlements with the holding's province.")]
+    public float EffectiveLevyContribution(Nation nation) => 0f;
     public int GoldIncome
     {
         get

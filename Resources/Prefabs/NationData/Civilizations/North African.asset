@@ -13,6 +13,12 @@ MonoBehaviour:
   m_Name: North African
   m_EditorClassIdentifier: Assembly-CSharp::CivilizationData
   assemblyName: Council of Aristocrats
+  classBaseline:
+    citizen: 0
+    tribesman: 25
+    freemen: 50
+    elite: 15
+    enslaved: 10
   content:
     units:
     - unit: {fileID: 11400000, guid: e97bf7aaefbfd3a4fa8859e12cdec048, type: 2}

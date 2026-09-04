@@ -14,6 +14,8 @@ public sealed class HoldingDefinition : ScriptableObject
     [TextArea(2, 6)] public string description;
     public Sprite icon;
     public HoldingCategory category;
+    [Tooltip("New economy identity. Unspecified safely derives from the legacy category.")]
+    public HoldingEconomicType economicType;
     [Range(1, 3)] public int categoryTier = 1;
     [Tooltip("Overlapping economic identities used by provincial composition and efficiency systems. None derives tags from Category.")]
     public HoldingTag tags;
@@ -25,6 +27,8 @@ public sealed class HoldingDefinition : ScriptableObject
     [Min(1)] public int defaultConstructionTicks = 10;
     public List<HoldingLevelDefinition> levels = new List<HoldingLevelDefinition>();
     public List<HoldingOutputDefinition> outputs = new List<HoldingOutputDefinition>();
+    [Tooltip("Class-scaled output pipeline. Empty uses the migration profile for Economic Type.")]
+    public List<HoldingEconomicOutputDefinition> economicOutputs = new List<HoldingEconomicOutputDefinition>();
     public List<HoldingTransformationOption> transformations = new List<HoldingTransformationOption>();
     [Tooltip("Food consumed by each holding instance per tick. This remains active while its levy is mobilized.")]
     [Min(0)] public int foodConsumption = 1;
@@ -49,6 +53,7 @@ public sealed class HoldingDefinition : ScriptableObject
 
     public string StableId => !string.IsNullOrWhiteSpace(id) ? id.Trim() : name;
     public string DisplayName => !string.IsNullOrWhiteSpace(displayName) ? displayName : name;
+    public HoldingEconomicType EffectiveEconomicType => HoldingEconomySystem.ResolveType(this);
     public HoldingLevelDefinition GetLevel(int targetLevel) => levels != null
         ? levels.Find(entry => entry != null && entry.level == targetLevel) : null;
     public int ConstructionTicksForLevel(int targetLevel)
@@ -69,19 +74,12 @@ public sealed class HoldingDefinition : ScriptableObject
     public static HoldingDefinition Find(string stableId)
     {
         if (string.IsNullOrWhiteSpace(stableId)) return null;
+        string canonicalId = HoldingArchetypeCatalog.CanonicalizeId(stableId);
         HoldingDefinition found = Array.Find(cachedDefinitions ?? (cachedDefinitions = Resources.LoadAll<HoldingDefinition>(ResourcePath)), candidate => candidate != null &&
-            string.Equals(candidate.StableId, stableId, StringComparison.OrdinalIgnoreCase));
+            string.Equals(candidate.StableId, canonicalId, StringComparison.OrdinalIgnoreCase));
         if (found != null) { HoldingArchetypeCatalog.ApplyMetadata(found); return found; }
-        found = HoldingArchetypeCatalog.Find(stableId);
+        found = HoldingArchetypeCatalog.Find(canonicalId);
         if (found != null) return found;
-        if (string.Equals(stableId, "CitizenFarm", StringComparison.OrdinalIgnoreCase)) return DefaultCitizenFarm();
-        if (stableId.StartsWith("CitizenFarm:", StringComparison.OrdinalIgnoreCase))
-        {
-            string unitName = stableId.Substring("CitizenFarm:".Length);
-            UnitSaveData unit = Array.Find(Resources.LoadAll<UnitSaveData>("Prefabs/Units"), candidate =>
-                candidate != null && candidate.name == unitName);
-            return DefaultCitizenFarm(unit);
-        }
         return null;
     }
 
@@ -90,34 +88,11 @@ public sealed class HoldingDefinition : ScriptableObject
 
     public static HoldingDefinition DefaultCitizenFarm()
     {
-        if (defaultCitizenFarm != null) return defaultCitizenFarm;
-        defaultCitizenFarm = CreateInstance<HoldingDefinition>();
-        defaultCitizenFarm.name = "CitizenFarm"; defaultCitizenFarm.id = "CitizenFarm";
-        defaultCitizenFarm.displayName = "Citizen Farm"; defaultCitizenFarm.maximumLevel = 1;
-        defaultCitizenFarm.defaultClass = SocioEconomicClass.Citizen;
-        defaultCitizenFarm.outputs.Add(new HoldingOutputDefinition { type = HoldingOutputType.Income, baseValue = 1,
-            suitability = UrbanizationSuitability.Neutral, disabledWhileMobilized = true });
-        defaultCitizenFarm.outputs.Add(new HoldingOutputDefinition { type = HoldingOutputType.Food, baseValue = 2,
-            suitability = UrbanizationSuitability.Neutral, disabledWhileMobilized = true });
-        HoldingArchetypeCatalog.ApplyMetadata(defaultCitizenFarm);
-        return defaultCitizenFarm;
+        return defaultCitizenFarm != null ? defaultCitizenFarm : (defaultCitizenFarm = HoldingArchetypeCatalog.Find(HoldingEconomicType.Farm));
     }
 
     public static HoldingDefinition DefaultCitizenFarm(UnitSaveData levyUnit)
     {
-        if (levyUnit == null) return DefaultCitizenFarm();
-        if (defaultCitizenFarms.TryGetValue(levyUnit.name, out HoldingDefinition existing)) return existing;
-        HoldingDefinition definition = CreateInstance<HoldingDefinition>();
-        definition.name = "CitizenFarm:" + levyUnit.name; definition.id = definition.name;
-        definition.displayName = "Citizen Farm"; definition.maximumLevel = 1;
-        definition.defaultClass = SocioEconomicClass.Citizen; definition.canRaiseLevies = true;
-        definition.levyUnit = levyUnit; definition.levyContributionPermillePerLevel = 1000;
-        definition.outputs.Add(new HoldingOutputDefinition { type = HoldingOutputType.Income, baseValue = 1,
-            suitability = UrbanizationSuitability.Neutral, disabledWhileMobilized = true });
-        definition.outputs.Add(new HoldingOutputDefinition { type = HoldingOutputType.Food, baseValue = 2,
-            suitability = UrbanizationSuitability.Neutral, disabledWhileMobilized = true });
-        HoldingArchetypeCatalog.ApplyMetadata(definition);
-        defaultCitizenFarms.Add(levyUnit.name, definition);
-        return definition;
+        return DefaultCitizenFarm();
     }
 }

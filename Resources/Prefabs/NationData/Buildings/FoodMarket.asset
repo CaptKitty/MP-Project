@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56c9a7030e3fdb348bc8977e4e3f9973, type: 3}
+  m_Name: FoodMarket
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingDefinition
+  id: FoodMarket
+  displayName: Food Market
+  description: Commits national trade capacity to imported local food.
+  maximumLevel: 1
+  placementLimit: 0
+  defaultConstructionTicks: 10
+  levels: []
+  valueConversions:
+  - minimumLevel: 1
+    input: 3
+    inputAmount: 10
+    output: 0
+    outputAmount: 10

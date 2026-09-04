@@ -14,45 +14,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HoldingDefinition
   id: Workshop
   displayName: Workshop
-  description: "Workshop \u2014 tier 2 Artisans holding."
+  description: Produces industrial value through skilled labour.
   icon: {fileID: 8743396785117785620, guid: b4aecf0837f6fd94eb4667d34f052ca8, type: 3}
-  category: 5
-  categoryTier: 2
-  tags: 38
+  category: 0
+  economicType: 3
+  categoryTier: 1
+  tags: 0
   suggestedAllegiance: 
   maximumLevel: 1
-  defaultConstructionTicks: 16
-  levels:
-  - level: 1
-    goldCost: 200
-    constructionTicks: 16
-    goldIncome: 0
-    urbanizationResponse: 0
-    displayedEffect: 
-    localModifiers:
-      maxDevelopment: 0
-      holdingEconomyModifiers: []
-  outputs:
-  - type: 0
-    baseValue: 2
-    scalesWithUrbanization: 0
-    suitability: 1
-    urbanizationResponse: 60
-    disabledWhileMobilized: 1
-  transformations:
-  - targetHoldingId: ArtisanQuarter
-    minimumUrbanization: -100
-    maximumUrbanization: 100
-  - targetHoldingId: MerchantHolding
-    minimumUrbanization: 50
-    maximumUrbanization: 100
+  defaultConstructionTicks: 10
+  levels: []
+  outputs: []
+  economicOutputs:
+  - type: 7
+    baseValue: 10
+    labourCategory: 2
+    disabledWhileMobilized: 0
+  transformations: []
   foodConsumption: 1
-  foodUpkeep: 1
+  foodUpkeep: 0
+  garrisonCapacity: 0
   defaultClass: 2
-  canRaiseLevies: 1
-  levyUnit: {fileID: 11400000, guid: 59069d3402bf14c44936b61dc9a80810, type: 2}
-  levyArchetype: 5
-  levyContributionPermillePerLevel: 400
+  canRaiseLevies: 0
+  levyUnit: {fileID: 0}
+  levyArchetype: 0
+  levyContributionPermillePerLevel: 1000
   levyFormationsPerLevel: 1
   levyMobilizationTicks: 0
   levyRecoveryTicks: 120

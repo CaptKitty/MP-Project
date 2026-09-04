@@ -13,6 +13,12 @@ MonoBehaviour:
   m_Name: Barbarian
   m_EditorClassIdentifier: Assembly-CSharp::CivilizationData
   assemblyName: Council of Elders
+  classBaseline:
+    citizen: 0
+    tribesman: 50
+    freemen: 25
+    elite: 25
+    enslaved: 0
   content:
     units:
     - unit: {fileID: 11400000, guid: 8d26d17d75f9c5748a8f2e463b59e1ec, type: 2}
@@ -44,6 +50,12 @@ MonoBehaviour:
     AllegianceType: Tribes
     allegiances: []
     holdingEconomyModifiers: []
+    classEconomicModifiers:
+    - socialClass: 7
+      valueGenerationPercent: 0
+      levyCapacityPercent: 100
+      replaceLightLevyWithHeavy: 0
+      heavyInfantryPressure: 10
     levies: []
     laws:
     - id: tribal_muster

@@ -21,17 +21,19 @@ public static class HoldingArchetypeAssetGenerator
         bool changed = false;
         foreach (HoldingDefinition source in HoldingArchetypeCatalog.All())
         {
-            if (source == null || source.StableId == "CitizenFarm") continue;
+            if (source == null) continue;
             string path = Folder + "/" + source.StableId + ".asset";
             HoldingDefinition existing = AssetDatabase.LoadAssetAtPath<HoldingDefinition>(path);
             if (existing != null)
             {
-                bool migrated = false;
-                if (existing.tags == HoldingTag.None)
-                { existing.tags = HoldingEvolutionSystem.EffectiveTags(existing); migrated = true; }
-                if (existing.canRaiseLevies && existing.levyArchetype == LevyArchetype.None)
-                { existing.levyArchetype = HoldingEvolutionSystem.EffectiveLevyArchetype(existing); migrated = true; }
-                if (migrated) { EditorUtility.SetDirty(existing); changed = true; }
+                // Mine and Workshop used to share IDs with tiered holdings. Rebind
+                // those assets to the canonical schema while retaining their art.
+                Sprite retainedIcon = existing.icon;
+                EditorUtility.CopySerialized(source, existing);
+                existing.name = source.StableId;
+                existing.hideFlags = HideFlags.None;
+                if (retainedIcon != null) existing.icon = retainedIcon;
+                EditorUtility.SetDirty(existing); changed = true;
                 continue;
             }
             HoldingDefinition asset = ScriptableObject.CreateInstance<HoldingDefinition>();

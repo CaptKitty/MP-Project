@@ -18,9 +18,26 @@ public class BuildingDefinition : ScriptableObject
     [Min(1)] public int maximumLevel = 5;
     [Tooltip("Only one building with this definition may exist or be under construction in a province.")]
     public bool provinceUnique;
+    [Tooltip("Generic placement rule. Legacy Province Unique remains honored.")]
+    public BuildingPlacementLimit placementLimit;
     [Tooltip("Used when a level does not provide its own positive construction time.")]
     [Min(1)] public int defaultConstructionTicks = 10;
     public List<BuildingLevelDefinition> levels = new List<BuildingLevelDefinition>();
+    [Tooltip("Composable effects supplied by every active level of this building.")]
+    public List<BuildingEconomicEffect> economicEffects = new List<BuildingEconomicEffect>();
+    [Tooltip("Deterministic flow conversions performed by this building.")]
+    public List<BuildingValueConversion> valueConversions = new List<BuildingValueConversion>();
+    [Tooltip("Mutually exclusive definitions that may replace this building in its current slot.")]
+    public List<BuildingDefinition> upgradeOptions = new List<BuildingDefinition>();
+    [Tooltip("Specializations appear as upgrades, not as empty-slot construction choices.")]
+    public bool isSpecialization;
+    public BuildingLocationRequirement locationRequirement;
+
+    public BuildingPlacementLimit EffectivePlacementLimit => provinceUnique
+        ? BuildingPlacementLimit.ProvinceUnique : placementLimit;
+    public bool CanUpgradeTo(BuildingDefinition target) => target != null && upgradeOptions != null &&
+        upgradeOptions.Exists(option => option == target || option != null &&
+            string.Equals(option.StableId, target.StableId, StringComparison.OrdinalIgnoreCase));
 
     public string StableId => !string.IsNullOrWhiteSpace(id) ? id.Trim() : name;
     public string DisplayName => !string.IsNullOrWhiteSpace(displayName) ? displayName : name;
@@ -80,6 +97,49 @@ public class BuildingDefinition : ScriptableObject
             levels[i].urbanizationTargetModifier = Mathf.Clamp(levels[i].urbanizationTargetModifier, -100, 100);
         }
     }
+}
+
+public enum BuildingPlacementLimit : byte { Unlimited, ProvinceUnique, RegionUnique }
+public enum BuildingLocationRequirement : byte { None, Coastal }
+public enum BuildingEffectScope : byte { Province, Region }
+public enum BuildingEconomicEffectType : byte
+{
+    HoldingTypePressure, ClassPressure, LevyTypePressure, LocalLevyCapacity,
+    EconomicValuePercent, FoodOutputPercent
+}
+
+[Serializable]
+public sealed class BuildingEconomicEffect
+{
+    [Min(1)] public int minimumLevel = 1;
+    public BuildingEconomicEffectType type;
+    public BuildingEffectScope scope;
+    public float amount;
+    public HoldingEconomicType holdingType;
+    public SocioEconomicClass socialClass = SocioEconomicClass.Freemen;
+    public LevyPressureType levyType;
+    [Tooltip("For Economic Value modifiers; Income means all typed Values.")]
+    public HoldingOutputType outputType = HoldingOutputType.Income;
+}
+
+public enum EconomicFlowResource : byte
+{
+    AgriculturalValue, IndustrialValue, CommercialValue, TradeCapacity
+}
+public enum EconomicConversionOutput : byte
+{
+    Food, PopulationGrowth, LevyPressure, TradeCapacity
+}
+
+[Serializable]
+public sealed class BuildingValueConversion
+{
+    [Min(1)] public int minimumLevel = 1;
+    public EconomicFlowResource input;
+    [Min(0f)] public float inputAmount;
+    public EconomicConversionOutput output;
+    [Min(0f)] public float outputAmount;
+    public LevyPressureType levyType;
 }
 
 [Serializable]

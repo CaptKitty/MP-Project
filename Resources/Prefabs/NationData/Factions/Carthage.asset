@@ -51,6 +51,12 @@ MonoBehaviour:
     - {fileID: 11400000, guid: d1050000000000000000000000000005, type: 2}
     - {fileID: 11400000, guid: d1060000000000000000000000000006, type: 2}
     holdingEconomyModifiers: []
+    classEconomicModifiers:
+    - socialClass: 7
+      valueGenerationPercent: 50
+      levyCapacityPercent: 0
+      replaceLightLevyWithHeavy: 0
+      heavyInfantryPressure: 0
     levies: []
     laws:
     - id: punic_citizen_obligation

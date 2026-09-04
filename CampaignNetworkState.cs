@@ -167,6 +167,7 @@ public struct CampaignNationState : INetworkSerializable
     public FixedString64Bytes TributaryMasterName;
     public FixedString512Bytes PeaceTreatyNationNames;
     public FixedString512Bytes WarNationNames;
+    public FixedString512Bytes TotalWarNationNames;
     public int LastWarDeclarationTurn;
     public FixedString64Bytes PendingPeaceOfferFrom;
     public byte PendingPeaceTerms;
@@ -185,6 +186,7 @@ public struct CampaignNationState : INetworkSerializable
         serializer.SerializeValue(ref TributaryMasterName);
         serializer.SerializeValue(ref PeaceTreatyNationNames);
         serializer.SerializeValue(ref WarNationNames);
+        serializer.SerializeValue(ref TotalWarNationNames);
         serializer.SerializeValue(ref LastWarDeclarationTurn);
         serializer.SerializeValue(ref PendingPeaceOfferFrom);
         serializer.SerializeValue(ref PendingPeaceTerms);

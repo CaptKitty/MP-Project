@@ -383,6 +383,8 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 hash = hash * 31 + StableTextHash(nation.TributaryMasterName);
                 hash = hash * 31 + StableTextHash(nation.WarNationNames != null
                     ? string.Join("|", nation.WarNationNames) : string.Empty);
+                hash = hash * 31 + StableTextHash(nation.TotalWarNationNames != null
+                    ? string.Join("|", nation.TotalWarNationNames) : string.Empty);
             }
             foreach (Province province in Owners.Instance.provincelist)
             {
@@ -1233,6 +1235,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 ,PeaceTreatyNationNames = nation.PeaceTreatyNationNames != null
                     ? string.Join("|", nation.PeaceTreatyNationNames) : string.Empty
                 ,WarNationNames = nation.WarNationNames != null ? string.Join("|", nation.WarNationNames) : string.Empty
+                ,TotalWarNationNames = nation.TotalWarNationNames != null ? string.Join("|", nation.TotalWarNationNames) : string.Empty
                 ,LastWarDeclarationTurn = nation.LastWarDeclarationTurn
                 ,PendingPeaceOfferFrom = nation.PendingPeaceOfferFrom ?? string.Empty
                 ,PendingPeaceTerms = (byte)nation.PendingPeaceTerms
@@ -1655,6 +1658,9 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             string warNames = state.WarNationNames.ToString();
             nation.WarNationNames = string.IsNullOrWhiteSpace(warNames)
                 ? new List<string>() : new List<string>(warNames.Split('|'));
+            string totalWarNames = state.TotalWarNationNames.ToString();
+            nation.TotalWarNationNames = string.IsNullOrWhiteSpace(totalWarNames)
+                ? new List<string>() : new List<string>(totalWarNames.Split('|'));
             nation.LastWarDeclarationTurn = state.LastWarDeclarationTurn;
             nation.PendingPeaceOfferFrom = state.PendingPeaceOfferFrom.ToString();
             nation.PendingPeaceTerms = (BasicPeaceTerms)Mathf.Clamp(state.PendingPeaceTerms, 0, 3);

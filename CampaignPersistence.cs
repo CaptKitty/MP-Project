@@ -93,6 +93,7 @@ public class CampaignSaveData
                 peaceTreatyNationNames = nation.PeaceTreatyNationNames != null
                     ? new List<string>(nation.PeaceTreatyNationNames) : new List<string>(),
                 warNationNames = nation.WarNationNames != null ? new List<string>(nation.WarNationNames) : new List<string>(),
+                totalWarNationNames = nation.TotalWarNationNames != null ? new List<string>(nation.TotalWarNationNames) : new List<string>(),
                 lastWarDeclarationTurn = nation.LastWarDeclarationTurn,
                 pendingPeaceOfferFrom = nation.PendingPeaceOfferFrom,
                 pendingPeaceTerms = (int)nation.PendingPeaceTerms,
@@ -251,6 +252,8 @@ public class CampaignSaveData
                 ? new List<string>(state.peaceTreatyNationNames) : new List<string>();
             nation.WarNationNames = state.warNationNames != null
                 ? new List<string>(state.warNationNames) : new List<string>();
+            nation.TotalWarNationNames = state.totalWarNationNames != null
+                ? new List<string>(state.totalWarNationNames) : new List<string>();
             nation.LastWarDeclarationTurn = state.lastWarDeclarationTurn;
             nation.PendingPeaceOfferFrom = state.pendingPeaceOfferFrom;
             nation.PendingPeaceTerms = (BasicPeaceTerms)Mathf.Clamp(state.pendingPeaceTerms, 0, 3);
@@ -270,6 +273,9 @@ public class CampaignSaveData
             nation.faction.Flaglist = new List<string>(state.flags ?? new List<string>());
             nation.faction.Set();
         }
+        // Migrate older saves into the current pre-diplomacy mode and normalize
+        // every diplomatic bloc after all tributary master links have loaded.
+        DiplomacySystem.EnsureDefaultTotalWar();
         foreach (SavedProvince state in provinces)
         {
             Province province = Owners.Instance.provincelist.Find(item => item.name == state.name);
@@ -485,6 +491,7 @@ public class SavedNation
     public string tributaryMasterName;
     public List<string> peaceTreatyNationNames = new List<string>();
     public List<string> warNationNames = new List<string>();
+    public List<string> totalWarNationNames = new List<string>();
     public int lastWarDeclarationTurn = -1000;
     public string pendingPeaceOfferFrom;
     public int pendingPeaceTerms;

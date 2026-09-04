@@ -458,9 +458,11 @@ public class FieldArmyHolder : MonoBehaviour
         }
         Nation previousController = province.ControllerNation;
         if (previousController == fieldArmy.nation) return;
-        province.OccupyingNation = fieldArmy.nation;
-        province.ApplyOccupationDevastation(previousController, fieldArmy.nation,
-            Owners.Instance != null ? Owners.Instance.turncounter : 0);
+        bool totalWar = DiplomacySystem.IsTotalWar(fieldArmy.nation, previousController);
+        province.OccupyingNation = totalWar ? null : fieldArmy.nation;
+        int conquestTurn = Owners.Instance != null ? Owners.Instance.turncounter : 0;
+        if (totalWar) province.ApplyConquestDevastation(province.nation, fieldArmy.nation, conquestTurn);
+        else province.ApplyOccupationDevastation(previousController, fieldArmy.nation, conquestTurn);
         fieldArmy.nation.Gold += Mathf.Max(0,
             fieldArmy.nation.ApplyLawModifiers(NationalLawEffectType.ConquestGold, 0));
         int lootedSupply = Mathf.Max(0, province.supply / 10);
@@ -469,7 +471,16 @@ public class FieldArmyHolder : MonoBehaviour
             province.supply -= lootedSupply;
             fieldArmy.AddSupply(lootedSupply);
         }
-        province.garrison = null;
+        if (totalWar)
+        {
+            Nation previousOwner = province.nation;
+            province.nation = fieldArmy.nation;
+            province.ReconcileLevyEntitlements();
+            province.CreateGarrison();
+            province.EnsureMinimumGarrison(1);
+            previousOwner?.nationalbrainy?.ReSetPriorities();
+        }
+        else province.garrison = null;
         fieldArmy.nation.nationalbrainy?.ReSetPriorities();
         previousController?.nationalbrainy?.ReSetPriorities();
         if (Mapshower.Instance != null) Mapshower.Instance.RePaint();

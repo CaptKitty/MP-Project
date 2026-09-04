@@ -15,7 +15,7 @@ MonoBehaviour:
   unitname: Hoplite
   unittype: 2
   cost: 250
-  health: 300
+  health: 200
   recruitmentTicks: 3
   upkeep: 1
   actions: 2

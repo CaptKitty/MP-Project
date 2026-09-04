@@ -392,8 +392,10 @@ namespace ProjectX.TileBattle
                 }
             }
             ConsumeVisualEvents(simulation, snapshot.EventCount);
-            // The projectile event is allowed to hold the ranged weapon for its attack frame.
-            // On the next viewer refresh ApplySnapshotWeapon selects melee when ammo is empty.
+            // Attack events briefly select the weapon used for their animation. Reapply the
+            // authoritative snapshot afterwards so the final shot changes to melee now,
+            // rather than leaving the ranged sprite equipped for another viewer refresh.
+            ApplySnapshotWeapons(snapshot);
             ApplyFinishedBattlePresentation(simulation, snapshot);
             RefreshDebug(simulation);
             if (summaryButton != null) summaryButton.gameObject.SetActive(simulation.Result.Finished);
@@ -403,9 +405,21 @@ namespace ProjectX.TileBattle
             TileBattleUnitViewState unit)
         {
             if (art == null || data == null || unit == null) return;
-            Weapon weapon = unit.Ammunition > 0 && data.RangedWeapon != null
+            Weapon weapon = unit.UsingRangedWeapon && unit.Ammunition > 0 && data.RangedWeapon != null
                 ? data.RangedWeapon : data.MeleeWeapon;
             art.SetPresentedWeapon(weapon);
+        }
+
+        private void ApplySnapshotWeapons(TileBattleRoundSnapshot snapshot)
+        {
+            if (snapshot == null) return;
+            for (int i = 0; i < snapshot.Units.Count; i++)
+            {
+                TileBattleUnitViewState unit = snapshot.Units[i];
+                TileBattleVisualMotion motion = FindMotion(unit.Id);
+                if (motion == null) continue;
+                ApplySnapshotWeapon(motion.GetComponent<LayeredBattleUnitVisual>(), FindUnitData(selected, unit.Id), unit);
+            }
         }
 
         private void ApplyFinishedBattlePresentation(TileBattleSimulation simulation, TileBattleRoundSnapshot snapshot)

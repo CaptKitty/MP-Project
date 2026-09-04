@@ -71,7 +71,7 @@ public class Owners : MonoBehaviour
                 nation.faction = SessionManager.Instance.HostFaction;
             }
         }
-        DiplomacySystem.EnsureDefaultPeace();
+        DiplomacySystem.EnsureDefaultTotalWar();
 
         provincedict = new Dictionary<string, Province>();
         provincedictcolor = new Dictionary<Color32, Province>();
@@ -1098,13 +1098,11 @@ public class Province
     {
         CampaignRegion campaignRegion = Owners.Instance != null ? Owners.Instance.CallRegionByString(region) : null;
         ProvinceLevyEntitlement entitlement = levyEntitlements.Find(item => item != null && item.id == entitlementId);
-        if (campaignRegion != null && !campaignRegion.AllowsLevyCallups(nation) || entitlement == null || army == null ||
+        if (nation == null || campaignRegion != null && !campaignRegion.AllowsLevyCallups(nation) || entitlement == null || army == null ||
             army.fieldArmy == null || !army.IsTargetNull() || !entitlement.eligible ||
             entitlement.state != LevyEntitlementState.Available || army.fieldArmy.nation != nation ||
             army.fieldArmy.GrabArmySize() + army.fieldArmy.GrabQueuedArmySize() >= army.fieldArmy.MaxArmySize) return false;
-        // Every newly mobilized unit consumes one point from the region it comes from.
-        // The army object itself is free; this charge applies to levies and professionals alike.
-        if (nation == null || !nation.TrySpendManpower(this, 1f)) return false;
+        // Levies draw on their holding entitlements, not the professional manpower pool.
         entitlement.raisedArmyId = army.NetworkArmyId;
         entitlement.remainingTicks = 0; // Waiting for an open slot in the next three-unit batch.
         entitlement.state = LevyEntitlementState.Mobilizing;
@@ -1964,6 +1962,8 @@ public class Nation
     public List<string> PeaceTreatyNationNames = new List<string>();
     [Tooltip("Nation names against which this nation has an active declared war.")]
     public List<string> WarNationNames = new List<string>();
+    [Tooltip("Nation names against which this nation is in permanent Total War. Occupation immediately annexes territory and peace is disabled.")]
+    public List<string> TotalWarNationNames = new List<string>();
     [HideInInspector] public int LastWarDeclarationTurn = -1000;
     [HideInInspector] public int NextAIDiplomacyTurn;
     [HideInInspector] public string PendingPeaceOfferFrom;
@@ -2401,6 +2401,7 @@ public class Nation
             candidate != this && DiplomacySystem.AreAtWar(this, candidate));
         foreach (Nation enemy in enemies)
         {
+            if (DiplomacySystem.IsTotalWar(this, enemy)) continue;
             int duration = now - Mathf.Max(LastWarDeclarationTurn, enemy.LastWarDeclarationTurn);
             int ours = Owners.Instance.provincelist.FindAll(province => province != null &&
                 province.nation == enemy && province.OccupyingNation == this).Count;
@@ -3408,8 +3409,10 @@ public class CampaignRegion
             {
                 FieldArmyHolder army = Owners.Instance.armylist.Find(candidate => candidate != null &&
                     candidate.fieldArmy != null && candidate.NetworkArmyId == entitlement.raisedArmyId);
-                if (army != null && army.fieldArmy.DemobilizeLevy(entitlement.id))
-                    province.BeginLevyRecovery(entitlement.id);
+                // The entitlement is authoritative. A missing army or stale formation
+                // record must not leave its source holdings mobilized forever.
+                if (army != null) army.fieldArmy.DemobilizeLevy(entitlement.id);
+                province.BeginLevyRecovery(entitlement.id);
             }
         }
         }

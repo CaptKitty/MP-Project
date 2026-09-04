@@ -35,6 +35,7 @@ public static class CampaignPeaceSystem
         string regionName = null)
     {
         if (victor == null || defeated == null || Owners.Instance == null) return false;
+        if (DiplomacySystem.IsTotalWar(victor, defeated)) return false;
         bool changed;
         switch (terms)
         {

@@ -57,6 +57,8 @@ namespace ProjectX.TileBattle
             if (unit.Deployed && Grid.OccupantAt(unit.Position) >= 0) throw new InvalidOperationException("Occupied deployment tile " + unit.Position);
             unit.Strength = unit.Strength > 0 ? unit.Strength : unit.Definition.Strength;
             if (unit.Ammunition < 0) unit.Ammunition = Math.Max(0, unit.Definition.Ammunition);
+            unit.UsingRangedWeapon = unit.Ammunition > 0 &&
+                (unit.Definition.Ranged || unit.Definition.OpeningThrowable);
             Units.Add(unit); Units.Sort((a, b) => a.Id.CompareTo(b.Id));
             if (unit.Deployed) Grid.SetOccupant(unit.Position, unit.Id);
         }
@@ -536,6 +538,13 @@ namespace ProjectX.TileBattle
                     attacker.Ammunition = Math.Max(0, attacker.Ammunition - 1);
                     Emit(TileBattleEventType.ProjectileLaunched, attacker.Id, defender.Id, attacker.Position, defender.Position,
                         finalDamage, attacker.Definition.DisplayName + " launches a projectile");
+                    // The final projectile exhausts the ranged weapon immediately. Do not
+                    // leave the formation in ranged state until the next combat tick.
+                    if (attacker.Ammunition == 0)
+                    {
+                        attacker.UsingRangedWeapon = false;
+                        attacker.WeaponAttackProgressTicks = 0;
+                    }
                 }
                 if (!rangedAttack)
                 {

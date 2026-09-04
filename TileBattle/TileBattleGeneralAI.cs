@@ -206,13 +206,18 @@ namespace ProjectX.TileBattle
             Dictionary<int, TileCoord> holdSlots = BuildHoldFormationSlots(allies, observation.Side, observation.Width, observation.Height);
             HashSet<TileCoord> occupied = new HashSet<TileCoord>();
             HashSet<TileCoord> immobileFriendlies = new HashSet<TileCoord>();
+            HashSet<TileCoord> claimedBattleLineSlots = new HashSet<TileCoord>();
+            bool hasMeleeContact = false;
             for (int u = 0; u < observation.Units.Count; u++)
             {
                 TileObservedUnit observed = observation.Units[u];
                 if (!observed.Deployed || observed.Strength <= 0) continue;
                 occupied.Add(observed.Position);
                 if (observed.Side == observation.Side && observed.State == TileUnitState.Engaged)
+                {
                     immobileFriendlies.Add(observed.Position);
+                    hasMeleeContact = true;
+                }
             }
             List<HashSet<TileCoord>> stepReservations = new List<HashSet<TileCoord>>();
             for (int i = 0; i < observation.Units.Count; i++)
@@ -221,8 +226,6 @@ namespace ProjectX.TileBattle
                 if (unit.Side != observation.Side || !unit.Deployed || unit.Strength <= 0 || unit.IsReserve) continue;
                 TileUnitOrder order = new TileUnitOrder { UnitId = unit.Id, Purpose = set.Plan.ToString() };
                 int direction = observation.Side == (int)TileBattleSide.Left ? 1 : -1;
-                bool hesitant = personality.Competence < 40 &&
-                    (observation.CommandRound + unit.Id) % Math.Max(2, 6 - personality.Competence / 10) == 0;
                 bool losesAssignment = personality.Competence < 40 && (observation.CommandRound + unit.Id * 3) % 5 == 0;
                 if (losesAssignment) assignments.Remove(unit.Id);
                 TileObservedUnit nearest = assignments.TryGetValue(unit.Id, out TileObservedUnit assigned) ? assigned : null;
@@ -236,6 +239,8 @@ namespace ProjectX.TileBattle
                     { nearest = enemies[e]; nearestDistance = distance; }
                 }
                 int attackRange = EffectiveAttackRange(unit, observation);
+                bool hesitant = !hasMeleeContact && personality.Competence < 40 && nearestDistance > 3 &&
+                    (observation.CommandRound + unit.Id) % Math.Max(3, 8 - personality.Competence / 10) == 0;
                 if (hesitant && unit.State != TileUnitState.Engaged)
                 {
                     order.Actions.Add(TileUnitAction.Wait());
@@ -270,6 +275,34 @@ namespace ProjectX.TileBattle
                         order.Actions.Add(TileUnitAction.Move(next)); stepReservations[action].Add(next); planned = next;
                     }
                     set.Orders.Add(order); DebugState.OrdersIssued.Add("Unit " + unit.Id + ": attacks if able and evades infantry " + closestThreat.Id);
+                    continue;
+                }
+                bool usingMelee = !unit.Definition.Ranged || unit.Ammunition <= 0 ||
+                    TerrainAt(observation, unit.Position) == TileTerrain.Forest && !unit.Definition.ForestImmune;
+                if (hasMeleeContact && usingMelee && unit.State != TileUnitState.Engaged &&
+                    TryFindBattleLineSlot(unit, allies, enemies, direction, observation.Width, observation.Height,
+                        occupied, claimedBattleLineSlots, out TileCoord lineSlot, out bool extendsFlank))
+                {
+                    order.Purpose = extendsFlank ? "Extend engaged battle line" : "Reinforce engaged battle line";
+                    claimedBattleLineSlots.Add(lineSlot);
+                    TileCoord planned = unit.Position;
+                    for (int action = 0; action < unit.Definition.Actions; action++)
+                    {
+                        TileObservedUnit localTarget = NearestEnemyTo(enemies, planned);
+                        if (localTarget != null && CanAttackFrom(unit, planned, localTarget, observation))
+                        { order.Actions.Add(TileUnitAction.Attack(localTarget.Id, localTarget.Position)); break; }
+                        if (planned == lineSlot)
+                        { order.Actions.Add(TileUnitAction.Brace()); break; }
+                        while (stepReservations.Count <= action) stepReservations.Add(new HashSet<TileCoord>());
+                        TileCoord next = StepTowardBattleLine(planned, lineSlot, direction, observation.Width,
+                            observation.Height, occupied, stepReservations[action]);
+                        if (next == planned) { order.Actions.Add(TileUnitAction.Brace()); break; }
+                        order.Actions.Add(TileUnitAction.Move(next));
+                        stepReservations[action].Add(next);
+                        planned = next;
+                    }
+                    set.Orders.Add(order); DebugState.OrdersIssued.Add("Unit " + unit.Id + ": " + order.Purpose +
+                        " at " + lineSlot.X + "," + lineSlot.Y);
                     continue;
                 }
                 if (unit.State != TileUnitState.Engaged && nearest != null &&
@@ -407,6 +440,86 @@ namespace ProjectX.TileBattle
                 if (distance < bestDistance) { best = enemies[i]; bestDistance = distance; }
             }
             return best;
+        }
+
+        private static bool TryFindBattleLineSlot(TileObservedUnit unit, List<TileObservedUnit> allies,
+            List<TileObservedUnit> enemies, int forwardDirection, int width, int height,
+            HashSet<TileCoord> occupied, HashSet<TileCoord> claimed, out TileCoord slot, out bool extendsFlank)
+        {
+            slot = unit.Position; extendsFlank = false;
+            int bestScore = int.MaxValue;
+            bool mobile = unit.Definition != null && (unit.Definition.Cavalry || unit.Definition.Actions >= 3 ||
+                unit.Definition.BaseMass < 100);
+            for (int i = 0; i < allies.Count; i++)
+            {
+                TileObservedUnit anchor = allies[i];
+                bool anchorInContact = anchor.State == TileUnitState.Engaged || enemies.Exists(enemy =>
+                    enemy.Strength > 0 && anchor.Position.ManhattanDistance(enemy.Position) == 1);
+                if (!anchorInContact) continue;
+                TileCoord[] candidates =
+                {
+                    new TileCoord(anchor.Position.X, anchor.Position.Y + 1),
+                    new TileCoord(anchor.Position.X, anchor.Position.Y - 1),
+                    new TileCoord(anchor.Position.X - forwardDirection, anchor.Position.Y)
+                };
+                for (int c = 0; c < candidates.Length; c++)
+                {
+                    TileCoord candidate = candidates[c];
+                    if (candidate.X < 0 || candidate.X >= width || candidate.Y < 0 || candidate.Y >= height ||
+                        claimed.Contains(candidate) || occupied.Contains(candidate) && candidate != unit.Position) continue;
+                    bool flank = c < 2;
+                    int score = unit.Position.ManhattanDistance(candidate) * 10;
+                    score += flank ? (mobile ? -14 : 5) : (mobile ? 6 : -8);
+                    // Prefer an extension which actually threatens the contacted enemy line.
+                    if (flank && enemies.Exists(enemy => enemy.Strength > 0 &&
+                        candidate.ManhattanDistance(enemy.Position) <= 2)) score -= 8;
+                    if (score < bestScore || score == bestScore && candidate.CompareTo(slot) < 0)
+                    { bestScore = score; slot = candidate; extendsFlank = flank; }
+                }
+            }
+            return bestScore < int.MaxValue;
+        }
+
+        private static TileObservedUnit NearestEnemyTo(List<TileObservedUnit> enemies, TileCoord position)
+        {
+            TileObservedUnit best = null; int distance = int.MaxValue;
+            for (int i = 0; i < enemies.Count; i++)
+            {
+                int candidateDistance = position.ManhattanDistance(enemies[i].Position);
+                if (candidateDistance < distance || candidateDistance == distance &&
+                    (best == null || enemies[i].Id < best.Id))
+                { best = enemies[i]; distance = candidateDistance; }
+            }
+            return best;
+        }
+
+        private static bool CanAttackFrom(TileObservedUnit unit, TileCoord position, TileObservedUnit target,
+            TileBattleObservation observation)
+        {
+            TileCoord original = unit.Position;
+            unit.Position = position;
+            bool result = CanCurrentlyAttack(unit, target, observation);
+            unit.Position = original;
+            return result;
+        }
+
+        private static TileCoord StepTowardBattleLine(TileCoord from, TileCoord destination, int forwardDirection,
+            int width, int height, HashSet<TileCoord> occupied, HashSet<TileCoord> reserved)
+        {
+            TileCoord forward = new TileCoord(from.X + Math.Sign(destination.X - from.X), from.Y);
+            TileCoord lateral = new TileCoord(from.X, from.Y + Math.Sign(destination.Y - from.Y));
+            TileCoord[] candidates = destination.X != from.X
+                ? new[] { forward, lateral }
+                : new[] { lateral, new TileCoord(from.X + forwardDirection, from.Y) };
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                TileCoord candidate = candidates[i];
+                if (candidate == from || candidate.X < 0 || candidate.X >= width || candidate.Y < 0 ||
+                    candidate.Y >= height || occupied.Contains(candidate) && candidate != destination ||
+                    reserved.Contains(candidate)) continue;
+                return candidate;
+            }
+            return from;
         }
 
         private static HashSet<int> BuildFlankingFormationIds(TileBattlePlan plan, List<TileObservedUnit> allies)

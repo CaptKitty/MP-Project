@@ -163,16 +163,9 @@ public class CampaignSaveData
             if (province.holdings != null) foreach (ProvinceHolding holding in province.holdings)
                 if (holding != null) savedProvince.holdings.Add(new SavedHolding { instanceId = holding.instanceId,
                     id = holding.HoldingId,
-                    level = holding.level, slotIndex = holding.slotIndex, cultureName = holding.cultureName,
+                    slotIndex = holding.slotIndex, cultureName = holding.cultureName,
                     socioEconomicClass = (int)SocioEconomicClassRules.Normalize(holding.socioEconomicClass), allegiance = holding.allegiance,
-                    levyEnabled = holding.levyEnabled, adaptationTargetId = holding.adaptationTargetId,
-                    adaptationPressure = holding.adaptationPressure, adaptationCooldownTicks = holding.adaptationCooldownTicks });
-            if (province.holdingConstructionOrders != null)
-                foreach (HoldingConstructionOrder order in province.holdingConstructionOrders)
-                    if (order != null) savedProvince.holdingConstruction.Add(new SavedHoldingConstructionOrder {
-                        slotIndex = order.slotIndex, holdingInstanceId = order.holdingInstanceId,
-                        holdingId = order.holdingId, targetLevel = order.targetLevel,
-                        remainingTicks = order.remainingTicks });
+                    adaptationCooldownTicks = holding.adaptationCooldownTicks });
             save.provinces.Add(savedProvince);
         }
         foreach (CampaignRegion region in Owners.Instance.regionlist)
@@ -349,21 +342,13 @@ public class CampaignSaveData
                 HoldingDefinition definition = HoldingDefinition.Find(holding.id);
                 province.holdings.Add(new ProvinceHolding { instanceId = holding.instanceId,
                     definition = definition, id = holding.id,
-                    level = Mathf.Max(1, holding.level), slotIndex = holding.slotIndex,
+                    slotIndex = holding.slotIndex,
                     cultureName = holding.cultureName,
                     socioEconomicClass = SocioEconomicClassRules.Normalize(
                         (SocioEconomicClass)Mathf.Clamp(holding.socioEconomicClass, 0, 9)),
                     allegiance = holding.allegiance,
-                    levyEnabled = holding.levyEnabled, adaptationTargetId = holding.adaptationTargetId,
-                    adaptationPressure = Mathf.Max(0, holding.adaptationPressure),
                     adaptationCooldownTicks = Mathf.Max(0, holding.adaptationCooldownTicks) });
             }
-            province.holdingConstructionOrders = new List<HoldingConstructionOrder>();
-            if (state.holdingConstruction != null)
-                foreach (SavedHoldingConstructionOrder order in state.holdingConstruction)
-                    province.holdingConstructionOrders.Add(new HoldingConstructionOrder { slotIndex = order.slotIndex,
-                        holdingInstanceId = order.holdingInstanceId,
-                        holdingId = order.holdingId, targetLevel = order.targetLevel, remainingTicks = order.remainingTicks });
             province.levyEntitlements.Clear();
             if (state.levies != null) foreach (SavedLevyEntitlement levy in state.levies)
             {
@@ -515,7 +500,7 @@ public class SavedNation
     public int levyRecoveryBonusPerTick;
     public List<string> flags = new List<string>();
 }
-[Serializable] public class SavedProvince { public string name; public string nation; public string occupier; public int population; public int supply; public int urbanization; public int unrest; public int terrainProfile; public List<SavedCulture> cultures = new List<SavedCulture>(); public List<SavedBuilding> buildings = new List<SavedBuilding>(); public List<SavedConstructionOrder> construction = new List<SavedConstructionOrder>(); public List<SavedMercenaryPool> mercenaries = new List<SavedMercenaryPool>(); public List<SavedLevyEntitlement> levies = new List<SavedLevyEntitlement>(); public List<SavedHolding> holdings = new List<SavedHolding>(); public List<SavedHoldingConstructionOrder> holdingConstruction = new List<SavedHoldingConstructionOrder>(); }
+[Serializable] public class SavedProvince { public string name; public string nation; public string occupier; public int population; public int supply; public int urbanization; public int unrest; public int terrainProfile; public List<SavedCulture> cultures = new List<SavedCulture>(); public List<SavedBuilding> buildings = new List<SavedBuilding>(); public List<SavedConstructionOrder> construction = new List<SavedConstructionOrder>(); public List<SavedMercenaryPool> mercenaries = new List<SavedMercenaryPool>(); public List<SavedLevyEntitlement> levies = new List<SavedLevyEntitlement>(); public List<SavedHolding> holdings = new List<SavedHolding>(); }
 [Serializable] public class SavedCulture { public string name; public int population; public Color32 color; }
 [Serializable] public class SavedRegion { public string name; public float loyalty = 100f; public List<SavedRegionalLoyaltyShare> shares = new List<SavedRegionalLoyaltyShare>(); public List<SavedRegionalManpowerShare> manpowerShares = new List<SavedRegionalManpowerShare>(); }
 [Serializable] public class SavedRegionalLoyaltyShare { public string nationName; public float loyalty; public int foodStorage = -1; public int foodStorageCapacity = 1000; public int lastFoodShortage; }
@@ -527,6 +512,5 @@ public class SavedNation
 [Serializable] public class SavedUnit { public string name; public int amount; }
 [Serializable] public class SavedFormationRecord { public string unitName; public int origin; public string entitlementId; public string sourceNationName; }
 [Serializable] public class SavedLevyEntitlement { public string id; public string ruleId; public string unitName; public int buildingSlot; public string holdingId; public string holdingInstanceId; public int ordinal; public string beneficiaryNation; public int state; public bool eligible; public int remainingTicks; public string raisedArmyId; }
-[Serializable] public class SavedHolding { public string instanceId; public string id; public int level; public int slotIndex; public string cultureName; public int socioEconomicClass; public string allegiance; public bool levyEnabled = true; public string adaptationTargetId; public int adaptationPressure; public int adaptationCooldownTicks; }
-[Serializable] public class SavedHoldingConstructionOrder { public int slotIndex; public string holdingInstanceId; public string holdingId; public int targetLevel; public int remainingTicks; }
+[Serializable] public class SavedHolding { public string instanceId; public string id; public int slotIndex; public string cultureName; public int socioEconomicClass; public string allegiance; public int adaptationCooldownTicks; }
 [Serializable] public class SavedRecruitmentOrder { public string unitName; public int amount; public int remainingTicks; public int origin; public string sourceNationName; }

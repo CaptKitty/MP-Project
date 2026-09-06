@@ -1930,7 +1930,6 @@ MonoBehaviour:
     mercenaryPools: []
     levyEntitlements: []
     holdings: []
-    holdingConstructionOrders: []
     baseHoldingTagDesires: []
     holdingEvolution:
       evaluationIntervalTicks: 1

@@ -709,9 +709,9 @@ public static class PoliticalProposalSystem
         {
             Province province = FindProvince(nation, edict.provinceName);
             ProvinceHolding holding = province != null ? province.GetHolding(edict.holdingInstanceId) : null;
-            if (holding == null || holding.level <= 1) return;
-            holding.level--; nation.Gold += Mathf.Max(0, edict.treasuryGain);
-            province.ReconcileLevyEntitlements();
+            // Holding tiers no longer exist; wealth-seizure edicts need a future
+            // effect expressed through the current value economy.
+            return;
         }
     }
 

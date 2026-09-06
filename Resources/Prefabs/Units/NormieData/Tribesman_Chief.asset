@@ -16,6 +16,8 @@ MonoBehaviour:
   unittype: 1
   cost: 125
   health: 400
+  notLevyable: 0
+  levyRole: 1
   recruitmentTicks: 3
   upkeep: 2
   actions: 3

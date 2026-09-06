@@ -390,10 +390,13 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
             " (" + (LevyEconomySystem.MobilizationFraction(province) * 100f).ToString("0.#") + "%)" +
             "\nPressure: Light " + pressure[LevyPressureType.LightInfantry].ToString("0.#") +
             ", Heavy " + pressure[LevyPressureType.HeavyInfantry].ToString("0.#") +
-            ", Cavalry " + pressure[LevyPressureType.Cavalry].ToString("0.#") +
-            "\nComposition: " + (composition[LevyPressureType.LightInfantry] * 100f).ToString("0.#") + "% / " +
-            (composition[LevyPressureType.HeavyInfantry] * 100f).ToString("0.#") + "% / " +
-            (composition[LevyPressureType.Cavalry] * 100f).ToString("0.#") + "%";
+            ", Line " + pressure[LevyPressureType.LineInfantry].ToString("0.#") +
+            ", Ranged " + pressure[LevyPressureType.RangedInfantry].ToString("0.#") +
+            ", Light cavalry " + pressure[LevyPressureType.LightCavalry].ToString("0.#") +
+            ", Shock cavalry " + pressure[LevyPressureType.ShockCavalry].ToString("0.#") +
+            ", Chariot " + pressure[LevyPressureType.Chariot].ToString("0.#") +
+            "\nComposition: " + string.Join(", ", System.Array.ConvertAll(LevyEconomySystem.Roles, role =>
+                role + " " + (composition[role] * 100f).ToString("0.#") + "%"));
     }
 
     public void ToggleProductionBreakdownTooltip()
@@ -433,52 +436,6 @@ public sealed class UIProvincePanelSummary : MonoBehaviour
             result.Append("\nFood consumed: ").Append(example.FoodConsumption).Append(" each");
         if (group.Count > 1) result.Append("\nValues above are per holding.");
         return result.ToString();
-    }
-
-    private List<string> MatchingBuildingEfficiencyEffects(HoldingDefinition definition)
-    {
-        List<string> result = new List<string>();
-        if (province == null || province.buildings == null || definition == null) return result;
-        HoldingTag tags = HoldingEvolutionSystem.EffectiveTags(definition);
-        foreach (ProvinceBuilding building in province.buildings)
-        {
-            if (building == null || building.definition == null || building.definition.levels == null) continue;
-            float amount = 0f;
-            foreach (BuildingLevelDefinition level in building.definition.levels)
-            {
-                if (level == null || level.level > building.level || level.holdingEconomyModifiers == null) continue;
-                foreach (HoldingTagModifier modifier in level.holdingEconomyModifiers)
-                    if (modifier != null && (modifier.tag & tags) != 0 &&
-                        (string.IsNullOrWhiteSpace(modifier.requiredNationFlag) ||
-                         NationContentResolver.HasFlag(province.nation, modifier.requiredNationFlag)))
-                        amount += modifier.outputEfficiencyPercent;
-            }
-            if (!Mathf.Approximately(amount, 0f))
-                result.Add(building.DisplayName + " " + SignedPercent(amount));
-        }
-        return result;
-    }
-
-    private static float UrbanizationPercent(int response, float urbanization) =>
-        Mathf.Clamp(response, -100, 100) * Mathf.Clamp(urbanization, -100f, 100f) / 100f;
-
-    private static string SignedPercent(float value) =>
-        (value >= 0f ? "+" : string.Empty) + value.ToString("0.#") + "%";
-
-    private void AppendHoldingComposition(StringBuilder text)
-    {
-        if (province == null || province.holdings == null || province.holdings.Count == 0) return;
-        Dictionary<HoldingTag, float> desired = HoldingEvolutionSystem.DesiredWeights(province);
-        List<string> parts = new List<string>();
-        foreach (HoldingTag tag in HoldingEvolutionSystem.Tags)
-        {
-            int present = province.holdings.FindAll(holding => holding != null && holding.definition != null &&
-                (HoldingEvolutionSystem.EffectiveTags(holding.definition) & tag) != 0).Count;
-            float current = present * 100f / Mathf.Max(1, province.holdings.Count);
-            float target = Mathf.Clamp(desired[tag], 0f, 100f);
-            if (present > 0 || target >= 5f) parts.Add(tag + " " + current.ToString("0") + "%/" + target.ToString("0") + "%");
-        }
-        text.Append("\nHolding composition (current/desired): ").Append(parts.Count > 0 ? string.Join(" | ", parts) : "None");
     }
 
     private Text EnsureCountLabel(Transform slot)

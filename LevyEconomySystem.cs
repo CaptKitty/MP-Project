@@ -2,13 +2,30 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum LevyPressureType : byte { LightInfantry, HeavyInfantry, Cavalry }
+public enum LevyPressureType : byte
+{
+    LightInfantry,
+    HeavyInfantry,
+    LightCavalry,
+    LineInfantry,
+    RangedInfantry,
+    ShockCavalry,
+    Chariot
+}
 public enum MobilizationSensitivity : byte { Low, Normal, Severe }
 
 public static class LevyEconomySystem
 {
-    public const int DefaultRecoveryTicks = 120;
-    public const int DefaultDemobilizationTicks = 0;
+    public static readonly LevyPressureType[] Roles =
+    {
+        LevyPressureType.LightInfantry, LevyPressureType.LineInfantry, LevyPressureType.HeavyInfantry,
+        LevyPressureType.RangedInfantry, LevyPressureType.LightCavalry, LevyPressureType.ShockCavalry,
+        LevyPressureType.Chariot
+    };
+    public static int DefaultRecoveryTicks => LevySettings.Current != null
+        ? Mathf.Max(0, LevySettings.Current.recoveryTicks) : 120;
+    public static int DefaultDemobilizationTicks => LevySettings.Current != null
+        ? Mathf.Max(0, LevySettings.Current.demobilizationTicks) : 0;
     private sealed class MobilizationCache { public int frame = -1; public float value; }
     private sealed class EffectCache { public int frame = -1; public readonly List<BuildingEconomicEffect> values = new List<BuildingEconomicEffect>(); }
     private static readonly Dictionary<string, MobilizationCache> MobilizationByRegion = new Dictionary<string, MobilizationCache>();
@@ -31,16 +48,8 @@ public static class LevyEconomySystem
     public static float HoldingCapacity(Province province, ProvinceHolding holding)
     {
         if (holding == null) return 0f;
-        float value;
-        switch (SocioEconomicClassRules.Normalize(holding.socioEconomicClass))
-        {
-            case SocioEconomicClass.Citizen: value = 1f; break;
-            case SocioEconomicClass.Tribesman: value = 1.25f; break;
-            case SocioEconomicClass.Freemen: value = .75f; break;
-            case SocioEconomicClass.Elite: value = .25f; break;
-            case SocioEconomicClass.Enslaved: value = .1f; break;
-            default: value = 0f; break;
-        }
+        LevyClassSettings classSettings = LevySettings.ForClass(holding.socioEconomicClass);
+        float value = classSettings != null ? classSettings.baseCapacity : 0f;
         return value * NationContentResolver.ClassLevyCapacityMultiplier(province != null ? province.nation : null,
             SocioEconomicClassRules.Normalize(holding.socioEconomicClass));
     }
@@ -102,8 +111,8 @@ public static class LevyEconomySystem
 
     public static Dictionary<LevyPressureType, float> Pressure(Province province)
     {
-        Dictionary<LevyPressureType, float> result = new Dictionary<LevyPressureType, float>
-        { { LevyPressureType.LightInfantry, 0f }, { LevyPressureType.HeavyInfantry, 0f }, { LevyPressureType.Cavalry, 0f } };
+        Dictionary<LevyPressureType, float> result = new Dictionary<LevyPressureType, float>();
+        foreach (LevyPressureType role in Roles) result[role] = 0f;
         float romanCitizenLight = 0f;
         foreach (Province source in RegionProvinces(province))
         {
@@ -111,22 +120,23 @@ public static class LevyEconomySystem
             {
                 if (holding == null) continue;
                 SocioEconomicClass socialClass = SocioEconomicClassRules.Normalize(holding.socioEconomicClass);
-                float light = socialClass == SocioEconomicClass.Citizen ? 10f : socialClass == SocioEconomicClass.Tribesman ? 8f :
-                    socialClass == SocioEconomicClass.Freemen ? 5f : 0f;
+                LevyClassSettings classSettings = LevySettings.ForClass(socialClass);
+                float light = classSettings != null ? classSettings.lightInfantryPressure : 0f;
+                if (classSettings != null) classSettings.AddPressure(result, false);
                 bool replaceLight = false;
                 foreach (NationClassModifier modifier in NationContentResolver.ResolveClassModifiers(source.nation))
                     if (modifier != null && SocioEconomicClassRules.Normalize(modifier.socialClass) == socialClass)
                     { replaceLight |= modifier.replaceLightLevyWithHeavy; result[LevyPressureType.HeavyInfantry] += modifier.heavyInfantryPressure; }
                 if (replaceLight) romanCitizenLight += light; else result[LevyPressureType.LightInfantry] += light;
-                HoldingEconomicType type = holding.definition != null ? holding.definition.EffectiveEconomicType : HoldingEconomicType.Unspecified;
-                if (type == HoldingEconomicType.Pasture) result[LevyPressureType.Cavalry] += 5f;
-                if (type == HoldingEconomicType.Workshop) result[LevyPressureType.HeavyInfantry] += 5f;
-                if (socialClass == SocioEconomicClass.Elite) result[LevyPressureType.HeavyInfantry] += 2f;
+                if (holding.definition != null)
+                {
+                    holding.definition.AddLevyPressure(result);
+                }
             }
         }
         foreach (BuildingEconomicEffect effect in EffectsAffecting(province))
             if (effect.type == BuildingEconomicEffectType.LevyTypePressure) result[effect.levyType] += effect.amount;
-        foreach (LevyPressureType type in new[] { LevyPressureType.LightInfantry, LevyPressureType.HeavyInfantry, LevyPressureType.Cavalry })
+        foreach (LevyPressureType type in Roles)
             result[type] += ValueTradeSystem.LevyPressureOutput(province, type);
         // Central conversion rule: Roman Citizen light pressure is replaced, never duplicated.
         result[LevyPressureType.HeavyInfantry] += romanCitizenLight;
@@ -148,9 +158,13 @@ public static class LevyEconomySystem
         Dictionary<LevyPressureType, float> shares = Composition(province);
         int hash = StableHash((holding != null ? holding.instanceId : string.Empty) + "|levy") % 10000;
         float cursor = hash / 10000f;
-        if (cursor < shares[LevyPressureType.LightInfantry]) return LevyPressureType.LightInfantry;
-        if (cursor < shares[LevyPressureType.LightInfantry] + shares[LevyPressureType.HeavyInfantry]) return LevyPressureType.HeavyInfantry;
-        return LevyPressureType.Cavalry;
+        float accumulated = 0f;
+        foreach (LevyPressureType role in Roles)
+        {
+            accumulated += shares[role];
+            if (cursor < accumulated) return role;
+        }
+        return LevyPressureType.LightInfantry;
     }
 
     public static float EconomicValueModifierPercent(Province province, HoldingOutputType type)

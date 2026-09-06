@@ -59,6 +59,11 @@ public static class HoldingArchetypeCatalog
     {
         if (definitions != null) return;
         definitions = new Dictionary<string, HoldingDefinition>(StringComparer.OrdinalIgnoreCase);
+        foreach (HoldingDefinition asset in Resources.LoadAll<HoldingDefinition>("Prefabs/NationData/HoldingData"))
+        {
+            if (asset == null || asset.economicType == HoldingEconomicType.Unspecified) continue;
+            definitions[asset.economicType.ToString()] = asset;
+        }
         Add(HoldingEconomicType.Farm, "Farm", "Produces food and agricultural value.", HoldingOutputType.Food, 2f,
             HoldingOutputType.AgriculturalValue, 10f);
         Add(HoldingEconomicType.Pasture, "Pasture", "Produces food and agricultural value.", HoldingOutputType.Food, 2f,
@@ -76,11 +81,12 @@ public static class HoldingArchetypeCatalog
         HoldingOutputType firstType, float firstValue, HoldingOutputType secondType = HoldingOutputType.PoliticalInfluence,
         float secondValue = 0f, HoldingLabourCategory firstLabour = HoldingLabourCategory.Automatic)
     {
+        if (definitions.ContainsKey(type.ToString())) return;
         HoldingDefinition item = ScriptableObject.CreateInstance<HoldingDefinition>();
         item.hideFlags = HideFlags.DontUnloadUnusedAsset;
         item.name = displayName; item.id = displayName; item.displayName = displayName; item.description = description;
-        item.economicType = type; item.maximumLevel = 1; item.defaultClass = SocioEconomicClass.Freemen;
-        item.foodConsumption = 1; item.defaultConstructionTicks = 10;
+        item.economicType = type; item.defaultClass = SocioEconomicClass.Freemen;
+        item.foodConsumption = 1;
         item.economicOutputs.Add(new HoldingEconomicOutputDefinition { type = firstType, baseValue = firstValue,
             labourCategory = firstLabour });
         if (secondValue != 0f) item.economicOutputs.Add(new HoldingEconomicOutputDefinition { type = secondType,

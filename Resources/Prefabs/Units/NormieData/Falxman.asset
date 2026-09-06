@@ -17,6 +17,8 @@ MonoBehaviour:
   unittype: 1
   cost: 75
   health: 200
+  notLevyable: 0
+  levyRole: 1
   speed: 1
   actions: 3
   Initiative: 6

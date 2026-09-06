@@ -18,6 +18,12 @@ public class UnitSaveData : ScriptableObject
     [Tooltip("Gold charged every campaign economy tick for each professional formation. Levies ignore this value.")]
     [Min(0)] public int upkeep = 2;
 
+    [Header("Levy")]
+    [Tooltip("Prevents this unit from being selected as a levy. Professional recruitment is unaffected.")]
+    public bool notLevyable;
+    [Tooltip("Broad levy-composition role used when resolving local levy pressure into an actual unit.")]
+    public LevyPressureType levyRole = LevyPressureType.LightInfantry;
+
     [Header("Tile Battle Timing")]
     [Tooltip("Maximum number of pre-committed actions this formation may attempt in one command round.")]
     [Min(1)] public int actions = 2;

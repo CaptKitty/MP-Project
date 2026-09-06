@@ -23,16 +23,7 @@ public static class HoldingEconomySystem
     public static HoldingEconomicType ResolveType(HoldingDefinition definition)
     {
         if (definition == null) return HoldingEconomicType.Unspecified;
-        if (definition.economicType != HoldingEconomicType.Unspecified) return definition.economicType;
-        switch (definition.category)
-        {
-            case HoldingCategory.Pastoralists:
-            case HoldingCategory.Hunters: return HoldingEconomicType.Pasture;
-            case HoldingCategory.Artisans: return HoldingEconomicType.Workshop;
-            case HoldingCategory.Commerce: return HoldingEconomicType.Commerce;
-            case HoldingCategory.Mining: return HoldingEconomicType.Mine;
-            default: return HoldingEconomicType.Farm;
-        }
+        return definition.economicType;
     }
 
     public static ClassMultipliers Multipliers(SocioEconomicClass socialClass)
@@ -167,7 +158,7 @@ public static class HoldingEconomySystem
         }
         HoldingDefinition replacement = FindDefinition(wanted, source != null ? source.socioEconomicClass : SocioEconomicClass.Freemen);
         if (source == null || replacement == null || target[wanted] * province.holdings.Count - Count(current, wanted) < .5f) return;
-        source.definition = replacement; source.id = replacement.StableId; source.level = 1; source.adaptationCooldownTicks = 48;
+        source.definition = replacement; source.id = replacement.StableId; source.adaptationCooldownTicks = 48;
     }
 
     private static void ConvergeClass(Province province)

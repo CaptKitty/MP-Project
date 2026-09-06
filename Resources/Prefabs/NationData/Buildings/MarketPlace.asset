@@ -35,11 +35,5 @@ MonoBehaviour:
     flags: []
     displayedEffects:
     - Encourages commercial holdings and improves their output.
-    holdingEconomyModifiers:
-    - tag: 2
-      requiredNationFlag: 
-      desiredWeight: 25
-      outputEfficiencyPercent: 10
     localModifiers:
       maxDevelopment: 0
-      holdingEconomyModifiers: []

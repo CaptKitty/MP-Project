@@ -296,25 +296,18 @@ public struct CampaignHoldingState : INetworkSerializable
     public ushort ProvinceIndex;
     public FixedString128Bytes InstanceId;
     public FixedString64Bytes HoldingId;
-    public int Level;
     public int SlotIndex;
     public FixedString64Bytes CultureName;
     public byte SocioEconomicClass;
     public FixedString64Bytes Allegiance;
-    public bool LevyEnabled;
-    public FixedString64Bytes AdaptationTargetId;
-    public int AdaptationPressure;
     public int AdaptationCooldownTicks;
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
         serializer.SerializeValue(ref ProvinceIndex); serializer.SerializeValue(ref InstanceId);
         serializer.SerializeValue(ref HoldingId);
-        serializer.SerializeValue(ref Level); serializer.SerializeValue(ref SlotIndex);
+        serializer.SerializeValue(ref SlotIndex);
         serializer.SerializeValue(ref CultureName); serializer.SerializeValue(ref SocioEconomicClass);
         serializer.SerializeValue(ref Allegiance);
-        serializer.SerializeValue(ref LevyEnabled);
-        serializer.SerializeValue(ref AdaptationTargetId);
-        serializer.SerializeValue(ref AdaptationPressure);
         serializer.SerializeValue(ref AdaptationCooldownTicks);
     }
 }
@@ -335,23 +328,6 @@ public struct CampaignAllegianceState : INetworkSerializable
         serializer.SerializeValue(ref DisplayName); serializer.SerializeValue(ref Type);
         serializer.SerializeValue(ref PrimaryIdentityId); serializer.SerializeValue(ref DynamicIdentityId);
         serializer.SerializeValue(ref CurrentInterestRegionIds); serializer.SerializeValue(ref FutureInterestRegionIds);
-    }
-}
-
-public struct CampaignHoldingConstructionOrderState : INetworkSerializable
-{
-    public ushort ProvinceIndex;
-    public int SlotIndex;
-    public FixedString128Bytes HoldingInstanceId;
-    public FixedString64Bytes HoldingId;
-    public int TargetLevel;
-    public int RemainingTicks;
-    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
-    {
-        serializer.SerializeValue(ref ProvinceIndex); serializer.SerializeValue(ref SlotIndex);
-        serializer.SerializeValue(ref HoldingInstanceId);
-        serializer.SerializeValue(ref HoldingId); serializer.SerializeValue(ref TargetLevel);
-        serializer.SerializeValue(ref RemainingTicks);
     }
 }
 

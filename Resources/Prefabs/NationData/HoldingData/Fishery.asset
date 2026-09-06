@@ -16,15 +16,7 @@ MonoBehaviour:
   displayName: Fishery
   description: Produces food and agricultural value.
   icon: {fileID: 0}
-  category: 0
   economicType: 6
-  categoryTier: 1
-  tags: 0
-  suggestedAllegiance: 
-  maximumLevel: 1
-  defaultConstructionTicks: 10
-  levels: []
-  outputs: []
   economicOutputs:
   - type: 1
     baseValue: 2
@@ -34,16 +26,14 @@ MonoBehaviour:
     baseValue: 6
     labourCategory: 0
     disabledWhileMobilized: 0
-  transformations: []
   foodConsumption: 1
   foodUpkeep: 0
   garrisonCapacity: 0
   defaultClass: 2
-  canRaiseLevies: 0
-  levyUnit: {fileID: 0}
-  levyArchetype: 0
-  levyContributionPermillePerLevel: 1000
-  levyFormationsPerLevel: 1
-  levyMobilizationTicks: 0
-  levyRecoveryTicks: 120
-  levyDemobilizationTicks: 0
+  lightInfantryPressure: 0
+  lineInfantryPressure: 0
+  heavyInfantryPressure: 0
+  rangedInfantryPressure: 0
+  lightCavalryPressure: 0
+  shockCavalryPressure: 0
+  chariotPressure: 0

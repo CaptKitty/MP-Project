@@ -168,7 +168,5 @@ public class BuildingLevelDefinition
     public List<string> flags = new List<string>();
     [Tooltip("Additional player-facing effects supplied by this level. These are accumulated in building tooltips.")]
     public List<string> displayedEffects = new List<string>();
-    [Tooltip("Desired holding composition and tagged-output effects supplied while this level is active.")]
-    public List<HoldingTagModifier> holdingEconomyModifiers = new List<HoldingTagModifier>();
     public ProvinceLocalModifiers localModifiers = new ProvinceLocalModifiers();
 }

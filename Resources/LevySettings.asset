@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92a4047bfcba4b85863db726a7773011, type: 3}
+  m_Name: LevySettings
+  m_EditorClassIdentifier: 
+  recoveryTicks: 120
+  demobilizationTicks: 0
+  classes:
+  - socialClass: 6
+    baseCapacity: 1
+    lightInfantryPressure: 10
+    lineInfantryPressure: 0
+    heavyInfantryPressure: 0
+    rangedInfantryPressure: 0
+    lightCavalryPressure: 0
+    shockCavalryPressure: 0
+    chariotPressure: 0
+  - socialClass: 9
+    baseCapacity: 1.25
+    lightInfantryPressure: 0
+    lineInfantryPressure: 8
+    heavyInfantryPressure: 0
+    rangedInfantryPressure: 0
+    lightCavalryPressure: 0
+    shockCavalryPressure: 0
+    chariotPressure: 0
+  - socialClass: 2
+    baseCapacity: 0.75
+    lightInfantryPressure: 5
+    lineInfantryPressure: 0
+    heavyInfantryPressure: 0
+    rangedInfantryPressure: 0
+    lightCavalryPressure: 0
+    shockCavalryPressure: 0
+    chariotPressure: 0
+  - socialClass: 7
+    baseCapacity: 0.25
+    lightInfantryPressure: 0
+    lineInfantryPressure: 0
+    heavyInfantryPressure: 2
+    rangedInfantryPressure: 0
+    lightCavalryPressure: 0
+    shockCavalryPressure: 0
+    chariotPressure: 0
+  - socialClass: 8
+    baseCapacity: 0.1
+    lightInfantryPressure: 0
+    lineInfantryPressure: 0
+    heavyInfantryPressure: 0
+    rangedInfantryPressure: 0
+    lightCavalryPressure: 0
+    shockCavalryPressure: 0
+    chariotPressure: 0

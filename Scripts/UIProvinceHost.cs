@@ -377,10 +377,6 @@ public class UIProvinceHost : MonoBehaviour
             float capacity = LevyEconomySystem.CapacityShareForEntitlements(LoadedProvince, holding);
             if (capacity > 0f) text.Append(" - ").Append(capacity.ToString("0.###")).Append(" levy capacity");
         }
-        if (LoadedProvince.holdingConstructionOrders != null)
-            foreach (HoldingConstructionOrder order in LoadedProvince.holdingConstructionOrders)
-                if (order != null) text.Append("\nTransforming to ").Append(order.holdingId)
-                    .Append(" (").Append(order.remainingTicks).Append(" ticks)");
         holdingsSummary.text = text.ToString();
     }
 
@@ -453,12 +449,6 @@ public class UIProvinceHost : MonoBehaviour
         message.Append("\n- ").Append(holding.DisplayName)
             .Append(" - ").Append(!string.IsNullOrWhiteSpace(holding.cultureName) ? holding.cultureName : "Unassigned");
         message.Append("\n    Class: ").Append(SocioEconomicClassRules.DisplayName(holding.socioEconomicClass));
-        if (holding.definition != null && holding.definition.outputs != null)
-            foreach (HoldingOutputDefinition output in holding.definition.outputs)
-                if (output != null && output.EffectiveUrbanizationResponse != 0)
-                    message.Append("\n    ").Append(HoldingOutputLabel(output.type)).Append(" urbanization response: ")
-                        .Append(output.EffectiveUrbanizationResponse > 0 ? "+" : string.Empty)
-                        .Append(output.EffectiveUrbanizationResponse);
         if (recoveryTicks > 0)
             message.Append("\n    LEVY CASUALTIES: no production for ").Append(recoveryTicks).Append(" more ticks");
         int netFood = LoadedProvince.GetHoldingOutput(holding, HoldingOutputType.Food);
@@ -489,15 +479,6 @@ public class UIProvinceHost : MonoBehaviour
             message.Append("\n    Levy contribution: ").Append(levyContribution.ToString("0.###"));
             message.Append("\n    Levies: ").Append(available).Append("/").Append(levyTotal).Append(" available");
             anyOutput = true;
-        }
-        if (holding.definition != null && holding.definition.levels != null)
-        foreach (HoldingLevelDefinition level in holding.definition.levels)
-        {
-            if (level == null || level.level > holding.level) continue;
-            if (!string.IsNullOrWhiteSpace(level.displayedEffect))
-                message.Append("\n    Effect: ").Append(level.displayedEffect.Trim());
-            if (level.localModifiers != null && level.localModifiers.maxDevelopment != 0)
-                message.Append("\n    ").Append(ProvinceLocalModifiers.FormatMaxDevelopment(level.localModifiers.maxDevelopment));
         }
         if (mobilized) message.Append("\n    Mobilized (affected outputs already reduced)");
         else if (!anyOutput) message.Append("\n    No configured production");
@@ -749,19 +730,10 @@ public class UIProvinceHost : MonoBehaviour
                 {
                     if (holding == null) { hash *= 31; continue; }
                     hash = hash * 31 + (holding.HoldingId != null ? holding.HoldingId.GetHashCode() : 0);
-                    hash = hash * 31 + holding.level; hash = hash * 31 + holding.slotIndex;
+                    hash = hash * 31 + holding.slotIndex;
                     hash = hash * 31 + (holding.cultureName != null ? holding.cultureName.GetHashCode() : 0);
                     hash = hash * 31 + (int)holding.socioEconomicClass;
                     hash = hash * 31 + (holding.allegiance != null ? holding.allegiance.GetHashCode() : 0);
-                    hash = hash * 31 + holding.levyEnabled.GetHashCode();
-                }
-            if (province.holdingConstructionOrders != null)
-                foreach (HoldingConstructionOrder order in province.holdingConstructionOrders)
-                {
-                    if (order == null) { hash *= 31; continue; }
-                    hash = hash * 31 + order.slotIndex; hash = hash * 31 + order.targetLevel;
-                    hash = hash * 31 + order.remainingTicks;
-                    hash = hash * 31 + (order.holdingId != null ? order.holdingId.GetHashCode() : 0);
                 }
             if (province.levyEntitlements != null)
                 foreach (ProvinceLevyEntitlement entitlement in province.levyEntitlements)

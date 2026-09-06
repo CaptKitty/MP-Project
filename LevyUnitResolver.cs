@@ -55,28 +55,18 @@ public static class LevyUnitResolver
     }
 
     private static void Add(List<UnitSaveData> values, UnitSaveData unit)
-    { if (unit != null && !unit.Mercenary && !values.Contains(unit)) values.Add(unit); }
+    { if (unit != null && !unit.Mercenary && !unit.notLevyable && !values.Contains(unit)) values.Add(unit); }
 
     private static List<LevyPressureType> SearchOrder(LevyPressureType requested)
     {
-        if (requested == LevyPressureType.HeavyInfantry)
-            return new List<LevyPressureType> { requested, LevyPressureType.LightInfantry, LevyPressureType.Cavalry };
-        if (requested == LevyPressureType.Cavalry)
-            return new List<LevyPressureType> { requested, LevyPressureType.LightInfantry, LevyPressureType.HeavyInfantry };
-        return new List<LevyPressureType> { requested, LevyPressureType.HeavyInfantry, LevyPressureType.Cavalry };
+        List<LevyPressureType> result = new List<LevyPressureType> { requested };
+        foreach (LevyPressureType role in LevyEconomySystem.Roles) if (role != requested) result.Add(role);
+        return result;
     }
 
     private static bool MatchesRole(UnitSaveData unit, LevyPressureType role)
     {
-        if (unit == null) return false;
-        string text = UnitText(unit);
-        bool cavalry = unit.unittype == UnitTypes.LightCavalry || unit.unittype == UnitTypes.HeavyCavalry ||
-            text.Contains("cavalry") || text.Contains("horse") || text.Contains("mounted");
-        bool heavy = unit.unittype == UnitTypes.HeavyInfantry || unit.unittype == UnitTypes.HeavyCavalry ||
-            text.Contains("heavy") || text.Contains("armored") || text.Contains("armoured") || text.Contains("triarii");
-        if (role == LevyPressureType.Cavalry) return cavalry;
-        if (role == LevyPressureType.HeavyInfantry) return !cavalry && heavy;
-        return !cavalry && !heavy;
+        return unit != null && !unit.notLevyable && unit.levyRole == role;
     }
 
     private static string UnitText(UnitSaveData unit) => ((unit.name ?? string.Empty) + " " +
@@ -86,18 +76,7 @@ public static class LevyUnitResolver
     private static int Score(UnitSaveData unit, LevyPressureType role)
     {
         if (unit == null) return int.MinValue;
-        string text = UnitText(unit);
-        bool cavalry = unit.unittype == UnitTypes.LightCavalry || unit.unittype == UnitTypes.HeavyCavalry ||
-            text.Contains("cavalry") || text.Contains("horse") || text.Contains("mounted");
-        bool heavy = unit.unittype == UnitTypes.HeavyInfantry || unit.unittype == UnitTypes.HeavyCavalry ||
-            text.Contains("heavy") || text.Contains("armored") || text.Contains("armoured") || text.Contains("triarii");
-        int score = 0;
-        switch (role)
-        {
-            case LevyPressureType.LightInfantry: score += cavalry ? -80 : 45; score += heavy ? -35 : 30; break;
-            case LevyPressureType.HeavyInfantry: score += cavalry ? -80 : 40; score += heavy ? 65 : -25; break;
-            case LevyPressureType.Cavalry: score += cavalry ? 80 : -100; score += heavy ? -5 : 10; break;
-        }
+        int score = unit.levyRole == role ? 100 : 0;
         score -= Mathf.Max(0, unit.cost / 100 - 3);
         return score;
     }

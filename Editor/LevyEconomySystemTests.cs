@@ -49,14 +49,14 @@ public sealed class LevyEconomySystemTests
         {
             new BuildingEconomicEffect { type = BuildingEconomicEffectType.LevyTypePressure, levyType = LevyPressureType.LightInfantry, amount = 50 },
             new BuildingEconomicEffect { type = BuildingEconomicEffectType.LevyTypePressure, levyType = LevyPressureType.HeavyInfantry, amount = 30 },
-            new BuildingEconomicEffect { type = BuildingEconomicEffectType.LevyTypePressure, levyType = LevyPressureType.Cavalry, amount = 20 }
+            new BuildingEconomicEffect { type = BuildingEconomicEffectType.LevyTypePressure, levyType = LevyPressureType.LightCavalry, amount = 20 }
         };
         Province province = new Province { buildings = new List<ProvinceBuilding>
             { new ProvinceBuilding { definition = definition, level = 1 } } };
         Dictionary<LevyPressureType, float> result = LevyEconomySystem.Composition(province);
         Assert.That(result[LevyPressureType.LightInfantry], Is.EqualTo(.5f).Within(.001f));
         Assert.That(result[LevyPressureType.HeavyInfantry], Is.EqualTo(.3f).Within(.001f));
-        Assert.That(result[LevyPressureType.Cavalry], Is.EqualTo(.2f).Within(.001f));
+        Assert.That(result[LevyPressureType.LightCavalry], Is.EqualTo(.2f).Within(.001f));
     }
 
     [Test]

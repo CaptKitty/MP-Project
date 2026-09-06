@@ -18,6 +18,8 @@ MonoBehaviour:
   health: 200
   recruitmentTicks: 3
   upkeep: 1
+  notLevyable: 1
+  levyRole: 1
   actions: 2
   reactionTime: 7
   flaglist:

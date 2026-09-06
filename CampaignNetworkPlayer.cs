@@ -72,7 +72,6 @@ public class CampaignNetworkPlayer : NetworkBehaviour
     private readonly List<CampaignAllegianceState> allegianceStateBuffer = new List<CampaignAllegianceState>();
     private readonly List<CampaignRecruitmentOrderState> recruitmentStateBuffer = new List<CampaignRecruitmentOrderState>();
     private readonly List<CampaignConstructionOrderState> constructionStateBuffer = new List<CampaignConstructionOrderState>();
-    private readonly List<CampaignHoldingConstructionOrderState> holdingConstructionStateBuffer = new List<CampaignHoldingConstructionOrderState>();
     private readonly List<CampaignArmyState> armyStateBuffer = new List<CampaignArmyState>();
     private readonly List<CampaignProvinceState> provinceStateBuffer = new List<CampaignProvinceState>();
     private readonly HashSet<string> receivedArmyIdBuffer = new HashSet<string>();
@@ -395,7 +394,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 {
                     if (holding == null) continue;
                     hash = hash * 31 + StableTextHash(holding.instanceId); hash = hash * 31 + StableTextHash(holding.HoldingId);
-                    hash = hash * 31 + holding.level; hash = hash * 31 + (int)holding.socioEconomicClass;
+                    hash = hash * 31 + (int)holding.socioEconomicClass;
                 }
                 if (province.levyEntitlements != null) foreach (ProvinceLevyEntitlement levy in province.levyEntitlements)
                 {
@@ -779,12 +778,6 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             RequestDestroyProvinceBuildingRpc(provinceName ?? string.Empty, slotIndex);
     }
 
-    public void RequestProvinceHolding(string provinceName, int slotIndex, string holdingId, int targetLevel)
-    {
-        if (IsOwner && HasAssignment)
-            RequestProvinceHoldingRpc(provinceName ?? string.Empty, slotIndex, holdingId ?? string.Empty, targetLevel);
-    }
-
     public void RequestRaiseArmy(string provinceName)
     {
         if (IsOwner && HasAssignment) RequestRaiseArmyRpc(provinceName ?? string.Empty);
@@ -850,24 +843,6 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         if (!province.BeginBuildingConstruction(slotIndex, id, targetLevel,
             BuildingDefinition.ConstructionTicks(id, targetLevel))) return;
         owner.Gold -= goldCost;
-    }
-
-    [Rpc(SendTo.Server)]
-    private void RequestProvinceHoldingRpc(FixedString64Bytes provinceName, int slotIndex,
-        FixedString64Bytes holdingId, int targetLevel, RpcParams rpcParams = default)
-    {
-        CampaignNetworkPlayer sender = FindPlayer(rpcParams.Receive.SenderClientId);
-        Province province = sender == null || Owners.Instance == null ? null
-            : Owners.Instance.provincelist.Find(item => item.name == provinceName.ToString());
-        if (province == null || province.nation == null || province.nation.name != sender.AssignedNation || slotIndex < 0) return;
-        HoldingDefinition definition = HoldingDefinition.Find(holdingId.ToString());
-        if (definition == null) return;
-        ProvinceHolding existing = province.GetHoldingInSlot(slotIndex);
-        if (existing == null || existing.HoldingId.Equals(definition.StableId, System.StringComparison.OrdinalIgnoreCase)) return;
-        int cost = definition.GoldCostForLevel(1);
-        if (province.nation.Gold < cost || !province.BeginHoldingTransformation(existing.instanceId, definition.StableId,
-            definition.ConstructionTicksForLevel(1))) return;
-        province.nation.Gold -= cost;
     }
 
     [Rpc(SendTo.Server)]
@@ -1360,10 +1335,8 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 if (holding == null) continue;
                 holdings.Add(new CampaignHoldingState { ProvinceIndex = (ushort)i, InstanceId = holding.instanceId ?? string.Empty,
                     HoldingId = holding.HoldingId,
-                    Level = holding.level, SlotIndex = holding.slotIndex, CultureName = holding.cultureName ?? string.Empty,
+                    SlotIndex = holding.slotIndex, CultureName = holding.cultureName ?? string.Empty,
                     SocioEconomicClass = (byte)SocioEconomicClassRules.Normalize(holding.socioEconomicClass), Allegiance = holding.allegiance ?? string.Empty,
-                    LevyEnabled = holding.levyEnabled, AdaptationTargetId = holding.adaptationTargetId ?? string.Empty,
-                    AdaptationPressure = holding.adaptationPressure,
                     AdaptationCooldownTicks = holding.adaptationCooldownTicks });
             }
             foreach (ProvinceLevyEntitlement levy in province.levyEntitlements)
@@ -1439,9 +1412,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         }
 
         List<CampaignConstructionOrderState> construction = constructionStateBuffer;
-        List<CampaignHoldingConstructionOrderState> holdingConstruction = holdingConstructionStateBuffer;
         construction.Clear();
-        holdingConstruction.Clear();
         for (int provinceIndex = 0; provinceIndex < Owners.Instance.provincelist.Count; provinceIndex++)
         {
             Province province = Owners.Instance.provincelist[provinceIndex];
@@ -1458,15 +1429,6 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                     RemainingTicks = order.remainingTicks
                 });
             }
-            if (province.holdingConstructionOrders != null)
-                foreach (HoldingConstructionOrder order in province.holdingConstructionOrders)
-                {
-                    if (order == null || string.IsNullOrEmpty(order.holdingId)) continue;
-                    holdingConstruction.Add(new CampaignHoldingConstructionOrderState { ProvinceIndex = (ushort)provinceIndex,
-                        SlotIndex = order.slotIndex, HoldingInstanceId = order.holdingInstanceId ?? string.Empty,
-                        HoldingId = order.holdingId, TargetLevel = order.targetLevel,
-                        RemainingTicks = order.remainingTicks });
-                }
         }
         int signature = 17;
         unchecked
@@ -1488,17 +1450,10 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 signature = signature * 31 + state.TargetLevel;
                 signature = signature * 31 + state.RemainingTicks;
             }
-            foreach (CampaignHoldingConstructionOrderState state in holdingConstruction)
-            {
-                signature = signature * 31 + state.ProvinceIndex; signature = signature * 31 + state.SlotIndex;
-                signature = signature * 31 + state.HoldingInstanceId.GetHashCode();
-                signature = signature * 31 + state.HoldingId.GetHashCode(); signature = signature * 31 + state.TargetLevel;
-                signature = signature * 31 + state.RemainingTicks;
-            }
         }
         if (signature == lastQueueStateSignature) return;
         lastQueueStateSignature = signature;
-        ReceiveQueueStateRpc(recruitment.ToArray(), construction.ToArray(), holdingConstruction.ToArray());
+        ReceiveQueueStateRpc(recruitment.ToArray(), construction.ToArray());
     }
 
     public void BroadcastQueueStateNow()
@@ -1531,7 +1486,7 @@ public class CampaignNetworkPlayer : NetworkBehaviour
 
     [Rpc(SendTo.NotServer)]
     private void ReceiveQueueStateRpc(CampaignRecruitmentOrderState[] recruitment,
-        CampaignConstructionOrderState[] construction, CampaignHoldingConstructionOrderState[] holdingConstruction)
+        CampaignConstructionOrderState[] construction)
     {
         if (Owners.Instance == null) return;
         long perfStamp = CampaignPerformanceTrace.Stamp();
@@ -1571,19 +1526,10 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                             buildingId = state.BuildingId.ToString(), targetLevel = state.TargetLevel,
                             remainingTicks = state.RemainingTicks });
             }
-            if (!HoldingConstructionQueueMatches(province, provinceIndex, holdingConstruction))
-            {
-                province.holdingConstructionOrders.Clear();
-                foreach (CampaignHoldingConstructionOrderState state in holdingConstruction)
-                    if (state.ProvinceIndex == provinceIndex)
-                        province.holdingConstructionOrders.Add(new HoldingConstructionOrder { slotIndex = state.SlotIndex,
-                            holdingInstanceId = state.HoldingInstanceId.ToString(), holdingId = state.HoldingId.ToString(),
-                            targetLevel = state.TargetLevel, remainingTicks = state.RemainingTicks });
-            }
         }
         double queueStateMs = CampaignPerformanceTrace.MillisecondsSince(perfStamp);
         if (queueStateMs >= 4.0) CampaignPerformanceTrace.Report("Client.QueueState", queueStateMs,
-            "recruit=" + recruitment.Length + " build=" + construction.Length + " holdings=" + holdingConstruction.Length);
+            "recruit=" + recruitment.Length + " build=" + construction.Length);
     }
 
     private static bool RecruitmentQueueMatches(FieldArmyHolder army, CampaignRecruitmentOrderState[] states)
@@ -1614,22 +1560,6 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             ProvinceConstructionOrder order = province.constructionOrders[index++];
             if (order == null || order.slotIndex != state.SlotIndex || order.buildingId != state.BuildingId.ToString() ||
                 order.targetLevel != state.TargetLevel || order.remainingTicks != state.RemainingTicks) return false;
-        }
-        return true;
-    }
-
-    private static bool HoldingConstructionQueueMatches(Province province, int provinceIndex,
-        CampaignHoldingConstructionOrderState[] states)
-    {
-        int expected = 0; foreach (CampaignHoldingConstructionOrderState state in states) if (state.ProvinceIndex == provinceIndex) expected++;
-        if (province.holdingConstructionOrders.Count != expected) return false;
-        int index = 0; foreach (CampaignHoldingConstructionOrderState state in states)
-        {
-            if (state.ProvinceIndex != provinceIndex) continue;
-            HoldingConstructionOrder order = province.holdingConstructionOrders[index++];
-            if (order == null || order.slotIndex != state.SlotIndex || order.holdingInstanceId != state.HoldingInstanceId.ToString() ||
-                order.holdingId != state.HoldingId.ToString() || order.targetLevel != state.TargetLevel ||
-                order.remainingTicks != state.RemainingTicks) return false;
         }
         return true;
     }
@@ -1871,13 +1801,11 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             Province province = Owners.Instance.provincelist[state.ProvinceIndex];
             ProvinceHolding holding = new ProvinceHolding {
                 instanceId = state.InstanceId.ToString(),
-                definition = HoldingDefinition.Find(holdingId), id = holdingId, level = Mathf.Max(1, state.Level),
+                definition = HoldingDefinition.Find(holdingId), id = holdingId,
                 slotIndex = state.SlotIndex, cultureName = state.CultureName.ToString(),
                 socioEconomicClass = SocioEconomicClassRules.Normalize(
                     (SocioEconomicClass)Mathf.Clamp(state.SocioEconomicClass, 0, 9)),
                 allegiance = state.Allegiance.ToString(),
-                levyEnabled = state.LevyEnabled, adaptationTargetId = state.AdaptationTargetId.ToString(),
-                adaptationPressure = Mathf.Max(0, state.AdaptationPressure),
                 adaptationCooldownTicks = Mathf.Max(0, state.AdaptationCooldownTicks) };
             province.nation?.ApplyHoldingClassLaws(holding);
             province.holdings.Add(holding);
@@ -1911,13 +1839,11 @@ public class CampaignNetworkPlayer : NetworkBehaviour
                 province.holdings.Add(holding);
             }
             holding.definition = HoldingDefinition.Find(holdingId); holding.id = holdingId;
-            holding.level = Mathf.Max(1, state.Level); holding.slotIndex = state.SlotIndex;
+            holding.slotIndex = state.SlotIndex;
             holding.cultureName = state.CultureName.ToString();
             holding.socioEconomicClass = SocioEconomicClassRules.Normalize(
                 (SocioEconomicClass)Mathf.Clamp(state.SocioEconomicClass, 0, 9));
-            holding.allegiance = state.Allegiance.ToString(); holding.levyEnabled = state.LevyEnabled;
-            holding.adaptationTargetId = state.AdaptationTargetId.ToString();
-            holding.adaptationPressure = Mathf.Max(0, state.AdaptationPressure);
+            holding.allegiance = state.Allegiance.ToString();
             holding.adaptationCooldownTicks = Mathf.Max(0, state.AdaptationCooldownTicks);
             province.nation?.ApplyHoldingClassLaws(holding);
             changedProvinces.Add(province);
@@ -2187,10 +2113,9 @@ public class CampaignNetworkPlayer : NetworkBehaviour
             foreach (CampaignHoldingState state in holdings)
             {
                 hash = hash * 31 + state.ProvinceIndex; hash = hash * 31 + state.HoldingId.GetHashCode();
-                hash = hash * 31 + state.InstanceId.GetHashCode(); hash = hash * 31 + state.Level;
+                hash = hash * 31 + state.InstanceId.GetHashCode();
                 hash = hash * 31 + state.SlotIndex; hash = hash * 31 + state.CultureName.GetHashCode();
                 hash = hash * 31 + state.SocioEconomicClass; hash = hash * 31 + state.Allegiance.GetHashCode();
-                hash = hash * 31 + state.LevyEnabled.GetHashCode();
             }
             return hash;
         }
@@ -2258,10 +2183,9 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         unchecked
         {
             int hash = 17;
-            hash = hash * 31 + state.HoldingId.GetHashCode(); hash = hash * 31 + state.Level;
+            hash = hash * 31 + state.HoldingId.GetHashCode();
             hash = hash * 31 + state.SlotIndex; hash = hash * 31 + state.CultureName.GetHashCode();
-            hash = hash * 31 + state.SocioEconomicClass; hash = hash * 31 + state.Allegiance.GetHashCode();
-            hash = hash * 31 + state.LevyEnabled.GetHashCode(); return hash;
+            hash = hash * 31 + state.SocioEconomicClass; hash = hash * 31 + state.Allegiance.GetHashCode(); return hash;
         }
     }
 

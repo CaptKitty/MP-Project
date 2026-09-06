@@ -799,15 +799,13 @@ public class LoadProvinces : MonoBehaviour
                     ? nameof(SocioEconomicClass.Freemen) : fields.Length > 3 ? fields[3] : string.Empty;
                 SocioEconomicClass socialClass = fields.Length > 3 && Enum.TryParse(className, true, out SocioEconomicClass parsedClass)
                     ? parsedClass : definition.defaultClass;
-                int level = fields.Length > 4 && int.TryParse(fields[4], out int parsedLevel) ? Mathf.Max(1, parsedLevel) : 1;
-                bool levyEnabled = fields.Length <= 5 || !bool.TryParse(fields[5], out bool parsedLevy) || parsedLevy;
                 string allegiance = fields.Length > 6 ? fields[6].Trim() : string.Empty;
                 for (int index = 0; index < count; index++)
                     province.holdings.Add(new ProvinceHolding {
                         instanceId = provinceName + "-holding-" + slot, definition = definition,
-                        id = definition.StableId, level = Mathf.Min(level, definition.maximumLevel), slotIndex = slot++,
+                        id = definition.StableId, slotIndex = slot++,
                         cultureName = culture, socioEconomicClass = SocioEconomicClassRules.Normalize(socialClass), allegiance = allegiance,
-                        levyEnabled = levyEnabled });
+                        });
             }
         }
 

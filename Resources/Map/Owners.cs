@@ -316,7 +316,6 @@ public class Owners : MonoBehaviour
         {
             if (ProvinceMercenaryPool.Enabled) province.RegenerateMercenaries();
             province.ProcessConstructionTick();
-            province.ProcessHoldingConstructionTick();
             province.ProcessLevyTick();
         }
         double provincesMs = CampaignPerformanceTrace.MillisecondsSince(phaseStamp);
@@ -354,8 +353,7 @@ public class Owners : MonoBehaviour
                 province.levyEntitlements.Exists(entitlement => entitlement != null &&
                     entitlement.state == LevyEntitlementState.Mobilizing)) return true;
         foreach (Province province in provincelist)
-            if (province != null && (province.constructionOrders != null && province.constructionOrders.Count > 0 ||
-                province.holdingConstructionOrders != null && province.holdingConstructionOrders.Count > 0)) return true;
+            if (province != null && province.constructionOrders != null && province.constructionOrders.Count > 0) return true;
         return false;
     }
 
@@ -515,19 +513,11 @@ public class Province
     private static readonly Dictionary<string, HoldingRecoveryCacheEntry> HoldingRecoveryCache =
         new Dictionary<string, HoldingRecoveryCacheEntry>(System.StringComparer.Ordinal);
     public List<ProvinceHolding> holdings = new List<ProvinceHolding>();
-    public List<HoldingConstructionOrder> holdingConstructionOrders = new List<HoldingConstructionOrder>();
     [Header("Holding composition")]
-    public List<HoldingTagModifier> baseHoldingTagDesires = new List<HoldingTagModifier>();
     [Tooltip("Additive holding-type demand sources. Values are normalized into desired shares.")]
     public List<HoldingTypePressure> holdingTypePressures = new List<HoldingTypePressure>();
     [Tooltip("Additive population-class demand sources. Values are normalized after eligibility rules.")]
     public List<HoldingClassPressure> holdingClassPressures = new List<HoldingClassPressure>();
-    public HoldingEvolutionSettings holdingEvolution = new HoldingEvolutionSettings();
-    [System.NonSerialized] public int holdingEvolutionCursor;
-    [System.NonSerialized] public int lastHoldingEvolutionTick = -1;
-    [System.NonSerialized] public int lastUrbanizationEvolutionTick = -1;
-    [System.NonSerialized] private int holdingEfficiencyCacheTurn = int.MinValue;
-    [System.NonSerialized] private Dictionary<HoldingDefinition, float> holdingEfficiencyCache;
 
     public void ApplyConquestDevastation(Nation previousOwner, Nation conqueror, int campaignTick)
     {
@@ -592,7 +582,6 @@ public class Province
         if (mercenaryPools == null) mercenaryPools = new List<ProvinceMercenaryPool>();
         if (levyEntitlements == null) levyEntitlements = new List<ProvinceLevyEntitlement>();
         if (holdings == null) holdings = new List<ProvinceHolding>();
-        if (holdingConstructionOrders == null) holdingConstructionOrders = new List<HoldingConstructionOrder>();
         EnsureStartingCultureBuildings();
         for (int i = 0; i < buildings.Count; i++)
         {
@@ -670,10 +659,7 @@ public class Province
                     }
             }
             while (cultureNames.Count < 3) cultureNames.Add(cultureNames.Count > 0 ? cultureNames[0] : "Unassigned");
-            LevyGrantRule migrationRule = LevySystem.ResolveRules(nation).Find(rule => rule != null && rule.unit != null &&
-                buildings.Exists(building => rule.Applies(this, building)));
-            HoldingDefinition citizenFarm = migrationRule != null
-                ? HoldingDefinition.DefaultCitizenFarm(migrationRule.unit) : HoldingDefinition.DefaultCitizenFarm();
+            HoldingDefinition citizenFarm = HoldingDefinition.DefaultCitizenFarm();
             bool barbarian = nation != null && nation.civilization != null &&
                 string.Equals(nation.civilization.name, "Barbarian", System.StringComparison.OrdinalIgnoreCase);
             int initialHoldingCount = InitialHoldingCount(barbarian);
@@ -683,10 +669,10 @@ public class Province
                 if (definition == null) definition = citizenFarm;
                 SocioEconomicClass socialClass = FallbackHoldingClass(i, barbarian, definition);
                 holdings.Add(new ProvinceHolding { instanceId = name + "-holding-" + i,
-                    definition = definition, id = definition.StableId, level = 1, slotIndex = i,
+                    definition = definition, id = definition.StableId, slotIndex = i,
                     cultureName = FallbackHoldingCulture(i, initialHoldingCount, cultureNames, socialClass),
                     socioEconomicClass = socialClass,
-                    allegiance = definition != null ? definition.suggestedAllegiance : string.Empty });
+                    allegiance = string.Empty });
             }
         }
         for (int i = 0; i < holdings.Count; i++)
@@ -698,9 +684,6 @@ public class Province
             HoldingEconomicType migratedType = loaded != null ? loaded.EffectiveEconomicType : HoldingEconomicType.Farm;
             holding.definition = HoldingArchetypeCatalog.Find(migratedType) ?? loaded;
             if (holding.definition != null) holding.id = holding.definition.StableId;
-            holding.level = 1;
-            holding.adaptationTargetId = string.Empty;
-            holding.adaptationPressure = 0;
             holding.socioEconomicClass = SocioEconomicClassRules.Normalize(holding.socioEconomicClass);
             nation?.ApplyHoldingClassLaws(holding);
         }
@@ -836,12 +819,6 @@ public class Province
             foreach (BuildingLevelDefinition level in building.definition.levels)
                 if (level != null && level.level <= building.level) result.Add(level.localModifiers);
         }
-        if (holdings != null) foreach (ProvinceHolding holding in holdings)
-        {
-            if (holding == null || holding.definition == null || holding.definition.levels == null) continue;
-            foreach (HoldingLevelDefinition level in holding.definition.levels)
-                if (level != null && level.level <= holding.level) result.Add(level.localModifiers);
-        }
         if (uniqueModifiers != null) foreach (ProvinceNamedModifier modifier in uniqueModifiers)
             if (modifier != null) result.Add(modifier.localModifiers);
         return result;
@@ -850,7 +827,6 @@ public class Province
     public void ClampDevelopment()
     {
         urbanization = Mathf.Clamp(urbanization, -100, MaximumDevelopment);
-        holdingEfficiencyCacheTurn = int.MinValue;
     }
 
     public ProvinceHolding AddHoldingPopulation(HoldingDefinition definition, string cultureName)
@@ -859,7 +835,7 @@ public class Province
         if (holdings == null) holdings = new List<ProvinceHolding>();
         int slot = 0; while (GetHoldingInSlot(slot) != null) slot++;
         ProvinceHolding holding = new ProvinceHolding { instanceId = name + "-holding-" + System.Guid.NewGuid().ToString("N"),
-            definition = definition, id = definition.StableId, level = 1, slotIndex = slot,
+            definition = definition, id = definition.StableId, slotIndex = slot,
             cultureName = !string.IsNullOrWhiteSpace(cultureName) ? cultureName : PrimaryCulture != null ? PrimaryCulture.name : "Unassigned",
             socioEconomicClass = SocioEconomicClassRules.Normalize(definition.defaultClass) };
         nation?.ApplyHoldingClassLaws(holding);
@@ -1411,25 +1387,6 @@ public class Province
         return HoldingEconomySystem.GetOutput(this, holding, type, mobilized, 1f);
     }
 
-    private float GetHoldingEfficiency(HoldingDefinition definition)
-    {
-        if (definition == null) return 0f;
-        int campaignTurn = Owners.Instance != null ? Owners.Instance.turncounter : 0;
-        if (holdingEfficiencyCache == null)
-            holdingEfficiencyCache = new Dictionary<HoldingDefinition, float>();
-        if (holdingEfficiencyCacheTurn != campaignTurn)
-        {
-            holdingEfficiencyCacheTurn = campaignTurn;
-            holdingEfficiencyCache.Clear();
-        }
-        if (!holdingEfficiencyCache.TryGetValue(definition, out float efficiency))
-        {
-            efficiency = HoldingEvolutionSystem.OutputEfficiencyPercent(this, definition);
-            holdingEfficiencyCache[definition] = efficiency;
-        }
-        return efficiency;
-    }
-
     public void ProcessHoldingEvolutionTick(int campaignTick)
     {
         if (IsOccupied) return;
@@ -1646,57 +1603,6 @@ public class Province
         ? holdings.Find(holding => holding != null && holding.slotIndex == slotIndex) : null;
     public ProvinceHolding GetHolding(string instanceId) => holdings != null
         ? holdings.Find(holding => holding != null && holding.instanceId == instanceId) : null;
-
-    public bool BeginHoldingTransformation(string instanceId, string targetHoldingId, int transformationTicks)
-    {
-        ProvinceHolding holding = GetHolding(instanceId);
-        return holding != null && BeginHoldingConstruction(holding.slotIndex, targetHoldingId, 1, transformationTicks);
-    }
-
-    public bool BeginHoldingConstruction(int slotIndex, string holdingId, int targetLevel, int constructionTicks)
-    {
-        if (IsOccupied) return false;
-        if (slotIndex < 0 || string.IsNullOrWhiteSpace(holdingId)) return false;
-        if (holdings == null) holdings = new List<ProvinceHolding>();
-        if (holdingConstructionOrders == null) holdingConstructionOrders = new List<HoldingConstructionOrder>();
-        if (holdingConstructionOrders.Exists(order => order != null && order.slotIndex == slotIndex)) return false;
-        HoldingDefinition definition = HoldingDefinition.Find(holdingId);
-        if (definition == null || targetLevel < 1 || targetLevel > Mathf.Max(1, definition.maximumLevel)) return false;
-        ProvinceHolding existing = GetHoldingInSlot(slotIndex);
-        if (existing == null || existing.HoldingId.Equals(definition.StableId, System.StringComparison.OrdinalIgnoreCase)) return false;
-        if (existing.definition != null && !existing.definition.CanTransformTo(definition.StableId, this)) return false;
-        HoldingConstructionOrder order = new HoldingConstructionOrder { slotIndex = slotIndex,
-            holdingInstanceId = existing.instanceId, holdingId = definition.StableId, targetLevel = 1,
-            remainingTicks = Mathf.Max(0, constructionTicks) };
-        holdingConstructionOrders.Add(order);
-        if (order.remainingTicks == 0) CompleteHoldingConstruction(order);
-        return true;
-    }
-
-    public void ProcessHoldingConstructionTick()
-    {
-        if (IsOccupied) return;
-        if (holdingConstructionOrders == null) return;
-        for (int i = holdingConstructionOrders.Count - 1; i >= 0; i--)
-        {
-            HoldingConstructionOrder order = holdingConstructionOrders[i];
-            if (order == null) { holdingConstructionOrders.RemoveAt(i); continue; }
-            order.remainingTicks--;
-            if (order.remainingTicks <= 0) CompleteHoldingConstruction(order);
-        }
-    }
-
-    private void CompleteHoldingConstruction(HoldingConstructionOrder order)
-    {
-        HoldingDefinition definition = HoldingDefinition.Find(order.holdingId);
-        if (definition == null) { holdingConstructionOrders.Remove(order); return; }
-        ProvinceHolding holding = GetHolding(order.holdingInstanceId) ?? GetHoldingInSlot(order.slotIndex);
-        if (holding == null) { holdingConstructionOrders.Remove(order); return; }
-        holding.definition = definition; holding.id = definition.StableId; holding.level = 1;
-        holdingConstructionOrders.Remove(order);
-        ClampDevelopment();
-        ReconcileLevyEntitlements();
-    }
 
     public bool BeginBuildingConstruction(int slotIndex, string buildingId, int targetLevel, int constructionTicks,
         bool initiatedByAI = false)
@@ -1964,8 +1870,6 @@ public class Nation
     [System.NonSerialized] private Dictionary<NationalLawEffectType, List<NationalLawEffect>> compiledLawEffects;
     [System.NonSerialized] private List<NationalClassRule> compiledClassRules;
     [System.NonSerialized] private bool identityLawsEnsured;
-    [Tooltip("National laws and temporary effects can influence desired holding tags and their efficiency here.")]
-    public List<HoldingTagModifier> holdingEconomyModifiers = new List<HoldingTagModifier>();
     [Min(1)] public int AIMinimumCampaignArmySize = 10;
 
     public void EnsureDefaultLaws()

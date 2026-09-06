@@ -563,24 +563,11 @@ public class UIBuildingMenu : MonoBehaviour
         text.Append("\n\nProvides:");
         bool any = false;
         int urbanizationTarget = 0;
-        Dictionary<HoldingTag, float> holdingEfficiency = new Dictionary<HoldingTag, float>();
-        Dictionary<HoldingTag, float> holdingPressure = new Dictionary<HoldingTag, float>();
         if (building.definition != null && building.definition.levels != null)
             foreach (BuildingLevelDefinition level in building.definition.levels)
             {
                 if (level == null || level.level > building.level) continue;
                 urbanizationTarget += level.urbanizationTargetModifier;
-                if (level.holdingEconomyModifiers == null) continue;
-                foreach (HoldingTagModifier modifier in level.holdingEconomyModifiers)
-                {
-                    if (modifier == null || modifier.tag == HoldingTag.None ||
-                        !string.IsNullOrWhiteSpace(modifier.requiredNationFlag) &&
-                        (province == null || !NationContentResolver.HasFlag(province.nation, modifier.requiredNationFlag))) continue;
-                    holdingEfficiency[modifier.tag] = holdingEfficiency.TryGetValue(modifier.tag, out float efficiency)
-                        ? efficiency + modifier.outputEfficiencyPercent : modifier.outputEfficiencyPercent;
-                    holdingPressure[modifier.tag] = holdingPressure.TryGetValue(modifier.tag, out float pressure)
-                        ? pressure + modifier.desiredWeight : modifier.desiredWeight;
-                }
             }
         if (building.definition != null && building.definition.economicEffects != null)
             foreach (BuildingEconomicEffect effect in building.definition.economicEffects)
@@ -665,12 +652,6 @@ public class UIBuildingMenu : MonoBehaviour
             text.Append("\n- Urbanization target: ").Append(Signed(urbanizationTarget));
             any = true;
         }
-        foreach (KeyValuePair<HoldingTag, float> entry in holdingEfficiency)
-            if (!Mathf.Approximately(entry.Value, 0f))
-            { text.Append("\n- ").Append(entry.Key).Append(" holding efficiency: ").Append(Signed(entry.Value)).Append("%"); any = true; }
-        foreach (KeyValuePair<HoldingTag, float> entry in holdingPressure)
-            if (!Mathf.Approximately(entry.Value, 0f))
-            { text.Append("\n- ").Append(entry.Key).Append(" holding pressure: ").Append(Signed(entry.Value)); any = true; }
         if (names.Count > 0)
         { text.Append("\n- Recruitment unlocks: ").Append(string.Join(", ", names)); any = true; }
         if (!any) text.Append("\n- No configured effects.");

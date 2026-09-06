@@ -29,7 +29,6 @@ public class NationContentLayer
     [Tooltip("Typed allegiance definitions. Legacy names above are migrated when no definition is supplied.")]
     public List<AllegianceDefinition> allegiances = new List<AllegianceDefinition>();
     [Header("Holding economy")]
-    public List<HoldingTagModifier> holdingEconomyModifiers = new List<HoldingTagModifier>();
     public List<NationClassModifier> classEconomicModifiers = new List<NationClassModifier>();
     [Header("Recoverable levies")]
     public List<LevyGrantRule> levies = new List<LevyGrantRule>();

@@ -20,7 +20,8 @@ MonoBehaviour:
   levyRole: 5
   recruitmentTicks: 3
   upkeep: 2
-  movementCost: 4
+  actions: 4
+  reactionTime: 4
   flaglist: []
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 11400000, guid: 90b232b4120b16e4aa720f894a87cbdb, type: 2}

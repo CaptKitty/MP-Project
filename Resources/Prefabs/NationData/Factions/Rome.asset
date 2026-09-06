@@ -62,7 +62,12 @@ MonoBehaviour:
     - {fileID: 11400000, guid: d1020000000000000000000000000002, type: 2}
     - {fileID: 11400000, guid: d1030000000000000000000000000003, type: 2}
     holdingEconomyModifiers: []
-    classEconomicModifiers: []
+    classEconomicModifiers:
+    - socialClass: 6
+      valueGenerationPercent: 0
+      levyCapacityPercent: 0
+      replaceLightLevyWithHeavy: 1
+      heavyInfantryPressure: 0
     levies: []
     laws:
     - id: roman_citizen_levy

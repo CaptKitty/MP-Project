@@ -20,7 +20,8 @@ MonoBehaviour:
   levyRole: 0
   recruitmentTicks: 3
   upkeep: 2
-  movementCost: 6
+  actions: 3
+  reactionTime: 6
   flaglist:
   - Forestry_Immunity
   - Forester

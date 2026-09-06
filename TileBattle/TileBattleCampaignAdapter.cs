@@ -21,7 +21,8 @@ namespace ProjectX.TileBattle
             {
                 Id = source.name,
                 DisplayName = !string.IsNullOrEmpty(source.unitname) ? source.unitname : source.name,
-                MovementCost = source.MovementCost,
+                ReactionTime = source.ReactionTime,
+                Actions = Mathf.Max(1, source.actions),
                 BaseMass = mass,
                 Strength = Mathf.Max(1, source.health),
                 MeleeDamage = melee != null ? Mathf.Max(1, melee.attack) : 10,
@@ -84,18 +85,18 @@ namespace ProjectX.TileBattle
             TileGeneralPersonality result = new TileGeneralPersonality
             {
                 Name = string.IsNullOrEmpty(displayName) ? "General" : displayName,
-                Competence = 35 + Nexteange(ref state, 46)
+                Competence = 35 + NextRange(ref state, 46)
             };
 
-            int primary = Nexteange(ref state, 7);
-            int primaryStrength = 48 + Nexteange(ref state, 23);
+            int primary = NextRange(ref state, 7);
+            int primaryStrength = 48 + NextRange(ref state, 23);
             ApplyGeneratedTrait(result, primary, primaryStrength);
 
             // A quieter secondary tendency prevents generated generals from being one-note
             // without allowing it to overwhelm their recognizable main character.
-            int secondary = Nexteange(ref state, 6);
+            int secondary = NextRange(ref state, 6);
             if (secondary >= primary) secondary++;
-            ApplyGeneratedTrait(result, secondary, 15 + Nexteange(ref state, 21));
+            ApplyGeneratedTrait(result, secondary, 15 + NextRange(ref state, 21));
             return result;
         }
 
@@ -120,7 +121,7 @@ namespace ProjectX.TileBattle
             return hash == 0u ? 0x9E3779B9u : hash;
         }
 
-        private static int Nexteange(ref uint state, int maximum)
+        private static int NextRange(ref uint state, int maximum)
         {
             state ^= state << 13; state ^= state >> 17; state ^= state << 5;
             return (int)(state % (uint)Mathf.Max(1, maximum));

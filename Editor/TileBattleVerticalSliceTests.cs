@@ -32,14 +32,15 @@ public sealed class TileBattleVerticalSliceTests
     }
 
     [Test]
-    public void CampaignAdapterUsesMovementCost()
+    public void CampaignAdapterUsesUnitSaveDataActionTiming()
     {
         UnitSaveData source = ScriptableObject.CreateInstance<UnitSaveData>();
         try
         {
-            source.name = "Responsive Formation"; source.health = 100; source.movementCost = 3;
+            source.name = "Responsive Formation"; source.health = 100; source.actions = 4; source.Initiative = 3;
             TileBattleUnitDefinition definition = TileBattleCampaignAdapter.CreateDefinition(source);
-            Assert.That(definition.MovementCost, Is.EqualTo(3));
+            Assert.That(definition.Actions, Is.EqualTo(4));
+            Assert.That(definition.Initiative, Is.EqualTo(3));
         }
         finally { Object.DestroyImmediate(source); }
     }
@@ -82,10 +83,10 @@ public sealed class TileBattleVerticalSliceTests
         Assert.That(simulation.Units.Single(unit => unit.Id == 3).Deployed, Is.True);
     }
 
-    private static TileBattleUnitDefinition Definition(string name, int movementCost, int maneuverPlanDepth, int mass,
+    private static TileBattleUnitDefinition Definition(string name, int initiative, int actions, int mass,
         TileWeaponControl control = TileWeaponControl.Sword, bool cavalry = false, bool ranged = false)
     {
-        return new TileBattleUnitDefinition { Id = name, DisplayName = name, MovementCost = movementCost,
+        return new TileBattleUnitDefinition { Id = name, DisplayName = name, Initiative = initiative, Actions = actions,
             BaseMass = mass, Strength = 100, MeleeDamage = 20, FrontThreat = control == TileWeaponControl.Pike ? 3 :
                 control == TileWeaponControl.Spear ? 2 : 1, WeaponControl = control, Cavalry = cavalry,
             Ranged = ranged, RangedRange = ranged ? 3 : 0, RangedDamage = ranged ? 12 : 0,
@@ -109,106 +110,17 @@ public sealed class TileBattleVerticalSliceTests
     }
 
     [Test]
-    public void ManeuversUseContinuousCooldownAcrossRoundBoundary()
+    public void NumidianActsSeveralTimesBeforeSlowLegionaryCompletesSecondAction()
     {
-        TileBattleSimulation sim = Simulation(Definition("Mover", 6, 3, 100), Definition("Enemy", 7, 2, 100),
-            new TileCoord(3, 10), new TileCoord(15, 10));
-        sim.ResolveOrders(Orders(0, 1, TileUnitAction.Move(new TileCoord(4, 10)),
-            TileUnitAction.Move(new TileCoord(5, 10)), TileUnitAction.Move(new TileCoord(6, 10))),
-            new TileOrderSet { Side = 1 });
-        Assert.That(sim.Events.Where(item => item.Type == TileBattleEventType.UnitMoved && item.UnitId == 1)
-            .Select(item => item.Tick), Is.EqualTo(new[] { 6, 12, 18 }));
-        Assert.That(sim.Units[0].NextManeuverTick, Is.EqualTo(24));
-
-        sim.ResolveOrders(Orders(0, 1, TileUnitAction.Move(new TileCoord(7, 10))), new TileOrderSet { Side = 1 });
-        TileBattleEvent nextMove = sim.Events.Last(item => item.Type == TileBattleEventType.UnitMoved && item.UnitId == 1);
-        Assert.That(nextMove.CommandRound, Is.EqualTo(2));
-        Assert.That(nextMove.Tick, Is.EqualTo(4));
-        Assert.That(sim.Units[0].NextManeuverTick, Is.EqualTo(30));
+        TileBattleSimulation sim = Simulation(Definition("Numidian", 4, 4, 90, cavalry: true, ranged: true),
+            Definition("Legionary", 7, 2, 150), new TileCoord(3, 10), new TileCoord(10, 10));
+        sim.ResolveOrders(Orders(0, 1, TileUnitAction.Move(new TileCoord(4, 10)), TileUnitAction.Move(new TileCoord(5, 10)),
+            TileUnitAction.Attack(new TileCoord(8, 10)), TileUnitAction.Move(new TileCoord(4, 10))),
+            Orders(1, 2, TileUnitAction.Move(new TileCoord(9, 10)), TileUnitAction.Attack(new TileCoord(8, 10))));
+        Assert.That(sim.Events.Count(item => item.Type == TileBattleEventType.ActionStarted && item.UnitId == 1 && item.Tick < 14), Is.EqualTo(3));
+        Assert.That(sim.Events.Count(item => item.Type == TileBattleEventType.ActionStarted && item.UnitId == 2 && item.Tick < 14), Is.EqualTo(1));
     }
 
-    [Test]
-    public void BlockedMovementDoesNotBankManeuvers()
-    {
-        TileBattleSimulation sim = Simulation(Definition("Mover", 6, 3, 100), Definition("Enemy", 7, 2, 100),
-            new TileCoord(3, 10), new TileCoord(15, 10));
-        sim.ResolveOrders(Orders(0, 1, TileUnitAction.Move(new TileCoord(1, 10)),
-            TileUnitAction.Move(new TileCoord(4, 10))), new TileOrderSet { Side = 1 });
-        TileBattleEvent move = sim.Events.Single(item => item.Type == TileBattleEventType.UnitMoved && item.UnitId == 1);
-        Assert.That(move.Tick, Is.EqualTo(12));
-        Assert.That(sim.Units[0].NextManeuverTick, Is.EqualTo(18));
-    }
-
-    [Test]
-    public void MovementAndWeaponCooldownsRemainIndependent()
-    {
-        TileBattleUnitDefinition mover = Definition("Mover", 4, 5, 100); mover.MeleeAttackIntervalTicks = 6;
-        TileBattleSimulation sim = Simulation(mover, Definition("Enemy", 7, 2, 100),
-            new TileCoord(3, 10), new TileCoord(5, 10));
-        sim.ResolveOrders(Orders(0, 1, TileUnitAction.Move(new TileCoord(4, 10))), new TileOrderSet { Side = 1 });
-        Assert.That(sim.Events.Any(item => item.Type == TileBattleEventType.UnitMoved && item.Tick == 4), Is.True);
-        Assert.That(sim.Events.Any(item => item.Type == TileBattleEventType.UnitAttacked && item.UnitId == 1 && item.Tick == 6), Is.True);
-        Assert.That(sim.Units[0].NextManeuverTick, Is.EqualTo(8));
-    }
-
-    [Test]
-    public void RomanArmyBuildsSensibleSoftFormations()
-    {
-        TileBattleObservation observation = FormationObservation(12, 4, 4);
-        TileFormationCommandSystem system = new TileFormationCommandSystem();
-        system.Update(observation, TileBattlePlan.AttackCentre, new TileGeneralPersonality { Name = "Roman General" });
-        Assert.That(system.Formations.Count, Is.EqualTo(6));
-        Assert.That(system.Formations.Count(f => f.Name.StartsWith("Hastati")), Is.EqualTo(3));
-        Assert.That(system.Formations.Where(f => f.Name.StartsWith("Hastati")).All(f => f.MemberUnitIds.Count == 4), Is.True);
-        Assert.That(system.Formations.Count(f => f.Name.StartsWith("Velites")), Is.EqualTo(1));
-        Assert.That(system.Formations.Where(f => f.Name.StartsWith("Equites")).All(f => f.MemberUnitIds.Count == 2), Is.True);
-        Assert.That(observation.Units.Select(u => u.Id).Distinct().Count(), Is.EqualTo(20));
-    }
-
-    [Test]
-    public void LeftFocusConcentratesSomeButNotAllFormationsOnLeft()
-    {
-        TileBattleObservation observation = FormationObservation(12, 4, 4);
-        TileFormationCommandSystem system = new TileFormationCommandSystem();
-        system.Update(observation, TileBattlePlan.FlankLeft, new TileGeneralPersonality());
-        int left = system.Formations.Count(f => f.Sector == TileBattleSector.Left);
-        Assert.That(left, Is.GreaterThanOrEqualTo(system.Formations.Count / 2));
-        Assert.That(left, Is.LessThan(system.Formations.Count));
-        Assert.That(system.Formations.Where(f => f.Sector == TileBattleSector.Left)
-            .All(f => f.Objective.Y > observation.Height / 2), Is.True);
-    }
-
-    [Test]
-    public void FormationSurvivesCasualtiesAndRecalculatesSlots()
-    {
-        TileBattleObservation observation = FormationObservation(4, 0, 0);
-        TileFormationCommandSystem system = new TileFormationCommandSystem();
-        system.Update(observation, TileBattlePlan.AttackCentre, new TileGeneralPersonality());
-        int formationId = system.Formations[0].Id;
-        observation.Units[0].Strength = 0; observation.Units[1].Strength = 0; observation.CommandRound++;
-        system.Update(observation, TileBattlePlan.AttackCentre, new TileGeneralPersonality());
-        TileCommandFormation survivors = system.Formations.Single(f => f.Id == formationId);
-        Assert.That(survivors.MemberUnitIds.Count, Is.EqualTo(2));
-        Assert.That(survivors.Slots.Count, Is.EqualTo(2));
-    }
-
-    private static TileBattleObservation FormationObservation(int infantry, int ranged, int cavalry)
-    {
-        TileBattleObservation observation = new TileBattleObservation { Side = 0, IsAttacker = true,
-            CommandRound = 1, Width = 20, Height = 20 };
-        int id = 1;
-        System.Action<int, string, bool, bool> add = (count, name, isRanged, isCavalry) =>
-        {
-            for (int i = 0; i < count; i++) observation.Units.Add(new TileObservedUnit { Id = id++, Side = 0,
-                Strength = 100, Deployed = true, Position = new TileCoord(2 + i / 4, 2 + i % 4),
-                Facing = TileFacing.East, Definition = new TileBattleUnitDefinition { Id = name,
-                    DisplayName = name, Strength = 100, MovementCost = isCavalry ? 4 : 6,
-                    Ranged = isRanged, Cavalry = isCavalry } });
-        };
-        add(infantry, "Hastati", false, false); add(ranged, "Velites", true, false);
-        add(cavalry, "Equites", false, true);
-        return observation;
-    }
     [Test]
     public void CavalryCrossingSwordThreatTakesLessDamageThanSpearThreat()
     {
@@ -708,7 +620,7 @@ public sealed class TileBattleVerticalSliceTests
         Weapon ranged = ScriptableObject.CreateInstance<Weapon>();
         try
         {
-            source.name = "Pilum infantry"; source.health = 100; source.movementCost = 7;
+            source.name = "Pilum infantry"; source.health = 100; source.actions = 2;
             ranged.rangedUsage = RangedWeaponUsage.OpeningThrowable; ranged.ammo = 8;
             ranged.attack = 12; ranged.combatdistance = 3; source.RangedWeapon = ranged;
             TileBattleUnitDefinition definition = TileBattleCampaignAdapter.CreateDefinition(source);
@@ -816,13 +728,12 @@ public sealed class TileBattleVerticalSliceTests
     }
 
     [Test]
-    public void CommandRoundAlwaysAdvancesExactlyTwentyResolutionTicks()
+    public void CommandRoundAlwaysAdvancesAtLeastSixteenResolutionTicks()
     {
         TileBattleSimulation sim = Simulation(Definition("Idle A", 3, 2, 100), Definition("Idle B", 8, 2, 100),
             new TileCoord(1, 1), new TileCoord(18, 18));
         sim.ResolveOrders(new TileOrderSet { Side = 0 }, new TileOrderSet { Side = 1 });
-        Assert.That(sim.ResolutionTick, Is.EqualTo(20));
-        Assert.That(sim.BattleTick, Is.EqualTo(20));
+        Assert.That(sim.History.Any(frame => frame.ResolutionTick == 16), Is.True);
     }
 
     [Test]

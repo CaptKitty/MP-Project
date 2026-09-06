@@ -41,11 +41,10 @@ namespace ProjectX.TileBattle
     public sealed class TileBattleRules
     {
         public const int DefaultTicksPerSecond = 10;
-        public const int DefaultTicksPerCommandRound = 20;
         public int TicksPerSecond = DefaultTicksPerSecond;
-        public int TicksPerCommandRound = DefaultTicksPerCommandRound;
         public int Width = 20;
         public int Height = 20;
+        public int MinimumResolutionTicks = 16;
         public int SimilarMassPermille = 1250;
         public int OverwhelmingMassPermille = 2000;
         public int PushCohesionDamage = 12;
@@ -124,9 +123,9 @@ namespace ProjectX.TileBattle
     {
         public string Id;
         public string DisplayName;
-        public int MovementCost = 7;
-        public int ManeuversPerCommandRound(int ticksPerRound = TileBattleRules.DefaultTicksPerCommandRound)
-            => Math.Max(1, (Math.Max(1, ticksPerRound) + Math.Max(1, MovementCost) - 1) / Math.Max(1, MovementCost));
+        public int ReactionTime = 7;
+        public int Initiative { get => ReactionTime; set => ReactionTime = value; }
+        public int Actions = 2;
         public int BaseMass = 100;
         public int Strength = 100;
         public int MeleeDamage = 20;
@@ -172,7 +171,8 @@ namespace ProjectX.TileBattle
         public bool IsReserve;
         public int DeploymentRound;
         public bool Deployed = true;
-        public int NextManeuverTick;
+        public int ActionsRemaining;
+        public int NextActionTick;
         // Shared active-weapon clock. Switching between ranged and backup melee resets it.
         public int WeaponAttackProgressTicks;
         public bool UsingRangedWeapon;
@@ -180,24 +180,14 @@ namespace ProjectX.TileBattle
         public int ChargeMomentum;
         public int ChargeTargetUnitId = -1;
         public TileCoord ChargeTarget;
-        public TileCoord FormationAnchor, FormationObjective, PreferredFormationPosition;
-        public TileFormationOrderType FormationOrder;
-        public TileFormationShape FormationShape;
         public bool HoldPosition;
         public bool SuppressAutomaticAttacks;
         // The general's persistent objective; local weapon targeting may select an interceptor instead.
         public int AttackOrderTargetUnitId = -1;
-        public int CommandFormationId = -1;
         public TileUnitOrder CurrentOrder;
         public readonly List<TileUnitAction> QueuedActions = new List<TileUnitAction>();
 
         public bool Active => Deployed && State != TileUnitState.Destroyed && State != TileUnitState.Withdrawn && Strength > 0;
-        public bool CanManeuver(int currentTick) => currentTick >= NextManeuverTick;
-        public int GetMovementCost() => Math.Max(1, Definition != null ? Definition.MovementCost : 1);
-        public void ConsumeManeuver(int currentTick, int cost)
-        {
-            NextManeuverTick = currentTick + Math.Max(1, cost);
-        }
         public int EffectiveMass(TileBattleRules rules, TileFacing collisionDirection)
         {
             int mass = Definition.BaseMass * Math.Max(250, Cohesion) / 1000;
@@ -214,18 +204,6 @@ namespace ProjectX.TileBattle
         public int TargetUnitId = -1;
         public TileFacing Facing;
         public int IntervalPermille = 1000;
-        // Optional action-specific cost. Zero selects the standard cost for the action type.
-        public int ManeuverCost;
-        public bool UsesManeuverCooldown => Type != TileActionType.Attack;
-        public int GetManeuverCost(TileBattleUnitDefinition definition)
-        {
-            if (!UsesManeuverCooldown) return 0;
-            if (ManeuverCost > 0) return ManeuverCost;
-            int movement = Math.Max(1, definition != null ? definition.MovementCost : 1);
-            if (Type == TileActionType.Turn || Type == TileActionType.Brace) return 2;
-            if (Type == TileActionType.Disengage) return Math.Max(1, movement * 3 / 2);
-            return movement;
-        }
         public static TileUnitAction Move(TileCoord target) => new TileUnitAction { Type = TileActionType.Move, Target = target };
         public static TileUnitAction Charge(TileCoord target, int targetUnitId = -1) => new TileUnitAction
             { Type = TileActionType.Charge, Target = target, TargetUnitId = targetUnitId };
@@ -244,12 +222,6 @@ namespace ProjectX.TileBattle
         public int UnitId;
         public string Purpose;
         public bool SuppressAutomaticAttacks;
-        public int FormationId = -1;
-        public TileFormationOrderType FormationOrder;
-        public TileFormationShape FormationShape;
-        public TileCoord FormationAnchor;
-        public TileCoord FormationObjective;
-        public TileCoord PreferredFormationPosition;
         public readonly List<TileUnitAction> Actions = new List<TileUnitAction>();
     }
 
@@ -305,7 +277,6 @@ namespace ProjectX.TileBattle
         public readonly List<string> Threats = new List<string>();
         public readonly List<string> Opportunities = new List<string>();
         public readonly List<string> OrdersIssued = new List<string>();
-        public readonly List<string> Formations = new List<string>();
     }
 
     [Serializable]
@@ -313,7 +284,6 @@ namespace ProjectX.TileBattle
     {
         public int CommandRound;
         public int Tick;
-        public int BattleTick;
         public TileBattleEventType Type;
         public int UnitId = -1;
         public int OtherUnitId = -1;
@@ -324,7 +294,7 @@ namespace ProjectX.TileBattle
         // false means the backup melee weapon was used.
         public bool RangedAttack;
         public string Message;
-        public override string ToString() => "R" + CommandRound + " T" + Tick + " (battle " + BattleTick + ") " + Type + ": " + Message;
+        public override string ToString() => "R" + CommandRound + " T" + Tick + " " + Type + ": " + Message;
     }
 
     [Serializable]
@@ -343,7 +313,7 @@ namespace ProjectX.TileBattle
     public sealed class TileBattleUnitViewState
     {
         public int Id, Side, Strength, Morale, Cohesion, Ammunition;
-        public int WeaponAttackProgressTicks, AttackOrderTargetUnitId, NextManeuverTick, CommandFormationId;
+        public int WeaponAttackProgressTicks, AttackOrderTargetUnitId;
         public TileCoord Position;
         public TileFacing Facing;
         public TileUnitState State;
@@ -351,9 +321,6 @@ namespace ProjectX.TileBattle
         public bool UsingRangedWeapon, ChargeActive, HoldPosition, SuppressAutomaticAttacks;
         public int ChargeMomentum, ChargeTargetUnitId;
         public TileCoord ChargeTarget;
-        public TileCoord FormationAnchor, FormationObjective, PreferredFormationPosition;
-        public TileFormationOrderType FormationOrder;
-        public TileFormationShape FormationShape;
     }
 
     [Serializable]
@@ -361,7 +328,6 @@ namespace ProjectX.TileBattle
     {
         public int CommandRound;
         public int ResolutionTick;
-        public int BattleTick;
         public TileBattlePhase Phase;
         public int EventCount;
         public ulong StateHash;

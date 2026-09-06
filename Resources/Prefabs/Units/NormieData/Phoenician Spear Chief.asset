@@ -20,7 +20,8 @@ MonoBehaviour:
   levyRole: 1
   recruitmentTicks: 3
   upkeep: 1
-  movementCost: 10
+  actions: 2
+  reactionTime: 10
   flaglist:
   - Formation
   - Phalanx

@@ -24,7 +24,7 @@ public class UnitStatDisplayMenu : MonoBehaviour
         AddTextTooltip(TextSecondary, "The unit's backup melee weapon, used in close combat or when ranged attacks are unavailable.");
         AddTextTooltip(TextSecondaryStats, "The damage and other properties of the melee weapon.");
         AddTextTooltip(TextMArmor, "Body armour always reduces incoming damage. Shield armour is added according to the direction of the attack.");
-        AddTextTooltip(TextPArmor, "Shield coverage controls how much shield armour applies from each direction. Movement Cost is the number of ticks between successful maneuvers; lower is faster.");
+        AddTextTooltip(TextPArmor, "Shield coverage controls how much shield armour applies from each direction. Actions are attempts per command round; lower initiative acts sooner; speed controls movement.");
     }
 
     private void OnDisable()
@@ -57,7 +57,7 @@ public class UnitStatDisplayMenu : MonoBehaviour
         int shieldFront = unit.Shield != null ? unit.Shield.shieldFrontEffectiveness : 0;
         int shieldSide = unit.Shield != null ? unit.Shield.shieldSideEffectiveness : 0;
         TextPArmor.text = "Shield coverage: " + shieldFront + "% front / " +
-            shieldSide + "% side\nMovement Cost: " + unit.MovementCost;
+            shieldSide + "% side\nActions: " + unit.actions + "\nReaction Time: " + unit.ReactionTime;
 
         SetBone(Bone1, unit.bodyparts, 0, artworkMaterial);
         SetBone(Bone2, unit.bodyparts, 2, artworkMaterial);

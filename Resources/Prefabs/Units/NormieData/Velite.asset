@@ -20,7 +20,8 @@ MonoBehaviour:
   notLevyable: 0
   levyRole: 4
   speed: 1
-  movementCost: 6
+  actions: 3
+  Initiative: 6
   flaglist: []
   RangedWeapon: {fileID: 11400000, guid: b20748d8d39bc7144ab514e36638e93d, type: 2}
   MeleeWeapon: {fileID: 11400000, guid: 376d425d6e9214e47b8ecbfadc0641cb, type: 2}

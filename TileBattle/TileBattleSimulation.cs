@@ -37,6 +37,7 @@ namespace ProjectX.TileBattle
         public TileBattlePhase Phase { get; private set; } = TileBattlePhase.Vanguard;
         public int CommandRound { get; private set; }
         public int ResolutionTick { get; private set; }
+        public int BattleTick { get; private set; }
         public TileBattleResult Result { get; } = new TileBattleResult();
         public ITileBattleGeneral LeftGeneral { get; }
         public ITileBattleGeneral RightGeneral { get; }
@@ -59,6 +60,7 @@ namespace ProjectX.TileBattle
             if (unit.Ammunition < 0) unit.Ammunition = Math.Max(0, unit.Definition.Ammunition);
             unit.UsingRangedWeapon = unit.Ammunition > 0 &&
                 (unit.Definition.Ranged || unit.Definition.OpeningThrowable);
+            if (unit.NextManeuverTick <= BattleTick) unit.NextManeuverTick = BattleTick + unit.GetMovementCost();
             Units.Add(unit); Units.Sort((a, b) => a.Id.CompareTo(b.Id));
             if (unit.Deployed) Grid.SetOccupant(unit.Position, unit.Id);
         }
@@ -101,16 +103,19 @@ namespace ProjectX.TileBattle
 
         public TileBattleObservation Observe(int side)
         {
-            TileBattleObservation result = new TileBattleObservation { Side = side, CommandRound = CommandRound + 1,
+            TileBattleObservation result = new TileBattleObservation { Side = side, CommandRound = CommandRound + 1, BattleTick = BattleTick,
                 IsAttacker = side == (int)TileBattleSide.Left,
                 Phase = Phase, Width = Grid.Width, Height = Grid.Height };
             for (int i = 0; i < Units.Count; i++)
             {
                 TileBattleUnit unit = Units[i];
                 result.Units.Add(new TileObservedUnit { Id = unit.Id, Side = unit.Side, Strength = unit.Strength,
-                    Morale = unit.Morale, Cohesion = unit.Cohesion, Ammunition = unit.Ammunition,
+                    Morale = unit.Morale, Cohesion = unit.Cohesion, Ammunition = unit.Ammunition, NextManeuverTick = unit.NextManeuverTick,
                     Position = unit.Position, Facing = unit.Facing,
-                    State = unit.State, Definition = unit.Definition, IsReserve = unit.IsReserve, Deployed = unit.Deployed });
+                    State = unit.State, Definition = unit.Definition, IsReserve = unit.IsReserve, Deployed = unit.Deployed,
+                    CommandFormationId = unit.CommandFormationId, FormationOrder = unit.FormationOrder,
+                    FormationAnchor = unit.FormationAnchor, FormationObjective = unit.FormationObjective,
+                    PreferredFormationPosition = unit.PreferredFormationPosition });
             }
             for (int y = 0; y < Grid.Height; y++) for (int x = 0; x < Grid.Width; x++)
             {
@@ -124,7 +129,7 @@ namespace ProjectX.TileBattle
         public ulong ComputeHash()
         {
             ulong hash = 1469598103934665603UL;
-            Hash(ref hash, CommandRound); Hash(ref hash, ResolutionTick); Hash(ref hash, (int)Phase);
+            Hash(ref hash, CommandRound); Hash(ref hash, ResolutionTick); Hash(ref hash, BattleTick); Hash(ref hash, (int)Phase);
             Hash(ref hash, Result.Finished ? 1 : 0); Hash(ref hash, Result.WinningSide);
             for (int y = 0; y < Grid.Height; y++) for (int x = 0; x < Grid.Width; x++)
             {
@@ -139,6 +144,9 @@ namespace ProjectX.TileBattle
                 Hash(ref hash, unit.Morale); Hash(ref hash, unit.Cohesion); Hash(ref hash, unit.Deployed ? 1 : 0);
                 Hash(ref hash, unit.Ammunition);
                 Hash(ref hash, unit.WeaponAttackProgressTicks); Hash(ref hash, unit.AttackOrderTargetUnitId);
+                Hash(ref hash, unit.NextManeuverTick); Hash(ref hash, unit.CommandFormationId); Hash(ref hash, (int)unit.FormationOrder);
+                Hash(ref hash, unit.FormationAnchor.X); Hash(ref hash, unit.FormationAnchor.Y);
+                Hash(ref hash, unit.FormationObjective.X); Hash(ref hash, unit.FormationObjective.Y);
                 Hash(ref hash, unit.UsingRangedWeapon ? 1 : 0); Hash(ref hash, unit.ChargeActive ? 1 : 0);
                 Hash(ref hash, unit.ChargeMomentum); Hash(ref hash, unit.ChargeTargetUnitId);
                 Hash(ref hash, unit.ChargeTarget.X); Hash(ref hash, unit.ChargeTarget.Y); Hash(ref hash, unit.HoldPosition ? 1 : 0);
@@ -156,14 +164,18 @@ namespace ProjectX.TileBattle
         private void CaptureSnapshot()
         {
             TileBattleRoundSnapshot snapshot = new TileBattleRoundSnapshot { CommandRound = CommandRound,
-                ResolutionTick = ResolutionTick, Phase = Phase, EventCount = Events.Count, StateHash = ComputeHash() };
+                ResolutionTick = ResolutionTick, BattleTick = BattleTick, Phase = Phase, EventCount = Events.Count, StateHash = ComputeHash() };
             for (int i = 0; i < Units.Count; i++)
             {
                 TileBattleUnit unit = Units[i];
                 snapshot.Units.Add(new TileBattleUnitViewState { Id = unit.Id, Side = unit.Side, Strength = unit.Strength,
-                    Morale = unit.Morale, Cohesion = unit.Cohesion, Ammunition = unit.Ammunition,
+                    Morale = unit.Morale, Cohesion = unit.Cohesion, Ammunition = unit.Ammunition, NextManeuverTick = unit.NextManeuverTick,
                     WeaponAttackProgressTicks = unit.WeaponAttackProgressTicks,
                     AttackOrderTargetUnitId = unit.AttackOrderTargetUnitId,
+                    CommandFormationId = unit.CommandFormationId, FormationOrder = unit.FormationOrder,
+                    FormationShape = unit.FormationShape, FormationAnchor = unit.FormationAnchor,
+                    FormationObjective = unit.FormationObjective,
+                    PreferredFormationPosition = unit.PreferredFormationPosition,
                     UsingRangedWeapon = unit.UsingRangedWeapon, ChargeActive = unit.ChargeActive,
                     ChargeMomentum = unit.ChargeMomentum, ChargeTargetUnitId = unit.ChargeTargetUnitId,
                     ChargeTarget = unit.ChargeTarget, HoldPosition = unit.HoldPosition,
@@ -184,14 +196,15 @@ namespace ProjectX.TileBattle
             timeline.Sort((a, b) => { int tick = a.Tick.CompareTo(b.Tick); if (tick != 0) return tick;
                 int unit = a.UnitId.CompareTo(b.UnitId); return unit != 0 ? unit : a.Sequence.CompareTo(b.Sequence); });
             int index = 0;
-            int finalTick = Math.Max(Rules.MinimumResolutionTicks,
-                timeline.Count > 0 ? timeline[timeline.Count - 1].Tick : 0);
+            int roundStartTick = BattleTick;
+            int finalTick = Math.Max(1, Rules.TicksPerCommandRound);
             for (int tick = 1; tick <= finalTick && !Result.Finished; tick++)
             {
                 int start = index;
                 int end = start;
                 while (end < timeline.Count && timeline[end].Tick == tick) end++;
-                ResolutionTick = tick; ResolveSimultaneousTick(timeline, start, end); index = end;
+                ResolutionTick = tick; BattleTick = roundStartTick + tick;
+                ResolveSimultaneousTick(timeline, start, end); index = end;
                 EvaluateBattleEnd();
                 CaptureSnapshot();
             }
@@ -209,28 +222,51 @@ namespace ProjectX.TileBattle
         private void ScheduleOrderSet(TileOrderSet set, List<ScheduledAction> timeline)
         {
             set.Orders.Sort((a, b) => a.UnitId.CompareTo(b.UnitId));
+            int roundStart = BattleTick;
+            int roundEnd = roundStart + Math.Max(1, Rules.TicksPerCommandRound);
             for (int i = 0; i < set.Orders.Count; i++)
             {
                 TileUnitOrder order = set.Orders[i]; TileBattleUnit unit = FindUnit(order.UnitId);
                 if (unit == null || unit.Side != set.Side || !unit.Active || unit.IsReserve) continue;
                 unit.CurrentOrder = order; unit.QueuedActions.Clear(); unit.Braced = false;
-                int count = Math.Min(unit.Definition.Actions, order.Actions.Count); int tick = 0;
                 unit.HoldPosition = order.Purpose != null && order.Purpose.IndexOf("hold", StringComparison.OrdinalIgnoreCase) >= 0;
                 unit.SuppressAutomaticAttacks = order.SuppressAutomaticAttacks;
-                for (int a = 0; a < count; a++)
+                unit.CommandFormationId = order.FormationId;
+                unit.FormationOrder = order.FormationOrder;
+                unit.FormationShape = order.FormationShape;
+                unit.FormationAnchor = order.FormationAnchor;
+                unit.FormationObjective = order.FormationObjective;
+                unit.PreferredFormationPosition = order.PreferredFormationPosition;
+                int projectedManeuverTick = Math.Max(unit.NextManeuverTick, roundStart + 1);
+                int lastScheduledTick = roundStart + 1;
+                for (int a = 0; a < order.Actions.Count; a++)
                 {
-                    TileUnitAction action = order.Actions[a]; unit.QueuedActions.Add(action);
-                    int intervalPermille = Math.Max(100, action.IntervalPermille);
-                    if ((action.Type == TileActionType.Move || action.Type == TileActionType.Charge) &&
-                        Grid.Get(action.Target) != null && Grid.Get(action.Target).Terrain == TileTerrain.Forest &&
-                        !unit.Definition.ForestImmune) intervalPermille = intervalPermille * Rules.ForestMoveIntervalPermille / 1000;
-                    int interval = Math.Max(1, unit.Definition.ReactionTime * intervalPermille / 1000);
-                    tick += interval;
-                    timeline.Add(new ScheduledAction { Tick = tick, Sequence = a, UnitId = unit.Id, Action = action });
+                    TileUnitAction action = order.Actions[a];
+                    int absoluteTick;
+                    if (action.UsesManeuverCooldown)
+                    {
+                        absoluteTick = projectedManeuverTick;
+                        if (absoluteTick > roundEnd) continue;
+                        projectedManeuverTick = absoluteTick + ManeuverCost(unit, action);
+                    }
+                    else absoluteTick = lastScheduledTick;
+                    unit.QueuedActions.Add(action);
+                    timeline.Add(new ScheduledAction { Tick = absoluteTick - roundStart, Sequence = a,
+                        UnitId = unit.Id, Action = action });
                 }
-                unit.ActionsRemaining = count; unit.NextActionTick = count > 0 ? timeline[timeline.Count - 1].Tick : 0;
-                Emit(TileBattleEventType.OrderIssued, unit.Id, message: "Unit " + unit.Id + " ordered to " + order.Purpose + " with " + count + " actions");
+                Emit(TileBattleEventType.OrderIssued, unit.Id, message: "Unit " + unit.Id + " ordered to " +
+                    order.Purpose + " with " + unit.QueuedActions.Count + " scheduled actions");
             }
+        }
+
+        private int ManeuverCost(TileBattleUnit unit, TileUnitAction action)
+        {
+            int cost = action.GetManeuverCost(unit.Definition);
+            if ((action.Type == TileActionType.Move || action.Type == TileActionType.Charge) &&
+                Grid.Get(action.Target) != null && Grid.Get(action.Target).Terrain == TileTerrain.Forest &&
+                !unit.Definition.ForestImmune)
+                cost = Math.Max(1, cost * Rules.ForestMoveIntervalPermille / 1000);
+            return Math.Max(1, cost);
         }
 
         private void ResolveSimultaneousTick(List<ScheduledAction> timeline, int start, int end)
@@ -243,6 +279,7 @@ namespace ProjectX.TileBattle
             {
                 ScheduledAction scheduled = timeline[i]; TileBattleUnit unit = FindUnit(scheduled.UnitId);
                 if (unit == null || !unit.Active || unit.State == TileUnitState.Routing) continue;
+                if (scheduled.Action.UsesManeuverCooldown && !unit.CanManeuver(BattleTick)) continue;
                 Emit(TileBattleEventType.ActionStarted, unit.Id, message: scheduled.Action.Type + " completes");
                 if (scheduled.Action.Type == TileActionType.Move || scheduled.Action.Type == TileActionType.Charge)
                 {
@@ -268,7 +305,6 @@ namespace ProjectX.TileBattle
                         unit.AttackOrderTargetUnitId = -1;
                     remaining.Add(scheduled);
                 }
-                unit.ActionsRemaining = Math.Max(0, unit.ActionsRemaining - 1);
             }
             ResolveTurnsAndPreparation(remaining);
             ResolveMoves(moves);
@@ -283,13 +319,18 @@ namespace ProjectX.TileBattle
                 TileBattleUnit unit = FindUnit(actions[i].UnitId); TileUnitAction action = actions[i].Action;
                 if (unit == null || !unit.Active) continue;
                 if (action.Type == TileActionType.Turn)
-                { unit.Facing = action.Facing; Emit(TileBattleEventType.UnitTurned, unit.Id, message: "Unit " + unit.Id + " faces " + unit.Facing); }
+                { unit.Facing = action.Facing; unit.ConsumeManeuver(BattleTick, ManeuverCost(unit, action));
+                    Emit(TileBattleEventType.UnitTurned, unit.Id, message: "Unit " + unit.Id + " faces " + unit.Facing); }
                 else if (action.Type == TileActionType.Brace)
-                { unit.Braced = true; Emit(TileBattleEventType.UnitBlocked, unit.Id, message: "Unit " + unit.Id + " braces"); }
+                { unit.Braced = true; unit.ConsumeManeuver(BattleTick, ManeuverCost(unit, action));
+                    Emit(TileBattleEventType.UnitBlocked, unit.Id, message: "Unit " + unit.Id + " braces"); }
+                else if (action.Type == TileActionType.Wait)
+                    unit.ConsumeManeuver(BattleTick, ManeuverCost(unit, action));
                 else if (action.Type == TileActionType.Disengage)
                 {
                     if (unit.State == TileUnitState.Engaged)
-                    { unit.State = TileUnitState.Ready; Emit(TileBattleEventType.UnitDisengaged, unit.Id, message: "Unit " + unit.Id + " disengages"); }
+                    { unit.State = TileUnitState.Ready; unit.ConsumeManeuver(BattleTick, ManeuverCost(unit, action));
+                        Emit(TileBattleEventType.UnitDisengaged, unit.Id, message: "Unit " + unit.Id + " disengages"); }
                 }
             }
         }
@@ -334,6 +375,7 @@ namespace ProjectX.TileBattle
                 if (move.Unit.Facing != desiredFacing)
                 {
                     move.Unit.Facing = desiredFacing;
+                    move.Unit.ConsumeManeuver(BattleTick, 2);
                     Emit(TileBattleEventType.UnitTurned, move.Unit.Id, from: move.From, to: move.From,
                         message: "Movement action turns unit " + move.Unit.Id + " toward " + desiredFacing);
                     continue;
@@ -418,6 +460,7 @@ namespace ProjectX.TileBattle
 
         private void AfterSuccessfulMove(TileBattleUnit unit, TileCoord from, TileCoord to, TileUnitAction action)
         {
+            unit.ConsumeManeuver(BattleTick, ManeuverCost(unit, action));
             TileBattleCell destination = Grid.Get(to);
             if (!unit.ChargeActive) return;
             if (destination != null && destination.Terrain == TileTerrain.Forest && !unit.Definition.ForestImmune)
@@ -427,7 +470,7 @@ namespace ProjectX.TileBattle
             }
             if (action.Type == TileActionType.Charge)
             {
-                unit.ChargeMomentum = Math.Min(Math.Max(2, unit.Definition.Actions), unit.ChargeMomentum + 1);
+                unit.ChargeMomentum = Math.Min(Math.Max(2, unit.Definition.ManeuversPerCommandRound(Rules.TicksPerCommandRound)), unit.ChargeMomentum + 1);
                 if (unit.Definition.Forester && destination != null && destination.Terrain == TileTerrain.Forest)
                     unit.ChargeMomentum++;
             }
@@ -990,7 +1033,7 @@ namespace ProjectX.TileBattle
         private void Emit(TileBattleEventType type, int unitId = -1, int otherId = -1, TileCoord from = default(TileCoord),
             TileCoord to = default(TileCoord), int amount = 0, string message = null, bool rangedAttack = false)
         {
-            Events.Add(new TileBattleEvent { CommandRound = CommandRound, Tick = ResolutionTick, Type = type,
+            Events.Add(new TileBattleEvent { CommandRound = CommandRound, Tick = ResolutionTick, BattleTick = BattleTick, Type = type,
                 UnitId = unitId, OtherUnitId = otherId, From = from, To = to, Amount = amount,
                 RangedAttack = rangedAttack, Message = message });
         }

@@ -20,8 +20,7 @@ MonoBehaviour:
   levyRole: 6
   recruitmentTicks: 3
   upkeep: 2
-  actions: 2
-  reactionTime: 7
+  movementCost: 7
   flaglist:
   - Charger
   RangedWeapon: {fileID: 0}

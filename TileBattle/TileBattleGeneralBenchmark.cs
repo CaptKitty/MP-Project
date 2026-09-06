@@ -123,9 +123,9 @@ namespace ProjectX.TileBattle
             }
         }
 
-        private static TileBattleUnitDefinition Definition(string name, int initiative, int actions, int mass, int strength,
+        private static TileBattleUnitDefinition Definition(string name, int movementCost, int maneuverPlanDepth, int mass, int strength,
             int damage, bool cavalry = false, bool ranged = false) => new TileBattleUnitDefinition { Id = name,
-            DisplayName = name, Initiative = initiative, Actions = actions, BaseMass = mass, Strength = strength,
+            DisplayName = name, MovementCost = movementCost, BaseMass = mass, Strength = strength,
             MeleeDamage = damage, FrontThreat = 1, Cavalry = cavalry, Ranged = ranged, RangedRange = ranged ? 3 : 0,
             RangedDamage = ranged ? 14 : 0, Ammunition = ranged ? 20 : 0 };
 

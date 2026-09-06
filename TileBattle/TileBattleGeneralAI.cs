@@ -16,6 +16,7 @@ namespace ProjectX.TileBattle
         public int Side;
         public bool IsAttacker;
         public int CommandRound;
+        public int BattleTick;
         public TileBattlePhase Phase;
         public int Width;
         public int Height;
@@ -32,12 +33,14 @@ namespace ProjectX.TileBattle
 
     public sealed class TileObservedUnit
     {
-        public int Id, Side, Strength, Morale, Cohesion, Ammunition;
+        public int Id, Side, Strength, Morale, Cohesion, Ammunition, NextManeuverTick, CommandFormationId;
         public TileCoord Position;
         public TileFacing Facing;
         public TileUnitState State;
         public TileBattleUnitDefinition Definition;
         public bool IsReserve, Deployed;
+        public TileFormationOrderType FormationOrder;
+        public TileCoord FormationAnchor, FormationObjective, PreferredFormationPosition;
     }
 
     public sealed class PersonalityTileGeneral : ITileBattleGeneral
@@ -47,6 +50,7 @@ namespace ProjectX.TileBattle
         private bool hasPlan;
         private int planStartRound;
         private int previousStrengthDifference;
+        private readonly TileFormationCommandSystem formationCommand = new TileFormationCommandSystem();
         public TileGeneralDebugState DebugState { get; } = new TileGeneralDebugState();
 
         public PersonalityTileGeneral(TileGeneralPersonality personality)
@@ -81,7 +85,10 @@ namespace ProjectX.TileBattle
             DebugState.PlansConsidered.AddRange(scores);
             TileOrderSet result = new TileOrderSet { Side = observation.Side, CommandRound = observation.CommandRound,
                 Plan = selected, Reason = DebugState.ChangeReason };
+            formationCommand.Update(observation, selected, personality);
             GenerateOrders(observation, result);
+            formationCommand.InfluenceOrders(observation, result);
+            formationCommand.WriteDebug(DebugState);
             return result;
         }
 
@@ -251,18 +258,18 @@ namespace ProjectX.TileBattle
                 bool hasTakenLosses = unit.Strength < unit.Definition.Strength;
                 bool noticesSkirmishThreat = NoticesOpportunity(unit, observation.CommandRound, 17);
                 int dangerDistance = closestThreat != null && closestThreat.Definition != null
-                    ? Math.Max(2, closestThreat.Definition.Actions + 1) : 2;
+                    ? Math.Max(2, closestThreat.Definition.ManeuversPerCommandRound() + 1) : 2;
                 if (mobileSkirmisher && unit.State != TileUnitState.Engaged && closestThreat != null &&
                     closestThreat.Definition != null && !closestThreat.Definition.Cavalry && noticesSkirmishThreat &&
                     closestThreatDistance <= (personality.Competence < 40 && !hasTakenLosses ? 2 : dangerDistance))
                 {
                     order.Purpose = "Skirmish withdrawal";
-                    if (personality.Competence < 40 && !hasTakenLosses && unit.Definition.Actions > 1)
+                    if (personality.Competence < 40 && !hasTakenLosses && unit.Definition.ManeuversPerCommandRound() > 1)
                         order.Actions.Add(TileUnitAction.Wait());
                     if (CanCurrentlyAttack(unit, closestThreat, observation))
                         order.Actions.Add(TileUnitAction.Attack(closestThreat.Id, closestThreat.Position));
                     TileCoord planned = unit.Position;
-                    for (int action = order.Actions.Count; action < unit.Definition.Actions; action++)
+                    for (int action = order.Actions.Count; action < unit.Definition.ManeuversPerCommandRound(); action++)
                     {
                         int away = Math.Sign(planned.X - closestThreat.Position.X);
                         if (away == 0) away = -direction;
@@ -286,7 +293,7 @@ namespace ProjectX.TileBattle
                     order.Purpose = extendsFlank ? "Extend engaged battle line" : "Reinforce engaged battle line";
                     claimedBattleLineSlots.Add(lineSlot);
                     TileCoord planned = unit.Position;
-                    for (int action = 0; action < unit.Definition.Actions; action++)
+                    for (int action = 0; action < unit.Definition.ManeuversPerCommandRound(); action++)
                     {
                         TileObservedUnit localTarget = NearestEnemyTo(enemies, planned);
                         if (localTarget != null && CanAttackFrom(unit, planned, localTarget, observation))
@@ -311,7 +318,7 @@ namespace ProjectX.TileBattle
                 {
                     order.Purpose = "Encircle unit " + nearest.Id;
                     TileCoord planned = unit.Position;
-                    for (int action = 0; action < unit.Definition.Actions; action++)
+                    for (int action = 0; action < unit.Definition.ManeuversPerCommandRound(); action++)
                     {
                         if (planned == encirclementTile || IsSideOrRearPosition(planned, nearest))
                         { order.Actions.Add(TileUnitAction.Attack(nearest.Id, nearest.Position)); break; }
@@ -331,7 +338,7 @@ namespace ProjectX.TileBattle
                         order.Actions.Add(TileUnitAction.Move(nearest.Position));
                     order.Actions.Add(TileUnitAction.Attack(nearest.Id, nearest.Position));
                     if (set.Plan != TileBattlePlan.Hold)
-                        while (order.Actions.Count < unit.Definition.Actions)
+                        while (order.Actions.Count < unit.Definition.ManeuversPerCommandRound())
                             order.Actions.Add(TileUnitAction.Move(nearest.Position));
                     set.Orders.Add(order); DebugState.OrdersIssued.Add("Unit " + unit.Id +
                         ": fight toward and occupy the ground held by " + nearest.Id);
@@ -344,7 +351,7 @@ namespace ProjectX.TileBattle
                     TileCoord slot = holdSlots.TryGetValue(unit.Id, out TileCoord assignedSlot) ? assignedSlot : unit.Position;
                     if (NoticesOpportunity(unit, observation.CommandRound, 73))
                         slot = PreferHillPosition(unit, slot, observation, occupied);
-                    for (int action = 0; action < unit.Definition.Actions; action++)
+                    for (int action = 0; action < unit.Definition.ManeuversPerCommandRound(); action++)
                     {
                         if (planned == slot)
                         { order.Actions.Add(TileUnitAction.Brace()); break; }
@@ -368,7 +375,7 @@ namespace ProjectX.TileBattle
                     int yieldRow = noticesFriendlyBlockage
                         ? FindYieldRow(unit, allies, direction, observation.Height, occupied) : unit.Position.Y;
                     int yieldDelay = yieldRow != unit.Position.Y && personality.Competence < 40 && !hasTakenLosses ? 1 : 0;
-                    for (int action = 0; action < unit.Definition.Actions; action++)
+                    for (int action = 0; action < unit.Definition.ManeuversPerCommandRound(); action++)
                     {
                         TileObservedUnit target = nearest; int distance = target != null ? planned.ManhattanDistance(target.Position) : int.MaxValue;
                         if (target != null && distance <= attackRange && FacesTarget(unit.Facing, planned, target.Position))
@@ -391,7 +398,7 @@ namespace ProjectX.TileBattle
                             next = new TileCoord(planned.X + Math.Sign(target.Position.X - planned.X), planned.Y);
                         next = PreferTerrainStep(unit, planned, next, target != null ? target.Position : next,
                             observation, occupied, stepReservations[action]);
-                        int chargeMoves = unit.Definition.Cavalry ? Math.Min(4, unit.Definition.Actions) : Math.Min(2, unit.Definition.Actions);
+                        int chargeMoves = unit.Definition.Cavalry ? Math.Min(4, unit.Definition.ManeuversPerCommandRound()) : Math.Min(2, unit.Definition.ManeuversPerCommandRound());
                         bool recognizesCounter = target != null && NoticesOpportunity(unit, observation.CommandRound, 91) &&
                             IsFrontalAntiChargeThreat(target, planned) && personality.Bold < 70;
                         bool chargeAdvance = target != null && unit.State != TileUnitState.Engaged && distance <= chargeMoves + 1 &&
@@ -403,7 +410,7 @@ namespace ProjectX.TileBattle
                         stepReservations[action].Add(next);
                     }
                 }
-                while (order.Actions.Count > unit.Definition.Actions) order.Actions.RemoveAt(order.Actions.Count - 1);
+                while (order.Actions.Count > unit.Definition.ManeuversPerCommandRound()) order.Actions.RemoveAt(order.Actions.Count - 1);
                 set.Orders.Add(order); DebugState.OrdersIssued.Add("Unit " + unit.Id + ": " + order.Purpose +
                     (nearest != null ? " targeting " + nearest.Id : " without target"));
             }
@@ -448,7 +455,7 @@ namespace ProjectX.TileBattle
         {
             slot = unit.Position; extendsFlank = false;
             int bestScore = int.MaxValue;
-            bool mobile = unit.Definition != null && (unit.Definition.Cavalry || unit.Definition.Actions >= 3 ||
+            bool mobile = unit.Definition != null && (unit.Definition.Cavalry || unit.Definition.ManeuversPerCommandRound() >= 3 ||
                 unit.Definition.BaseMass < 100);
             for (int i = 0; i < allies.Count; i++)
             {
@@ -659,7 +666,7 @@ namespace ProjectX.TileBattle
                 if (distance < bestDistance || distance == bestDistance && cell.Position.CompareTo(best) < 0)
                 { best = cell.Position; bestDistance = distance; }
             }
-            return bestDistance <= Math.Max(3, unit.Definition.Actions * 2) ? best : assigned;
+            return bestDistance <= Math.Max(3, unit.Definition.ManeuversPerCommandRound() * 2) ? best : assigned;
         }
 
         private static TileCoord PreferTerrainStep(TileObservedUnit unit, TileCoord from, TileCoord desired, TileCoord goal,
@@ -809,7 +816,7 @@ namespace ProjectX.TileBattle
         {
             if (plan != TileBattlePlan.FlankLeft && plan != TileBattlePlan.FlankRight) return false;
             if (ally.Definition.Cavalry) return true;
-            if (ally.Definition.ReactionTime <= 4 || ally.Definition.Actions >= 3) return true;
+            if (ally.Definition.MovementCost <= 4 || ally.Definition.ManeuversPerCommandRound() >= 3) return true;
             return plan == TileBattlePlan.FlankLeft
                 ? index >= Math.Max(1, allyCount * 2 / 3)
                 : index < Math.Max(1, allyCount / 3);

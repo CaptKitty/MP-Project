@@ -18,10 +18,14 @@ MonoBehaviour:
   health: 200
   recruitmentTicks: 3
   upkeep: 1
+<<<<<<< Updated upstream
   notLevyable: 1
   levyRole: 1
   actions: 2
   reactionTime: 7
+=======
+  movementCost: 7
+>>>>>>> Stashed changes
   flaglist:
   - Formation
   RangedWeapon: {fileID: 11400000, guid: e3f352d3edadd6d469574d53c5fe5276, type: 2}

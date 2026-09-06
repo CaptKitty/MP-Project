@@ -20,8 +20,7 @@ MonoBehaviour:
   levyRole: 1
   recruitmentTicks: 3
   upkeep: 2
-  actions: 3
-  reactionTime: 6
+  movementCost: 6
   flaglist:
   - Forestry_Immunity
   RangedWeapon: {fileID: 0}

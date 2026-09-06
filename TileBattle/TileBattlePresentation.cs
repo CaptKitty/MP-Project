@@ -344,7 +344,7 @@ namespace ProjectX.TileBattle
             EnsureGrid(simulation.Grid.Width, simulation.Grid.Height);
             string left = !string.IsNullOrEmpty(selected.LeftDisplayName) ? selected.LeftDisplayName : "Left";
             string right = !string.IsNullOrEmpty(selected.RightDisplayName) ? selected.RightDisplayName : "Right";
-            headerText.text = left + "     vs     " + right + "     Round " + snapshot.CommandRound + " / Tick " + snapshot.ResolutionTick +
+            headerText.text = left + "     vs     " + right + "     Round " + snapshot.CommandRound + " / Tick " + snapshot.ResolutionTick + " / Battle Tick " + snapshot.BattleTick +
                 "     " + snapshot.Phase + (followLive ? "  [LIVE]" : playbackPaused ? "  [PAUSED]" : "  [REPLAY " + playbackSpeed + "x]") +
                 (Owners.Instance != null && Owners.Instance.CampaignPaused ? "  [CAMPAIGN PAUSED — SPACE]" : string.Empty);
             HashSet<int> visibleUnitIds = new HashSet<int>();
@@ -592,7 +592,13 @@ namespace ProjectX.TileBattle
             TileGeneralDebugState state = general.DebugState;
             text.Append(side).Append(" GENERAL: ").AppendLine(GeneralName(general, side))
                 .Append("Plan: ").AppendLine(state.CurrentPlan.ToString())
-                .Append("Plan policy: ").AppendLine(state.ChangeReason ?? "No plan explanation recorded").AppendLine();
+                .Append("Plan policy: ").AppendLine(state.ChangeReason ?? "No plan explanation recorded");
+            if (state.Formations.Count > 0)
+            {
+                text.AppendLine("Formations:");
+                for (int i = 0; i < state.Formations.Count; i++) text.Append("  ").AppendLine(state.Formations[i]);
+            }
+            text.AppendLine();
         }
 
         private static void AppendCasualtySummary(StringBuilder text, string heading, TileBattleSimulation simulation, int side)

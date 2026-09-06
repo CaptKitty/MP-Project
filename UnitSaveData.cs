@@ -25,14 +25,11 @@ public class UnitSaveData : ScriptableObject
     public LevyPressureType levyRole = LevyPressureType.LightInfantry;
 
     [Header("Tile Battle Timing")]
-    [Tooltip("Maximum number of pre-committed actions this formation may attempt in one command round.")]
-    [Min(1)] public int actions = 2;
+    [FormerlySerializedAs("reactionTime")]
     [FormerlySerializedAs("Initiative")]
-    [Tooltip("Base reaction time in resolution ticks. Lower values execute actions faster.")]
-    [Min(1)] public int reactionTime = 7;
-    public int ReactionTime => Mathf.Max(1, reactionTime);
-    // Source compatibility for older scripts and editor tests. Unity serializes reactionTime.
-    public int Initiative { get => reactionTime; set => reactionTime = value; }
+    [Tooltip("Ticks after moving before this formation may perform another maneuver. Lower values move faster.")]
+    [Min(1)] public int movementCost = 7;
+    public int MovementCost => Mathf.Max(1, movementCost);
 
     public List<string> flaglist;
     public Weapon RangedWeapon;

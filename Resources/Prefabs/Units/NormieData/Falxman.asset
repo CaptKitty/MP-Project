@@ -20,8 +20,7 @@ MonoBehaviour:
   notLevyable: 0
   levyRole: 1
   speed: 1
-  actions: 3
-  Initiative: 6
+  movementCost: 6
   flaglist:
   - Forestry_Immunity
   RangedWeapon: {fileID: 0}

@@ -218,5 +218,36 @@ public sealed class SectorBattleTests
         foreach (SectorCommandGroup group in simulation.CommandGroups)
             if (group.Side == 0) Assert.IsTrue(group.PlayerControlled);
     }
-}
+    [Test]
+    public void GeneratedArmiesHonorCompositionAndGeneralTactics()
+    {
+        UnitSaveData roman = UnityEngine.Resources.Load<UnitSaveData>("Prefabs/Units/NormieData/LegionaryLevy");
+        UnitSaveData carthaginian = UnityEngine.Resources.Load<UnitSaveData>("Prefabs/Units/NormieData/Phoenician Spear");
+        Assert.IsNotNull(roman);
+        Assert.IsNotNull(carthaginian);
+        var sideA = new System.Collections.Generic.List<SectorCustomFormationSpec>
+        { new SectorCustomFormationSpec { Unit = roman, Count = 3, Lane = BattleLane.Centre } };
+        var sideB = new System.Collections.Generic.List<SectorCustomFormationSpec>
+        { new SectorCustomFormationSpec { Unit = carthaginian, Count = 2, Lane = BattleLane.UpperWing } };
+
+        SectorBattleSimulation simulation = SectorCustomBattleFactory.PrepareGenerated(sideA, sideB, 12, 4, 5,
+            "Aggressive General", "Flanking General", SectorGeneralTactic.Aggressive, SectorGeneralTactic.Flanking);
+
+        Assert.AreEqual(3, new System.Collections.Generic.List<SectorFormation>(simulation.Formations).FindAll(item => item.Side == 0).Count);
+        Assert.AreEqual(2, new System.Collections.Generic.List<SectorFormation>(simulation.Formations).FindAll(item => item.Side == 1).Count);
+        Assert.AreEqual(SectorGeneralTactic.Aggressive, simulation.Commands.Tactic(0));
+        Assert.AreEqual(SectorGeneralTactic.Flanking, simulation.Commands.Tactic(1));
+    }
+
+    [Test]
+    public void AttackEventsExposeDamageForUnitPerformanceReports()
+    {
+        SectorBattleSimulation simulation = SectorCustomBattleFactory.Prepare(SectorBattlePreset.Basic10v10, 22, 4, 4, false, false);
+        simulation.StartBattle();
+        for (int tick = 0; tick < 80 && !simulation.IsResolved; tick++) simulation.TickBattle();
+        bool sawDamage = false;
+        foreach (SectorCombatEvent battleEvent in simulation.Events)
+            if (battleEvent.Type == SectorPresentationEventType.Attack && battleEvent.Damage > 0) { sawDamage = true; break; }
+        Assert.IsTrue(sawDamage, "At least one attack should report damage for unit performance aggregation.");
+    }}
 #endif

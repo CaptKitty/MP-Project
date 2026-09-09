@@ -14,10 +14,19 @@ namespace ProjectX.SectorBattle
 
     public enum SectorBattlePreset : byte { Basic10v10, CentreConcentration, FlankingTest, CounterFlankTest, CommandCapacity20v20 }
 
+    [Serializable]
+    public sealed class SectorCustomFormationSpec
+    {
+        public UnitSaveData Unit;
+        public int Count = 1;
+        public BattleLane Lane = BattleLane.Centre;
+    }
+
     public static class SectorCustomBattleFactory
     {
         public static SectorBattleSimulation Prepare(SectorBattlePreset preset, ulong seed, int capacityA, int capacityB,
-            bool playerA, bool playerB)
+            bool playerA, bool playerB, SectorBattleRules rules = null,
+            SectorGeneralTactic tacticA = SectorGeneralTactic.Balanced, SectorGeneralTactic tacticB = SectorGeneralTactic.Balanced)
         {
             BattleSimulationRequest request = new BattleSimulationRequest { BattleId = "custom-" + preset + "-" + seed, Seed = seed };
             request.Commanders.Add(new BattleSideCommandConfig { Side = 0, GeneralName = "Roman Test General", CommandGroupCapacity = Mathf.Clamp(capacityA, 4, 8), PlayerControlled = playerA });
@@ -34,7 +43,7 @@ namespace ProjectX.SectorBattle
             Add(request, ref id, 1, "Iberian_SpearChucker", large ? 6 : 2, BattleLane.LowerWing);
             Add(request, ref id, 1, "Cavalry_Shock", large ? 4 : 2, preset == SectorBattlePreset.CounterFlankTest ? BattleLane.LowerWing : BattleLane.UpperWing);
             Add(request, ref id, 1, "Numidian_Charioteer_Spear", large ? 2 : 1, BattleLane.LowerWing);
-            SectorBattleSimulation simulation = new SectorBattleSimulation(); simulation.Initialize(request);
+            SectorBattleSimulation simulation = new SectorBattleSimulation(rules); simulation.Initialize(request); simulation.Commands.SetTactic(0, tacticA); simulation.Commands.SetTactic(1, tacticB);
             if (preset == SectorBattlePreset.FlankingTest || preset == SectorBattlePreset.CounterFlankTest)
                 simulation.SetTerrain(new SectorCoord(BattleLane.UpperWing, BattleDepth.CentralGround), SectorTerrain.DryPlain);
             else if (preset == SectorBattlePreset.CentreConcentration)
@@ -42,6 +51,42 @@ namespace ProjectX.SectorBattle
             return simulation;
         }
 
+        public static SectorBattleSimulation PrepareGenerated(IReadOnlyList<SectorCustomFormationSpec> sideA,
+            IReadOnlyList<SectorCustomFormationSpec> sideB, ulong seed, int capacityA, int capacityB,
+            string generalA, string generalB, SectorGeneralTactic tacticA, SectorGeneralTactic tacticB,
+            bool playerA = false, bool playerB = false, SectorBattleRules rules = null)
+        {
+            BattleSimulationRequest request = new BattleSimulationRequest { BattleId = "generated-" + seed, Seed = seed };
+            request.Commanders.Add(new BattleSideCommandConfig { Side = 0, GeneralName = string.IsNullOrEmpty(generalA) ? "Side A General" : generalA,
+                CommandGroupCapacity = Mathf.Clamp(capacityA, 4, 8), PlayerControlled = playerA });
+            request.Commanders.Add(new BattleSideCommandConfig { Side = 1, GeneralName = string.IsNullOrEmpty(generalB) ? "Side B General" : generalB,
+                CommandGroupCapacity = Mathf.Clamp(capacityB, 4, 8), PlayerControlled = playerB });
+            int id = 1;
+            AddGenerated(request, sideA, 0, ref id);
+            id = 1001;
+            AddGenerated(request, sideB, 1, ref id);
+            if (request.Formations.Find(item => item.Side == 0) == null || request.Formations.Find(item => item.Side == 1) == null)
+                throw new InvalidOperationException("Generated sector battles require at least one valid formation on each side.");
+            SectorBattleSimulation simulation = new SectorBattleSimulation(rules);
+            simulation.Initialize(request);
+            simulation.Commands.SetTactic(0, tacticA);
+            simulation.Commands.SetTactic(1, tacticB);
+            return simulation;
+        }
+
+        private static void AddGenerated(BattleSimulationRequest request, IReadOnlyList<SectorCustomFormationSpec> specs, int side, ref int id)
+        {
+            if (specs == null) return;
+            for (int i = 0; i < specs.Count; i++)
+            {
+                SectorCustomFormationSpec spec = specs[i];
+                if (spec == null || spec.Unit == null) continue;
+                for (int copy = 0; copy < Mathf.Max(0, spec.Count); copy++)
+                    request.Formations.Add(new BattleFormationInput { FormationId = id++, Side = side, Unit = spec.Unit,
+                        Strength = Mathf.Max(1, spec.Unit.health), DeploymentColumn = (int)spec.Lane,
+                        DeploymentRow = side == 0 ? (int)BattleDepth.SideAReserve : (int)BattleDepth.SideBReserve });
+            }
+        }
         private static void Add(BattleSimulationRequest request, ref int id, int side, string resource, int count, BattleLane column)
         {
             if (count <= 0) return;

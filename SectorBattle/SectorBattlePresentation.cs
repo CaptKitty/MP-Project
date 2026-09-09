@@ -110,7 +110,8 @@ namespace ProjectX.SectorBattle
         private GameObject demoRoot;
         private Text accessText, tickTimerText, inspectorText, battlePopupText, groupText;
         private Text leftFactionText, rightFactionText, battleTitleText, dockTitleText, footerText, movementText;
-        private Button endTurnButton;
+        private Button endTurnButton, autoTurnButton;
+        private Text autoTurnButtonText;
         private RectTransform field, arrowRoot;
         private readonly Dictionary<SectorCoord, RectTransform> sectorRects = new Dictionary<SectorCoord, RectTransform>();
         private readonly Dictionary<SectorCoord, Text> sectorLabels = new Dictionary<SectorCoord, Text>();
@@ -128,6 +129,8 @@ namespace ProjectX.SectorBattle
         private int replayIndex;
         private bool replayMode, replayPlaying;
         private float nextReplayFrame;
+        private bool autoAdvanceTurns;
+        private float nextAutoTurn;
         private bool showDebug;
         private bool ownsCampaignPause;
         private float campaignSpeedBeforeBattle = .25f;
@@ -138,7 +141,8 @@ namespace ProjectX.SectorBattle
             Instance = this;
             manager = owner; baseUnitMaterial = FindUnitMaterial();
             canvas = CreateCanvas(); CreateAccessButton();
-            if (!SceneManager.GetActiveScene().name.StartsWith("MapScene", StringComparison.OrdinalIgnoreCase))
+            if (!SceneManager.GetActiveScene().name.StartsWith("MapScene", StringComparison.OrdinalIgnoreCase) &&
+                SceneManager.GetActiveScene().name != "SampleScene")
                 CreateDemoButton();
             CreateBattlePopup(); CreateViewer();
         }
@@ -148,6 +152,9 @@ namespace ProjectX.SectorBattle
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.Escape) && viewerRoot != null && viewerRoot.activeSelf) CloseViewer();
+            if (autoAdvanceTurns && selected != null && viewerRoot != null && viewerRoot.activeSelf && !replayMode &&
+                selected.Simulation != null && !selected.Simulation.IsResolved && Time.unscaledTime >= nextAutoTurn)
+            { nextAutoTurn = Time.unscaledTime + 1f; EndTurn(); }
             if (Time.unscaledTime < nextRefresh) return;
             nextRefresh = Time.unscaledTime + .08f; RefreshAccess();
             SynchronizeMarkers(); DetectMarkerClick();
@@ -166,6 +173,7 @@ namespace ProjectX.SectorBattle
             if (selected != null && selected != battle) manager?.SetManualTickMode(selected, false);
             selected = battle; consumedEvents = 0; pinnedId = hoveredId = -1;
             selectedGroupId = -1; replayMode = replayPlaying = false; replayIndex = 0;
+            SetAutoAdvance(false);
             manager?.SetManualTickMode(battle, true);
             PauseCampaignForBattle();
             if (battlePopupRoot != null) battlePopupRoot.SetActive(false);
@@ -215,7 +223,7 @@ namespace ProjectX.SectorBattle
             viewerRoot != null && viewerRoot.activeInHierarchy;
 
         private void CloseViewer()
-        { SectorCampaignBattle closing = selected; Mapshower.Instance?.ConsumeCurrentMapClick(); manager?.SetManualTickMode(closing, false); RestoreCampaignAfterBattle(); selected = null; selectedGroupId = -1; replayMode = replayPlaying = false; viewerRoot.SetActive(false); inspectorRoot.SetActive(false); if (groupRoot != null) groupRoot.SetActive(false); if (battlePopupRoot != null) battlePopupRoot.SetActive(false); manager?.DismissBattle(closing); }
+        { SectorCampaignBattle closing = selected; Mapshower.Instance?.ConsumeCurrentMapClick(); manager?.SetManualTickMode(closing, false); RestoreCampaignAfterBattle(); SetAutoAdvance(false); selected = null; selectedGroupId = -1; replayMode = replayPlaying = false; viewerRoot.SetActive(false); inspectorRoot.SetActive(false); if (groupRoot != null) groupRoot.SetActive(false); if (battlePopupRoot != null) battlePopupRoot.SetActive(false); manager?.DismissBattle(closing); }
 
         private void PauseCampaignForBattle()
         {
@@ -239,6 +247,18 @@ namespace ProjectX.SectorBattle
         {
             if (selected == null || replayMode || selected.Simulation == null || selected.Simulation.IsResolved) return;
             manager?.AdvanceManualBattleOneTick(selected); RefreshViewer();
+        }
+
+        private void ToggleAutoAdvance()
+        {
+            SetAutoAdvance(!autoAdvanceTurns);
+            if (autoAdvanceTurns) nextAutoTurn = Time.unscaledTime + 1f;
+        }
+
+        private void SetAutoAdvance(bool enabled)
+        {
+            autoAdvanceTurns = enabled;
+            if (autoTurnButtonText != null) autoTurnButtonText.text = enabled ? "STOP AUTO" : "AUTO 1/S";
         }
 
         private void SynchronizeMarkers()
@@ -349,6 +369,8 @@ namespace ProjectX.SectorBattle
                     manager == null || manager.TickClockPaused ? "NEXT TICK: PAUSED" : "NEXT TICK: " + manager.SecondsUntilNextTick.ToString("0.0") + "s";
             }
             if (endTurnButton != null) endTurnButton.interactable = manual && !replayMode && !simulation.IsResolved;
+            if (simulation.IsResolved || replayMode || !manual) SetAutoAdvance(false);
+            if (autoTurnButton != null) autoTurnButton.interactable = manual && !replayMode && !simulation.IsResolved;
             List<SectorDebugState> sectors = frame != null ? frame.Sectors : simulation.GetDebugState();
             for (int i = 0; i < sectors.Count; i++) RefreshSector(sectors[i]);
             List<SectorFormationPresentationState> formations = frame != null ? frame.Formations : simulation.GetPresentationState();
@@ -729,6 +751,9 @@ namespace ProjectX.SectorBattle
             CreateButton("Advance", groupRoot.transform, new Vector2(.25f, .04f), new Vector2(.49f, .19f), "Advance", () => IssueSelectedOrder(SectorGroupOrder.Advance));
             CreateButton("Withdraw", groupRoot.transform, new Vector2(.52f, .04f), new Vector2(.76f, .19f), "Withdraw", () => IssueSelectedOrder(SectorGroupOrder.Withdraw));
             groupRoot.SetActive(false);
+            autoTurnButton = CreateButton("Auto Turn", commandDockRoot.transform, new Vector2(.78f, .045f), new Vector2(.885f, .20f), "AUTO 1/S", ToggleAutoAdvance);
+            autoTurnButtonText = autoTurnButton.GetComponentInChildren<Text>();
+            autoTurnButton.GetComponent<Image>().color = new Color(.20f, .25f, .12f, 1f);
             endTurnButton = CreateButton("End Turn", commandDockRoot.transform, new Vector2(.89f, .045f), new Vector2(.992f, .20f), "END TURN", EndTurn);
             endTurnButton.GetComponent<Image>().color = new Color(.34f, .17f, .055f, 1f);
             footerRoot = Panel("Footer Status", viewerRoot.transform, Vector2.zero, new Vector2(1f, .035f), new Color(.018f, .021f, .019f, 1f));

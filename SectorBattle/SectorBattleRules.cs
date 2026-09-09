@@ -24,6 +24,13 @@ namespace ProjectX.SectorBattle
         public int warcryDurationTicks = 8;
         [Range(0, 200)] public int disciplinedExhaustionPercent = 60;
         public int openingVolleyDamage = 10;
+        [Header("Prototype AI")]
+        [Min(1)] public int aiDecisionIntervalTicks = 4;
+        public int aiForwardScore = 28;
+        public int aiEnemyScore = 125;
+        public int aiContestedScore = 90;
+        public int aiFlankScore = 70;
+        public int aiWideScore = 14;
         [Range(0, 100)] public int backlineCollapseCasualtyPercent = 35;
         [Min(1)] public int uncontestedEnemyReserveTicksToRout = 5;
         public int[] columnFrontage = { 4, 5, 7, 5, 4 };

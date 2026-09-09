@@ -29,8 +29,16 @@ public class MainMenu : MonoBehaviour
     }
     public void StartCustomSectorBattle()
     {
+        var manager = ProjectX.SectorBattle.SectorBattleCampaignManager.Instance;
+        if (manager != null && manager.CustomBattleLauncher != null)
+        {
+            manager.CustomBattleLauncher.Show();
+            return;
+        }
+
         ProjectX.SectorBattle.SectorCustomBattleLaunchRequest.Request();
-        SceneManager.LoadScene("MapScene");
+        new GameObject("Menu Sector Battles")
+            .AddComponent<ProjectX.SectorBattle.SectorBattleCampaignManager>();
     }
     public void ChangePick(int whichone)
     {

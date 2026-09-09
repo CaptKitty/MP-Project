@@ -79,6 +79,7 @@ namespace ProjectX.SectorBattle
         public SectorPresentationEventType Type;
         public int FormationId = -1;
         public int TargetFormationId = -1;
+        public int Damage;
         public SectorCoord Sector;
         public string Message;
         public override string ToString() => !string.IsNullOrEmpty(Message) ? "T" + Tick + " " + Message :

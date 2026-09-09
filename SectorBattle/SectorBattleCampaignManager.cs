@@ -106,7 +106,11 @@ namespace ProjectX.SectorBattle
             {
                 if (!Owners.Instance.AdvancePausedCampaignSteps(CampaignStepsPerSectorTick)) return false;
             }
-            else AdvanceFromCampaignStep();
+            else
+            {
+                for (int step = 0; step < CampaignStepsPerSectorTick; step++)
+                    AdvanceFromCampaignStep();
+            }
             return battle.Simulation.Tick != before || battle.Simulation.IsResolved;
         }
 

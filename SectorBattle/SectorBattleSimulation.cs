@@ -253,9 +253,10 @@ namespace ProjectX.SectorBattle
             foreach (Attack attack in attacks)
             {
                 if (!attack.Attacker.Active || !attack.Target.Active) continue;
-                Emit(SectorPresentationEventType.Attack, attack.Attacker, attack.Target, attack.TargetSector, string.Empty);
                 if (attack.Ranged && attack.Attacker.Ammunition > 0) attack.Attacker.Ammunition--;
                 int value = AttackDamage(attack);
+                Emit(SectorPresentationEventType.Attack, attack.Attacker, attack.Target, attack.TargetSector, string.Empty);
+                events[events.Count - 1].Damage = value;
                 if (!damage.ContainsKey(attack.Target.Id)) damage[attack.Target.Id] = 0;
                 damage[attack.Target.Id] += value;
                 int moraleDamage = Math.Max(1, value / 2) + (attack.Flanking ? Math.Max(0, rules.flankMoralePenalty) : 0);
@@ -272,7 +273,9 @@ namespace ProjectX.SectorBattle
                 if (attack.Attacker.Combat.OpeningThrowable && !attack.Ranged &&
                     attack.Attacker.OpeningVolleyTargets.Add(attack.Target.Id))
                 {
-                    damage[attack.Target.Id] += Math.Max(0, rules.openingVolleyDamage);
+                    int openingDamage = Math.Max(0, rules.openingVolleyDamage);
+                    damage[attack.Target.Id] += openingDamage;
+                    events[events.Count - 1].Damage += openingDamage;
                     Log(Name(attack.Attacker) + " used Opening Volley against " + Name(attack.Target));
                 }
             }

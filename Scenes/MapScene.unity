@@ -6127,7 +6127,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 1000
+  m_SortingOrder: 150
   m_TargetDisplay: 0
 --- !u!1 &685650967
 GameObject:
@@ -17978,6 +17978,7 @@ MonoBehaviour:
     TributaryMasterName: 
     PeaceTreatyNationNames: []
     WarNationNames: []
+    TotalWarNationNames: []
     LastWarDeclarationTurn: -1000
     NextAIDiplomacyTurn: 0
     PendingPeaceOfferFrom: 
@@ -18002,7 +18003,6 @@ MonoBehaviour:
     levyRecoveryBoostTicks: 0
     levyRecoveryBonusPerTick: 0
     LevyLawPermille: 200
-    holdingEconomyModifiers: []
     AIMinimumCampaignArmySize: 10
   SelectedProvince:
     name: 
@@ -18024,6 +18024,7 @@ MonoBehaviour:
       TributaryMasterName: 
       PeaceTreatyNationNames: []
       WarNationNames: []
+      TotalWarNationNames: []
       LastWarDeclarationTurn: -1000
       NextAIDiplomacyTurn: 0
       PendingPeaceOfferFrom: 
@@ -18048,7 +18049,6 @@ MonoBehaviour:
       levyRecoveryBoostTicks: 0
       levyRecoveryBonusPerTick: 0
       LevyLawPermille: 200
-      holdingEconomyModifiers: []
       AIMinimumCampaignArmySize: 10
     OriginalNation:
       name: 
@@ -18065,6 +18065,7 @@ MonoBehaviour:
       TributaryMasterName: 
       PeaceTreatyNationNames: []
       WarNationNames: []
+      TotalWarNationNames: []
       LastWarDeclarationTurn: -1000
       NextAIDiplomacyTurn: 0
       PendingPeaceOfferFrom: 
@@ -18089,7 +18090,6 @@ MonoBehaviour:
       levyRecoveryBoostTicks: 0
       levyRecoveryBonusPerTick: 0
       LevyLawPermille: 200
-      holdingEconomyModifiers: []
       AIMinimumCampaignArmySize: 10
     OccupyingNation:
       name: 
@@ -18106,6 +18106,7 @@ MonoBehaviour:
       TributaryMasterName: 
       PeaceTreatyNationNames: []
       WarNationNames: []
+      TotalWarNationNames: []
       LastWarDeclarationTurn: -1000
       NextAIDiplomacyTurn: 0
       PendingPeaceOfferFrom: 
@@ -18130,7 +18131,6 @@ MonoBehaviour:
       levyRecoveryBoostTicks: 0
       levyRecoveryBonusPerTick: 0
       LevyLawPermille: 200
-      holdingEconomyModifiers: []
       AIMinimumCampaignArmySize: 10
     state: 
     region: 
@@ -18154,16 +18154,8 @@ MonoBehaviour:
     mercenaryPools: []
     levyEntitlements: []
     holdings: []
-    baseHoldingTagDesires: []
-    holdingEvolution:
-      evaluationIntervalTicks: 1
-      pressureRequired: 100
-      pressureGainPerEvaluation: 25
-      pressureDecayPerEvaluation: 5
-      transformationCooldownTicks: 24
-      minimumImprovementPercent: 8
-      diversityWeightPercent: 20
-      urbanizationChangeIntervalTicks: 8
+    holdingTypePressures: []
+    holdingClassPressures: []
   width: 0
   height: 0
   OverheadCamera: {fileID: 54361176}
@@ -18214,6 +18206,7 @@ MonoBehaviour:
     TributaryMasterName: 
     PeaceTreatyNationNames: []
     WarNationNames: []
+    TotalWarNationNames: []
     LastWarDeclarationTurn: -1000
     NextAIDiplomacyTurn: 0
     PendingPeaceOfferFrom: 
@@ -18238,7 +18231,6 @@ MonoBehaviour:
     levyRecoveryBoostTicks: 0
     levyRecoveryBonusPerTick: 0
     LevyLawPermille: 200
-    holdingEconomyModifiers: []
     AIMinimumCampaignArmySize: 10
   - name: Carthage
     ownerIdentity:
@@ -18254,6 +18246,7 @@ MonoBehaviour:
     TributaryMasterName: 
     PeaceTreatyNationNames: []
     WarNationNames: []
+    TotalWarNationNames: []
     LastWarDeclarationTurn: -1000
     NextAIDiplomacyTurn: 0
     PendingPeaceOfferFrom: 
@@ -18278,7 +18271,6 @@ MonoBehaviour:
     levyRecoveryBoostTicks: 0
     levyRecoveryBonusPerTick: 0
     LevyLawPermille: 200
-    holdingEconomyModifiers: []
     AIMinimumCampaignArmySize: 10
   - name: Gaul
     ownerIdentity:
@@ -18294,6 +18286,7 @@ MonoBehaviour:
     TributaryMasterName: 
     PeaceTreatyNationNames: []
     WarNationNames: []
+    TotalWarNationNames: []
     LastWarDeclarationTurn: -1000
     NextAIDiplomacyTurn: 0
     PendingPeaceOfferFrom: 
@@ -18318,7 +18311,6 @@ MonoBehaviour:
     levyRecoveryBoostTicks: 0
     levyRecoveryBonusPerTick: 0
     LevyLawPermille: 200
-    holdingEconomyModifiers: []
     AIMinimumCampaignArmySize: 10
   - name: Spain
     ownerIdentity:
@@ -18334,6 +18326,7 @@ MonoBehaviour:
     TributaryMasterName: 
     PeaceTreatyNationNames: []
     WarNationNames: []
+    TotalWarNationNames: []
     LastWarDeclarationTurn: -1000
     NextAIDiplomacyTurn: 0
     PendingPeaceOfferFrom: 
@@ -18358,7 +18351,6 @@ MonoBehaviour:
     levyRecoveryBoostTicks: 0
     levyRecoveryBonusPerTick: 0
     LevyLawPermille: 200
-    holdingEconomyModifiers: []
     AIMinimumCampaignArmySize: 10
   - name: Galicia
     ownerIdentity:
@@ -18374,6 +18366,7 @@ MonoBehaviour:
     TributaryMasterName: 
     PeaceTreatyNationNames: []
     WarNationNames: []
+    TotalWarNationNames: []
     LastWarDeclarationTurn: -1000
     NextAIDiplomacyTurn: 0
     PendingPeaceOfferFrom: 
@@ -18398,7 +18391,6 @@ MonoBehaviour:
     levyRecoveryBoostTicks: 0
     levyRecoveryBonusPerTick: 0
     LevyLawPermille: 200
-    holdingEconomyModifiers: []
     AIMinimumCampaignArmySize: 10
   - name: Egypt
     ownerIdentity:
@@ -18414,6 +18406,7 @@ MonoBehaviour:
     TributaryMasterName: 
     PeaceTreatyNationNames: []
     WarNationNames: []
+    TotalWarNationNames: []
     LastWarDeclarationTurn: -1000
     NextAIDiplomacyTurn: 0
     PendingPeaceOfferFrom: 
@@ -18438,7 +18431,6 @@ MonoBehaviour:
     levyRecoveryBoostTicks: 0
     levyRecoveryBonusPerTick: 0
     LevyLawPermille: 200
-    holdingEconomyModifiers: []
     AIMinimumCampaignArmySize: 10
   - name: Germania
     ownerIdentity:
@@ -18454,6 +18446,7 @@ MonoBehaviour:
     TributaryMasterName: 
     PeaceTreatyNationNames: []
     WarNationNames: []
+    TotalWarNationNames: []
     LastWarDeclarationTurn: -1000
     NextAIDiplomacyTurn: 0
     PendingPeaceOfferFrom: 
@@ -18478,7 +18471,6 @@ MonoBehaviour:
     levyRecoveryBoostTicks: 0
     levyRecoveryBonusPerTick: 0
     LevyLawPermille: 200
-    holdingEconomyModifiers: []
     AIMinimumCampaignArmySize: 10
   - name: Franks
     ownerIdentity:
@@ -18494,6 +18486,7 @@ MonoBehaviour:
     TributaryMasterName: 
     PeaceTreatyNationNames: []
     WarNationNames: []
+    TotalWarNationNames: []
     LastWarDeclarationTurn: -1000
     NextAIDiplomacyTurn: 0
     PendingPeaceOfferFrom: 
@@ -18518,7 +18511,6 @@ MonoBehaviour:
     levyRecoveryBoostTicks: 0
     levyRecoveryBonusPerTick: 0
     LevyLawPermille: 200
-    holdingEconomyModifiers: []
     AIMinimumCampaignArmySize: 10
   - name: Frisia
     ownerIdentity:
@@ -18534,6 +18526,7 @@ MonoBehaviour:
     TributaryMasterName: 
     PeaceTreatyNationNames: []
     WarNationNames: []
+    TotalWarNationNames: []
     LastWarDeclarationTurn: -1000
     NextAIDiplomacyTurn: 0
     PendingPeaceOfferFrom: 
@@ -18558,7 +18551,6 @@ MonoBehaviour:
     levyRecoveryBoostTicks: 0
     levyRecoveryBonusPerTick: 0
     LevyLawPermille: 200
-    holdingEconomyModifiers: []
     AIMinimumCampaignArmySize: 10
   - name: Hadue
     ownerIdentity:
@@ -18574,6 +18566,7 @@ MonoBehaviour:
     TributaryMasterName: 
     PeaceTreatyNationNames: []
     WarNationNames: []
+    TotalWarNationNames: []
     LastWarDeclarationTurn: -1000
     NextAIDiplomacyTurn: 0
     PendingPeaceOfferFrom: 
@@ -18598,7 +18591,6 @@ MonoBehaviour:
     levyRecoveryBoostTicks: 0
     levyRecoveryBonusPerTick: 0
     LevyLawPermille: 200
-    holdingEconomyModifiers: []
     AIMinimumCampaignArmySize: 10
   - name: Numidia
     ownerIdentity:
@@ -18614,6 +18606,7 @@ MonoBehaviour:
     TributaryMasterName: Carthage
     PeaceTreatyNationNames: []
     WarNationNames: []
+    TotalWarNationNames: []
     LastWarDeclarationTurn: -1000
     NextAIDiplomacyTurn: 0
     PendingPeaceOfferFrom: 
@@ -18638,7 +18631,6 @@ MonoBehaviour:
     levyRecoveryBoostTicks: 0
     levyRecoveryBonusPerTick: 0
     LevyLawPermille: 200
-    holdingEconomyModifiers: []
     AIMinimumCampaignArmySize: 10
   - name: Mauritania
     ownerIdentity:
@@ -18654,6 +18646,7 @@ MonoBehaviour:
     TributaryMasterName: Carthage
     PeaceTreatyNationNames: []
     WarNationNames: []
+    TotalWarNationNames: []
     LastWarDeclarationTurn: -1000
     NextAIDiplomacyTurn: 0
     PendingPeaceOfferFrom: 
@@ -18678,7 +18671,6 @@ MonoBehaviour:
     levyRecoveryBoostTicks: 0
     levyRecoveryBonusPerTick: 0
     LevyLawPermille: 200
-    holdingEconomyModifiers: []
     AIMinimumCampaignArmySize: 10
   - name: New Carthage
     ownerIdentity:
@@ -18694,6 +18686,7 @@ MonoBehaviour:
     TributaryMasterName: Carthage
     PeaceTreatyNationNames: []
     WarNationNames: []
+    TotalWarNationNames: []
     LastWarDeclarationTurn: -1000
     NextAIDiplomacyTurn: 0
     PendingPeaceOfferFrom: 
@@ -18718,7 +18711,6 @@ MonoBehaviour:
     levyRecoveryBoostTicks: 0
     levyRecoveryBonusPerTick: 0
     LevyLawPermille: 200
-    holdingEconomyModifiers: []
     AIMinimumCampaignArmySize: 10
   statelist: []
   regionlist: []

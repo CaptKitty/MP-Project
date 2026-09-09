@@ -125,6 +125,10 @@ public class Owners : MonoBehaviour
         {
             gameObject.AddComponent<ProjectX.TileBattle.TileBattleCampaignManager>();
         }
+        if (GetComponent<ProjectX.SectorBattle.SectorBattleCampaignManager>() == null)
+        {
+            gameObject.AddComponent<ProjectX.SectorBattle.SectorBattleCampaignManager>();
+        }
     }
     public void PlantCities()
     {
@@ -291,6 +295,7 @@ public class Owners : MonoBehaviour
                     nation.IsPlayer = CampaignNetworkPlayer.IsNationPlayerControlled(nation.name);
                 if (!nation.IsPlayer) nation.nationalbrainy.Think();
             }
+            ProjectX.SectorBattle.SectorBattleCampaignManager.Instance?.AdvanceFromCampaignStep();
         }
     }
     public void TakeTurns()
@@ -341,6 +346,19 @@ public class Owners : MonoBehaviour
                 " evolution=" + evolutionMs.ToString("0.00") +
                 " queues=" + networkQueuesMs.ToString("0.00") +
                 " counts[n=" + nationlist.Count + ",r=" + regionlist.Count + ",p=" + provincelist.Count + "]");
+    }
+
+    public bool AdvanceOnePausedCampaignStep()
+        => AdvancePausedCampaignSteps(1);
+
+    public bool AdvancePausedCampaignSteps(int stepCount)
+    {
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening && !NetworkManager.Singleton.IsServer)
+            return false;
+        if (!CampaignPaused || stepCount <= 0) return false;
+        int count = Mathf.Clamp(stepCount, 1, 100);
+        for (int i = 0; i < count; i++) RunCampaignStep();
+        return true;
     }
 
     private bool HasActiveCampaignQueues()
@@ -1019,13 +1037,6 @@ public class Province
         if (string.IsNullOrWhiteSpace(culture)) return;
         if (culture.Equals("Germanic", System.StringComparison.OrdinalIgnoreCase))
             EnsureStartingBuilding("SacredGrove");
-        else if (culture.Equals("Latin", System.StringComparison.OrdinalIgnoreCase))
-            EnsureStartingBuilding("Sewer");
-        else if (culture.Equals("Punic", System.StringComparison.OrdinalIgnoreCase))
-        {
-            EnsureStartingBuilding("Sewer");
-            EnsureStartingBuilding("Roads");
-        }
     }
 
     private void EnsureStartingBuilding(string buildingId)
@@ -2372,7 +2383,7 @@ public class Nation
         armies.RemoveAll(army => army == null || army.fieldArmy == null);
 
         for (int i = armies.Count - 1; i >= 0; i--)
-            if (CanCoordinateArmy(armies[i]) && armies[i].fieldArmy.GrabArmySize() <= 0)
+            if (CanCoordinateArmy(armies[i]) && ShouldDisbandEmptyAIArmy(armies[i], now))
                 DisbandAIArmy(armies[i]);
 
         // First consolidate armies that have actually reached the same province.
@@ -2432,7 +2443,7 @@ public class Nation
         NextAICoordinationTurn = now + 4;
         armies.RemoveAll(army => army == null || army.fieldArmy == null);
         for (int i = armies.Count - 1; i >= 0; i--)
-            if (CanCoordinateArmy(armies[i]) && armies[i].fieldArmy.GrabArmySize() <= 0)
+            if (CanCoordinateArmy(armies[i]) && ShouldDisbandEmptyAIArmy(armies[i], now))
                 DisbandAIArmy(armies[i]);
 
         List<Province> occupiedHome = Owners.Instance.provincelist.FindAll(province => province != null &&
@@ -2467,6 +2478,16 @@ public class Nation
         return army != null && !army.IsHumanControlled && army.fieldArmy != null &&
             (army.flaglist == null || !army.flaglist.Contains("Battle")) &&
             (army.fieldArmy.recruitmentOrders == null || army.fieldArmy.recruitmentOrders.Count == 0);
+    }
+
+    private static bool ShouldDisbandEmptyAIArmy(FieldArmyHolder army, int now)
+    {
+        if (army == null || army.fieldArmy == null || army.fieldArmy.GrabArmySize() > 0 ||
+            army.fieldArmy.GrabQueuedArmySize() > 0) return false;
+        // Armies emptied by battle or explicit transfers retain the old immediate cleanup.
+        // A freshly raised container instead gets time to locate manpower and queue its core.
+        if (!army.AIArmyIsAssembling) return true;
+        return now >= army.AIAssemblyGraceUntilTurn && army.AIEmptyRecruitmentFailures >= 3;
     }
 
     private FieldArmyHolder FindNearestCampaignArmy(FieldArmyHolder origin, bool friendly, float maximumDistance)
@@ -2735,6 +2756,7 @@ public class Nation
                     (Owners.Instance.turncounter / Mathf.Max(1, army.AIReinforcementIntervalTurns))) % 3);
             if (!tributaryRecruitment && province.RaiseBestAIRegionLevies(army, levyBatch) > 0)
             {
+                MarkAIArmyAssemblySuccessful(army);
                 army.NextAIReinforcementTurn = Owners.Instance.turncounter + Mathf.Max(1, army.AIReinforcementIntervalTurns);
                 return true;
             }
@@ -2751,7 +2773,17 @@ public class Nation
                 army.TargetProvince = recruitmentProvince;
             }
         }
+        if (army.IsTargetNull() && army.AIArmyIsAssembling && army.fieldArmy.GrabArmySize() <= 0 &&
+            army.fieldArmy.GrabQueuedArmySize() <= 0)
+            army.AIEmptyRecruitmentFailures++;
         return false;
+    }
+
+    private static void MarkAIArmyAssemblySuccessful(FieldArmyHolder army)
+    {
+        if (army == null) return;
+        army.AIArmyIsAssembling = false;
+        army.AIEmptyRecruitmentFailures = 0;
     }
 
     private Province FindTributaryReinforcementProvince(FieldArmyHolder army)
@@ -2858,6 +2890,7 @@ public class Nation
         Gold -= goldCost;
         if (!army.fieldArmy.QueueRecruitment(unit, 1, origin, tributary ? rosterNation.name : null))
         { rosterNation.RefundManpower(source, 1f); Gold += goldCost; return false; }
+        MarkAIArmyAssemblySuccessful(army);
         army.NextAIReinforcementTurn = Owners.Instance.turncounter + Mathf.Max(1, army.AIReinforcementIntervalTurns);
         return true;
     }
@@ -2918,6 +2951,11 @@ public class Nation
                     Gold -= CampaignEconomy.ArmyCreationCost;
                     spawned.PreserveConfiguredRoster = true;
                     spawned.fieldArmy.nation = this;
+                    spawned.AIArmyIsAssembling = true;
+                    spawned.AIEmptyRecruitmentFailures = 0;
+                    int now = Owners.Instance != null ? Owners.Instance.turncounter : 0;
+                    spawned.AIAssemblyGraceUntilTurn = now + Mathf.Max(24,
+                        spawned.AIReinforcementIntervalTurns * 3);
                     if (!armies.Contains(spawned)) armies.Add(spawned);
                     return true;
                 }

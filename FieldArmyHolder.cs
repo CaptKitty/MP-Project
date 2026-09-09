@@ -41,6 +41,9 @@ public class FieldArmyHolder : MonoBehaviour
     [HideInInspector] public int NextAIReinforcementTurn;
     [HideInInspector] public int AIAcceptedUnderstrengthUntilTurn;
     [HideInInspector] public int AIDesiredArmySize;
+    [System.NonSerialized] public bool AIArmyIsAssembling;
+    [System.NonSerialized] public int AIAssemblyGraceUntilTurn;
+    [System.NonSerialized] public int AIEmptyRecruitmentFailures;
     [HideInInspector] public int CannotEngageUntilTurn;
     [HideInInspector] public int MovementPenaltyUntilTurn;
     [Min(0.1f)] public float NetworkInterpolationSpeed = 12f;
@@ -48,6 +51,9 @@ public class FieldArmyHolder : MonoBehaviour
     private Vector3 networkVisualTarget;
     private bool hasNetworkVisualTarget;
     public GeneralBrain generalbrain;
+    [Header("Sector Battle Command")]
+    [Tooltip("Maximum independently ordered sector command groups. Zero derives 4-8 from the generated general's competence.")]
+    [Range(0, 8)] public int SectorCommandGroupCapacity;
     
     public void Awake()
     {
@@ -191,7 +197,8 @@ public class FieldArmyHolder : MonoBehaviour
         // Unity's physics OnMouseDown is independent of the UI GraphicRaycaster.
         // Explicitly respect raycastable UI so clicks on ArmyHost cannot select
         // an army marker (or any other map object) behind the panel.
-        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+        if (ProjectX.SectorBattle.SectorBattlePresentation.BlocksWorldInput ||
+            EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
         if (Mapshower.Instance != null) Mapshower.Instance.ConsumeCurrentMapClick();
         SelectFromMapClick();
     }
@@ -240,8 +247,22 @@ public class FieldArmyHolder : MonoBehaviour
             Owners.Instance.turncounter < otherarmy.CannotEngageUntilTurn)) return;
         if (DiplomacySystem.AreFriendly(otherarmy.fieldArmy.nation, fieldArmy.nation))
         {
+            if (ProjectX.SectorBattle.SectorBattleCampaignManager.Instance != null &&
+                DeterministicBattleManager.Instance != null &&
+                DeterministicBattleManager.Instance.BattleSystemMode == CampaignBattleSystemMode.Sector)
+            {
+                ProjectX.SectorBattle.SectorBattleCampaignManager.Instance.TryJoinFriendlyBattle(this, otherarmy);
+                return;
+            }
             if (ProjectX.TileBattle.TileBattleCampaignManager.Instance != null)
                 ProjectX.TileBattle.TileBattleCampaignManager.Instance.TryJoinFriendlyBattle(this, otherarmy);
+            return;
+        }
+        if (DeterministicBattleManager.Instance != null &&
+            DeterministicBattleManager.Instance.BattleSystemMode == CampaignBattleSystemMode.Sector &&
+            ProjectX.SectorBattle.SectorBattleCampaignManager.Instance != null)
+        {
+            ProjectX.SectorBattle.SectorBattleCampaignManager.Instance.TryStartBattle(this, otherarmy);
             return;
         }
         if (DeterministicBattleManager.Instance != null &&
@@ -368,6 +389,13 @@ public class FieldArmyHolder : MonoBehaviour
             if (destination != null && destination.ControllerNation != fieldArmy.nation &&
                 !DiplomacySystem.HasMasterAccess(fieldArmy.nation, destination.ControllerNation))
             {
+                if (DeterministicBattleManager.Instance != null &&
+                    DeterministicBattleManager.Instance.BattleSystemMode == CampaignBattleSystemMode.Sector &&
+                    ProjectX.SectorBattle.SectorBattleCampaignManager.Instance != null)
+                {
+                    ProjectX.SectorBattle.SectorBattleCampaignManager.Instance.TryStartGarrisonBattle(this, destination);
+                }
+                else
                 if (DeterministicBattleManager.Instance != null &&
                     DeterministicBattleManager.Instance.BattleSystemMode == CampaignBattleSystemMode.TileBased &&
                     ProjectX.TileBattle.TileBattleCampaignManager.Instance != null)

@@ -5,7 +5,11 @@ public static class CampaignEconomy
     public const int StartingGold = 500;
     public const int ArmyCreationCost = 250;
     public const int FarmIncomePerLevel = 5;
-    public const float GoldIncomeRate = 0.5f;
+    // Manpower constrains how quickly wealth can be converted into armies, so paying
+    // half of all provincial output every economy tick allowed treasuries to grow much
+    // faster than nations could spend them. Keep this as the single campaign-wide
+    // balance lever used by both the economy calculation and its UI descriptions.
+    public const float GoldIncomeRate = 0.10f;
 
     public static int ApplyGoldIncomeRate(int rawIncome) =>
         rawIncome <= 0 ? 0 : Mathf.Max(1, Mathf.RoundToInt(rawIncome * GoldIncomeRate));

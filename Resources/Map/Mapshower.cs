@@ -193,6 +193,8 @@ public class Mapshower : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (ProjectX.SectorBattle.SectorBattlePresentation.BlocksWorldInput && Input.GetMouseButtonDown(0))
+            ConsumeCurrentMapClick();
         if (Input.GetKeyDown("escape"))
         {
             RePaint();
@@ -739,6 +741,13 @@ public class Mapshower : MonoBehaviour
             SessionManager.Instance.savedProvince = SelectedProvince;
 
         if (DeterministicBattleManager.Instance != null &&
+            DeterministicBattleManager.Instance.BattleSystemMode == CampaignBattleSystemMode.Sector &&
+            ProjectX.SectorBattle.SectorBattleCampaignManager.Instance != null)
+        {
+            ProjectX.SectorBattle.SectorBattleCampaignManager.Instance.TryStartGarrisonBattle(FieldArmyHolder.PlayerFieldArmy, SelectedProvince);
+            return;
+        }
+        if (DeterministicBattleManager.Instance != null &&
             DeterministicBattleManager.Instance.BattleSystemMode == CampaignBattleSystemMode.TileBased &&
             ProjectX.TileBattle.TileBattleCampaignManager.Instance != null)
         {
@@ -858,7 +867,8 @@ public class Mapshower : MonoBehaviour
     }
     private bool IsCompletedMapClick()
     {
-        return Input.GetMouseButtonUp(0) && !suppressMapClickUntilMouseRelease &&
+        return !ProjectX.SectorBattle.SectorBattlePresentation.BlocksWorldInput &&
+            Input.GetMouseButtonUp(0) && !suppressMapClickUntilMouseRelease &&
             mapPressStartedOutsideUI && !mapDragExceededClickThreshold;
     }
 

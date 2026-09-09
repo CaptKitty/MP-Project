@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b927c6c7360443b4b17b23aff11ff789, type: 3}
+  m_Name: SectorBattleRules
+  m_EditorClassIdentifier: 
+  ticksPerSecond: 1
+  combatIntervalTicks: 1
+  maximumTicks: 2000
+  baseDamage: 10
+  routMorale: 150
+  exhaustionPerAttack: 8
+  flankFrontage: 2
+  flankMoralePenalty: 0
+  rangedAdjacentRange: 1
+  rangedSupportDamagePercent: 75
+  phalanxCombatPercent: 125
+  phalanxRequiredFormations: 3
+  warchiefCombatPercent: 110
+  warcryCombatPercent: 125
+  warcryDurationTicks: 8
+  disciplinedExhaustionPercent: 60
+  openingVolleyDamage: 10
+  backlineCollapseCasualtyPercent: 35
+  uncontestedEnemyReserveTicksToRout: 5
+  columnFrontage: 0200000003000000050000000300000002000000
+  terrainRules:
+  - terrain: 0
+    frontageModifier: 0
+    movementCost: 1
+    allowsPhalanx: 1
+    allowsForester: 0
+    allowsAquatic: 0
+    allowsMountaineer: 0
+    combatEffectivenessPercent: 100
+  - terrain: 3
+    frontageModifier: -2
+    movementCost: 2
+    allowsPhalanx: 0
+    allowsForester: 1
+    allowsAquatic: 0
+    allowsMountaineer: 0
+    combatEffectivenessPercent: 85
+  - terrain: 4
+    frontageModifier: -1
+    movementCost: 2
+    allowsPhalanx: 0
+    allowsForester: 0
+    allowsAquatic: 0
+    allowsMountaineer: 0
+    combatEffectivenessPercent: 90
+  - terrain: 5
+    frontageModifier: -1
+    movementCost: 2
+    allowsPhalanx: 1
+    allowsForester: 0
+    allowsAquatic: 0
+    allowsMountaineer: 0
+    combatEffectivenessPercent: 100
+  - terrain: 6
+    frontageModifier: -2
+    movementCost: 3
+    allowsPhalanx: 0
+    allowsForester: 0
+    allowsAquatic: 1
+    allowsMountaineer: 0
+    combatEffectivenessPercent: 75
+  - terrain: 7
+    frontageModifier: -4
+    movementCost: 5
+    allowsPhalanx: 0
+    allowsForester: 0
+    allowsAquatic: 0
+    allowsMountaineer: 1
+    combatEffectivenessPercent: 60

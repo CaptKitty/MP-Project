@@ -266,6 +266,9 @@ namespace ProjectX.TileBattle
 
         private void OpenRelevantBattle()
         {
+            ProjectX.SectorBattle.SectorBattlePresentation sector = ProjectX.SectorBattle.SectorBattlePresentation.Instance;
+            if ((manager == null || manager.ActiveBattles.Count == 0) && sector != null && sector.ActiveBattleCount > 0)
+            { sector.OpenRelevantBattle(); return; }
             if (manager == null || manager.ActiveBattles.Count == 0) return;
             TileCampaignBattle battle = manager.ActiveBattles.Find(item => item.ArmyA != null && item.ArmyA.IsFriendlyToLocalPlayer() ||
                 item.ArmyB != null && item.ArmyB.IsFriendlyToLocalPlayer());
@@ -298,9 +301,12 @@ namespace ProjectX.TileBattle
 
         private void RefreshAccess()
         {
-            bool active = manager != null && manager.ActiveBattles.Count > 0;
+            int tileCount = manager != null ? manager.ActiveBattles.Count : 0;
+            int sectorCount = ProjectX.SectorBattle.SectorBattlePresentation.Instance != null
+                ? ProjectX.SectorBattle.SectorBattlePresentation.Instance.ActiveBattleCount : 0;
+            bool active = tileCount + sectorCount > 0;
             if (accessRoot != null) accessRoot.SetActive(active);
-            if (active && accessText != null) accessText.text = "TILE BATTLES: " + manager.ActiveBattles.Count + "\nClick to watch";
+            if (active && accessText != null) accessText.text = "BATTLES: " + (tileCount + sectorCount) + "\nClick to watch";
         }
 
         private void EnsureGrid(int width, int height)

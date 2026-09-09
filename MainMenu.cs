@@ -27,6 +27,11 @@ public class MainMenu : MonoBehaviour
         Main.SetActive(false);
         Multi.SetActive(true);
     }
+    public void StartCustomSectorBattle()
+    {
+        ProjectX.SectorBattle.SectorCustomBattleLaunchRequest.Request();
+        SceneManager.LoadScene("MapScene");
+    }
     public void ChangePick(int whichone)
     {
         for (int i = 0; i < 7; i++)

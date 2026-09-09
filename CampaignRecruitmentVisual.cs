@@ -61,7 +61,10 @@ public sealed class CampaignRecruitmentVisual : MonoBehaviour
             layer.transform.SetParent(transform, false);
             SpriteRenderer renderer = layer.AddComponent<SpriteRenderer>();
             renderer.sprite = unit.bodyparts[i];
-            renderer.drawMode = SpriteDrawMode.Sliced;
+            // These transient figures use many sprites imported with Tight meshes. Sliced
+            // rendering requires Full Rect and otherwise emits one warning per spawned layer.
+            // Their copied transform provides the desired scale, so Simple is the correct mode.
+            renderer.drawMode = SpriteDrawMode.Simple;
             if (i < army.transform.childCount)
             {
                 SpriteRenderer reference = army.transform.GetChild(i).GetComponent<SpriteRenderer>();

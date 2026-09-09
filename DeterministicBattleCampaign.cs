@@ -4,7 +4,7 @@ using Unity.Netcode;
 using UnityEngine;
 using ProjectX.DeterministicBattle;
 
-public enum CampaignBattleSystemMode { Legacy, Deterministic, TileBased }
+public enum CampaignBattleSystemMode { Legacy, Deterministic, TileBased, Sector }
 
 [Serializable]
 public sealed class SavedBattleDeployment
@@ -498,7 +498,7 @@ public static class CampaignBattleStateAdapter
 public class DeterministicBattleManager : MonoBehaviour
 {
     public static DeterministicBattleManager Instance { get; private set; }
-    public CampaignBattleSystemMode BattleSystemMode = CampaignBattleSystemMode.TileBased;
+    public CampaignBattleSystemMode BattleSystemMode = CampaignBattleSystemMode.Sector;//TileBased;
     [Range(1, 100)] public int SimulationTicksPerCampaignSecond = 30;
     public bool EnableDiagnosticLogging;
     public bool AllowPlayerTacticalOrders = true;

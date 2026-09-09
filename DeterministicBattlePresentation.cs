@@ -125,6 +125,8 @@ public sealed class LayeredBattleUnitVisual : MonoBehaviour
         SetLayerOffset(1, weaponOffset);
         if (layers.Count > 1) layers[1].rectTransform.localRotation = Quaternion.Euler(0f, 0f, weaponPresentationAngle);
         ConfigureLegacyAnimator(unit);
+        if (equipmentDropped)
+            for (int i = 0; i < Mathf.Min(2, layers.Count); i++) layers[i].gameObject.SetActive(false);
     }
 
     public void SetHorizontalFacing(bool faceLeft)

@@ -884,6 +884,8 @@ namespace ProjectX.SectorBattle
         private string FactionName(SectorCampaignBattle battle, int side)
         {
             if (battle == null) return side == 0 ? "Side A" : "Side B";
+            string displayName = side == 0 ? battle.DisplayFactionA : battle.DisplayFactionB;
+            if (!string.IsNullOrEmpty(displayName)) return displayName;
             FieldArmy army = side == 0 ? battle.ArmyA?.fieldArmy : battle.ArmyB != null ? battle.ArmyB.fieldArmy : battle.Garrison;
             Nation nation = army != null ? army.nation : null;
             if (nation != null && nation.faction != null && !string.IsNullOrEmpty(nation.faction.name)) return nation.faction.name;

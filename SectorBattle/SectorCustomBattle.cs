@@ -26,7 +26,7 @@ namespace ProjectX.SectorBattle
     {
         public static SectorBattleSimulation Prepare(SectorBattlePreset preset, ulong seed, int capacityA, int capacityB,
             bool playerA, bool playerB, SectorBattleRules rules = null,
-            SectorGeneralTactic tacticA = SectorGeneralTactic.Balanced, SectorGeneralTactic tacticB = SectorGeneralTactic.Balanced)
+            SectorGeneralTactic tacticA = SectorGeneralTactic.Standard, SectorGeneralTactic tacticB = SectorGeneralTactic.Standard)
         {
             BattleSimulationRequest request = new BattleSimulationRequest { BattleId = "custom-" + preset + "-" + seed, Seed = seed };
             request.Commanders.Add(new BattleSideCommandConfig { Side = 0, GeneralName = "Roman Test General", CommandGroupCapacity = Mathf.Clamp(capacityA, 4, 8), PlayerControlled = playerA });

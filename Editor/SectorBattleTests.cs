@@ -231,12 +231,12 @@ public sealed class SectorBattleTests
         { new SectorCustomFormationSpec { Unit = carthaginian, Count = 2, Lane = BattleLane.UpperWing } };
 
         SectorBattleSimulation simulation = SectorCustomBattleFactory.PrepareGenerated(sideA, sideB, 12, 4, 5,
-            "Aggressive General", "Flanking General", SectorGeneralTactic.Aggressive, SectorGeneralTactic.Flanking);
+            "Centre Assault General", "Supported Centre General", SectorGeneralTactic.AllInCentre, SectorGeneralTactic.SupportedCentre);
 
         Assert.AreEqual(3, new System.Collections.Generic.List<SectorFormation>(simulation.Formations).FindAll(item => item.Side == 0).Count);
         Assert.AreEqual(2, new System.Collections.Generic.List<SectorFormation>(simulation.Formations).FindAll(item => item.Side == 1).Count);
-        Assert.AreEqual(SectorGeneralTactic.Aggressive, simulation.Commands.Tactic(0));
-        Assert.AreEqual(SectorGeneralTactic.Flanking, simulation.Commands.Tactic(1));
+        Assert.AreEqual(SectorGeneralTactic.AllInCentre, simulation.Commands.Tactic(0));
+        Assert.AreEqual(SectorGeneralTactic.SupportedCentre, simulation.Commands.Tactic(1));
     }
 
     [Test]

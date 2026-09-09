@@ -6,7 +6,7 @@ using ProjectX.TileBattle;
 namespace ProjectX.SectorBattle
 {
     public enum SectorGroupOrder : byte { Hold, Move, Advance, Withdraw }
-    public enum SectorGeneralTactic : byte { Balanced, Aggressive, Defensive, Flanking }
+    public enum SectorGeneralTactic : byte { Standard, AllInCentre, SupportedCentre }
     public enum SectorGroupRole : byte { HeavyInfantry, LineInfantry, LightInfantry, Phalanx, Skirmisher, MissileInfantry, LightCavalry, HeavyCavalry, Large }
 
     [Serializable]
@@ -51,7 +51,7 @@ namespace ProjectX.SectorBattle
         public void LockMembership() { for (int i = 0; i < groups.Count; i++) groups[i].MembershipLocked = true; }
         public SectorCommandGroup GroupForFormation(int formationId) => byFormation.TryGetValue(formationId, out SectorCommandGroup group) ? group : null;
         public int Capacity(int side) => commanders.TryGetValue(side, out BattleSideCommandConfig config) ? Math.Max(1, config.CommandGroupCapacity) : 5;
-        public SectorGeneralTactic Tactic(int side) => tactics.TryGetValue(side, out SectorGeneralTactic tactic) ? tactic : SectorGeneralTactic.Balanced;
+        public SectorGeneralTactic Tactic(int side) => tactics.TryGetValue(side, out SectorGeneralTactic tactic) ? tactic : SectorGeneralTactic.Standard;
         public void SetTactic(int side, SectorGeneralTactic tactic) => tactics[side] = tactic;
         public void SetPlayerControlled(int side, bool playerControlled)
         {
@@ -183,7 +183,9 @@ namespace ProjectX.SectorBattle
             // The designated manoeuvre group always goes wide. Independently mobile cavalry
             // and skirmisher groups may also recognize the same opening instead of relying on
             // a single setup-time assignment surviving command-group consolidation.
-            bool flanker = Tactic(group.Side) == SectorGeneralTactic.Flanking || aiFlankAssignments.ContainsKey(group.GroupId) || FlankSuitability(group.Role) >= 3;
+            SectorGeneralTactic tactic = Tactic(group.Side);
+            bool flanker = tactic != SectorGeneralTactic.AllInCentre &&
+                (aiFlankAssignments.ContainsKey(group.GroupId) || FlankSuitability(group.Role) >= 3);
             if (flanker && SupportsFriendlyFightFrom(group.CurrentSector, group.Side))
             {
                 group.CurrentOrder = SectorGroupOrder.Hold;
@@ -206,15 +208,17 @@ namespace ProjectX.SectorBattle
 
         private int ScorePosition(SectorCommandGroup group, SectorCoord position, bool flanker)
         {
-            int direction = group.Side == 0 ? 1 : -1;
             SectorGeneralTactic tactic = Tactic(group.Side);
-            int forwardScore = simulation.Rules.aiForwardScore + (tactic == SectorGeneralTactic.Aggressive ? 18 : tactic == SectorGeneralTactic.Defensive ? -22 : 0);
+            int direction = group.Side == 0 ? 1 : -1;
+            int forwardScore = simulation.Rules.aiForwardScore;
+            if (tactic == SectorGeneralTactic.AllInCentre) forwardScore += 22;
+            else if (tactic == SectorGeneralTactic.SupportedCentre) forwardScore -= 12;
             int score = ((int)position.Depth - (int)group.CurrentSector.Depth) * direction * forwardScore;
             int friendly = CountAt(position, group.Side), enemy = CountAt(position, 1 - group.Side);
             if (enemy > 0) score += simulation.Rules.aiEnemyScore + enemy * 12 +
-                (tactic == SectorGeneralTactic.Aggressive ? 30 : tactic == SectorGeneralTactic.Defensive ? -15 : 0);
+                (tactic == SectorGeneralTactic.AllInCentre ? 25 : tactic == SectorGeneralTactic.SupportedCentre ? -5 : 0);
             if (simulation.IsSectorContested(position)) score += simulation.Rules.aiContestedScore +
-                (tactic == SectorGeneralTactic.Defensive ? 35 : 0);
+                (tactic == SectorGeneralTactic.AllInCentre ? 20 : tactic == SectorGeneralTactic.SupportedCentre ? 15 : 0);
             score -= friendly * 4;
 
             int nearestEnemy = 20;
@@ -225,21 +229,32 @@ namespace ProjectX.SectorBattle
 
             int flankTargets = AdjacentContestedEnemies(position, group.Side);
             if (flankTargets > 0) score += flankTargets * (simulation.Rules.aiFlankScore + FlankSuitability(group.Role) * 12 +
-                (tactic == SectorGeneralTactic.Flanking ? 45 : 0));
+                (tactic == SectorGeneralTactic.SupportedCentre ? 55 : 0));
             int wingDistance = Math.Abs((int)position.Lane - (int)BattleLane.Centre);
-            if (flanker)
+            if (tactic == SectorGeneralTactic.AllInCentre)
             {
-                score += wingDistance * (simulation.Rules.aiWideScore + FlankSuitability(group.Role) * 2);
-                if (position.Lane == BattleLane.TopFlank || position.Lane == BattleLane.BottomFlank)
-                    score += 55 + FlankSuitability(group.Role) * 5;
-                // Spread vertically while protected by the reserve, then advance horizontally.
+                // The whole army is committed through the centre. Wing and outer-flank moves
+                // are scored far below any viable central advance or engagement.
+                if (position.Lane != BattleLane.Centre) score -= 10000;
+                else score += 80;
+            }
+            else if (flanker)
+            {
+                int supportBonus = tactic == SectorGeneralTactic.SupportedCentre ? 18 : 0;
+                score += wingDistance * (simulation.Rules.aiWideScore + supportBonus + FlankSuitability(group.Role) * 2);
+                bool outerFlank = position.Lane == BattleLane.TopFlank || position.Lane == BattleLane.BottomFlank;
+                if (tactic == SectorGeneralTactic.SupportedCentre && outerFlank)
+                    score += 110 + FlankSuitability(group.Role) * 5;
+                else if (tactic == SectorGeneralTactic.Standard)
+                    score += outerFlank ? -100 : wingDistance == 1 ? 45 : 0;
+                // Support moves laterally behind the line before advancing around it.
                 if (group.CurrentSector.Lane == BattleLane.Centre && position.Depth != group.CurrentSector.Depth) score -= 35;
             }
             else
             {
                 bool line = group.Role == SectorGroupRole.HeavyInfantry || group.Role == SectorGroupRole.LineInfantry ||
                             group.Role == SectorGroupRole.Phalanx || group.Role == SectorGroupRole.Large;
-                if (line) score -= wingDistance * 16;
+                if (line) score -= wingDistance * (tactic == SectorGeneralTactic.SupportedCentre ? 24 : 16);
             }
             BattleDepth enemyReserve = group.Side == 0 ? BattleDepth.SideBReserve : BattleDepth.SideAReserve;
             if (position.Depth == enemyReserve && enemy == 0) score += 35;

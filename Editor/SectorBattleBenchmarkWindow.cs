@@ -67,6 +67,8 @@ public sealed class SectorBenchmarkResult
     public ulong Seed;
     public int CapacityA;
     public int CapacityB;
+    public string FactionA;
+    public string FactionB;
     public string GeneralA;
     public string GeneralB;
     public SectorGeneralTactic TacticA;
@@ -100,6 +102,8 @@ internal sealed class SectorBenchmarkViewRequest
     public ulong Seed;
     public int CapacityA;
     public int CapacityB;
+    public string FactionA;
+    public string FactionB;
     public string GeneralA;
     public string GeneralB;
     public SectorGeneralTactic TacticA;
@@ -116,9 +120,13 @@ public sealed class SectorBattleBenchmarkWindow : EditorWindow
     [SerializeField] private int repetitions = 20;
     [SerializeField] private int capacityA = 6;
     [SerializeField] private int capacityB = 6;
+    [SerializeField] private FactionArmyTemplate templateA;
+    [SerializeField] private FactionArmyTemplate templateB;
     [SerializeField] private bool useGeneratedArmies = true;
     [SerializeField] private int generatedFormationsA = 10;
     [SerializeField] private int generatedFormationsB = 10;
+    [SerializeField] private string factionA = "Side A";
+    [SerializeField] private string factionB = "Side B";
     [SerializeField] private string generalA = "Side A General";
     [SerializeField] private string generalB = "Side B General";
     [SerializeField] private SectorGeneralTactic tacticA;
@@ -162,10 +170,21 @@ public sealed class SectorBattleBenchmarkWindow : EditorWindow
             repetitions = Mathf.Clamp(EditorGUILayout.IntField("Seeds per value", repetitions), 1, 10000);
             capacityA = Mathf.Clamp(EditorGUILayout.IntSlider("Side A command capacity", capacityA, 4, 8), 4, 8);
             capacityB = Mathf.Clamp(EditorGUILayout.IntSlider("Side B command capacity", capacityB, 4, 8), 4, 8);
+            EditorGUILayout.BeginHorizontal();
+            templateA = (FactionArmyTemplate)EditorGUILayout.ObjectField("Side A template", templateA, typeof(FactionArmyTemplate), false);
+            using (new EditorGUI.DisabledScope(templateA == null)) if (GUILayout.Button("Load A", GUILayout.Width(65))) LoadTemplate(templateA, 0);
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
+            templateB = (FactionArmyTemplate)EditorGUILayout.ObjectField("Side B template", templateB, typeof(FactionArmyTemplate), false);
+            using (new EditorGUI.DisabledScope(templateB == null)) if (GUILayout.Button("Load B", GUILayout.Width(65))) LoadTemplate(templateB, 1);
+            EditorGUILayout.EndHorizontal();
+            factionA = EditorGUILayout.TextField("Side A faction", factionA);
             generalA = EditorGUILayout.TextField("Side A general", generalA);
             tacticA = (SectorGeneralTactic)EditorGUILayout.EnumPopup("Side A tactic", tacticA);
+            factionB = EditorGUILayout.TextField("Side B faction", factionB);
             generalB = EditorGUILayout.TextField("Side B general", generalB);
             tacticB = (SectorGeneralTactic)EditorGUILayout.EnumPopup("Side B tactic", tacticB);
+            EditorGUILayout.HelpBox("Names are display labels. Standard holds the main army in the centre with mobile support on the wings. All In Centre commits every group through the central lane. Supported Centre reduces central pressure and strongly favors wing and outer-flank support.", MessageType.None);
             useGeneratedArmies = EditorGUILayout.Toggle("Use generated armies", useGeneratedArmies);
             if (useGeneratedArmies)
             {
@@ -210,6 +229,41 @@ public sealed class SectorBattleBenchmarkWindow : EditorWindow
         DrawResults();
     }
 
+    private void LoadTemplate(FactionArmyTemplate template, int side)
+    {
+        if (template == null) return;
+        List<SectorBenchmarkArmyEntry> target = side == 0 ? armyA : armyB;
+        target.Clear();
+        if (template.formations != null)
+            foreach (SectorCustomFormationSpec formation in template.formations)
+                if (formation != null && formation.Unit != null && formation.Count > 0)
+                    target.Add(new SectorBenchmarkArmyEntry { Unit = formation.Unit, Count = formation.Count, Lane = formation.Lane });
+        if (side == 0)
+        {
+            factionA = template.factionName;
+            generalA = template.generalName;
+            tacticA = template.tactic;
+            capacityA = Mathf.Clamp(template.commandGroupCapacity, 4, 8);
+            generatedFormationsA = CountFormations(target);
+        }
+        else
+        {
+            factionB = template.factionName;
+            generalB = template.generalName;
+            tacticB = template.tactic;
+            capacityB = Mathf.Clamp(template.commandGroupCapacity, 4, 8);
+            generatedFormationsB = CountFormations(target);
+        }
+        useGeneratedArmies = true;
+        showArmies = true;
+    }
+
+    private static int CountFormations(List<SectorBenchmarkArmyEntry> army)
+    {
+        int count = 0;
+        foreach (SectorBenchmarkArmyEntry entry in army) if (entry != null) count += Mathf.Max(0, entry.Count);
+        return Mathf.Max(1, count);
+    }
     private void DrawArmy(string label, List<SectorBenchmarkArmyEntry> army)
     {
         EditorGUILayout.LabelField(label, EditorStyles.boldLabel);
@@ -285,7 +339,7 @@ public sealed class SectorBattleBenchmarkWindow : EditorWindow
             for (int seedOffset = 0; seedOffset < repetitions; seedOffset++)
                 pending.Enqueue(new SectorBenchmarkViewRequest { Preset = preset, Variable = variable, Value = value,
                     Seed = (ulong)(firstSeed + seedOffset), CapacityA = capacityA, CapacityB = capacityB,
-                    GeneralA = generalA, GeneralB = generalB, TacticA = tacticA, TacticB = tacticB,
+                    FactionA = factionA, FactionB = factionB, GeneralA = generalA, GeneralB = generalB, TacticA = tacticA, TacticB = tacticB,
                     ArmyA = useGeneratedArmies ? MakeSpecs(armyA) : new List<SectorBenchmarkArmySpec>(),
                     ArmyB = useGeneratedArmies ? MakeSpecs(armyB) : new List<SectorBenchmarkArmySpec>() });
             if (variable == SectorBenchmarkVariable.None || value > high - Math.Max(1, step)) break;
@@ -360,7 +414,8 @@ public sealed class SectorBattleBenchmarkWindow : EditorWindow
                 EditorGUILayout.LabelField("Strength A " + result.RemainingStrengthA + "/" + result.InitialStrengthA +
                     " (lost " + result.CasualtiesA + ") | B " + result.RemainingStrengthB + "/" + result.InitialStrengthB + " (lost " + result.CasualtiesB + ")");
                 EditorGUILayout.LabelField("Routed A/B: " + result.RoutedA + "/" + result.RoutedB + " | " + result.EndReason);
-                EditorGUILayout.LabelField(result.GeneralA + " (" + result.TacticA + ") vs " + result.GeneralB + " (" + result.TacticB + ")", EditorStyles.miniBoldLabel);
+                EditorGUILayout.LabelField(result.FactionA + ": " + result.GeneralA + " (" + result.TacticA + ") vs " +
+                    result.FactionB + ": " + result.GeneralB + " (" + result.TacticB + ")", EditorStyles.miniBoldLabel);
                 if (result.UnitPerformance != null)
                     foreach (SectorUnitPerformance unit in result.UnitPerformance)
                         EditorGUILayout.LabelField("  Side " + (unit.Side == 0 ? "A" : "B") + " | " + unit.UnitName +
@@ -410,7 +465,7 @@ internal static class SectorBattleBenchmarkRunner
     {
         SectorBenchmarkResult result = new SectorBenchmarkResult { Preset = request.Preset, Variable = request.Variable,
             Value = request.Value, Seed = request.Seed, CapacityA = request.CapacityA, CapacityB = request.CapacityB,
-            GeneralA = request.GeneralA, GeneralB = request.GeneralB, TacticA = request.TacticA, TacticB = request.TacticB,
+            FactionA = request.FactionA, FactionB = request.FactionB, GeneralA = request.GeneralA, GeneralB = request.GeneralB, TacticA = request.TacticA, TacticB = request.TacticB,
             ArmyA = request.ArmyA, ArmyB = request.ArmyB, Winner = -1 };
         SectorBattleRules rules = null;
         try
@@ -543,14 +598,14 @@ internal static class SectorBattleBenchmarkRunner
 
     public static string ToCsv(List<SectorBenchmarkResult> results)
     {
-        StringBuilder csv = new StringBuilder("preset,variable,value,seed,capacity_a,capacity_b,winner,ticks,initial_a,initial_b,remaining_a,remaining_b,casualties_a,casualties_b,routed_a,routed_b,runtime_ms,general_a,tactic_a,general_b,tactic_b,unit_performance,end_reason,error\n");
+        StringBuilder csv = new StringBuilder("preset,variable,value,seed,capacity_a,capacity_b,winner,ticks,initial_a,initial_b,remaining_a,remaining_b,casualties_a,casualties_b,routed_a,routed_b,runtime_ms,faction_a,general_a,tactic_a,faction_b,general_b,tactic_b,unit_performance,end_reason,error\n");
         foreach (SectorBenchmarkResult result in results)
             csv.Append(Cell(result.Preset.ToString())).Append(',').Append(Cell(result.Variable.ToString())).Append(',').Append(result.Value).Append(',').Append(result.Seed)
                 .Append(',').Append(result.CapacityA).Append(',').Append(result.CapacityB).Append(',').Append(result.Winner).Append(',').Append(result.Ticks)
                 .Append(',').Append(result.InitialStrengthA).Append(',').Append(result.InitialStrengthB).Append(',').Append(result.RemainingStrengthA).Append(',').Append(result.RemainingStrengthB)
                 .Append(',').Append(result.CasualtiesA).Append(',').Append(result.CasualtiesB).Append(',').Append(result.RoutedA).Append(',').Append(result.RoutedB)
-                .Append(',').Append(result.RuntimeMilliseconds.ToString("F6", CultureInfo.InvariantCulture)).Append(',').Append(Cell(result.GeneralA)).Append(',').Append(Cell(result.TacticA.ToString()))
-                .Append(',').Append(Cell(result.GeneralB)).Append(',').Append(Cell(result.TacticB.ToString())).Append(',').Append(Cell(UnitSummary(result.UnitPerformance)))
+                .Append(',').Append(result.RuntimeMilliseconds.ToString("F6", CultureInfo.InvariantCulture)).Append(',').Append(Cell(result.FactionA)).Append(',').Append(Cell(result.GeneralA)).Append(',').Append(Cell(result.TacticA.ToString()))
+                .Append(',').Append(Cell(result.FactionB)).Append(',').Append(Cell(result.GeneralB)).Append(',').Append(Cell(result.TacticB.ToString())).Append(',').Append(Cell(UnitSummary(result.UnitPerformance)))
                 .Append(',').Append(Cell(result.EndReason)).Append(',').Append(Cell(result.Error)).Append('\n');
         return csv.ToString();
     }
@@ -586,7 +641,7 @@ internal static class SectorBattleBenchmarkPlayModeViewer
     {
         SectorBenchmarkViewRequest request = new SectorBenchmarkViewRequest { Preset = result.Preset, Variable = result.Variable,
             Value = result.Value, Seed = result.Seed, CapacityA = result.CapacityA, CapacityB = result.CapacityB,
-            GeneralA = result.GeneralA, GeneralB = result.GeneralB, TacticA = result.TacticA, TacticB = result.TacticB,
+            FactionA = result.FactionA, FactionB = result.FactionB, GeneralA = result.GeneralA, GeneralB = result.GeneralB, TacticA = result.TacticA, TacticB = result.TacticB,
             ArmyA = result.ArmyA, ArmyB = result.ArmyB };
         EditorPrefs.SetString(PendingKey, JsonUtility.ToJson(request));
         if (EditorApplication.isPlaying) BeginLaunch();
@@ -632,7 +687,8 @@ internal static class SectorBattleBenchmarkPlayModeViewer
         SectorBenchmarkViewRequest request = JsonUtility.FromJson<SectorBenchmarkViewRequest>(json);
         SectorBattleSimulation simulation = SectorBattleBenchmarkRunner.Recreate(request);
         SectorCampaignBattle battle = manager.RegisterCustomBattle(simulation,
-            "Benchmark " + request.Preset + " seed " + request.Seed + " (" + request.Variable + "=" + request.Value + ")");
+            "Benchmark " + request.Preset + " seed " + request.Seed + " (" + request.Variable + "=" + request.Value + ")",
+            request.FactionA, request.FactionB);
         SectorBattlePresentation.Instance.OpenViewer(battle);
     }
 }

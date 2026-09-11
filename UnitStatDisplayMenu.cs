@@ -163,8 +163,7 @@ public class UnitStatDisplayMenu : MonoBehaviour
 
     private static int ArmorValue(Weapon equipment)
     {
-        if (equipment == null || equipment.armor == null) return 0;
-        return Mathf.Max(equipment.armor.armor, equipment.armor.rangedarmor);
+        return equipment != null ? Mathf.Clamp(equipment.armor, 0, 100) : 0;
     }
 
     private static void AddTextTooltip(Text text, string message)

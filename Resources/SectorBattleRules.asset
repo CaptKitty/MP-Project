@@ -29,8 +29,14 @@ MonoBehaviour:
   warcryDurationTicks: 8
   disciplinedExhaustionPercent: 60
   openingVolleyDamage: 10
+  aiDecisionIntervalTicks: 4
+  aiForwardScore: 28
+  aiEnemyScore: 125
+  aiContestedScore: 90
+  aiFlankScore: 70
+  aiWideScore: 14
   backlineCollapseCasualtyPercent: 35
-  uncontestedEnemyReserveTicksToRout: 5
+  uncontestedEnemyReserveTicksToRout: 50
   columnFrontage: 0200000003000000050000000300000002000000
   terrainRules:
   - terrain: 0
@@ -48,7 +54,7 @@ MonoBehaviour:
     allowsForester: 1
     allowsAquatic: 0
     allowsMountaineer: 0
-    combatEffectivenessPercent: 85
+    combatEffectivenessPercent: 75
   - terrain: 4
     frontageModifier: -1
     movementCost: 2

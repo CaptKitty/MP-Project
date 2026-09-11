@@ -8,6 +8,14 @@ using UnityEngine.UI;
 public class MainMenu : MonoBehaviour
 {
     public GameObject Canvas1, Canvas2, ButtonA, ButtonB, Main, Multi;
+    private void Start()
+    {
+        if (SceneManager.GetActiveScene().name != "ScenarioScene") return;
+        if (ProjectX.SectorBattle.SectorBattleCampaignManager.Instance == null)
+            gameObject.AddComponent<ProjectX.SectorBattle.SectorBattleCampaignManager>();
+        if (GetComponent<ProjectX.SectorBattle.ScenarioBattleDesigner>() == null)
+            gameObject.AddComponent<ProjectX.SectorBattle.ScenarioBattleDesigner>();
+    }
     public void JoinHost()
     {
         Canvas1.SetActive(false);
@@ -39,6 +47,22 @@ public class MainMenu : MonoBehaviour
         ProjectX.SectorBattle.SectorCustomBattleLaunchRequest.Request();
         new GameObject("Menu Sector Battles")
             .AddComponent<ProjectX.SectorBattle.SectorBattleCampaignManager>();
+    }
+    public void OpenScenarioScene()
+    {
+        SceneManager.LoadScene("ScenarioScene");
+    }
+    public void OpenSinglePlayerScene()
+    {
+        SceneManager.LoadScene("SinglePlayerScene");
+    }
+    public void OpenMultiplayerScene()
+    {
+        SceneManager.LoadScene("MultiplayerScene");
+    }
+    public void ReturnToMainMenu()
+    {
+        SceneManager.LoadScene("MenuScene");
     }
     public void ChangePick(int whichone)
     {

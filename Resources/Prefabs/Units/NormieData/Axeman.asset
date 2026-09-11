@@ -16,14 +16,15 @@ MonoBehaviour:
   unittype: 1
   cost: 100
   health: 300
-  notLevyable: 0
-  levyRole: 3
   recruitmentTicks: 3
   upkeep: 2
+  notLevyable: 0
+  levyRole: 3
   actions: 3
   reactionTime: 6
   flaglist:
   - Forestry_Immunity
+  - Forester
   RangedWeapon: {fileID: 0}
   MeleeWeapon: {fileID: 11400000, guid: 435f3f6602879a84884483e9287f600d, type: 2}
   Armor: {fileID: 11400000, guid: c6fe3a90079e386418f1370598f70a5f, type: 2}

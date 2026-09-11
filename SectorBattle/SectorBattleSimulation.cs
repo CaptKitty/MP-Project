@@ -32,13 +32,15 @@ namespace ProjectX.SectorBattle
         {
             public SectorFormation Attacker, Target;
             public SectorCoord TargetSector;
-            public bool Flanking, Ranged;
+            public bool Flanking, RearAttack, Ranged;
         }
 
         private readonly Dictionary<SectorCoord, SectorState> sectors = new Dictionary<SectorCoord, SectorState>();
         private readonly List<SectorFormation> formations = new List<SectorFormation>();
         private readonly List<SectorCombatEvent> events = new List<SectorCombatEvent>();
         private readonly List<ISectorCombatAbility> abilities = new List<ISectorCombatAbility>();
+        private readonly Dictionary<int, SectorCoord> presentationFlankTargets = new Dictionary<int, SectorCoord>();
+        private readonly HashSet<int> presentationRearAttackers = new HashSet<int>();
         private BattleSimulationRequest request;
         private BattleSimulationOutcome outcome = new BattleSimulationOutcome();
         private SectorBattleRules rules;
@@ -73,6 +75,7 @@ namespace ProjectX.SectorBattle
         {
             request = value ?? throw new ArgumentNullException(nameof(value));
             formations.Clear(); events.Clear(); outcome = new BattleSimulationOutcome(); Tick = 0; started = false; commandsInitialized = false;
+            presentationFlankTargets.Clear(); presentationRearAttackers.Clear();
             initialStrengthBySide[0] = initialStrengthBySide[1] = 0; decisiveCollapseReason = null;
             enemyReserveOccupationTicks[0] = enemyReserveOccupationTicks[1] = 0;
             CreateGrid();
@@ -101,6 +104,7 @@ namespace ProjectX.SectorBattle
         public void StartBattle()
         {
             if (started) return;
+            Commands.NormalizeGroupDeployment();
             started = true;
             Commands.LockMembership();
             formations.Sort((a, b) => a.Id.CompareTo(b.Id));
@@ -125,6 +129,7 @@ namespace ProjectX.SectorBattle
             if (sectors[destination].Terrain == SectorTerrain.Mountain && !HasTag(formation, "Mountaineer")) return false;
             int speed = formation.Combat != null && formation.Combat.Cavalry ? 2 : formation.Source != null ? Math.Max(1, formation.Source.actions) : 1;
             int cost = terrain != null ? Math.Max(1, terrain.movementCost) : 1;
+            if (sectors[destination].Terrain == SectorTerrain.Forest && TerrainSpecialist(formation, SectorTerrain.Forest)) cost = 1;
             formation.Moving = true; formation.State = SectorFormationState.Moving; formation.MovementTarget = destination;
             formation.MovementTicksRemaining = Math.Max(1, (cost * 2 + speed - 1) / speed);
             formation.MovementTicksTotal = formation.MovementTicksRemaining;
@@ -143,6 +148,35 @@ namespace ProjectX.SectorBattle
 
         public void SetTerrain(SectorCoord coordinate, SectorTerrain terrain)
         { if (sectors.TryGetValue(coordinate, out SectorState sector)) sector.Terrain = terrain; }
+
+        public SectorBattleMapType MapType { get; private set; } = SectorBattleMapType.OpenGrassland;
+        public SectorTerrain TerrainAt(SectorCoord coordinate)
+            => sectors.TryGetValue(coordinate, out SectorState sector) ? sector.Terrain : SectorTerrain.Other;
+        public bool CanEnterTerrain(SectorFormation formation, SectorCoord coordinate)
+            => formation != null && sectors.ContainsKey(coordinate) &&
+               (sectors[coordinate].Terrain != SectorTerrain.Mountain || HasTag(formation, "Mountaineer"));
+
+        public void ApplyMapType(SectorBattleMapType mapType)
+        {
+            if (started) return;
+            MapType = mapType;
+            foreach (SectorState sector in sectors.Values)
+                sector.Terrain = mapType == SectorBattleMapType.DenseForest ? SectorTerrain.Forest :
+                    mapType == SectorBattleMapType.MountainPass && sector.Coordinate.Lane != BattleLane.Centre
+                        ? SectorTerrain.Mountain : SectorTerrain.OpenPlain;
+
+            if (mapType != SectorBattleMapType.MountainPass) return;
+            // A pass has one usable deployment corridor. Move invalid wing deployments into
+            // the matching centre-depth sector before command groups are locked.
+            foreach (SectorFormation formation in formations)
+            {
+                if (formation.Sector.Lane == BattleLane.Centre || HasTag(formation, "Mountaineer")) continue;
+                sectors[formation.Sector].Formations.Remove(formation);
+                SectorCoord destination = new SectorCoord(BattleLane.Centre, formation.Sector.Depth);
+                formation.Sector = formation.MovementTarget = destination;
+                sectors[destination].Formations.Add(formation);
+            }
+        }
 
         public void RegisterAbility(ISectorCombatAbility ability)
         { if (ability != null && !abilities.Contains(ability)) abilities.Add(ability); }
@@ -185,17 +219,18 @@ namespace ProjectX.SectorBattle
         private List<Attack> BuildAttacks()
         {
             List<Attack> attacks = new List<Attack>();
+            presentationFlankTargets.Clear(); presentationRearAttackers.Clear();
+            HashSet<int> committedFlankAttackers = new HashSet<int>();
             List<SectorState> ordered = OrderedSectors();
             foreach (SectorState sector in ordered)
             {
                 if (Control(sector) != SectorControl.Contested) continue;
-                int frontage = rules.Frontage(sector.Coordinate.Lane, sector.Terrain);
-                List<SectorFormation> activeA = DirectParticipants(sector, 0, frontage);
-                List<SectorFormation> activeB = DirectParticipants(sector, 1, frontage);
+                List<SectorFormation> activeA = DirectParticipants(sector, 0);
+                List<SectorFormation> activeB = DirectParticipants(sector, 1);
                 LogOnce(sector.Coordinate + ": Base Frontage " + activeA.Count + "v" + activeB.Count);
                 AddPairedAttacks(attacks, activeA, activeB, sector.Coordinate, false);
-                AddFlankAttacks(attacks, sector, 0, activeB);
-                AddFlankAttacks(attacks, sector, 1, activeA);
+                AddFlankAttacks(attacks, sector, 0, activeB, committedFlankAttackers);
+                AddFlankAttacks(attacks, sector, 1, activeA, committedFlankAttackers);
             }
             AddRangedSupport(attacks, ordered);
             attacks.Sort((a, b) => { int id = a.Attacker.Id.CompareTo(b.Attacker.Id); return id != 0 ? id : a.Target.Id.CompareTo(b.Target.Id); });
@@ -210,23 +245,70 @@ namespace ProjectX.SectorBattle
             for (int i = 0; i < b.Count; i++) attacks.Add(new Attack { Attacker = b[i], Target = a[i % a.Count], TargetSector = targetSector, Flanking = flanking });
         }
 
-        private void AddFlankAttacks(List<Attack> attacks, SectorState target, int side, List<SectorFormation> defenders)
+        private void AddFlankAttacks(List<Attack> attacks, SectorState target, int side, List<SectorFormation> defenders,
+            HashSet<int> committedAttackers)
         {
             if (defenders.Count == 0) return;
+            Dictionary<int, int> flankCountByTarget = new Dictionary<int, int>();
             foreach (SectorCoord sourceCoord in FlankSources(target.Coordinate))
             {
                 SectorState source = sectors[sourceCoord];
                 SectorControl wanted = side == 0 ? SectorControl.SideA : SectorControl.SideB;
                 if (Control(source) != wanted) continue;
                 List<SectorFormation> attackers = CombatCapable(source, side);
-                attackers.RemoveAll(item => item.Ranged || item.Moving);
+                attackers.RemoveAll(item => item.Ranged || item.Moving || committedAttackers.Contains(item.Id));
                 attackers.Sort(CompareFormation);
                 int count = Math.Min(Math.Max(0, rules.flankFrontage), attackers.Count);
                 if (count <= 0) continue;
                 LogOnce(sourceCoord + " grants +" + count + " flank frontage into " + target.Coordinate + " for Side " + SideName(side));
-                for (int i = 0; i < count; i++) attacks.Add(new Attack { Attacker = attackers[i],
-                    Target = defenders[i % defenders.Count], TargetSector = target.Coordinate, Flanking = true });
+                for (int i = 0; i < count; i++)
+                {
+                    SectorFormation defender = LeastFlanked(defenders, flankCountByTarget);
+                    int previous = flankCountByTarget.TryGetValue(defender.Id, out int value) ? value : 0;
+                    attacks.Add(new Attack { Attacker = attackers[i], Target = defender,
+                        TargetSector = target.Coordinate, Flanking = true, RearAttack = previous > 0 });
+                    presentationFlankTargets[attackers[i].Id] = target.Coordinate;
+                    if (previous > 0) presentationRearAttackers.Add(attackers[i].Id);
+                    committedAttackers.Add(attackers[i].Id);
+                    flankCountByTarget[defender.Id] = previous + 1;
+                }
             }
+            AddRearAttacks(attacks, target, side, defenders, flankCountByTarget, committedAttackers);
+        }
+
+        private void AddRearAttacks(List<Attack> attacks, SectorState target, int side, List<SectorFormation> defenders,
+            Dictionary<int, int> flankCountByTarget, HashSet<int> committedAttackers)
+        {
+            int rearDepth = (int)target.Coordinate.Depth + (side == 0 ? 1 : -1);
+            if (rearDepth < 0 || rearDepth > 4) return;
+            SectorCoord sourceCoord = new SectorCoord(target.Coordinate.Lane, (BattleDepth)rearDepth);
+            SectorControl wanted = side == 0 ? SectorControl.SideA : SectorControl.SideB;
+            if (Control(sectors[sourceCoord]) != wanted) return;
+            List<SectorFormation> attackers = CombatCapable(sectors[sourceCoord], side);
+            attackers.RemoveAll(item => item.Ranged || item.Moving || committedAttackers.Contains(item.Id)); attackers.Sort(CompareFormation);
+            int count = Math.Min(Math.Max(0, rules.flankFrontage), attackers.Count);
+            for (int i = 0; i < count; i++)
+            {
+                SectorFormation defender = LeastFlanked(defenders, flankCountByTarget);
+                flankCountByTarget[defender.Id] = flankCountByTarget.TryGetValue(defender.Id, out int value) ? value + 1 : 1;
+                attacks.Add(new Attack { Attacker = attackers[i], Target = defender,
+                    TargetSector = target.Coordinate, Flanking = true, RearAttack = true });
+                presentationFlankTargets[attackers[i].Id] = target.Coordinate;
+                presentationRearAttackers.Add(attackers[i].Id);
+                committedAttackers.Add(attackers[i].Id);
+            }
+        }
+
+        private static SectorFormation LeastFlanked(List<SectorFormation> defenders, Dictionary<int, int> counts)
+        {
+            SectorFormation best = defenders[0]; int bestCount = counts.TryGetValue(best.Id, out int value) ? value : 0;
+            for (int i = 1; i < defenders.Count; i++)
+            {
+                int count = counts.TryGetValue(defenders[i].Id, out value) ? value : 0;
+                if (count < bestCount || count == bestCount && defenders[i].Id < best.Id)
+                { best = defenders[i]; bestCount = count; }
+            }
+            return best;
         }
 
         private void AddRangedSupport(List<Attack> attacks, List<SectorState> ordered)
@@ -259,9 +341,12 @@ namespace ProjectX.SectorBattle
                 events[events.Count - 1].Damage = value;
                 if (!damage.ContainsKey(attack.Target.Id)) damage[attack.Target.Id] = 0;
                 damage[attack.Target.Id] += value;
-                int moraleDamage = Math.Max(1, value / 2) + (attack.Flanking ? Math.Max(0, rules.flankMoralePenalty) : 0);
-                if (!morale.ContainsKey(attack.Target.Id)) morale[attack.Target.Id] = 0;
-                morale[attack.Target.Id] += moraleDamage;
+                if (value > 0)
+                {
+                    int moraleDamage = Math.Max(1, value / 2) + (attack.Flanking ? Math.Max(0, rules.flankMoralePenalty) : 0);
+                    if (!morale.ContainsKey(attack.Target.Id)) morale[attack.Target.Id] = 0;
+                    morale[attack.Target.Id] += moraleDamage;
+                }
                 int exhaustion = Math.Max(0, rules.exhaustionPerAttack);
                 if (HasTag(attack.Attacker, "Disciplined")) exhaustion = exhaustion * rules.disciplinedExhaustionPercent / 100;
                 SectorAbilityContext exhaustionContext = new SectorAbilityContext { Simulation = this,
@@ -291,10 +376,11 @@ namespace ProjectX.SectorBattle
         {
             SectorFormation attacker = attack.Attacker;
             int baseDamage = attack.Ranged ? Math.Max(1, attacker.Combat.RangedDamage) : Math.Max(1, attacker.Combat.MeleeDamage);
-            if (attack.Ranged) baseDamage = baseDamage * rules.rangedSupportDamagePercent / 100;
+            int apDamage = attack.Ranged ? Math.Max(0, attacker.Combat.RangedAPDamage) : Math.Max(0, attacker.Combat.MeleeAPDamage);
+            int attackTimeMilli = attack.Ranged ? Math.Max(10, attacker.Combat.RangedAttackTimeMilli) :
+                Math.Max(10, attacker.Combat.MeleeAttackTimeMilli);
             int maximum = Math.Max(1, attacker.Combat.Strength);
             int percent = Math.Max(10, attacker.Strength * 100 / maximum);
-            percent = percent * Math.Max(25, 100 - attacker.Exhaustion / 12) / 100;
             SectorState battleSector = sectors[attack.TargetSector];
             SectorTerrainRule terrain = rules.Terrain(battleSector.Terrain);
             if (terrain != null && !TerrainSpecialist(attacker, battleSector.Terrain))
@@ -305,9 +391,30 @@ namespace ProjectX.SectorBattle
             SectorAbilityContext context = new SectorAbilityContext { Simulation = this, Formation = attacker,
                 Target = attack.Target, Sector = battleSector, Flanking = attack.Flanking, RangedSupport = attack.Ranged };
             foreach (ISectorCombatAbility ability in abilities) percent = ability.ModifyDamagePercent(context, percent);
-            int armor = Math.Max(0, attack.Target.Combat.ArmorPercent);
-            int result = Math.Max(1, baseDamage * percent / 100);
-            return Math.Max(1, result * Math.Max(10, 100 - armor) / 100);
+            if (attack.Ranged) percent = percent * rules.rangedSupportDamagePercent / 100;
+
+            // Exhaustion slows the effective attack rate instead of directly reducing the damage of each strike.
+            int attackSpeedPercent = Math.Max(25, 100 - attacker.Exhaustion / 12);
+            long effectiveAttackTimeMilli = (long)attackTimeMilli * 100 / attackSpeedPercent;
+            long denominator = Math.Max(1L, effectiveAttackTimeMilli * Math.Max(1, rules.ticksPerSecond));
+            long normalMilli = (long)baseDamage * percent * 10000L / denominator;
+            long armorPiercingMilli = (long)apDamage * percent * 10000L / denominator;
+
+            int mitigation = Math.Max(0, attack.Target.Combat.ArmorPercent);
+            if (!attack.Flanking) mitigation += Math.Max(0, attack.Target.Combat.ShieldPercent);
+            mitigation = Math.Min(90, mitigation);
+            long totalMilli = normalMilli * (100 - mitigation) / 100 + armorPiercingMilli;
+            if (attack.Ranged)
+            {
+                totalMilli += attacker.RangedDamageRemainderMilli;
+                attacker.RangedDamageRemainderMilli = (int)(totalMilli % 1000L);
+            }
+            else
+            {
+                totalMilli += attacker.MeleeDamageRemainderMilli;
+                attacker.MeleeDamageRemainderMilli = (int)(totalMilli % 1000L);
+            }
+            return (int)Math.Min(int.MaxValue, totalMilli / 1000L);
         }
 
         private bool PhalanxActive(SectorFormation formation, SectorState sector, bool attackedFromFlank)
@@ -516,24 +623,19 @@ namespace ProjectX.SectorBattle
             foreach (SectorState sector in OrderedSectors())
             {
                 if (Control(sector) != SectorControl.Contested) continue;
-                int frontage = rules.Frontage(sector.Coordinate.Lane, sector.Terrain);
                 foreach (int side in new[] { 0, 1 })
                 {
-                    List<SectorFormation> all = CombatCapable(sector, side); all.RemoveAll(item => item.Moving); all.Sort(CompareFormation);
+                    List<SectorFormation> all = OrderedParticipants(sector, side, false);
+                    int frontage = FrontageForSide(sector, side, all);
                     for (int i = 0; i < all.Count; i++) roles[all[i].Id] = i < frontage
                         ? SectorFormationRole.BaseFrontage : SectorFormationRole.Supporting;
-                    List<SectorFormation> defenders = DirectParticipants(sector, 1 - side, frontage);
-                    if (defenders.Count == 0) continue;
-                    foreach (SectorCoord sourceCoord in FlankSources(sector.Coordinate))
-                    {
-                        SectorControl wanted = side == 0 ? SectorControl.SideA : SectorControl.SideB;
-                        if (Control(sectors[sourceCoord]) != wanted) continue;
-                        List<SectorFormation> flankers = CombatCapable(sectors[sourceCoord], side);
-                        flankers.RemoveAll(item => item.Ranged || item.Moving); flankers.Sort(CompareFormation);
-                        for (int i = 0; i < Math.Min(rules.flankFrontage, flankers.Count); i++)
-                        { roles[flankers[i].Id] = SectorFormationRole.FlankAttacker; targets[flankers[i].Id] = sector.Coordinate; }
-                    }
                 }
+            }
+            foreach (KeyValuePair<int, SectorCoord> pair in presentationFlankTargets)
+            {
+                roles[pair.Key] = presentationRearAttackers.Contains(pair.Key)
+                    ? SectorFormationRole.RearFlankAttacker : SectorFormationRole.FlankAttacker;
+                targets[pair.Key] = pair.Value;
             }
             foreach (SectorFormation ranged in formations)
             {
@@ -562,8 +664,8 @@ namespace ProjectX.SectorBattle
 
         private void FillDebugParticipation(SectorState sector, int side, List<int> active, List<int> reserve)
         {
-            List<SectorFormation> all = CombatCapable(sector, side); all.RemoveAll(item => item.Moving); all.Sort(CompareFormation);
-            int frontage = rules.Frontage(sector.Coordinate.Lane, sector.Terrain);
+            List<SectorFormation> all = OrderedParticipants(sector, side, false);
+            int frontage = FrontageForSide(sector, side, all);
             for (int i = 0; i < all.Count; i++) (i < frontage ? active : reserve).Add(all[i].Id);
         }
 
@@ -604,8 +706,40 @@ namespace ProjectX.SectorBattle
         }
         private List<SectorState> OrderedSectors() { List<SectorState> result = new List<SectorState>(sectors.Values); result.Sort((a,b) => a.Coordinate.CompareTo(b.Coordinate)); return result; }
         private List<SectorFormation> CombatCapable(SectorState sector, int side) => sector.Formations.FindAll(item => item.Active && item.Side == side);
-        private List<SectorFormation> DirectParticipants(SectorState sector, int side, int frontage)
-        { List<SectorFormation> result = CombatCapable(sector, side); result.RemoveAll(item => item.Moving || item.ArrivalTick == Tick); result.Sort(CompareFormation); if (result.Count > frontage) result.RemoveRange(frontage, result.Count - frontage); return result; }
+        private List<SectorFormation> DirectParticipants(SectorState sector, int side)
+        {
+            List<SectorFormation> result = OrderedParticipants(sector, side, true);
+            int frontage = FrontageForSide(sector, side, result);
+            if (result.Count > frontage) result.RemoveRange(frontage, result.Count - frontage);
+            return result;
+        }
+        private List<SectorFormation> OrderedParticipants(SectorState sector, int side, bool excludeArrivals)
+        {
+            List<SectorFormation> result = CombatCapable(sector, side);
+            result.RemoveAll(item => item.Moving || excludeArrivals && item.ArrivalTick == Tick);
+            result.Sort((a, b) =>
+            {
+                if (sector.Terrain == SectorTerrain.Forest)
+                {
+                    int specialist = TerrainSpecialist(b, SectorTerrain.Forest).CompareTo(TerrainSpecialist(a, SectorTerrain.Forest));
+                    if (specialist != 0) return specialist;
+                }
+                return CompareFormation(a, b);
+            });
+            return result;
+        }
+        private int FrontageForSide(SectorState sector, int side, List<SectorFormation> available = null)
+        {
+            int frontage = rules.Frontage(sector.Coordinate.Lane, sector.Terrain);
+            if (sector.Terrain != SectorTerrain.Forest) return frontage;
+            List<SectorFormation> candidates = available ?? CombatCapable(sector, side);
+            int specialists = 0;
+            for (int i = 0; i < candidates.Count; i++)
+                if (TerrainSpecialist(candidates[i], SectorTerrain.Forest)) specialists++;
+            SectorTerrainRule forest = rules.Terrain(SectorTerrain.Forest);
+            int recoverablePenalty = forest != null ? Math.Max(0, -forest.frontageModifier) : 0;
+            return frontage + Math.Min(recoverablePenalty, specialists);
+        }
         private static int CompareFormation(SectorFormation a, SectorFormation b)
         { int ranged = a.Ranged.CompareTo(b.Ranged); return ranged != 0 ? ranged : a.Id.CompareTo(b.Id); }
         private SectorControl Control(SectorState sector)

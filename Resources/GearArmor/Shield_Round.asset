@@ -14,17 +14,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sprite: {fileID: 21300000, guid: 012308622e6cfaa4f9cedb7452e0c332, type: 3}
   combatdistance: 1
+  meleeReachPattern: 0
   speed: 1
   attack: 1
+  apDamage: 0
   attacktype: attack
   attacktime: 1
   NextAvailableAttack: 0
   animationtype: 
+  animationClass: {fileID: 0}
+  overrideVisualPose: 0
+  visualOffset: {x: 0.146, y: -0.082}
+  visualAngle: 0
+  projectileSprite: {fileID: 0}
   Throwable: {fileID: 0}
   ammo: 0
   modifier: {fileID: 0}
-  armor:
-    armor: 0
-    rangedarmor: 50
+  rangedUsage: 0
+  armor: 75
   shieldFrontEffectiveness: 100
   shieldSideEffectiveness: 0

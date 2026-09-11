@@ -20,13 +20,14 @@ namespace ProjectX.SectorBattle
         public UnitSaveData Unit;
         public int Count = 1;
         public BattleLane Lane = BattleLane.Centre;
+        [Range(1, 10)] public int CommandGroup = 1;
     }
 
     public static class SectorCustomBattleFactory
     {
         public static SectorBattleSimulation Prepare(SectorBattlePreset preset, ulong seed, int capacityA, int capacityB,
             bool playerA, bool playerB, SectorBattleRules rules = null,
-            SectorGeneralTactic tacticA = SectorGeneralTactic.Standard, SectorGeneralTactic tacticB = SectorGeneralTactic.Standard)
+            SectorGeneralTactic tacticA = SectorGeneralTactic.WingedCenter, SectorGeneralTactic tacticB = SectorGeneralTactic.WingedCenter)
         {
             BattleSimulationRequest request = new BattleSimulationRequest { BattleId = "custom-" + preset + "-" + seed, Seed = seed };
             request.Commanders.Add(new BattleSideCommandConfig { Side = 0, GeneralName = "Roman Test General", CommandGroupCapacity = Mathf.Clamp(capacityA, 4, 8), PlayerControlled = playerA });
@@ -62,19 +63,22 @@ namespace ProjectX.SectorBattle
             request.Commanders.Add(new BattleSideCommandConfig { Side = 1, GeneralName = string.IsNullOrEmpty(generalB) ? "Side B General" : generalB,
                 CommandGroupCapacity = Mathf.Clamp(capacityB, 4, 8), PlayerControlled = playerB });
             int id = 1;
-            AddGenerated(request, sideA, 0, ref id);
+            Dictionary<int, int> requestedGroups = new Dictionary<int, int>();
+            AddGenerated(request, sideA, 0, ref id, requestedGroups);
             id = 1001;
-            AddGenerated(request, sideB, 1, ref id);
+            AddGenerated(request, sideB, 1, ref id, requestedGroups);
             if (request.Formations.Find(item => item.Side == 0) == null || request.Formations.Find(item => item.Side == 1) == null)
                 throw new InvalidOperationException("Generated sector battles require at least one valid formation on each side.");
             SectorBattleSimulation simulation = new SectorBattleSimulation(rules);
             simulation.Initialize(request);
+            simulation.Commands.ConfigureExplicitGroups(requestedGroups);
             simulation.Commands.SetTactic(0, tacticA);
             simulation.Commands.SetTactic(1, tacticB);
             return simulation;
         }
 
-        private static void AddGenerated(BattleSimulationRequest request, IReadOnlyList<SectorCustomFormationSpec> specs, int side, ref int id)
+        private static void AddGenerated(BattleSimulationRequest request, IReadOnlyList<SectorCustomFormationSpec> specs, int side, ref int id,
+            Dictionary<int, int> requestedGroups)
         {
             if (specs == null) return;
             for (int i = 0; i < specs.Count; i++)
@@ -82,9 +86,13 @@ namespace ProjectX.SectorBattle
                 SectorCustomFormationSpec spec = specs[i];
                 if (spec == null || spec.Unit == null) continue;
                 for (int copy = 0; copy < Mathf.Max(0, spec.Count); copy++)
-                    request.Formations.Add(new BattleFormationInput { FormationId = id++, Side = side, Unit = spec.Unit,
+                {
+                    int formationId = id++;
+                    request.Formations.Add(new BattleFormationInput { FormationId = formationId, Side = side, Unit = spec.Unit,
                         Strength = Mathf.Max(1, spec.Unit.health), DeploymentColumn = (int)spec.Lane,
                         DeploymentRow = side == 0 ? (int)BattleDepth.SideAReserve : (int)BattleDepth.SideBReserve });
+                    requestedGroups[formationId] = Mathf.Clamp(spec.CommandGroup, 1, 10);
+                }
             }
         }
         private static void Add(BattleSimulationRequest request, ref int id, int side, string resource, int count, BattleLane column)

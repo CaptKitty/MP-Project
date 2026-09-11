@@ -26,6 +26,8 @@ namespace ProjectX.TileBattle
                 BaseMass = mass,
                 Strength = Mathf.Max(1, source.health),
                 MeleeDamage = melee != null ? Mathf.Max(1, melee.attack) : 10,
+                MeleeAPDamage = melee != null ? Mathf.Max(0, melee.apDamage) : 0,
+                MeleeAttackTimeMilli = AttackTimeMilli(melee),
                 MeleeRange = melee != null ? Mathf.Max(1, Mathf.RoundToInt((float)melee.combatdistance)) : 1,
                 MeleeReachPattern = ReachPattern(melee),
                 MeleeAttackIntervalTicks = AttackIntervalTicks(melee),
@@ -43,6 +45,8 @@ namespace ProjectX.TileBattle
                 OpeningThrowable = openingThrowable,
                 RangedRange = ranged != null ? Mathf.Max(1, Mathf.RoundToInt((float)ranged.combatdistance)) : 0,
                 RangedDamage = ranged != null ? Mathf.Max(1, ranged.attack) : 0,
+                RangedAPDamage = ranged != null ? Mathf.Max(0, ranged.apDamage) : 0,
+                RangedAttackTimeMilli = AttackTimeMilli(ranged),
                 RangedAttackIntervalTicks = AttackIntervalTicks(ranged),
                 Ammunition = ranged != null ? openingThrowable ? Mathf.Min(1, Mathf.Max(0, ranged.ammo)) : Mathf.Max(0, ranged.ammo) : 0,
                 FormationType = FormationType(source),
@@ -141,6 +145,12 @@ namespace ProjectX.TileBattle
             return Mathf.Max(1, Mathf.RoundToInt((float)(Math.Max(.01d, seconds) * TileBattleRules.DefaultTicksPerSecond)));
         }
 
+        private static int AttackTimeMilli(Weapon weapon)
+        {
+            double seconds = weapon != null ? weapon.attacktime : 1d;
+            return Mathf.Max(10, Mathf.RoundToInt((float)(Math.Max(.01d, seconds) * 1000d)));
+        }
+
         private static MeleeReachPattern ReachPattern(Weapon weapon)
         {
             if (weapon == null) return MeleeReachPattern.Standard;
@@ -162,15 +172,13 @@ namespace ProjectX.TileBattle
 
         private static int ArmorOf(UnitSaveData source)
         {
-            int armor = source.Armor != null && source.Armor.armor != null
-                ? Mathf.Max(source.Armor.armor.armor, source.Armor.armor.rangedarmor) : 0;
+            int armor = source.Armor != null ? source.Armor.armor : 0;
             return Mathf.Clamp(armor, 0, 80);
         }
 
         private static int ShieldOf(UnitSaveData source)
         {
-            return source.Shield != null && source.Shield.armor != null
-                ? Mathf.Clamp(Mathf.Max(source.Shield.armor.armor, source.Shield.armor.rangedarmor), 0, 80) : 0;
+            return source.Shield != null ? Mathf.Clamp(source.Shield.armor, 0, 100) : 0;
         }
     }
 }

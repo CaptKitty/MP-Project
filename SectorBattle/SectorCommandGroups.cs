@@ -6,7 +6,13 @@ using ProjectX.TileBattle;
 namespace ProjectX.SectorBattle
 {
     public enum SectorGroupOrder : byte { Hold, Move, Advance, Withdraw }
-    public enum SectorGeneralTactic : byte { Standard, AllInCentre, SupportedCentre }
+    public enum SectorGeneralTactic : byte
+    {
+        WingedCenter = 0,
+        FocusedCenter = 1,
+        DoubleEnvelopment = 2,
+        SingleFlank = 3
+    }
     public enum SectorGroupRole : byte { HeavyInfantry, LineInfantry, LightInfantry, Phalanx, Skirmisher, MissileInfantry, LightCavalry, HeavyCavalry, Large }
 
     [Serializable]
@@ -45,13 +51,15 @@ namespace ProjectX.SectorBattle
             groups.Clear(); byFormation.Clear(); commanders.Clear(); aiFlankAssignments.Clear(); tactics.Clear(); nextGroupId = 1;
             if (request != null) for (int i = 0; i < request.Commanders.Count; i++)
                 commanders[request.Commanders[i].Side] = request.Commanders[i];
-            AutoCreate(0); AutoCreate(1); AssignAIFlankers(0); AssignAIFlankers(1); ConsolidateGroups(); RefreshLocations();
+            AutoCreate(0); AutoCreate(1); ConsolidateGroups();
+            BalanceHomogeneousArmyRoles(0); BalanceHomogeneousArmyRoles(1);
+            RefreshAIFlanker(0); RefreshAIFlanker(1); RefreshLocations();
         }
 
         public void LockMembership() { for (int i = 0; i < groups.Count; i++) groups[i].MembershipLocked = true; }
         public SectorCommandGroup GroupForFormation(int formationId) => byFormation.TryGetValue(formationId, out SectorCommandGroup group) ? group : null;
         public int Capacity(int side) => commanders.TryGetValue(side, out BattleSideCommandConfig config) ? Math.Max(1, config.CommandGroupCapacity) : 5;
-        public SectorGeneralTactic Tactic(int side) => tactics.TryGetValue(side, out SectorGeneralTactic tactic) ? tactic : SectorGeneralTactic.Standard;
+        public SectorGeneralTactic Tactic(int side) => tactics.TryGetValue(side, out SectorGeneralTactic tactic) ? tactic : SectorGeneralTactic.WingedCenter;
         public void SetTactic(int side, SectorGeneralTactic tactic) => tactics[side] = tactic;
         public void SetPlayerControlled(int side, bool playerControlled)
         {
@@ -184,13 +192,26 @@ namespace ProjectX.SectorBattle
             // and skirmisher groups may also recognize the same opening instead of relying on
             // a single setup-time assignment surviving command-group consolidation.
             SectorGeneralTactic tactic = Tactic(group.Side);
-            bool flanker = tactic != SectorGeneralTactic.AllInCentre &&
-                (aiFlankAssignments.ContainsKey(group.GroupId) || FlankSuitability(group.Role) >= 3);
-            if (flanker && SupportsFriendlyFightFrom(group.CurrentSector, group.Side))
+            bool flanker = tactic != SectorGeneralTactic.FocusedCenter &&
+                (aiFlankAssignments.ContainsKey(group.GroupId) || FlankSuitability(group.Role) >= 3 ||
+                 group.Role == SectorGroupRole.LightInfantry && AnySectorContested());
+            if (flanker && HasFlankAssignmentHere(group))
             {
                 group.CurrentOrder = SectorGroupOrder.Hold;
                 group.DestinationSector = group.CurrentSector;
                 return;
+            }
+            if (flanker && AnySectorContested())
+            {
+                // Manoeuvre troops do not remain parked on an irrelevant wing once battle is
+                // joined. Prefer an open side/rear support position; when every flank is full,
+                // close on the nearest contested sector and join the fight directly.
+                SectorCoord objective;
+                if (TryFindOpenFlankObjective(group, out objective) || TryFindNearestContested(group, out objective))
+                {
+                    SectorCoord step = BestStepToward(group, objective);
+                    if (!step.Equals(group.CurrentSector) && IssueMove(group.GroupId, step)) return;
+                }
             }
 
             SectorCoord best = group.CurrentSector;
@@ -208,17 +229,25 @@ namespace ProjectX.SectorBattle
 
         private int ScorePosition(SectorCommandGroup group, SectorCoord position, bool flanker)
         {
+            if (!CanGroupEnter(group, position)) return -1000000;
             SectorGeneralTactic tactic = Tactic(group.Side);
             int direction = group.Side == 0 ? 1 : -1;
             int forwardScore = simulation.Rules.aiForwardScore;
-            if (tactic == SectorGeneralTactic.AllInCentre) forwardScore += 22;
-            else if (tactic == SectorGeneralTactic.SupportedCentre) forwardScore -= 12;
+            if (tactic == SectorGeneralTactic.FocusedCenter) forwardScore += 22;
+            else if (tactic == SectorGeneralTactic.DoubleEnvelopment) forwardScore -= 12;
             int score = ((int)position.Depth - (int)group.CurrentSector.Depth) * direction * forwardScore;
+            SectorTerrainRule terrainRule = simulation.Rules.Terrain(simulation.TerrainAt(position));
+            if (terrainRule != null)
+            {
+                score -= Math.Max(0, terrainRule.movementCost - 1) * 30;
+                score -= Math.Max(0, 100 - terrainRule.combatEffectivenessPercent);
+                if (!terrainRule.allowsPhalanx && group.Role == SectorGroupRole.Phalanx) score -= 120;
+            }
             int friendly = CountAt(position, group.Side), enemy = CountAt(position, 1 - group.Side);
             if (enemy > 0) score += simulation.Rules.aiEnemyScore + enemy * 12 +
-                (tactic == SectorGeneralTactic.AllInCentre ? 25 : tactic == SectorGeneralTactic.SupportedCentre ? -5 : 0);
+                (tactic == SectorGeneralTactic.FocusedCenter ? 25 : tactic == SectorGeneralTactic.DoubleEnvelopment ? -5 : 0);
             if (simulation.IsSectorContested(position)) score += simulation.Rules.aiContestedScore +
-                (tactic == SectorGeneralTactic.AllInCentre ? 20 : tactic == SectorGeneralTactic.SupportedCentre ? 15 : 0);
+                (tactic == SectorGeneralTactic.FocusedCenter ? 20 : tactic == SectorGeneralTactic.DoubleEnvelopment ? 15 : 0);
             score -= friendly * 4;
 
             int nearestEnemy = 20;
@@ -227,11 +256,15 @@ namespace ProjectX.SectorBattle
                     nearestEnemy = Math.Min(nearestEnemy, Distance(position, formation.Sector));
             score -= nearestEnemy * 9;
 
-            int flankTargets = AdjacentContestedEnemies(position, group.Side);
-            if (flankTargets > 0) score += flankTargets * (simulation.Rules.aiFlankScore + FlankSuitability(group.Role) * 12 +
-                (tactic == SectorGeneralTactic.SupportedCentre ? 55 : 0));
+            int flankTargets = FlankAttackTargetsFrom(position, group.Side);
+            int openFlankSlots = OpenFlankSlotsAt(position, group.Side);
+            if (flankTargets > 0 && openFlankSlots > 0)
+                score += flankTargets * (simulation.Rules.aiFlankScore + FlankSuitability(group.Role) * 12 +
+                    (tactic == SectorGeneralTactic.DoubleEnvelopment ? 55 : 0)) + Math.Min(3, openFlankSlots) * 20;
+            else if (flankTargets > 0)
+                score -= 180;
             int wingDistance = Math.Abs((int)position.Lane - (int)BattleLane.Centre);
-            if (tactic == SectorGeneralTactic.AllInCentre)
+            if (tactic == SectorGeneralTactic.FocusedCenter)
             {
                 // The whole army is committed through the centre. Wing and outer-flank moves
                 // are scored far below any viable central advance or engagement.
@@ -240,24 +273,42 @@ namespace ProjectX.SectorBattle
             }
             else if (flanker)
             {
-                int supportBonus = tactic == SectorGeneralTactic.SupportedCentre ? 18 : 0;
+                int supportBonus = tactic == SectorGeneralTactic.DoubleEnvelopment ? 18 : 0;
                 score += wingDistance * (simulation.Rules.aiWideScore + supportBonus + FlankSuitability(group.Role) * 2);
                 bool outerFlank = position.Lane == BattleLane.TopFlank || position.Lane == BattleLane.BottomFlank;
-                if (tactic == SectorGeneralTactic.SupportedCentre && outerFlank)
+                if (tactic == SectorGeneralTactic.DoubleEnvelopment && outerFlank)
                     score += 110 + FlankSuitability(group.Role) * 5;
-                else if (tactic == SectorGeneralTactic.Standard)
+                else if (tactic == SectorGeneralTactic.WingedCenter)
                     score += outerFlank ? -100 : wingDistance == 1 ? 45 : 0;
+                else if (tactic == SectorGeneralTactic.SingleFlank)
+                {
+                    BattleLane chosen = ConcentratedFlankLane(group.Side);
+                    int chosenDirection = (int)chosen < (int)BattleLane.Centre ? -1 : 1;
+                    int positionDirection = Math.Sign((int)position.Lane - (int)BattleLane.Centre);
+                    score += positionDirection == chosenDirection ? wingDistance * 95 : -10000;
+                    if (position.Lane == chosen) score += 160;
+                }
                 // Support moves laterally behind the line before advancing around it.
                 if (group.CurrentSector.Lane == BattleLane.Centre && position.Depth != group.CurrentSector.Depth) score -= 35;
+                if (AnySectorContested())
+                {
+                    // Once fighting has begun, manoeuvre groups orbit the battle rather than
+                    // pursuing empty depth objectives. A side or rear support sector receives
+                    // the large flank bonus above; every step away from the nearest live fight
+                    // is deliberately expensive.
+                    score -= DistanceToNearestContested(position) * 55;
+                    int alternativeDistance = DistanceToNearestOpenFlank(position, group.Side);
+                    if (alternativeDistance < 20) score -= alternativeDistance * 70;
+                }
             }
             else
             {
                 bool line = group.Role == SectorGroupRole.HeavyInfantry || group.Role == SectorGroupRole.LineInfantry ||
                             group.Role == SectorGroupRole.Phalanx || group.Role == SectorGroupRole.Large;
-                if (line) score -= wingDistance * (tactic == SectorGeneralTactic.SupportedCentre ? 24 : 16);
+                if (line) score -= wingDistance * (tactic == SectorGeneralTactic.DoubleEnvelopment ? 24 : 16);
             }
             BattleDepth enemyReserve = group.Side == 0 ? BattleDepth.SideBReserve : BattleDepth.SideAReserve;
-            if (position.Depth == enemyReserve && enemy == 0) score += 35;
+            if (position.Depth == enemyReserve && enemy == 0 && !AnySectorContested()) score += 35;
             if (position.Depth == enemyReserve && !AnySectorContested()) score -= 100;
             return score;
         }
@@ -278,16 +329,271 @@ namespace ProjectX.SectorBattle
             return count;
         }
 
-        private int AdjacentContestedEnemies(SectorCoord position, int side)
+        private int FlankAttackTargetsFrom(SectorCoord position, int side)
         {
             int count = 0;
-            foreach (SectorCoord candidate in AdjacentSectors(position))
-                if (candidate.Depth == position.Depth && simulation.IsSectorContested(candidate) && CountAt(candidate, 1 - side) > 0) count++;
+            int rearDirection = side == 0 ? 1 : -1;
+            foreach (BattleLane lane in Enum.GetValues(typeof(BattleLane)))
+                foreach (BattleDepth depth in Enum.GetValues(typeof(BattleDepth)))
+                {
+                    SectorCoord candidate = new SectorCoord(lane, depth);
+                    if (!simulation.IsSectorContested(candidate) || CountAt(candidate, 1 - side) <= 0) continue;
+                    bool beside = candidate.Depth == position.Depth &&
+                        Math.Abs((int)candidate.Lane - (int)position.Lane) == 1;
+                    bool behind = candidate.Lane == position.Lane &&
+                        (int)position.Depth == (int)candidate.Depth + rearDirection;
+                    if (beside || behind) count++;
+                }
             return count;
         }
 
-        private bool SupportsFriendlyFightFrom(SectorCoord position, int side)
-            => AdjacentContestedEnemies(position, side) > 0;
+        private bool CanGroupEnter(SectorCommandGroup group, SectorCoord position)
+        {
+            for (int i = 0; i < group.MemberFormationIds.Count; i++)
+            {
+                SectorFormation formation = Find(group.MemberFormationIds[i]);
+                if (formation != null && formation.Active && simulation.CanEnterTerrain(formation, position)) return true;
+            }
+            return false;
+        }
+
+        /// <summary>Replaces role-based setup groups with the groups explicitly selected by a custom battle designer.</summary>
+        public void ConfigureExplicitGroups(IReadOnlyDictionary<int, int> requestedGroups)
+        {
+            if (simulation.IsStarted || requestedGroups == null || requestedGroups.Count == 0) return;
+            groups.Clear(); byFormation.Clear(); aiFlankAssignments.Clear(); nextGroupId = 1;
+            Dictionary<string, SectorCommandGroup> selected = new Dictionary<string, SectorCommandGroup>();
+            foreach (KeyValuePair<int, int> pair in requestedGroups)
+            {
+                SectorFormation formation = Find(pair.Key);
+                if (formation == null) continue;
+                int number = Math.Max(1, Math.Min(10, pair.Value));
+                string key = formation.Side + ":" + number;
+                if (!selected.TryGetValue(key, out SectorCommandGroup group))
+                {
+                    BattleSideCommandConfig config = commanders.TryGetValue(formation.Side, out BattleSideCommandConfig found)
+                        ? found : new BattleSideCommandConfig { Side = formation.Side, GeneralName = "General", PlayerControlled = false };
+                    group = NewGroup(formation.Side, RoleOf(formation), config.GeneralName, config.PlayerControlled);
+                    group.DisplayName = "Command Group " + number;
+                    selected[key] = group;
+                }
+                group.MemberFormationIds.Add(formation.Id);
+                byFormation[formation.Id] = group;
+            }
+            RefreshLocations();
+            BalanceHomogeneousArmyRoles(0); BalanceHomogeneousArmyRoles(1);
+            NormalizeGroupDeployment();
+            AssignAIFlankers(0); AssignAIFlankers(1);
+        }
+
+        /// <summary>
+        /// A command group is an atomic manoeuvre body. Formation-level lane choices vote for
+        /// its setup sector; every member is then deployed together before battle membership locks.
+        /// </summary>
+        public void NormalizeGroupDeployment()
+        {
+            if (simulation.IsStarted) return;
+            for (int i = 0; i < groups.Count; i++)
+            {
+                SectorCommandGroup group = groups[i];
+                Dictionary<SectorCoord, int> votes = new Dictionary<SectorCoord, int>();
+                for (int m = 0; m < group.MemberFormationIds.Count; m++)
+                {
+                    SectorFormation formation = Find(group.MemberFormationIds[m]);
+                    if (formation == null) continue;
+                    votes[formation.Sector] = votes.TryGetValue(formation.Sector, out int count) ? count + 1 : 1;
+                }
+                if (votes.Count == 0) continue;
+                SectorCoord chosen = default;
+                foreach (SectorCoord coordinate in votes.Keys) { chosen = coordinate; break; }
+                foreach (KeyValuePair<SectorCoord, int> vote in votes)
+                    if (vote.Value > votes[chosen] || vote.Value == votes[chosen] && PreferDeployment(vote.Key, chosen, group.Side))
+                        chosen = vote.Key;
+                for (int m = 0; m < group.MemberFormationIds.Count; m++)
+                    simulation.PlaceFormationForSetup(group.MemberFormationIds[m], chosen);
+                group.CurrentSector = group.DestinationSector = chosen;
+                group.Moving = false;
+            }
+        }
+
+        private static bool PreferDeployment(SectorCoord candidate, SectorCoord current, int side)
+        {
+            int candidateLaneDistance = Math.Abs((int)candidate.Lane - (int)BattleLane.Centre);
+            int currentLaneDistance = Math.Abs((int)current.Lane - (int)BattleLane.Centre);
+            if (candidateLaneDistance != currentLaneDistance) return candidateLaneDistance < currentLaneDistance;
+            BattleDepth reserve = side == 0 ? BattleDepth.SideAReserve : BattleDepth.SideBReserve;
+            int candidateDepthDistance = Math.Abs((int)candidate.Depth - (int)reserve);
+            int currentDepthDistance = Math.Abs((int)current.Depth - (int)reserve);
+            if (candidateDepthDistance != currentDepthDistance) return candidateDepthDistance < currentDepthDistance;
+            return candidate.CompareTo(current) < 0;
+        }
+
+        /// <summary>
+        /// An AI army made entirely from flexible melee infantry still needs a line, a reserve/support body,
+        /// and a manoeuvre element. Tactical roles affect command behavior only; the formations retain their
+        /// real unit statistics and movement speed.
+        /// </summary>
+        private void BalanceHomogeneousArmyRoles(int side)
+        {
+            List<SectorCommandGroup> sideGroups = groups.FindAll(item => item.Side == side && !item.PlayerControlled);
+            if (sideGroups.Count == 0) return;
+            bool hasLine = sideGroups.Exists(item => item.Role == SectorGroupRole.HeavyInfantry ||
+                item.Role == SectorGroupRole.LineInfantry || item.Role == SectorGroupRole.Phalanx || item.Role == SectorGroupRole.Large);
+            bool hasFlank = sideGroups.Exists(item => item.Role == SectorGroupRole.LightCavalry || item.Role == SectorGroupRole.HeavyCavalry);
+            if (hasLine && hasFlank) return;
+
+            List<int> flexible = new List<int>();
+            for (int i = 0; i < sideGroups.Count; i++)
+            {
+                SectorCommandGroup group = sideGroups[i];
+                if (group.Role != SectorGroupRole.LightInfantry && group.Role != SectorGroupRole.Skirmisher) return;
+                for (int m = 0; m < group.MemberFormationIds.Count; m++)
+                {
+                    SectorFormation formation = Find(group.MemberFormationIds[m]);
+                    if (formation == null || formation.Ranged) return;
+                    flexible.Add(formation.Id);
+                }
+            }
+            if (flexible.Count < 3) return;
+            flexible.Sort();
+
+            string general = sideGroups[0].GeneralName;
+            bool player = sideGroups[0].PlayerControlled;
+            for (int i = 0; i < sideGroups.Count; i++) groups.Remove(sideGroups[i]);
+            int mainCount = (flexible.Count + 2) / 3;
+            int supportCount = (flexible.Count - mainCount + 1) / 2;
+            SectorCommandGroup main = NewGroup(side, SectorGroupRole.LineInfantry, general, player);
+            SectorCommandGroup support = NewGroup(side, SectorGroupRole.LightInfantry, general, player);
+            SectorCommandGroup flank = NewGroup(side, SectorGroupRole.LightCavalry, general, player);
+            main.DisplayName = "Improvised Main Line";
+            support.DisplayName = "Flexible Support";
+            flank.DisplayName = "Infantry Flank";
+            for (int i = 0; i < flexible.Count; i++)
+            {
+                SectorCommandGroup destination = i < mainCount ? main : i < mainCount + supportCount ? support : flank;
+                destination.MemberFormationIds.Add(flexible[i]);
+                byFormation[flexible[i]] = destination;
+            }
+        }
+
+        private bool HasFlankAssignmentHere(SectorCommandGroup group)
+        {
+            int capacity = FlankAttackTargetsFrom(group.CurrentSector, group.Side) * Math.Max(0, simulation.Rules.flankFrontage);
+            if (capacity <= 0) return false;
+            List<SectorFormation> eligible = new List<SectorFormation>();
+            foreach (SectorFormation formation in simulation.Formations)
+                if (formation.Active && formation.Side == group.Side && formation.Sector.Equals(group.CurrentSector) &&
+                    !formation.Moving && !formation.Ranged) eligible.Add(formation);
+            // Crowded support positions retain the least mobile bodies. Faster and lighter
+            // formations become the overflow manoeuvre force and look for another flank/rear.
+            eligible.Sort((a, b) =>
+            {
+                int speed = FormationMovementSpeed(a).CompareTo(FormationMovementSpeed(b));
+                if (speed != 0) return speed;
+                int mass = Math.Max(0, b.Combat.BaseMass).CompareTo(Math.Max(0, a.Combat.BaseMass));
+                return mass != 0 ? mass : a.Id.CompareTo(b.Id);
+            });
+            int used = Math.Min(capacity, eligible.Count);
+            for (int i = 0; i < used; i++) if (group.MemberFormationIds.Contains(eligible[i].Id)) return true;
+            return false;
+        }
+
+        private static int FormationMovementSpeed(SectorFormation formation)
+            => formation != null && formation.Combat != null
+                ? formation.Combat.Cavalry ? 2 : Math.Max(1, formation.Combat.Actions)
+                : 1;
+
+        private int OpenFlankSlotsAt(SectorCoord position, int side)
+        {
+            int capacity = FlankAttackTargetsFrom(position, side) * Math.Max(0, simulation.Rules.flankFrontage);
+            if (capacity <= 0) return 0;
+            int occupants = 0;
+            foreach (SectorFormation formation in simulation.Formations)
+                if (formation.Active && formation.Side == side && formation.Sector.Equals(position) &&
+                    !formation.Moving && !formation.Ranged) occupants++;
+            return Math.Max(0, capacity - occupants);
+        }
+
+        private int DistanceToNearestOpenFlank(SectorCoord position, int side)
+        {
+            int nearest = 20;
+            foreach (BattleLane lane in Enum.GetValues(typeof(BattleLane)))
+                foreach (BattleDepth depth in Enum.GetValues(typeof(BattleDepth)))
+                {
+                    SectorCoord candidate = new SectorCoord(lane, depth);
+                    if (OpenFlankSlotsAt(candidate, side) > 0) nearest = Math.Min(nearest, Distance(position, candidate));
+                }
+            return nearest;
+        }
+
+        private bool TryFindOpenFlankObjective(SectorCommandGroup group, out SectorCoord objective)
+        {
+            objective = group.CurrentSector; int bestDistance = int.MaxValue; int bestRear = -1;
+            foreach (BattleLane lane in Enum.GetValues(typeof(BattleLane)))
+                foreach (BattleDepth depth in Enum.GetValues(typeof(BattleDepth)))
+                {
+                    SectorCoord candidate = new SectorCoord(lane, depth);
+                    if (!CanGroupEnter(group, candidate) || OpenFlankSlotsAt(candidate, group.Side) <= 0 ||
+                        Tactic(group.Side) == SectorGeneralTactic.SingleFlank && !OnConcentratedFlank(candidate.Lane, group.Side)) continue;
+                    int distance = Distance(group.CurrentSector, candidate);
+                    int rear = IsRearSupportPosition(candidate, group.Side) ? 1 : 0;
+                    if (distance < bestDistance || distance == bestDistance && rear > bestRear ||
+                        distance == bestDistance && rear == bestRear && candidate.CompareTo(objective) < 0)
+                    { objective = candidate; bestDistance = distance; bestRear = rear; }
+                }
+            return bestDistance < int.MaxValue;
+        }
+
+        private bool TryFindNearestContested(SectorCommandGroup group, out SectorCoord objective)
+        {
+            objective = group.CurrentSector; int bestDistance = int.MaxValue;
+            foreach (BattleLane lane in Enum.GetValues(typeof(BattleLane)))
+                foreach (BattleDepth depth in Enum.GetValues(typeof(BattleDepth)))
+                {
+                    SectorCoord candidate = new SectorCoord(lane, depth);
+                    if (!simulation.IsSectorContested(candidate)) continue;
+                    int distance = Distance(group.CurrentSector, candidate);
+                    if (distance < bestDistance || distance == bestDistance && candidate.CompareTo(objective) < 0)
+                    { objective = candidate; bestDistance = distance; }
+                }
+            return bestDistance < int.MaxValue;
+        }
+
+        private bool IsRearSupportPosition(SectorCoord position, int side)
+        {
+            int rearDirection = side == 0 ? 1 : -1;
+            int targetDepth = (int)position.Depth - rearDirection;
+            if (targetDepth < 0 || targetDepth > 4) return false;
+            SectorCoord target = new SectorCoord(position.Lane, (BattleDepth)targetDepth);
+            return simulation.IsSectorContested(target) && CountAt(target, 1 - side) > 0;
+        }
+
+        private SectorCoord BestStepToward(SectorCommandGroup group, SectorCoord objective)
+        {
+            SectorCoord best = group.CurrentSector; int currentDistance = Distance(best, objective);
+            int bestDistance = currentDistance; int bestScore = int.MinValue;
+            foreach (SectorCoord candidate in AdjacentSectors(group.CurrentSector))
+            {
+                int distance = Distance(candidate, objective);
+                if (distance >= currentDistance || distance > bestDistance) continue;
+                int score = ScorePosition(group, candidate, true);
+                if (distance < bestDistance || score > bestScore || score == bestScore && PreferTie(group, candidate, best))
+                { best = candidate; bestDistance = distance; bestScore = score; }
+            }
+            return best;
+        }
+
+        private int DistanceToNearestContested(SectorCoord position)
+        {
+            int nearest = 20;
+            foreach (BattleLane lane in Enum.GetValues(typeof(BattleLane)))
+                foreach (BattleDepth depth in Enum.GetValues(typeof(BattleDepth)))
+                {
+                    SectorCoord candidate = new SectorCoord(lane, depth);
+                    if (simulation.IsSectorContested(candidate)) nearest = Math.Min(nearest, Distance(position, candidate));
+                }
+            return nearest;
+        }
 
         private static IEnumerable<SectorCoord> AdjacentSectors(SectorCoord origin)
         {
@@ -301,14 +607,22 @@ namespace ProjectX.SectorBattle
         private static int Distance(SectorCoord a, SectorCoord b)
             => Math.Abs((int)a.Lane - (int)b.Lane) + Math.Abs((int)a.Depth - (int)b.Depth);
 
-        private static bool PreferTie(SectorCommandGroup group, SectorCoord candidate, SectorCoord currentBest)
+        private bool PreferTie(SectorCommandGroup group, SectorCoord candidate, SectorCoord currentBest)
         {
-            int desiredWing = (group.GroupId + group.Side) % 2 == 0 ? 1 : -1;
+            int desiredWing = Tactic(group.Side) == SectorGeneralTactic.SingleFlank
+                ? ((int)ConcentratedFlankLane(group.Side) < (int)BattleLane.Centre ? -1 : 1)
+                : (group.GroupId + group.Side) % 2 == 0 ? 1 : -1;
             int candidateBias = ((int)candidate.Lane - (int)BattleLane.Centre) * desiredWing;
             int bestBias = ((int)currentBest.Lane - (int)BattleLane.Centre) * desiredWing;
             if (candidateBias != bestBias) return candidateBias > bestBias;
             return (int)candidate.Depth * 5 + (int)candidate.Lane < (int)currentBest.Depth * 5 + (int)currentBest.Lane;
         }
+
+        private static BattleLane ConcentratedFlankLane(int side)
+            => side == 0 ? BattleLane.TopFlank : BattleLane.BottomFlank;
+
+        private static bool OnConcentratedFlank(BattleLane lane, int side)
+            => side == 0 ? (int)lane <= (int)BattleLane.UpperWing : (int)lane >= (int)BattleLane.LowerWing;
 
         private void AssignAIFlankers(int side)
         {

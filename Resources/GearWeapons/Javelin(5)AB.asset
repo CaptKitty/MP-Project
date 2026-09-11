@@ -28,6 +28,4 @@ MonoBehaviour:
   Throwable: {fileID: 8062874142913599219, guid: 0603e32d295d7154085c6c9224cdb6c5, type: 3}
   ammo: 5
   modifier: {fileID: 11400000, guid: ec3b4e9571631ba4993be6db1c228eee, type: 2}
-  armor:
-    armor: 0
-    rangedarmor: 0
+  armor: 0

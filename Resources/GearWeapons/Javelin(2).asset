@@ -30,8 +30,6 @@ MonoBehaviour:
   ammo: 2
   modifier: {fileID: 0}
   rangedUsage: 1
-  armor:
-    armor: 0
-    rangedarmor: 0
+  armor: 0
   shieldFrontEffectiveness: 100
   shieldSideEffectiveness: 0

@@ -15,11 +15,11 @@ MonoBehaviour:
   unitname: Hastati
   unittype: 2
   cost: 100
-  health: 100
-  notLevyable: 0
-  levyRole: 1
+  health: 200
   recruitmentTicks: 3
   upkeep: 1
+  notLevyable: 0
+  levyRole: 1
   actions: 2
   reactionTime: 7
   flaglist:

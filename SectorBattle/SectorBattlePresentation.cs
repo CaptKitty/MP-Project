@@ -142,7 +142,8 @@ namespace ProjectX.SectorBattle
             manager = owner; baseUnitMaterial = FindUnitMaterial();
             canvas = CreateCanvas(); CreateAccessButton();
             if (!SceneManager.GetActiveScene().name.StartsWith("MapScene", StringComparison.OrdinalIgnoreCase) &&
-                SceneManager.GetActiveScene().name != "SampleScene")
+                SceneManager.GetActiveScene().name != "SampleScene" &&
+                SceneManager.GetActiveScene().name != "ScenarioScene")
                 CreateDemoButton();
             CreateBattlePopup(); CreateViewer();
         }
@@ -417,7 +418,8 @@ namespace ProjectX.SectorBattle
             art.SetPresentationFallen(false, 0f); art.SetContinuousCheer(false);
             art.Status = state.Role == SectorFormationRole.Moving ? FormationStatus.Advancing :
                 state.Role == SectorFormationRole.Routing ? FormationStatus.Routing :
-                state.Role == SectorFormationRole.BaseFrontage || state.Role == SectorFormationRole.FlankAttacker
+                state.Role == SectorFormationRole.BaseFrontage || state.Role == SectorFormationRole.FlankAttacker ||
+                state.Role == SectorFormationRole.RearFlankAttacker
                     ? FormationStatus.Engaged : FormationStatus.Advancing;
             bool faceLeft = state.Side == 1;
             if (!state.TargetSector.Equals(state.Sector)) faceLeft = (int)state.TargetSector.Depth < (int)state.Sector.Depth;
@@ -464,9 +466,11 @@ namespace ProjectX.SectorBattle
         private Vector2 GridOffset(SectorFormationPresentationState state, List<SectorFormationPresentationState> all, SectorCoord coordinate, bool targets)
         {
             SectorBattleSimulation simulation = selected != null ? selected.Simulation as SectorBattleSimulation : null;
+            int visualColumn = VisualColumn(state);
             List<SectorFormationPresentationState> peers = all.FindAll(item =>
                 (targets ? item.TargetSector.Equals(coordinate) && item.Role == SectorFormationRole.Moving : item.Sector.Equals(coordinate)) &&
-                item.State != SectorFormationState.Destroyed && item.State != SectorFormationState.Withdrawn);
+                item.State != SectorFormationState.Destroyed && item.State != SectorFormationState.Withdrawn &&
+                (targets || VisualColumn(item) == visualColumn));
             peers.Sort((a, b) =>
             {
                 int side = a.Side.CompareTo(b.Side); if (side != 0) return side;
@@ -474,22 +478,28 @@ namespace ProjectX.SectorBattle
                 int group = (ga?.GroupId ?? 0).CompareTo(gb?.GroupId ?? 0); return group != 0 ? group : a.FormationId.CompareTo(b.FormationId);
             });
             int index = Mathf.Max(0, peers.FindIndex(item => item.FormationId == state.FormationId));
-            int columns = Mathf.Clamp(Mathf.CeilToInt(Mathf.Sqrt(peers.Count * 1.8f)), 1, 6);
-            int rows = Mathf.Max(1, Mathf.CeilToInt(peers.Count / (float)columns));
-            int column = index % columns, row = index / columns;
-            float x = columns == 1 ? 0f : Mathf.Lerp(-82f, 82f, column / (float)(columns - 1));
-            float y = rows == 1 ? -20f : Mathf.Lerp(-40f, 10f, row / (float)(rows - 1));
+            int row = index;
+            float x = targets ? (state.Side == 0 ? -26f : 26f) :
+                visualColumn == 0 ? -82f : visualColumn == 1 ? -27f : visualColumn == 2 ? 27f : 82f;
+            float y = peers.Count <= 1 ? 6f : Mathf.Lerp(-20f, 26f, row / (float)(peers.Count - 1));
             return new Vector2(x, y);
+        }
+
+        private static int VisualColumn(SectorFormationPresentationState state)
+        {
+            bool fighting = state.Role == SectorFormationRole.BaseFrontage || state.Role == SectorFormationRole.FlankAttacker ||
+                state.Role == SectorFormationRole.RearFlankAttacker;
+            if (state.Side == 0) return fighting ? 1 : 0; // reserve A, frontage A
+            return fighting ? 2 : 3;                     // frontage B, reserve B
         }
 
         private static float FormationVisualSize(SectorFormationPresentationState state, List<SectorFormationPresentationState> all)
         {
-            int count = all.FindAll(item => item.Sector.Equals(state.Sector) && item.State != SectorFormationState.Destroyed && item.State != SectorFormationState.Withdrawn).Count;
-            int columns = Mathf.Clamp(Mathf.CeilToInt(Mathf.Sqrt(count * 1.8f)), 1, 6);
-            int rows = Mathf.Max(1, Mathf.CeilToInt(count / (float)columns));
-            float horizontal = columns > 1 ? 164f / (columns - 1) : 64f;
-            float vertical = rows > 1 ? 50f / (rows - 1) : 54f;
-            return Mathf.Clamp(Mathf.Min(horizontal, vertical) - 4f, 20f, 64f);
+            int column = VisualColumn(state);
+            int count = all.FindAll(item => item.Sector.Equals(state.Sector) && VisualColumn(item) == column &&
+                item.State != SectorFormationState.Destroyed && item.State != SectorFormationState.Withdrawn).Count;
+            float vertical = count > 1 ? 46f / (count - 1) : 44f;
+            return Mathf.Clamp(vertical + 8f, 24f, 44f);
         }
 
         private static float SlotX(int index, int count)
@@ -499,7 +509,8 @@ namespace ProjectX.SectorBattle
         {
             for (int i = 0; i < arrows.Count; i++) arrows[i].gameObject.SetActive(false);
             Dictionary<string, int> grouped = new Dictionary<string, int>();
-            for (int i = 0; i < formations.Count; i++) if (formations[i].Role == SectorFormationRole.FlankAttacker)
+            for (int i = 0; i < formations.Count; i++) if (formations[i].Role == SectorFormationRole.FlankAttacker ||
+                formations[i].Role == SectorFormationRole.RearFlankAttacker)
             {
                 SectorFormationPresentationState f = formations[i]; string key = f.Side + ":" + f.Sector + ":" + f.TargetSector;
                 grouped[key] = grouped.TryGetValue(key, out int count) ? count + 1 : 1;
@@ -508,7 +519,8 @@ namespace ProjectX.SectorBattle
             foreach (KeyValuePair<string, int> pair in grouped)
             {
                 string[] pieces = pair.Key.Split(':'); SectorFormationPresentationState sample = formations.Find(f =>
-                    f.Role == SectorFormationRole.FlankAttacker && f.Side.ToString() == pieces[0] && f.Sector.ToString() == pieces[1]);
+                    (f.Role == SectorFormationRole.FlankAttacker || f.Role == SectorFormationRole.RearFlankAttacker) &&
+                    f.Side.ToString() == pieces[0] && f.Sector.ToString() == pieces[1]);
                 if (sample == null) continue;
                 Text arrow = AcquireArrow(arrowIndex++); Vector2 from = SectorCentre(sample.Sector), to = SectorCentre(sample.TargetSector);
                 arrow.rectTransform.anchoredPosition = Vector2.Lerp(from, to, .5f);
@@ -583,7 +595,8 @@ namespace ProjectX.SectorBattle
                 for (int m = 0; m < group.MemberFormationIds.Count; m++) { SectorFormationPresentationState state = formations.Find(item => item.FormationId == group.MemberFormationIds[m]); if (state != null) members.Add(state); }
                 int strength = Average(members, item => Percent(item.Strength, item.MaximumStrength));
                 int morale = Average(members, item => item.Morale / 10), exhaustion = Average(members, item => item.Exhaustion / 10);
-                bool engaged = members.Exists(item => item.Role == SectorFormationRole.BaseFrontage || item.Role == SectorFormationRole.FlankAttacker);
+                bool engaged = members.Exists(item => item.Role == SectorFormationRole.BaseFrontage ||
+                    item.Role == SectorFormationRole.FlankAttacker || item.Role == SectorFormationRole.RearFlankAttacker);
                 int impaired = members.FindAll(item => item.State == SectorFormationState.Routing || item.Morale < 350 || item.Exhaustion > 700).Count;
                 card.Header.text = group.DisplayName.ToUpperInvariant() + " [" + members.Count + "]";
                 card.Status.text = LaneName(group.CurrentSector.Lane) + " / " + DepthName(group.CurrentSector.Depth) + "  •  " +
@@ -842,7 +855,9 @@ namespace ProjectX.SectorBattle
         private static string DepthName(BattleDepth depth) => depth == BattleDepth.SideAReserve ? "SIDE A RESERVE" :
             depth == BattleDepth.SideALine ? "SIDE A LINE" : depth == BattleDepth.SideBLine ? "SIDE B LINE" :
             depth == BattleDepth.SideBReserve ? "SIDE B RESERVE" : "CENTRAL GROUND";
-        private static string RoleName(SectorFormationRole role) => role == SectorFormationRole.BaseFrontage ? "Base frontage" : role == SectorFormationRole.FlankAttacker ? "Flank attacker" : role == SectorFormationRole.RangedSupport ? "Ranged support" : role.ToString();
+        private static string RoleName(SectorFormationRole role) => role == SectorFormationRole.BaseFrontage ? "Base frontage" :
+            role == SectorFormationRole.FlankAttacker ? "Flank attacker" : role == SectorFormationRole.RearFlankAttacker ? "Rear attacker" :
+            role == SectorFormationRole.RangedSupport ? "Ranged support" : role.ToString();
         private static int Percent(int value, int maximum) => Mathf.Clamp(Mathf.RoundToInt(value * 100f / Mathf.Max(1, maximum)), 0, 100);
         private static int Average(List<SectorFormationPresentationState> states, Func<SectorFormationPresentationState, int> selector)
         {
@@ -886,6 +901,8 @@ namespace ProjectX.SectorBattle
             if (battle == null) return side == 0 ? "Side A" : "Side B";
             string displayName = side == 0 ? battle.DisplayFactionA : battle.DisplayFactionB;
             if (!string.IsNullOrEmpty(displayName)) return displayName;
+            Faction displayFaction = side == 0 ? battle.DisplayFactionDefinitionA : battle.DisplayFactionDefinitionB;
+            if (displayFaction != null && !string.IsNullOrEmpty(displayFaction.name)) return displayFaction.name;
             FieldArmy army = side == 0 ? battle.ArmyA?.fieldArmy : battle.ArmyB != null ? battle.ArmyB.fieldArmy : battle.Garrison;
             Nation nation = army != null ? army.nation : null;
             if (nation != null && nation.faction != null && !string.IsNullOrEmpty(nation.faction.name)) return nation.faction.name;
@@ -937,7 +954,9 @@ namespace ProjectX.SectorBattle
             Nation nation = null;
             if (selected.ArmySources.TryGetValue(state.FormationId, out FieldArmyHolder holder) && holder != null && holder.fieldArmy != null) nation = holder.fieldArmy.nation;
             if (nation == null && state.Side == 1 && selected.Garrison != null) nation = selected.Garrison.nation;
-            Faction faction = nation != null ? nation.faction : null; string key = faction != null ? faction.name : "side" + state.Side;
+            Faction faction = nation != null ? nation.faction : state.Side == 0
+                ? selected.DisplayFactionDefinitionA : selected.DisplayFactionDefinitionB;
+            string key = faction != null ? faction.name : "side" + state.Side;
             if (materialCache.TryGetValue(key, out Material cached)) return cached;
             if (baseUnitMaterial == null) return null;
             Material material = new Material(baseUnitMaterial) { name = "Sector Battle " + key };

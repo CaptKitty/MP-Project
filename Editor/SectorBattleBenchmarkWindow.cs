@@ -69,6 +69,8 @@ public sealed class SectorBenchmarkResult
     public int CapacityB;
     public string FactionA;
     public string FactionB;
+    public string FactionAssetPathA;
+    public string FactionAssetPathB;
     public string GeneralA;
     public string GeneralB;
     public SectorGeneralTactic TacticA;
@@ -104,6 +106,8 @@ internal sealed class SectorBenchmarkViewRequest
     public int CapacityB;
     public string FactionA;
     public string FactionB;
+    public string FactionAssetPathA;
+    public string FactionAssetPathB;
     public string GeneralA;
     public string GeneralB;
     public SectorGeneralTactic TacticA;
@@ -184,7 +188,7 @@ public sealed class SectorBattleBenchmarkWindow : EditorWindow
             factionB = EditorGUILayout.TextField("Side B faction", factionB);
             generalB = EditorGUILayout.TextField("Side B general", generalB);
             tacticB = (SectorGeneralTactic)EditorGUILayout.EnumPopup("Side B tactic", tacticB);
-            EditorGUILayout.HelpBox("Names are display labels. Standard holds the main army in the centre with mobile support on the wings. All In Centre commits every group through the central lane. Supported Centre reduces central pressure and strongly favors wing and outer-flank support.", MessageType.None);
+            EditorGUILayout.HelpBox("Winged Center holds the main army in the centre with mobile support on the wings. Focused Center commits every group through the central lane. Double Envelopment strongly favors both outer flanks. Single Flank concentrates mobile flanking groups on one wing.", MessageType.None);
             useGeneratedArmies = EditorGUILayout.Toggle("Use generated armies", useGeneratedArmies);
             if (useGeneratedArmies)
             {
@@ -240,7 +244,7 @@ public sealed class SectorBattleBenchmarkWindow : EditorWindow
                     target.Add(new SectorBenchmarkArmyEntry { Unit = formation.Unit, Count = formation.Count, Lane = formation.Lane });
         if (side == 0)
         {
-            factionA = template.factionName;
+            factionA = template.faction != null ? template.faction.name : template.factionName;
             generalA = template.generalName;
             tacticA = template.tactic;
             capacityA = Mathf.Clamp(template.commandGroupCapacity, 4, 8);
@@ -248,7 +252,7 @@ public sealed class SectorBattleBenchmarkWindow : EditorWindow
         }
         else
         {
-            factionB = template.factionName;
+            factionB = template.faction != null ? template.faction.name : template.factionName;
             generalB = template.generalName;
             tacticB = template.tactic;
             capacityB = Mathf.Clamp(template.commandGroupCapacity, 4, 8);
@@ -340,6 +344,8 @@ public sealed class SectorBattleBenchmarkWindow : EditorWindow
                 pending.Enqueue(new SectorBenchmarkViewRequest { Preset = preset, Variable = variable, Value = value,
                     Seed = (ulong)(firstSeed + seedOffset), CapacityA = capacityA, CapacityB = capacityB,
                     FactionA = factionA, FactionB = factionB, GeneralA = generalA, GeneralB = generalB, TacticA = tacticA, TacticB = tacticB,
+                    FactionAssetPathA = templateA != null && templateA.faction != null ? AssetDatabase.GetAssetPath(templateA.faction) : string.Empty,
+                    FactionAssetPathB = templateB != null && templateB.faction != null ? AssetDatabase.GetAssetPath(templateB.faction) : string.Empty,
                     ArmyA = useGeneratedArmies ? MakeSpecs(armyA) : new List<SectorBenchmarkArmySpec>(),
                     ArmyB = useGeneratedArmies ? MakeSpecs(armyB) : new List<SectorBenchmarkArmySpec>() });
             if (variable == SectorBenchmarkVariable.None || value > high - Math.Max(1, step)) break;
@@ -466,6 +472,7 @@ internal static class SectorBattleBenchmarkRunner
         SectorBenchmarkResult result = new SectorBenchmarkResult { Preset = request.Preset, Variable = request.Variable,
             Value = request.Value, Seed = request.Seed, CapacityA = request.CapacityA, CapacityB = request.CapacityB,
             FactionA = request.FactionA, FactionB = request.FactionB, GeneralA = request.GeneralA, GeneralB = request.GeneralB, TacticA = request.TacticA, TacticB = request.TacticB,
+            FactionAssetPathA = request.FactionAssetPathA, FactionAssetPathB = request.FactionAssetPathB,
             ArmyA = request.ArmyA, ArmyB = request.ArmyB, Winner = -1 };
         SectorBattleRules rules = null;
         try
@@ -642,6 +649,7 @@ internal static class SectorBattleBenchmarkPlayModeViewer
         SectorBenchmarkViewRequest request = new SectorBenchmarkViewRequest { Preset = result.Preset, Variable = result.Variable,
             Value = result.Value, Seed = result.Seed, CapacityA = result.CapacityA, CapacityB = result.CapacityB,
             FactionA = result.FactionA, FactionB = result.FactionB, GeneralA = result.GeneralA, GeneralB = result.GeneralB, TacticA = result.TacticA, TacticB = result.TacticB,
+            FactionAssetPathA = result.FactionAssetPathA, FactionAssetPathB = result.FactionAssetPathB,
             ArmyA = result.ArmyA, ArmyB = result.ArmyB };
         EditorPrefs.SetString(PendingKey, JsonUtility.ToJson(request));
         if (EditorApplication.isPlaying) BeginLaunch();
@@ -686,9 +694,11 @@ internal static class SectorBattleBenchmarkPlayModeViewer
         EditorApplication.update -= TryLaunch;
         SectorBenchmarkViewRequest request = JsonUtility.FromJson<SectorBenchmarkViewRequest>(json);
         SectorBattleSimulation simulation = SectorBattleBenchmarkRunner.Recreate(request);
+        Faction factionA = string.IsNullOrEmpty(request.FactionAssetPathA) ? null : AssetDatabase.LoadAssetAtPath<Faction>(request.FactionAssetPathA);
+        Faction factionB = string.IsNullOrEmpty(request.FactionAssetPathB) ? null : AssetDatabase.LoadAssetAtPath<Faction>(request.FactionAssetPathB);
         SectorCampaignBattle battle = manager.RegisterCustomBattle(simulation,
             "Benchmark " + request.Preset + " seed " + request.Seed + " (" + request.Variable + "=" + request.Value + ")",
-            request.FactionA, request.FactionB);
+            request.FactionA, request.FactionB, factionA, factionB);
         SectorBattlePresentation.Instance.OpenViewer(battle);
     }
 }

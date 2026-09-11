@@ -445,12 +445,8 @@ public static class CampaignBattleStateAdapter
     private static BattleUnitDefinition Translate(int id, UnitSaveData unit)
     {
         Weapon melee = unit.MeleeWeapon != null ? unit.MeleeWeapon : unit.RangedWeapon;
-        int armor = unit.Armor != null && unit.Armor.armor != null ? unit.Armor.armor.armor : 0;
-        // Existing shield assets commonly store their value in rangedarmor while leaving
-        // armor at zero. ShieldPercent is used by both melee and projectile resolution, so
-        // translate the strongest configured shield value into that shared protection stat.
-        int shield = unit.Shield != null && unit.Shield.armor != null
-            ? Mathf.Max(unit.Shield.armor.armor, unit.Shield.armor.rangedarmor) : 0;
+        int armor = unit.Armor != null ? unit.Armor.armor : 0;
+        int shield = unit.Shield != null ? unit.Shield.armor : 0;
         return new BattleUnitDefinition
         {
             DefinitionId = id, UnitName = unit.name,

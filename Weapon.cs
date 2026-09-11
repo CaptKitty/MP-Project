@@ -28,7 +28,9 @@ public class Weapon : ScriptableObject
     [Tooltip("Tile-battle melee coverage. Auto maps combatdistance >= 2 to Long and other weapons to Standard.")]
     public MeleeReachPattern meleeReachPattern = MeleeReachPattern.Auto;
     public double speed = 1f;
-    public int attack = 1;
+    [InspectorName("Damage")] public int attack = 1;
+    [Tooltip("Damage that bypasses body armour and shields. Sector battles apply this as a separate DPS component.")]
+    [Min(0), InspectorName("AP Damage")] public int apDamage;
     public string attacktype = "attack";
     public double attacktime = 1;
     public double NextAvailableAttack = 0;
@@ -61,7 +63,7 @@ public class Weapon : ScriptableObject
     public RangedWeaponUsage rangedUsage = RangedWeaponUsage.Standard;
 
     [Header("Gear")]
-    public Armor armor;
+    [Range(0, 100)] public int armor;
 
     [Header("Shield Coverage")]
     [Tooltip("Percentage of this shield's armor applied against attacks arriving from the front.")]
@@ -80,6 +82,7 @@ public class Weapon : ScriptableObject
         potato.meleeReachPattern = meleeReachPattern;
         potato.speed = speed;
         potato.attack = attack;
+        potato.apDamage = apDamage;
         potato.attacktype = attacktype;
         potato.attacktime = attacktime;
         potato.Throwable = Throwable;
@@ -92,7 +95,7 @@ public class Weapon : ScriptableObject
         potato.visualOffset = visualOffset;
         potato.visualAngle = visualAngle;
         potato.projectileSprite = projectileSprite;
-        potato.armor = armor != null ? armor.GrabArmor() : null;
+        potato.armor = armor;
         potato.shieldFrontEffectiveness = shieldFrontEffectiveness;
         potato.shieldSideEffectiveness = shieldSideEffectiveness;
         return potato;
@@ -100,7 +103,9 @@ public class Weapon : ScriptableObject
     public string GrabWeaponInformation()
     {
         string newstring = "";
-        newstring += attack + " " + attacktype + "\n";
+        newstring += attack + " " + attacktype;
+        if (apDamage > 0) newstring += " + " + apDamage + " AP";
+        newstring += "\n";
         newstring += combatdistance + " range\n";
         newstring += attacktime + " atk spd";
         if (Throwable != null)
@@ -113,21 +118,5 @@ public class Weapon : ScriptableObject
             newstring += "\n" + modifier.name;
         }
         return newstring;
-    }
-}
-[System.Serializable]
-public class Armor
-{
-    [Range(0, 100)]
-    public int armor = 0; 
-    [Range(0, 100)]
-    public int rangedarmor = 0;
-
-    public Armor GrabArmor()
-    {
-        Armor newArmor = new Armor();
-        newArmor.armor = armor;
-        newArmor.rangedarmor = rangedarmor;
-        return newArmor;
     }
 }

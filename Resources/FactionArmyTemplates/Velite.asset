@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02fbfc34276e43cda289482df197db24, type: 3}
+  m_Name: Velite
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectX.SectorBattle.FactionArmyTemplate
+  faction: {fileID: 11400000, guid: dcbee4453ff2def43ba4aa0f3d4f9d86, type: 2}
+  factionName: Velite
+  generalName: General
+  tactic: 0
+  commandGroupCapacity: 6
+  formations:
+  - Unit: {fileID: 11400000, guid: 6908971fc78bb8843ae5d18483671e72, type: 2}
+    Count: 1
+    Lane: 2

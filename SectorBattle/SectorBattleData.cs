@@ -8,9 +8,10 @@ namespace ProjectX.SectorBattle
     public enum BattleLane : byte { TopFlank, UpperWing, Centre, LowerWing, BottomFlank }
     public enum BattleDepth : byte { SideAReserve, SideALine, CentralGround, SideBLine, SideBReserve }
     public enum SectorTerrain : byte { OpenPlain, DryPlain, Scrubland, Forest, RockyGround, Hill, ShallowRiver, Mountain, Other }
+    public enum SectorBattleMapType : byte { OpenGrassland, MountainPass, DenseForest }
     public enum SectorControl : byte { Empty, SideA, SideB, Contested }
     public enum SectorFormationState : byte { Ready, Moving, Routing, Withdrawn, Destroyed }
-    public enum SectorFormationRole : byte { Idle, BaseFrontage, Supporting, FlankAttacker, RangedSupport, Moving, Routing }
+    public enum SectorFormationRole : byte { Idle, BaseFrontage, Supporting, FlankAttacker, RearFlankAttacker, RangedSupport, Moving, Routing }
     public enum SectorPresentationEventType : byte { None, Attack, MovementStarted, MovementCompleted, Routed, Destroyed, Warcry }
 
     [Serializable]
@@ -58,6 +59,8 @@ namespace ProjectX.SectorBattle
         public int MovementTicksTotal;
         public int ArrivalTick = -1;
         public int WarcryTicks;
+        public int MeleeDamageRemainderMilli;
+        public int RangedDamageRemainderMilli;
         public readonly HashSet<int> OpeningVolleyTargets = new HashSet<int>();
         public bool Active => Strength > 0 && State != SectorFormationState.Destroyed &&
             State != SectorFormationState.Withdrawn && State != SectorFormationState.Routing;

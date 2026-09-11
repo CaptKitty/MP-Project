@@ -129,6 +129,8 @@ namespace ProjectX.TileBattle
         public int BaseMass = 100;
         public int Strength = 100;
         public int MeleeDamage = 20;
+        public int MeleeAPDamage;
+        public int MeleeAttackTimeMilli = 1000;
         public int MeleeRange = 1;
         public MeleeReachPattern MeleeReachPattern = MeleeReachPattern.Standard;
         public int MeleeAttackIntervalTicks = 1;
@@ -145,6 +147,8 @@ namespace ProjectX.TileBattle
         public bool OpeningThrowable;
         public int RangedRange;
         public int RangedDamage;
+        public int RangedAPDamage;
+        public int RangedAttackTimeMilli = 1000;
         public int RangedAttackIntervalTicks = 1;
         public int Ammunition;
         public TileFormationType FormationType;

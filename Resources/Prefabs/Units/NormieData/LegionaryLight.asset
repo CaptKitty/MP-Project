@@ -26,7 +26,7 @@ MonoBehaviour:
   - Formation
   RangedWeapon: {fileID: 11400000, guid: e3f352d3edadd6d469574d53c5fe5276, type: 2}
   MeleeWeapon: {fileID: 11400000, guid: dd27822988f93bc469b2fe10ae3c23ca, type: 2}
-  Armor: {fileID: 11400000, guid: 0c528521dbd964449a22c382d3668628, type: 2}
+  Armor: {fileID: 11400000, guid: c6fe3a90079e386418f1370598f70a5f, type: 2}
   Shield: {fileID: 11400000, guid: 391b1d4a466a19d40a0d7b9792737f1a, type: 2}
   modifierlist: []
   Mercenary: 1

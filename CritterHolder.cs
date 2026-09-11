@@ -560,8 +560,8 @@ public class CritterHolder : MonoBehaviour
         double a = 0;//zero armor;
         if (attacktype == "attack")
         {
-            a += Shield.armor.armor;
-            a += Armor.armor.armor;
+            a += Shield.armor;
+            a += Armor.armor;
             foreach (var item in _modifierlist)
             {
                 a += item.base_armor;
@@ -573,8 +573,8 @@ public class CritterHolder : MonoBehaviour
         }
         if (attacktype == "ranged")
         {
-            a += Shield.armor.rangedarmor;
-            a += Armor.armor.rangedarmor;
+            a += Shield.armor;
+            a += Armor.armor;
             foreach (var item in _modifierlist)
             {
                 a += item.base_ranged;

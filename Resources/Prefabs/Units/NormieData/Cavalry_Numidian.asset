@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Cavalry_Numidian
   m_EditorClassIdentifier: 
   unitname: Numidian Cavalry
-  unittype: 3
+  unittype: 4
   cost: 75
   health: 200
-  notLevyable: 0
-  levyRole: 2
   recruitmentTicks: 3
   upkeep: 2
+  notLevyable: 0
+  levyRole: 2
   actions: 4
   reactionTime: 4
   flaglist: []

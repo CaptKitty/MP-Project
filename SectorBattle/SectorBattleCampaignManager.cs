@@ -9,7 +9,9 @@ namespace ProjectX.SectorBattle
     public sealed class SectorCampaignBattle
     {
         public string BattleId;
+        public SectorBattleMapType MapType;
         public string DisplayFactionA, DisplayFactionB;
+        public Faction DisplayFactionDefinitionA, DisplayFactionDefinitionB;
         public FieldArmyHolder ArmyA, ArmyB;
         public FieldArmy Garrison;
         public Province DefendedProvince;
@@ -183,13 +185,17 @@ namespace ProjectX.SectorBattle
         }
 
         public SectorCampaignBattle RegisterCustomBattle(SectorBattleSimulation simulation, string name,
-            string displayFactionA = null, string displayFactionB = null)
+            string displayFactionA = null, string displayFactionB = null,
+            Faction displayFactionDefinitionA = null, Faction displayFactionDefinitionB = null)
         {
             if (simulation == null) return null;
             SectorCampaignBattle old = ActiveBattles.Find(item => item.NonCampaignBattle);
             if (old != null) ActiveBattles.Remove(old);
             SectorCampaignBattle battle = new SectorCampaignBattle { BattleId = name, Simulation = simulation,
-                DisplayFactionA = displayFactionA, DisplayFactionB = displayFactionB, NonCampaignBattle = true };
+                MapType = simulation.MapType,
+                DisplayFactionA = displayFactionA, DisplayFactionB = displayFactionB,
+                DisplayFactionDefinitionA = displayFactionDefinitionA, DisplayFactionDefinitionB = displayFactionDefinitionB,
+                NonCampaignBattle = true };
             RememberHumanSides(battle); ApplyHumanOrAIControl(battle, false);
             RecordReplayFrame(battle); ActiveBattles.Add(battle); return battle;
         }

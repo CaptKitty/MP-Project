@@ -19,7 +19,10 @@ MonoBehaviour:
   assemblyName: 
   startingUrbanization: 50
   content:
-    units: []
+    units:
+    - unit: {fileID: 11400000, guid: 133da361eaa973749a2e192bf15dc2db, type: 2}
+      requiredBuilding: {fileID: 0}
+      minimumBuildingLevel: 0
     buildings:
     - {fileID: 11400000, guid: b8aacba79c404fd6a4783cb563031fd8, type: 2}
     - {fileID: 11400000, guid: 44ff81b29126426e82b6c7d493d54afe, type: 2}
@@ -39,6 +42,6 @@ MonoBehaviour:
     - Mago
     AllegianceType: Parties
     allegiances: []
-    holdingEconomyModifiers: []
+    classEconomicModifiers: []
     levies: []
     laws: []

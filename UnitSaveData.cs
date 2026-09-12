@@ -50,7 +50,10 @@ public class UnitSaveData : ScriptableObject
     [Header("TestCritter")]
     public List<UpgradeModule> upgradeModules = new List<UpgradeModule>();
     public List<Sprite> bodyparts = new List<Sprite>();
+    [Tooltip("Legacy large-unit marker. Sector Battle displays these units 20% larger and assigns them the Large tactical role.")]
     public bool Big = false;
+    [Tooltip("Displays this unit at 200% normal size in the Sector Battle visualizer. This is visual only and does not alter combat statistics.")]
+    public bool Huge = false;
 
     public void NewCritterHolder(CritterHolder oldCritter)
     {

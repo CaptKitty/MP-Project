@@ -303,7 +303,13 @@ namespace ProjectX.SectorBattle
         private UnitSaveData ValidUnit(int index) => index > 0 && index <= units.Length ? units[index - 1] : null;
         private static string UnitName(UnitSaveData unit) => unit == null ? "Missing Unit" : string.IsNullOrWhiteSpace(unit.unitname) ? unit.name : unit.unitname;
         private static FactionArmyTemplate SelectedTemplate(Team team) => team.TemplatePicker != null && team.TemplatePicker.value >= 0 && team.TemplatePicker.value < team.Templates.Length ? team.Templates[team.TemplatePicker.value] : null;
-        private static Material FindUnitMaterial() => Resources.FindObjectsOfTypeAll<Material>().FirstOrDefault(m => m != null && m.name == "New Material 1");
+        private static Material FindUnitMaterial()
+        {
+            SectorBattleVisualSettings settings = Resources.Load<SectorBattleVisualSettings>("SectorBattleVisualSettings");
+            return settings != null && settings.UnitMaterial != null
+                ? settings.UnitMaterial
+                : Resources.FindObjectsOfTypeAll<Material>().FirstOrDefault(m => m != null && m.name == "New Material 1");
+        }
         private Material MakeFactionMaterial(Faction faction, int side)
         {
             if (baseMaterial == null) return null;

@@ -212,6 +212,16 @@ public class CampaignNetworkPlayer : NetworkBehaviour
         NationName.Value = assignment;
     }
 
+    /// <summary>
+    /// Updates this player's server-owned campaign nation after changing the
+    /// faction selector in the multiplayer lobby.
+    /// </summary>
+    public void RequestLobbyNation(string nationName)
+    {
+        if (!IsOwner || string.IsNullOrWhiteSpace(nationName)) return;
+        RequestPreferredNationRpc(new FixedString64Bytes(nationName.Trim()));
+    }
+
     private static string ChooseUniqueNation(ulong clientId, string requested)
     {
         if (IsAvailable(clientId, requested))
@@ -251,6 +261,14 @@ public class CampaignNetworkPlayer : NetworkBehaviour
 
     private static FixedString64Bytes GetPreferredNation()
     {
+        // Multiplayer lobby selection is authoritative. Only use the older
+        // SessionManager value when no synchronized lobby choice exists.
+        if (TestRelay.Instance != null &&
+            TestRelay.Instance.TryGetLocalLobbyFaction(out string lobbyFaction))
+        {
+            return new FixedString64Bytes(lobbyFaction);
+        }
+
         if (SessionManager.Instance != null && SessionManager.Instance.HostFaction != null)
         {
             return SessionManager.Instance.HostFaction.name;

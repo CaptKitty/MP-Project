@@ -385,6 +385,7 @@ namespace ProjectX.SectorBattle
                 else RefreshFormation(state, formations, sectors);
             }
             foreach (KeyValuePair<int, Image> pair in formationViews) pair.Value.gameObject.SetActive(visible.Contains(pair.Key));
+            ApplyFormationDrawOrder();
             RefreshArrows(formations); RefreshGroupBanners(simulation, formations); RefreshCommandCards(simulation, formations);
             if (!replayMode) ConsumeEvents(simulation); RefreshInspector();
             if (!replayMode) { RefreshGroupPanel(simulation); RefreshSectorHighlights(simulation); }
@@ -427,12 +428,12 @@ namespace ProjectX.SectorBattle
             SectorFormationView view = image.GetComponent<SectorFormationView>();
             view.Bind(state.FormationId, this); view.Target = FormationPosition(state, all, sectors);
             float visualSize = FormationVisualSize(state, all);
-            image.rectTransform.sizeDelta = Vector2.one * (state.Unit != null && state.Unit.Big ? visualSize * 1.2f : visualSize);
+            float unitScale = state.Unit != null && state.Unit.Huge ? 2f :
+                state.Unit != null && state.Unit.Big ? 1.2f : 1f;
+            image.rectTransform.sizeDelta = Vector2.one * visualSize * unitScale;
             image.color = state.Role == SectorFormationRole.Supporting ? new Color(1f, 1f, 1f, .72f) : Color.white;
             Outline marker = image.GetComponent<Outline>();
-            SectorCommandGroup group = (selected.Simulation as SectorBattleSimulation)?.Commands.GroupForFormation(state.FormationId);
-            marker.effectColor = group != null && group.GroupId == selectedGroupId ? new Color(1f, .82f, .2f, .42f) :
-                state.Side == 0 ? new Color(.72f, .18f, .12f, .35f) : new Color(.15f, .42f, .72f, .35f);
+            if (marker != null) marker.enabled = false;
         }
 
         private void RefreshCorpse(SectorFormationPresentationState state)
@@ -446,9 +447,12 @@ namespace ProjectX.SectorBattle
             SectorFormationView view = image.GetComponent<SectorFormationView>(); view.Bind(state.FormationId, this);
             int seed = Math.Abs(state.FormationId * 37 + 17);
             view.Target = SectorCentre(state.Sector) + new Vector2(seed % 141 - 70f, (seed / 11) % 65 - 42f);
-            image.rectTransform.sizeDelta = Vector2.one * (state.Unit != null && state.Unit.Big ? 54f : 45f);
+            float corpseScale = state.Unit != null && state.Unit.Huge ? 2f :
+                state.Unit != null && state.Unit.Big ? 1.2f : 1f;
+            image.rectTransform.sizeDelta = Vector2.one * 45f * corpseScale;
             image.color = new Color(.72f, .72f, .68f, .9f);
-            Outline marker = image.GetComponent<Outline>(); marker.effectColor = Color.clear; marker.effectDistance = Vector2.zero;
+            Outline marker = image.GetComponent<Outline>();
+            if (marker != null) marker.enabled = false;
         }
 
         private Vector2 FormationPosition(SectorFormationPresentationState state,
@@ -481,8 +485,29 @@ namespace ProjectX.SectorBattle
             int row = index;
             float x = targets ? (state.Side == 0 ? -26f : 26f) :
                 visualColumn == 0 ? -82f : visualColumn == 1 ? -27f : visualColumn == 2 ? 27f : 82f;
-            float y = peers.Count <= 1 ? 6f : Mathf.Lerp(-20f, 26f, row / (float)(peers.Count - 1));
+            // Allocate occupation slots from the back/top of the sector downward.
+            // This keeps a stable marching order and makes lower figures naturally
+            // cover the feet of figures behind them instead of covering their heads.
+            float y = peers.Count <= 1 ? 6f : Mathf.Lerp(26f, -20f, row / (float)(peers.Count - 1));
             return new Vector2(x, y);
+        }
+
+        private void ApplyFormationDrawOrder()
+        {
+            List<Image> visible = formationViews.Values
+                .Where(image => image != null && image.gameObject.activeSelf)
+                .OrderByDescending(image =>
+                {
+                    SectorFormationView view = image.GetComponent<SectorFormationView>();
+                    return view != null ? view.Target.y : image.rectTransform.anchoredPosition.y;
+                })
+                .ThenBy(image => image.GetComponent<SectorFormationView>()?.FormationId ?? 0)
+                .ToList();
+
+            // Unity UI renders later siblings on top. High figures are placed first,
+            // so progressively lower figures render in front of them.
+            for (int i = 0; i < visible.Count; i++)
+                visible[i].transform.SetAsLastSibling();
         }
 
         private static int VisualColumn(SectorFormationPresentationState state)
@@ -706,7 +731,7 @@ namespace ProjectX.SectorBattle
             GameObject root = new GameObject("Sector Formation " + id, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image),
                 typeof(Outline), typeof(LayeredBattleUnitVisual), typeof(SectorFormationView)); root.transform.SetParent(field, false);
             Image image = root.GetComponent<Image>(); image.raycastTarget = true; image.preserveAspect = true;
-            Outline marker = root.GetComponent<Outline>(); marker.effectDistance = new Vector2(2f, -2f);
+            Outline marker = root.GetComponent<Outline>(); marker.enabled = false;
             image.rectTransform.anchorMin = image.rectTransform.anchorMax = new Vector2(.5f, .5f);
             formationViews[id] = image; return image;
         }
@@ -974,7 +999,15 @@ namespace ProjectX.SectorBattle
         }
 
         private static Material FindUnitMaterial()
-        { Material[] all = Resources.FindObjectsOfTypeAll<Material>(); for (int i = 0; i < all.Length; i++) if (all[i] != null && all[i].name == "New Material 1") return all[i]; return null; }
+        {
+            SectorBattleVisualSettings settings = Resources.Load<SectorBattleVisualSettings>("SectorBattleVisualSettings");
+            if (settings != null && settings.UnitMaterial != null) return settings.UnitMaterial;
+            Material[] all = Resources.FindObjectsOfTypeAll<Material>();
+            for (int i = 0; i < all.Length; i++)
+                if (all[i] != null && all[i].name == "New Material 1") return all[i];
+            Debug.LogError("Sector Battle could not load its unit material. Assign New Material 1 in Resources/SectorBattleVisualSettings.");
+            return null;
+        }
         private static Sprite GetMarkerSprite()
         {
             if (markerSprite == null) markerSprite = Resources.Load<Sprite>("Map/buttony_square_stale");

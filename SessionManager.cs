@@ -55,7 +55,8 @@ public class SessionManager : MonoBehaviour
         {
             item.GetComponent<CritterHolder>().modifierlist.Clear();
         }
-        ToolTipManager._instance.OnEnable();
+        if (ToolTipManager._instance != null)
+            ToolTipManager._instance.OnEnable();
     }
 
     public void ApplyNetworkFaction(string factionName)
